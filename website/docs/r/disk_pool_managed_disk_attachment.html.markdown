@@ -1,14 +1,14 @@
 ---
-subcategory: "Storage"
+subcategory: "Disks"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_storage_disks_pool_managed_disk_attachment"
+page_title: "Azure Resource Manager: azurerm_disk_pool_managed_disk_attachment"
 description: |-
-  Manages a Disks Pool Managed Disk Attachment.
+  Manages a Disk Pool Managed Disk Attachment.
 ---
 
-# azurerm_storage_disks_pool_managed_disk_attachment
+# azurerm_disk_pool_managed_disk_attachment
 
-Manages a Disks Pool Managed Disk Attachment.
+Manages a Disk Pool Managed Disk Attachment.
 
 ~> **Note:** Must be either a premium SSD, standard SSD, or an ultra disk in the same region and availability zone as the disk pool.
 
@@ -40,6 +40,7 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.0.0/24"]
   delegation {
     name = "diskspool"
+
     service_delegation {
       actions = ["Microsoft.Network/virtualNetworks/read"]
       name    = "Microsoft.StoragePool/diskPools"
@@ -47,12 +48,12 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-resource "azurerm_storage_disks_pool" "example" {
+resource "azurerm_disk_pool" "example" {
   name                = "example-pool"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   subnet_id           = azurerm_subnet.example.id
-  availability_zones  = ["1"]
+  zones               = ["1"]
   sku_name            = "Basic_B1"
 }
 
@@ -82,9 +83,9 @@ resource "azurerm_role_assignment" "example" {
   scope                = azurerm_managed_disk.example.id
 }
 
-resource "azurerm_storage_disks_pool_managed_disk_attachment" "example" {
+resource "azurerm_disk_pool_managed_disk_attachment" "example" {
   depends_on      = [azurerm_role_assignment.example]
-  disks_pool_id   = azurerm_storage_disks_pool.example.id
+  disk_pool_id    = azurerm_disk_pool.example.id
   managed_disk_id = azurerm_managed_disk.example.id
 }
 ```
@@ -93,7 +94,7 @@ resource "azurerm_storage_disks_pool_managed_disk_attachment" "example" {
 
 The following arguments are supported:
 
-* `disks_pool_id` - (Required) The ID of the Disks Pool. Changing this forces a new Disks Pool Managed Disk Attachment to be created.
+* `disk_pool_id` - (Required) The ID of the Disk Pool. Changing this forces a new Disk Pool Managed Disk Attachment to be created.
 
 * `managed_disk_id` - (Required) The ID of the Managed Disk. Changing this forces a new Disks Pool Managed Disk Attachment to be created.
 
@@ -101,7 +102,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Disks Pool Managed Disk Attachment.
+* `id` - The ID of the Disk Pool Managed Disk Attachment.
 
 ## Timeouts
 
@@ -116,5 +117,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Disks Pool Managed Disk Attachments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_disks_pool_managed_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1/managedDisks|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/disks/disk1
+terraform import azurerm_disk_pool_managed_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1/managedDisks|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/disks/disk1
 ```

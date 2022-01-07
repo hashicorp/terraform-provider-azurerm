@@ -1,4 +1,4 @@
-package parse
+package diskpools
 
 import (
 	"fmt"
@@ -10,25 +10,25 @@ import (
 
 const storageDiskPoolManagedDiskAttachmentIdSeparator = "/managedDisks|"
 
-var _ resourceid.Formatter = StorageDisksPoolManagedDiskAttachmentId{}
+var _ resourceid.Formatter = DiskPoolManagedDiskAttachmentId{}
 
-type StorageDisksPoolManagedDiskAttachmentId struct {
-	DisksPoolId   StorageDisksPoolId
+type DiskPoolManagedDiskAttachmentId struct {
+	DiskPoolId    DiskPoolId
 	ManagedDiskId computeParse.ManagedDiskId
 }
 
-func NewStorageDisksPoolManagedDiskAttachmentId(diskPoolId StorageDisksPoolId, managedDiskId computeParse.ManagedDiskId) StorageDisksPoolManagedDiskAttachmentId {
-	return StorageDisksPoolManagedDiskAttachmentId{
-		DisksPoolId:   diskPoolId,
+func NewDiskPoolManagedDiskAttachmentId(diskPoolId DiskPoolId, managedDiskId computeParse.ManagedDiskId) DiskPoolManagedDiskAttachmentId {
+	return DiskPoolManagedDiskAttachmentId{
+		DiskPoolId:    diskPoolId,
 		ManagedDiskId: managedDiskId,
 	}
 }
 
-func (d StorageDisksPoolManagedDiskAttachmentId) ID() string {
-	return fmt.Sprintf("%s%s%s", d.DisksPoolId.ID(), storageDiskPoolManagedDiskAttachmentIdSeparator, d.ManagedDiskId.ID())
+func (d DiskPoolManagedDiskAttachmentId) ID() string {
+	return fmt.Sprintf("%s%s%s", d.DiskPoolId.ID(), storageDiskPoolManagedDiskAttachmentIdSeparator, d.ManagedDiskId.ID())
 }
 
-func StorageDisksPoolManagedDiskAttachmentID(input string) (*StorageDisksPoolManagedDiskAttachmentId, error) {
+func DiskPoolManagedDiskAttachmentID(input string) (*DiskPoolManagedDiskAttachmentId, error) {
 	if !strings.Contains(input, storageDiskPoolManagedDiskAttachmentIdSeparator) {
 		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
 	}
@@ -37,7 +37,7 @@ func StorageDisksPoolManagedDiskAttachmentID(input string) (*StorageDisksPoolMan
 		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
 	}
 
-	poolId, err := StorageDisksPoolID(parts[0])
+	poolId, err := ParseDiskPoolID(parts[0])
 	if poolId == nil {
 		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
 	}
@@ -51,6 +51,6 @@ func StorageDisksPoolManagedDiskAttachmentID(input string) (*StorageDisksPoolMan
 	if err != nil {
 		return nil, fmt.Errorf("malformed disk id: %q, %v", diskId.ID(), err)
 	}
-	id := NewStorageDisksPoolManagedDiskAttachmentId(*poolId, *diskId)
+	id := NewDiskPoolManagedDiskAttachmentId(*poolId, *diskId)
 	return &id, nil
 }

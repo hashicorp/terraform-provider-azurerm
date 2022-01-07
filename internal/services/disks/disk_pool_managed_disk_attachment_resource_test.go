@@ -1,15 +1,15 @@
-package storage_test
+package disks_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -17,7 +17,7 @@ import (
 type DisksPoolManagedDiskAttachmentResource struct{}
 
 func TestAccStorageDisksPoolDiskAttachment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool_managed_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
 		{
@@ -30,8 +30,8 @@ func TestAccStorageDisksPoolDiskAttachment_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageDisksPoolDiskAttachment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool_managed_disk_attachment", "test")
+func TestAccDiskPoolDiskAttachment_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
 		{
@@ -40,15 +40,15 @@ func TestAccStorageDisksPoolDiskAttachment_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      a.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_storage_disks_pool_managed_disk_attachment"),
+			ExpectError: acceptance.RequiresImportError("azurerm_disk_pool_managed_disk_attachment"),
 		},
 	})
 }
 
 func TestAccStorageDisksPoolDiskAttachment_multipleDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool_managed_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
-	secondResourceName := "azurerm_storage_disks_pool_managed_disk_attachment.second"
+	secondResourceName := "azurerm_disk_pool_managed_disk_attachment.second"
 	data.ResourceTest(t, a, []acceptance.TestStep{
 		{
 			Config: a.multipleDisks(data),
@@ -65,15 +65,11 @@ func TestAccStorageDisksPoolDiskAttachment_multipleDisks(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// {
-		// 	Config: a.template(data),
-		// },
-		// data.ImportStep(),
 	})
 }
 
 func TestAccStorageDisksPoolDiskAttachment_destroy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool_managed_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -84,26 +80,26 @@ func TestAccStorageDisksPoolDiskAttachment_destroy(t *testing.T) {
 }
 
 func (a DisksPoolManagedDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageDisksPoolManagedDiskAttachmentID(state.ID)
+	id, err := diskpools.DiskPoolManagedDiskAttachmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	poolId := id.DisksPoolId
+	poolId := id.DiskPoolId
 	diskId := id.ManagedDiskId
-	client := clients.Storage.DisksPoolsClient
-	resp, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
+	client := clients.Disks.DiskPoolsClient
+	resp, err := client.Get(ctx, poolId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	targetDiskId := diskId.ID()
-	if resp.DiskPoolProperties == nil || resp.DiskPoolProperties.Disks == nil {
+	if resp.Model == nil || resp.Model.Properties.Disks == nil {
 		return utils.Bool(false), nil
 	}
-	for _, disk := range *resp.DiskPoolProperties.Disks {
-		if disk.ID != nil && *disk.ID == targetDiskId {
+	for _, disk := range *resp.Model.Properties.Disks {
+		if disk.Id == targetDiskId {
 			return utils.Bool(true), nil
 		}
 	}
@@ -111,36 +107,33 @@ func (a DisksPoolManagedDiskAttachmentResource) Exists(ctx context.Context, clie
 }
 
 func (a DisksPoolManagedDiskAttachmentResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageDisksPoolManagedDiskAttachmentID(state.ID)
+	id, err := diskpools.DiskPoolManagedDiskAttachmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Storage.DisksPoolsClient
-	pool, err := client.Get(ctx, id.DisksPoolId.ResourceGroup, id.DisksPoolId.DiskPoolName)
+	client := clients.Disks.DiskPoolsClient
+	pool, err := client.Get(ctx, id.DiskPoolId)
 	if err != nil {
 		return nil, err
 	}
-	if pool.Disks == nil {
+	if pool.Model == nil || pool.Model.Properties.Disks == nil {
 		return nil, err
 	}
-	attachedDisks := *pool.Disks
-	remainingDisks := make([]storagepool.Disk, 0)
-	for _, attachedDisk := range attachedDisks {
-		if utils.NormalizeNilableString(attachedDisk.ID) != id.ManagedDiskId.ID() {
+	attachedDisks := pool.Model.Properties.Disks
+	remainingDisks := make([]diskpools.Disk, 0)
+	for _, attachedDisk := range *attachedDisks {
+		if attachedDisk.Id != id.ManagedDiskId.ID() {
 			remainingDisks = append(remainingDisks, attachedDisk)
 		}
 	}
 
-	future, err := client.Update(ctx, id.DisksPoolId.ResourceGroup, id.DisksPoolId.DiskPoolName, storagepool.DiskPoolUpdate{
-		DiskPoolUpdateProperties: &storagepool.DiskPoolUpdateProperties{
+	err = client.UpdateThenPoll(ctx, id.DiskPoolId, diskpools.DiskPoolUpdate{
+		Properties: diskpools.DiskPoolUpdateProperties{
 			Disks: &remainingDisks,
 		},
 	})
 	if err != nil {
-		return nil, err
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return nil, err
 	}
 	return utils.Bool(true), nil
@@ -149,9 +142,9 @@ func (a DisksPoolManagedDiskAttachmentResource) Destroy(ctx context.Context, cli
 func (a DisksPoolManagedDiskAttachmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_storage_disks_pool_managed_disk_attachment" "test" {
+resource "azurerm_disk_pool_managed_disk_attachment" "test" {
   depends_on      = [azurerm_role_assignment.test]
-  disks_pool_id   = azurerm_storage_disks_pool.test.id
+  disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test.id
 }
 `, a.template(data))
@@ -165,7 +158,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-diskspool-%[2]d"
+  name     = "acctestRG-diskpool-%[2]d"
   location = "%[1]s"
 }
 
@@ -191,7 +184,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctest-diskspool-%[2]d"
+  name                 = "acctest-diskpool-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   create_option        = "Empty"
@@ -216,11 +209,11 @@ resource "azurerm_role_assignment" "test" {
   scope                = azurerm_managed_disk.test.id
 }
 
-resource "azurerm_storage_disks_pool" "test" {
-  name                = "acctest-diskspool-%[3]s"
+resource "azurerm_disk_pool" "test" {
+  name                = "acctest-diskpool-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  availability_zones  = ["1"]
+  zones               = ["1"]
   sku_name            = "Basic_B1"
   subnet_id           = azurerm_subnet.test.id
   tags = {
@@ -234,8 +227,8 @@ func (a DisksPoolManagedDiskAttachmentResource) requiresImport(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_disks_pool_managed_disk_attachment" "import" {
-  disks_pool_id   = azurerm_storage_disks_pool.test.id
+resource "azurerm_disk_pool_managed_disk_attachment" "import" {
+  disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test.id
 }
 `, a.basic(data))
@@ -263,9 +256,9 @@ resource "azurerm_role_assignment" "second" {
   scope                = azurerm_managed_disk.second.id
 }
 
-resource "azurerm_storage_disks_pool_managed_disk_attachment" "second" {
+resource "azurerm_disk_pool_managed_disk_attachment" "second" {
   depends_on      = [azurerm_role_assignment.second]
-  disks_pool_id   = azurerm_storage_disks_pool.test.id
+  disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.second.id
 }
 `, a.basic(data), data.RandomInteger)

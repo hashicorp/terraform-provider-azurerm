@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestStorageDisksPoolManagedDiskAttachmentID(t *testing.T) {
+func TestDiskPoolManagedDiskAttachmentID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -123,7 +123,7 @@ func TestStorageDisksPoolManagedDiskAttachmentID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := StorageDisksPoolManagedDiskAttachment(tc.Input, "test")
+		_, errors := DiskPoolManagedDiskAttachment(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
