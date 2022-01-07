@@ -379,7 +379,7 @@ func TestAccWindowsWebAppSlot_appSettings(t *testing.T) {
 	})
 }
 
-// Atrtibutes
+// Attributes
 
 func TestAccWindowsWebAppSlot_loadBalancing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")

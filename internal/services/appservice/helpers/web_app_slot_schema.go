@@ -1005,14 +1005,15 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		siteConfig.WorkerCount = int(*appSiteSlotConfig.NumberOfWorkers)
 	}
 
-	var winAppStack ApplicationStackWindows
-	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteSlotConfig.NetFrameworkVersion)
-	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteSlotConfig.PhpVersion)
-	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteSlotConfig.NodeVersion)
-	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteSlotConfig.PythonVersion)
-	winAppStack.JavaVersion = utils.NormalizeNilableString(appSiteSlotConfig.JavaVersion)
-	winAppStack.JavaContainer = utils.NormalizeNilableString(appSiteSlotConfig.JavaContainer)
-	winAppStack.JavaContainerVersion = utils.NormalizeNilableString(appSiteSlotConfig.JavaContainerVersion)
+	winAppStack := ApplicationStackWindows{
+		NetFrameworkVersion:  utils.NormalizeNilableString(appSiteSlotConfig.NetFrameworkVersion),
+		PhpVersion:           utils.NormalizeNilableString(appSiteSlotConfig.PhpVersion),
+		NodeVersion:          utils.NormalizeNilableString(appSiteSlotConfig.NodeVersion),
+		PythonVersion:        utils.NormalizeNilableString(appSiteSlotConfig.PythonVersion),
+		JavaVersion:          utils.NormalizeNilableString(appSiteSlotConfig.JavaVersion),
+		JavaContainer:        utils.NormalizeNilableString(appSiteSlotConfig.JavaContainer),
+		JavaContainerVersion: utils.NormalizeNilableString(appSiteSlotConfig.JavaContainerVersion),
+	}
 
 	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteSlotConfig.WindowsFxVersion)
 	if siteConfig.WindowsFxVersion != "" {
