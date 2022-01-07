@@ -16,7 +16,7 @@ import (
 
 type DisksPoolManagedDiskAttachmentResource struct{}
 
-func TestAccStorageDisksPoolDiskAttachment_basic(t *testing.T) {
+func TestAccDiskPoolDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestAccDiskPoolDiskAttachment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageDisksPoolDiskAttachment_multipleDisks(t *testing.T) {
+func TestAccDiskPoolDiskAttachment_multipleDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	secondResourceName := "azurerm_disk_pool_managed_disk_attachment.second"
@@ -68,7 +68,7 @@ func TestAccStorageDisksPoolDiskAttachment_multipleDisks(t *testing.T) {
 	})
 }
 
-func TestAccStorageDisksPoolDiskAttachment_destroy(t *testing.T) {
+func TestAccDiskPoolDiskAttachment_destroy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
