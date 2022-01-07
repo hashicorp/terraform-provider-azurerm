@@ -248,15 +248,12 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_id      = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_subscription" "test" {
   name                = "_acctestservicebussubscription-%d_"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  topic_id          = azurerm_servicebus_topic.test.id
   max_delivery_count  = 10
 	%s
 }
@@ -306,11 +303,9 @@ func (r ServiceBusSubscriptionResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_servicebus_subscription" "import" {
-  name                = azurerm_servicebus_subscription.test.name
-  namespace_name      = azurerm_servicebus_subscription.test.namespace_name
-  topic_name          = azurerm_servicebus_subscription.test.topic_name
-  resource_group_name = azurerm_servicebus_subscription.test.resource_group_name
-  max_delivery_count  = azurerm_servicebus_subscription.test.max_delivery_count
+  name               = azurerm_servicebus_subscription.test.name
+  topic_id           = azurerm_servicebus_subscription.test.topic_id
+  max_delivery_count = azurerm_servicebus_subscription.test.max_delivery_count
 }
 `, r.basic(data))
 }
@@ -336,8 +331,7 @@ func (ServiceBusSubscriptionResource) updateForwardTo(data acceptance.TestData) 
 
 resource "azurerm_servicebus_topic" "forward_to" {
   name                = "acctestservicebustopic-forward_to-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_id      = azurerm_servicebus_namespace.test.id
 }
 
 
@@ -352,8 +346,7 @@ func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data a
 
 resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
   name                = "acctestservicebustopic-forward_dl_messages_to-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_id      = azurerm_servicebus_namespace.test.id
 }
 
 
