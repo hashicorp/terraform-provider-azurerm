@@ -37,6 +37,27 @@ func TestAccAutomationDscConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccAutomationDscConfiguration_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
+	r := AutomationDscConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("description").HasValue("test"),
+				check.That(data.ResourceName).Key("log_verbose").Exists(),
+				check.That(data.ResourceName).Key("state").Exists(),
+				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAutomationDscConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	r := AutomationDscConfigurationResource{}
@@ -91,7 +112,7 @@ resource "azurerm_automation_dsc_configuration" "test" {
   location                = azurerm_resource_group.test.location
   content_embedded        = "configuration acctest {}"
   description             = "test"
-  log_verbose             = "true"
+
   tags = {
     ENV = "prod"
   }
@@ -113,4 +134,37 @@ resource "azurerm_automation_dsc_configuration" "import" {
   description             = azurerm_automation_dsc_configuration.test.description
 }
 `, template)
+}
+
+func (AutomationDscConfigurationResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_dsc_configuration" "test" {
+  name                    = "acctest"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
+  content_embedded        = "configuration acctest {}"
+  description             = "test"
+  log_verbose             = "true"
+  tags = {
+    ENV = "prod"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
