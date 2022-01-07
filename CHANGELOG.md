@@ -34,13 +34,20 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - support for the `geo_redundant_backup_enabled` property [GH-14661]
 * `azurerm_recovery_services_vault` - support for the `storage_mode_type` property [GH-14659]
 * `azurerm_spring_cloud_certificate` - support for the `certificate_content` property [GH-14689]
+* `azurerm_servicebus_namespace_authorization_rule` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property [GH-14784]
+* `azurerm_servicebus_namespace_network_rule_set` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property [GH-14784]
+* `azurerm_servicebus_namespace_authorization_rule` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property [GH-14784]
+* `azurerm_servicebus_queue` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property [GH-14784]
+* `azurerm_servicebus_queue_authorization_rule` - the `resource_group_name`, `namespace_name`, and `queue_name` properties have been deprecated in favour of the `queue_id` property [GH-14784]
+* `azurerm_servicebus_subscription` - the `resource_group_name`, `namespace_name`, and `topic_name` properties have been deprecated in favour of the `topic_id` property [GH-14784]
+* `azurerm_servicebus_subscription_rule` - the `resource_group_name`, `namespace_name`, `topic_name`, and `subscription_name` properties have been deprecated in favour of the `subscription_id` property [GH-14784]
+* `azurerm_servicebus_topic` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property [GH-14784]
+* `azurerm_servicebus_topic_authorization_rule` - the `resource_group_name`, `namespace_name`, and `topic_name` properties have been deprecated in favour of the `topic_id` property [GH-14784]
 * `azurerm_shared_image_version` - images can now be sorted by semver [GH-14708]
 * `azurerm_virtual_network_gateway_connection` - support for the `connection_mode` property [GH-14738]
 * `azurerm_web_application_firewall_policy` - `file_upload_limit_in_mb` within the `policy_settings` block can now be set to 4000 [GH-14715]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
-
-
 
 BUG FIXES:
 
