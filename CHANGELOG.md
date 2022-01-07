@@ -1,3 +1,9 @@
+## 2.92.0 (Unreleased)
+
+FEATURES:
+
+* `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release [GH-14628]
+
 ## 2.91.0 (January 07, 2022)
 
 FEATURES:
