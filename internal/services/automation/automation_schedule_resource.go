@@ -219,8 +219,8 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_schedule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
 		}
 	}
 

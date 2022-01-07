@@ -406,11 +406,7 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			id, err := parse.VirtualNetworkGatewayID(*existing.ID)
-			if err != nil {
-				return err
-			}
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
 		}
 	}

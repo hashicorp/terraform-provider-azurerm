@@ -555,6 +555,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"private_endpoint_connection": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -1625,6 +1630,10 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	if v, ok := d.GetOk("fips_enabled"); ok {
+		gateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOk("force_firewall_policy_association"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.ForceFirewallPolicyAssociation = utils.Bool(v.(bool))
 	}
@@ -1777,6 +1786,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		d.Set("enable_http2", props.EnableHTTP2)
+		d.Set("fips_enabled", props.EnableFips)
 		d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)

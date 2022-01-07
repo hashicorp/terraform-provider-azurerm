@@ -72,7 +72,7 @@ func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_twitter", *existing.ID)
 		}
 	}
