@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
+	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -369,6 +371,35 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: eventHubValidation.EventhubID,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"tags": tags.Schema(),
 		},
 	}
@@ -409,6 +440,12 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
+	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
+
+	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, eventHubReceiversRaw)
+	if err != nil {
+		return err
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -428,6 +465,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
+			EventHubReceivers:          expandedEventHubReceiver,
 		},
 		Tags: expandedTags,
 	}
@@ -504,6 +542,9 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
+		}
+		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(id.ResourceGroup, group.EventHubReceivers)); err != nil {
+			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -686,6 +727,34 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleRe
 		receivers = append(receivers, receiver)
 	}
 	return &receivers
+}
+
+func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
+	receivers := make([]insights.EventHubReceiver, 0)
+	for _, receiverValue := range v {
+		val := receiverValue.(map[string]interface{})
+
+		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+
+		if err != nil {
+			return nil, err
+		}
+
+		receiver := insights.EventHubReceiver{
+			Name:                 utils.String(val["name"].(string)),
+			EventHubNameSpace:    &eventHubId.NamespaceName,
+			EventHubName:         &eventHubId.Name,
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+		}
+		if v := val["tenant_id"].(string); v != "" {
+			receiver.TenantID = utils.String(v)
+		} else {
+			receiver.TenantID = utils.String(tenantId)
+		}
+		receiver.SubscriptionID = &eventHubId.SubscriptionId
+		receivers = append(receivers, receiver)
+	}
+	return &receivers, nil
 }
 
 func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []interface{} {
@@ -938,6 +1007,33 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]insights.ArmRoleReceiver
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+			result = append(result, val)
+		}
+	}
+	return result
+}
+
+func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *[]insights.EventHubReceiver) []interface{} {
+	result := make([]interface{}, 0)
+	if receivers != nil {
+		for _, receiver := range *receivers {
+			val := make(map[string]interface{})
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.EventHubNameSpace != nil && receiver.EventHubName != nil && receiver.SubscriptionID != nil {
+				event_hub_namespace := *receiver.EventHubNameSpace
+				event_hub_name := *receiver.EventHubName
+				subscription_id := *receiver.SubscriptionID
+
+				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
+			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+			if receiver.TenantID != nil {
+				val["tenant_id"] = *receiver.TenantID
 			}
 			result = append(result, val)
 		}
