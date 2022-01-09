@@ -4,6 +4,10 @@ FEATURES:
 
 * `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release [GH-14628]
 
+ENHANCEMENTS:
+
+* `azurerm_monitor_action_group` - support for the `event_hub_receiver` block [GH-14771]
+
 ## 2.91.0 (January 07, 2022)
 
 FEATURES:
