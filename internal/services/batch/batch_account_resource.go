@@ -438,7 +438,7 @@ func expandEncryption(e []interface{}) *batch.EncryptionProperties {
 		KeySource: batch.KeySourceMicrosoftBatch,
 	}
 
-	if e == nil || len(e) == 0 || e[0] == nil {
+	if len(e) == 0 || e[0] == nil {
 		return &defaultEnc
 	}
 
