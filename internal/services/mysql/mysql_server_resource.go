@@ -239,7 +239,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
-					validation.IntBetween(5120, 4194304),
+					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
 				),
 			},
@@ -293,7 +293,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							ConflictsWith: []string{"storage_mb"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
+								validation.IntBetween(5120, 16777216),
 								validation.IntDivisibleBy(1024),
 							),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},

@@ -207,7 +207,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
 	}
 

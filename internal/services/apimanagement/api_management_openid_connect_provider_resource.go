@@ -92,8 +92,8 @@ func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *pluginsdk.Resourc
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_openid_connect_provider", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_openid_connect_provider", id.ID())
 		}
 	}
 

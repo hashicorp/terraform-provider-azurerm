@@ -75,7 +75,29 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the custom domain. Changing this forces a new CDN Endpoint Custom Domain to be created.
 
-~> **Note:** At this time only HTTP Custom Domains are supported.
+* `cdn_managed_https` (Optional) - A `cdn_managed_https` block as defined below. 
+
+* `user_managed_https` (Optional) - A `user_managed_https` block as defined below.
+
+~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
+
+---
+
+A `cdn_managed_https` block supports the following:
+
+* `certificate_type` - (Required) The type of HTTPS certificate. Possible values are `Shared` and `Dedicated`.
+ 
+* `protocol_type` - (Required) The type of protocol. Possible values are `ServerNameIndication` and `IPBased`.
+
+* `tls_version` - (Optional) The TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1) and `TLS12` (representing TLS 1.2). Defaults to `TLS12`.
+
+---
+
+A `user_managed_https` block supports the following:
+
+* `key_vault_certificate_id` - (Required) The ID of the Key Vault Certificate that contains the HTTPS certificate.
+ 
+* `tls_version` - (Optional) The TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1) and `TLS12` (representing TLS 1.2). Defaults to `TLS12`.
 
 ## Attributes Reference
 
@@ -88,9 +110,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Custom Domain for this CDN Endpoint.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Domain for this CDN Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Domain for this CDN Endpoint.
+* `create` - (Defaults to 12 hours) Used when creating the Custom Domain for this CDN Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint Custom Domain.
+* `update` - (Defaults to 24 hours) Used when updating the CDN Endpoint Custom Domain.
+* `delete` - (Defaults to 12 hours) Used when deleting the CDN Endpoint Custom Domain.
 
 ## Import
 

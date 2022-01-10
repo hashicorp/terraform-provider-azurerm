@@ -210,15 +210,15 @@ func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen
 	rights := make([]notificationhubs.AccessRights, 0)
 
 	if manage {
-		rights = append(rights, notificationhubs.Manage)
+		rights = append(rights, notificationhubs.AccessRightsManage)
 	}
 
 	if send {
-		rights = append(rights, notificationhubs.SendEnumValue)
+		rights = append(rights, notificationhubs.AccessRightsSend)
 	}
 
 	if listen {
-		rights = append(rights, notificationhubs.Listen)
+		rights = append(rights, notificationhubs.AccessRightsListen)
 	}
 
 	return &rights
@@ -231,13 +231,13 @@ func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.Acc
 
 	for _, right := range *input {
 		switch right {
-		case notificationhubs.Manage:
+		case notificationhubs.AccessRightsManage:
 			manage = true
 			continue
-		case notificationhubs.SendEnumValue:
+		case notificationhubs.AccessRightsSend:
 			send = true
 			continue
-		case notificationhubs.Listen:
+		case notificationhubs.AccessRightsListen:
 			listen = true
 			continue
 		}

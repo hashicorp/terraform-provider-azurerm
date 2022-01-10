@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -272,7 +273,13 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 
 	result, err := client.Get(ctx, rid.ResourceGroup, rid.StorageAccountName)
 	if err != nil {
-		return err
+		if utils.ResponseWasNotFound(result.Response) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", rid)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", rid, err)
 	}
 
 	storageAccountID := parse.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
@@ -300,8 +307,8 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
-		return err
+	if _, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
 }

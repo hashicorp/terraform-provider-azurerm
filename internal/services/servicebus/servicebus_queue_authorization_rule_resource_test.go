@@ -43,8 +43,7 @@ func testAccServiceBusQueueAuthorizationRule(t *testing.T, listen, send, manage 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("namespace_name").Exists(),
-				check.That(data.ResourceName).Key("queue_name").Exists(),
+				check.That(data.ResourceName).Key("queue_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -169,18 +168,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = %[3]t
   send   = %[4]t
@@ -194,10 +190,8 @@ func (r ServiceBusQueueAuthorizationRuleResource) requiresImport(data acceptance
 %s
 
 resource "azurerm_servicebus_queue_authorization_rule" "import" {
-  name                = azurerm_servicebus_queue_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_queue_authorization_rule.test.namespace_name
-  queue_name          = azurerm_servicebus_queue_authorization_rule.test.queue_name
-  resource_group_name = azurerm_servicebus_queue_authorization_rule.test.resource_group_name
+  name     = azurerm_servicebus_queue_authorization_rule.test.name
+  queue_id = azurerm_servicebus_queue_authorization_rule.test.queue_id
 
   listen = azurerm_servicebus_queue_authorization_rule.test.listen
   send   = azurerm_servicebus_queue_authorization_rule.test.send
@@ -231,9 +225,8 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
 }
 
 resource "azurerm_servicebus_queue" "example" {
-  name                = "queue-test"
-  resource_group_name = azurerm_resource_group.primary.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  name         = "queue-test"
+  namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
 }
 
 resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
@@ -251,13 +244,11 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "example_queue_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  queue_name          = azurerm_servicebus_queue.example.name
-  resource_group_name = azurerm_resource_group.primary.name
-  manage              = true
-  listen              = true
-  send                = true
+  name     = "example_queue_rule"
+  queue_id = azurerm_servicebus_queue.example.id
+  manage   = true
+  listen   = true
+  send     = true
 
   depends_on = [
     azurerm_servicebus_namespace_disaster_recovery_config.pairing_test

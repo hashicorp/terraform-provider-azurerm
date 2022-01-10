@@ -10,47 +10,47 @@ package notificationhubs
 type AccessRights string
 
 const (
-	// Listen ...
-	Listen AccessRights = "Listen"
-	// Manage ...
-	Manage AccessRights = "Manage"
-	// SendEnumValue ...
-	SendEnumValue AccessRights = "Send"
+	// AccessRightsListen ...
+	AccessRightsListen AccessRights = "Listen"
+	// AccessRightsManage ...
+	AccessRightsManage AccessRights = "Manage"
+	// AccessRightsSend ...
+	AccessRightsSend AccessRights = "Send"
 )
 
 // PossibleAccessRightsValues returns an array of possible values for the AccessRights const type.
 func PossibleAccessRightsValues() []AccessRights {
-	return []AccessRights{Listen, Manage, SendEnumValue}
+	return []AccessRights{AccessRightsListen, AccessRightsManage, AccessRightsSend}
 }
 
 // NamespaceType enumerates the values for namespace type.
 type NamespaceType string
 
 const (
-	// Messaging ...
-	Messaging NamespaceType = "Messaging"
-	// NotificationHub ...
-	NotificationHub NamespaceType = "NotificationHub"
+	// NamespaceTypeMessaging ...
+	NamespaceTypeMessaging NamespaceType = "Messaging"
+	// NamespaceTypeNotificationHub ...
+	NamespaceTypeNotificationHub NamespaceType = "NotificationHub"
 )
 
 // PossibleNamespaceTypeValues returns an array of possible values for the NamespaceType const type.
 func PossibleNamespaceTypeValues() []NamespaceType {
-	return []NamespaceType{Messaging, NotificationHub}
+	return []NamespaceType{NamespaceTypeMessaging, NamespaceTypeNotificationHub}
 }
 
 // SkuName enumerates the values for sku name.
 type SkuName string
 
 const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Free ...
-	Free SkuName = "Free"
-	// Standard ...
-	Standard SkuName = "Standard"
+	// SkuNameBasic ...
+	SkuNameBasic SkuName = "Basic"
+	// SkuNameFree ...
+	SkuNameFree SkuName = "Free"
+	// SkuNameStandard ...
+	SkuNameStandard SkuName = "Standard"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Free, Standard}
+	return []SkuName{SkuNameBasic, SkuNameFree, SkuNameStandard}
 }
