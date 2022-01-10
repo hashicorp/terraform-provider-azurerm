@@ -8,6 +8,11 @@ ENHANCEMENTS:
 
 * `azurerm_monitor_action_group` - support for the `event_hub_receiver` block [GH-14771]
 
+BUG FIXES:
+
+* `azurem_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
+
+
 ## 2.91.0 (January 07, 2022)
 
 FEATURES:
