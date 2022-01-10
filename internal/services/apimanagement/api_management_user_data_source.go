@@ -73,7 +73,7 @@ func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("making read request %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if props := resp.UserContractProperties; props != nil {
 		d.Set("first_name", props.FirstName)

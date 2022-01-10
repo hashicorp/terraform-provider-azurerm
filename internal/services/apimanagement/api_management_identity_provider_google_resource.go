@@ -62,7 +62,6 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 	defer cancel()
 
 	id := parse.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), string(apimanagement.IdentityProviderTypeGoogle))
-
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 
