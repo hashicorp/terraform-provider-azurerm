@@ -33,7 +33,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
-			
+
 			"tags": tags.SchemaDataSource(),
 
 			"address_space": {
@@ -121,9 +121,9 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `vnet_peerings`: %v", err)
 		}
 	}
-	
+
 	return tags.FlattenAndSet(d, resp.Tags)
-	
+
 	return nil
 }
 
