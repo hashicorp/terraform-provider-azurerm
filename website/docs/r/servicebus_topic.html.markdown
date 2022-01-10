@@ -32,9 +32,8 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_topic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
@@ -47,11 +46,8 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the ServiceBus Topic resource. Changing this forces a
     new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create
     this topic in. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
 
 * `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
 

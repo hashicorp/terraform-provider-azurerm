@@ -37,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
@@ -117,6 +118,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		consumption.Registration{},
 		containers.Registration{},
 		costmanagement.Registration{},
+		disks.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
 		loadtest.Registration{},
@@ -125,7 +127,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		resource.Registration{},
 		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
-		storage.Registration{},
 		streamanalytics.Registration{},
 		web.Registration{},
 	}

@@ -46,14 +46,37 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: azValidate.TopicName(),
 			},
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azValidate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"namespace_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azValidate.NamespaceID,
+				ConflictsWith: []string{"namespace_name", "resource_group_name"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Remove in favor of namespace_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azValidate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of namespace_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
+			},
 
 			"status": {
 				Type:     pluginsdk.TypeString,
@@ -147,7 +170,15 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	supportOrdering := d.Get("support_ordering").(bool)
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceId := parse.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+
+	var resourceId parse.TopicId
+	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
+		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
+		resourceId = parse.NewTopicID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
+	} else {
+		resourceId = parse.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
 		if err != nil {
@@ -231,6 +262,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("name", id.Name)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if props := resp.SBTopicProperties; props != nil {
 		d.Set("status", string(props.Status))

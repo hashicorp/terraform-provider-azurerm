@@ -107,8 +107,8 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_product", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
 		}
 	}
 	publishedVal := apimanagement.ProductStateNotPublished

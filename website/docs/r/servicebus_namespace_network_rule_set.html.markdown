@@ -49,8 +49,7 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_servicebus_namespace_network_rule_set" "example" {
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   default_action = "Deny"
 
@@ -67,9 +66,7 @@ resource "azurerm_servicebus_namespace_network_rule_set" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace Network Rule Set should exist. Changing this forces a new resource to be created.
-
-* `namespace_name` - (Required) Specifies the ServiceBus Namespace name to which to attach the ServiceBus Namespace Network Rule Set. Changing this forces a new resource to be created.
+* `namespace_id` - (Required) Specifies the ServiceBus Namespace ID to which to attach the ServiceBus Namespace Network Rule Set. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The ServiceBus Namespace must be `Premium` in order to attach a ServiceBus Namespace Network Rule Set.
 

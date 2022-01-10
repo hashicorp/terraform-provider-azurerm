@@ -33,6 +33,7 @@ func TestAccDataSourceMonitorActionGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_function_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("0"),
+				check.That(data.ResourceName).Key("event_hub_receiver.#").HasValue("0"),
 			),
 		},
 	})
@@ -59,6 +60,7 @@ func TestAccDataSourceMonitorActionGroup_disabledBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_function_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("0"),
+				check.That(data.ResourceName).Key("event_hub_receiver.#").HasValue("0"),
 			),
 		},
 	})
@@ -128,6 +130,7 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("arm_role_receiver.0.role_id").HasValue("43d0d8ad-25c7-4714-9337-8ba259a9fe05"),
 				check.That(data.ResourceName).Key("arm_role_receiver.0.use_common_alert_schema").HasValue("false"),
+				check.That(data.ResourceName).Key("event_hub_receiver.0.name").HasValue("eventhub-test-action"),
 			),
 		},
 	})
@@ -290,6 +293,11 @@ resource "azurerm_monitor_action_group" "test" {
     role_id                 = "43d0d8ad-25c7-4714-9337-8ba259a9fe05"
     use_common_alert_schema = false
   }
+
+  event_hub_receiver {
+    name         = "eventhub-test-action"
+    event_hub_id = azurerm_eventhub.test.id
+  }
 }
 
 resource "azurerm_automation_account" "test" {
@@ -367,9 +375,25 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acceptanceTestEventHubNamespace-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
 data "azurerm_monitor_action_group" "test" {
   name                = azurerm_monitor_action_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, aaWebhookResourceID, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, aaWebhookResourceID, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }

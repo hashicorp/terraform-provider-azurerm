@@ -89,6 +89,8 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"security_profile": SchemaHDInsightsSecurityProfile(),
 
 			"storage_account": SchemaHDInsightsStorageAccounts(),
@@ -162,6 +164,9 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	hbaseRoles := hdInsightRoleDefinition{
 		HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
 		WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
@@ -191,6 +196,7 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("HBase"),
 				ComponentVersion: componentVersions,
@@ -310,6 +316,12 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
+		}
+
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
+			}
 		}
 
 		hbaseRoles := hdInsightRoleDefinition{
