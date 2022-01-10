@@ -305,7 +305,7 @@ resource "azurerm_virtual_network" "test" {
 }
 func TestVirtualNetworkResource_tagCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-	r := StorageAccountResource{}
+	r := VirtualNetworkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
