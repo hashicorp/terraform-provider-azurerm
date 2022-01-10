@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

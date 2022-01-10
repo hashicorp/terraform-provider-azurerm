@@ -65,10 +65,10 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProductPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), "")
+	id := parse.NewProductPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), string(apimanagement.PolicyExportFormatXML))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, apimanagement.PolicyExportFormatXML)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, apimanagement.PolicyExportFormat(id.PolicyName))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
