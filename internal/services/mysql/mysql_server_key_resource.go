@@ -105,7 +105,7 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("missing ID for existing MySQL Server Key")
 			}
 
-			id, err := parse.ServerID(*keys[0].ID)
+			id, err := parse.KeyID(*keys[0].ID)
 			if err != nil {
 				return err
 			}
