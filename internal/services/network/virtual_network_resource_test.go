@@ -303,7 +303,20 @@ resource "azurerm_virtual_network" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+func TestVirtualNetworkResource_tagCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := StorageAccountResource{}
 
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tagCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 func (r VirtualNetworkResource) tagCount(data acceptance.TestData) string {
 	tags := ""
 	for i := 0; i < 50; i++ {
