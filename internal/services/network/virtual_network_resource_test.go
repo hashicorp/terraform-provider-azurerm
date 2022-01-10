@@ -347,7 +347,7 @@ resource "azurerm_virtual_network" "test" {
                                     %s
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tags)
 }
 
 func (VirtualNetworkResource) complete(data acceptance.TestData) string {
