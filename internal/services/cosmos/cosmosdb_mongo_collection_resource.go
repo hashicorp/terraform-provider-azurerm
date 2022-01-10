@@ -3,6 +3,7 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
@@ -27,8 +28,10 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 		Update: resourceCosmosDbMongoCollectionUpdate,
 		Delete: resourceCosmosDbMongoCollectionDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MongodbCollectionID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -166,11 +169,16 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		ttl = utils.Int(v)
 	}
 
+	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
+	if !hasIdKey {
+		return fmt.Errorf("index with '_id' key is required")
+	}
+
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
-				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl),
+				Indexes: indexes,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -239,11 +247,16 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 		ttl = utils.Int(v)
 	}
 
+	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
+	if !hasIdKey {
+		return fmt.Errorf("index with '_id' key is required")
+	}
+
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &id.CollectionName,
-				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl),
+				Indexes: indexes,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -397,12 +410,21 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
+func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]documentdb.MongoIndex, bool) {
 	results := make([]documentdb.MongoIndex, 0)
+
+	hasIdKey := false
 
 	if len(indexes) != 0 {
 		for _, v := range indexes {
 			index := v.(map[string]interface{})
+			keys := index["keys"].([]interface{})
+
+			for _, key := range keys {
+				if strings.EqualFold("_id", key.(string)) {
+					hasIdKey = true
+				}
+			}
 
 			results = append(results, documentdb.MongoIndex{
 				Key: &documentdb.MongoIndexKeys{
@@ -426,7 +448,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 		})
 	}
 
-	return &results
+	return &results, hasIdKey
 }
 
 func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
