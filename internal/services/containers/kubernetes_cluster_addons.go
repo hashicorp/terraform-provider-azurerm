@@ -52,7 +52,8 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
-	if features.ThreePointOh() {
+	// TODO 3.0 - Remove this block
+	if !features.ThreePointOh() {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -66,6 +67,11 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+
 								"subnet_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
@@ -75,16 +81,32 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						},
 					},
 
-					"azure_policy_enabled": {
-						Type:     pluginsdk.TypeBool,
+					"azure_policy": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
 						Optional: true,
-						Default:  false,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+							},
+						},
 					},
 
-					"kube_dashboard_enabled": {
-						Type:     pluginsdk.TypeBool,
+					"kube_dashboard": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
 						Optional: true,
-						Default:  false,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+							},
+						},
 					},
 
 					"http_application_routing": {
@@ -93,6 +115,10 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
 								"http_application_routing_zone_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
@@ -107,6 +133,10 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
 								"log_analytics_workspace_id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
@@ -142,11 +172,18 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
 								"gateway_id": {
-									Type:          pluginsdk.TypeString,
-									Optional:      true,
-									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-									ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ConflictsWith: []string{
+										"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+										"addon_profile.0.ingress_application_gateway.0.subnet_id",
+									},
+									ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
 								},
 								"gateway_name": {
 									Type:         pluginsdk.TypeString,
@@ -154,16 +191,22 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"subnet_cidr": {
-									Type:          pluginsdk.TypeString,
-									Optional:      true,
-									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-									ValidateFunc:  commonValidate.CIDR,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ConflictsWith: []string{
+										"addon_profile.0.ingress_application_gateway.0.gateway_id",
+										"addon_profile.0.ingress_application_gateway.0.subnet_id",
+									},
+									ValidateFunc: commonValidate.CIDR,
 								},
 								"subnet_id": {
-									Type:          pluginsdk.TypeString,
-									Optional:      true,
-									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
-									ValidateFunc:  subnetValidate.SubnetID,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ConflictsWith: []string{
+										"addon_profile.0.ingress_application_gateway.0.gateway_id",
+										"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+									},
+									ValidateFunc: subnetValidate.SubnetID,
 								},
 								"effective_gateway_id": {
 									Type:     pluginsdk.TypeString,
@@ -193,10 +236,18 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						},
 					},
 
-					"open_service_mesh_enabled": {
-						Type:     pluginsdk.TypeBool,
+					"open_service_mesh": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
 						Optional: true,
-						Default: false,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+							},
+						},
 					},
 					"azure_keyvault_secrets_provider": {
 						Type:     pluginsdk.TypeList,
@@ -204,6 +255,10 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
 								"secret_rotation_enabled": {
 									Type:     pluginsdk.TypeBool,
 									Default:  false,
@@ -242,7 +297,6 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 			},
 		}
 	}
-	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
@@ -256,64 +310,33 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-
 							"subnet_name": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
 				},
 
-				"azure_policy": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
+				"azure_policy_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
+
 				},
 
-				"kube_dashboard": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
+				"kube_dashboard_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
 				},
 
-				"http_application_routing": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
+				"http_application_routing_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"http_application_routing_zone_name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
+				},
+				"http_application_routing_zone_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"oms_agent": {
@@ -322,13 +345,9 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
 							"log_analytics_workspace_id": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 							},
 							"oms_agent_identity": {
@@ -361,15 +380,19 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
 							"gateway_id": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ConflictsWith: []string{
+									"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+									"addon_profile.0.ingress_application_gateway.0.subnet_id",
+								},
+								AtLeastOneOf: []string{
+									"addon_profile.0.ingress_application_gateway.0.gateway_id",
+									"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+									"addon_profile.0.ingress_application_gateway.0.subnet_id",
+								},
+								ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
 							},
 							"gateway_name": {
 								Type:         pluginsdk.TypeString,
@@ -377,16 +400,32 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"subnet_cidr": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-								ValidateFunc:  commonValidate.CIDR,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ConflictsWith: []string{
+									"addon_profile.0.ingress_application_gateway.0.gateway_id",
+									"addon_profile.0.ingress_application_gateway.0.subnet_id",
+								},
+								AtLeastOneOf: []string{
+									"addon_profile.0.ingress_application_gateway.0.gateway_id",
+									"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+									"addon_profile.0.ingress_application_gateway.0.subnet_id",
+								},
+								ValidateFunc: commonValidate.CIDR,
 							},
 							"subnet_id": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
-								ValidateFunc:  subnetValidate.SubnetID,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ConflictsWith: []string{
+									"addon_profile.0.ingress_application_gateway.0.gateway_id",
+									"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+								},
+								AtLeastOneOf: []string{
+									"addon_profile.0.ingress_application_gateway.0.gateway_id",
+									"addon_profile.0.ingress_application_gateway.0.subnet_cidr",
+									"addon_profile.0.ingress_application_gateway.0.subnet_id",
+								},
+								ValidateFunc: subnetValidate.SubnetID,
 							},
 							"effective_gateway_id": {
 								Type:     pluginsdk.TypeString,
@@ -416,38 +455,34 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 					},
 				},
 
-				"open_service_mesh": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
+				"open_service_mesh_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
 				},
+
 				"azure_keyvault_secrets_provider": {
 					Type:     pluginsdk.TypeList,
 					MaxItems: 1,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
 							"secret_rotation_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Default:  false,
 								Optional: true,
+								AtLeastOneOf: []string{
+									"addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled",
+									"addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval",
+								},
 							},
 							"secret_rotation_interval": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Default:      "2m",
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  "2m",
+								AtLeastOneOf: []string{
+									"addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled",
+									"addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval",
+								},
 								ValidateFunc: containerValidate.Duration,
 							},
 							"secret_identity": {
@@ -478,7 +513,7 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 	}
 }
 
-func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+func expandKubernetesAddOnProfiles(d *pluginsdk.ResourceData, input []interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 	disabled := containerservice.ManagedClusterAddonProfile{
 		Enabled: utils.Bool(false),
 	}
@@ -501,134 +536,251 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 	profile := input[0].(map[string]interface{})
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
-	httpApplicationRouting := profile["http_application_routing"].([]interface{})
-	if len(httpApplicationRouting) > 0 && httpApplicationRouting[0] != nil {
-		value := httpApplicationRouting[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-		addonProfiles[httpApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-		}
-	}
-
-	omsAgent := profile["oms_agent"].([]interface{})
-	if len(omsAgent) > 0 && omsAgent[0] != nil {
-		value := omsAgent[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
-			lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
-			if err != nil {
-				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+	if features.ThreePointOh() {
+		if raw, ok := d.GetOkExists("addon_profile.0.http_application_routing_enabled"); ok {
+			addonProfiles[httpApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(raw.(bool)),
 			}
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(lawid.ID())
 		}
 
-		addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
+		omsAgent := profile["oms_agent"].([]interface{})
+		if len(omsAgent) > 0 && omsAgent[0] != nil {
+			value := omsAgent[0].(map[string]interface{})
+			config := make(map[string]*string)
+
+			if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
+				lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
+				if err != nil {
+					return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+				}
+				config["logAnalyticsWorkspaceResourceID"] = utils.String(lawid.ID())
+			}
+
+			addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(true),
+				Config:  config,
+			}
 		}
+
+		aciConnector := profile["aci_connector_linux"].([]interface{})
+		if len(aciConnector) > 0 && aciConnector[0] != nil {
+			value := aciConnector[0].(map[string]interface{})
+			config := make(map[string]*string)
+
+			if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
+				config["SubnetName"] = utils.String(subnetName.(string))
+			}
+
+			addonProfiles[aciConnectorKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(true),
+				Config:  config,
+			}
+		}
+
+		if raw, ok := d.GetOkExists("addon_profile.0.kube_dashboard_enabled"); ok {
+			addonProfiles[kubernetesDashboardKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(raw.(bool)),
+				Config:  nil,
+			}
+		}
+
+		if raw, ok := d.GetOkExists("addon_profile.0.azure_policy_enabled"); ok {
+			v := raw.(bool)
+			props := &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(v),
+			}
+			if v != false {
+				props.Config = map[string]*string{
+					"version": utils.String("v2"),
+				}
+			}
+			addonProfiles[azurePolicyKey] = props
+		}
+
+		ingressApplicationGateway := profile["ingress_application_gateway"].([]interface{})
+		if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
+			value := ingressApplicationGateway[0].(map[string]interface{})
+			config := make(map[string]*string)
+
+			if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
+				config["applicationGatewayId"] = utils.String(gatewayId.(string))
+			}
+
+			if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
+				config["applicationGatewayName"] = utils.String(gatewayName.(string))
+			}
+
+			if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
+				config["subnetCIDR"] = utils.String(subnetCIDR.(string))
+			}
+
+			if subnetId, ok := value["subnet_id"]; ok && subnetId != "" {
+				config["subnetId"] = utils.String(subnetId.(string))
+			}
+
+			addonProfiles[ingressApplicationGatewayKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(true),
+				Config:  config,
+			}
+		}
+
+		if raw, ok := d.GetOkExists("addon_profile.0.open_service_mesh_enabled"); ok {
+			addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(raw.(bool)),
+				Config:  nil,
+			}
+		}
+
+		azureKeyVaultSecretsProvider := profile["azure_keyvault_secrets_provider"].([]interface{})
+		if len(azureKeyVaultSecretsProvider) > 0 && azureKeyVaultSecretsProvider[0] != nil {
+			value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
+			config := make(map[string]*string)
+
+			enableSecretRotation := "false"
+			if value["secret_rotation_enabled"].(bool) {
+				enableSecretRotation = "true"
+			}
+			config["enableSecretRotation"] = utils.String(enableSecretRotation)
+			config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
+
+			addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(true),
+				Config:  config,
+			}
+		}
+
+		return filterUnsupportedKubernetesAddOns(addonProfiles, env)
+	} else {
+		// TODO 3.0 - Remove this block
+		httpApplicationRouting := profile["http_application_routing"].([]interface{})
+		if len(httpApplicationRouting) > 0 && httpApplicationRouting[0] != nil {
+			value := httpApplicationRouting[0].(map[string]interface{})
+			enabled := value["enabled"].(bool)
+			addonProfiles[httpApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+			}
+		}
+
+		omsAgent := profile["oms_agent"].([]interface{})
+		if len(omsAgent) > 0 && omsAgent[0] != nil {
+			value := omsAgent[0].(map[string]interface{})
+			config := make(map[string]*string)
+			enabled := value["enabled"].(bool)
+
+			if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
+				lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
+				if err != nil {
+					return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+				}
+				config["logAnalyticsWorkspaceResourceID"] = utils.String(lawid.ID())
+			}
+
+			addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  config,
+			}
+		}
+
+		aciConnector := profile["aci_connector_linux"].([]interface{})
+		if len(aciConnector) > 0 && aciConnector[0] != nil {
+			value := aciConnector[0].(map[string]interface{})
+			config := make(map[string]*string)
+			enabled := value["enabled"].(bool)
+
+			if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
+				config["SubnetName"] = utils.String(subnetName.(string))
+			}
+
+			addonProfiles[aciConnectorKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  config,
+			}
+		}
+
+		kubeDashboard := profile["kube_dashboard"].([]interface{})
+		if len(kubeDashboard) > 0 && kubeDashboard[0] != nil {
+			value := kubeDashboard[0].(map[string]interface{})
+			enabled := value["enabled"].(bool)
+
+			addonProfiles[kubernetesDashboardKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  nil,
+			}
+		}
+
+		azurePolicy := profile["azure_policy"].([]interface{})
+		if len(azurePolicy) > 0 && azurePolicy[0] != nil {
+			value := azurePolicy[0].(map[string]interface{})
+			enabled := value["enabled"].(bool)
+
+			addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config: map[string]*string{
+					"version": utils.String("v2"),
+				},
+			}
+		}
+
+		ingressApplicationGateway := profile["ingress_application_gateway"].([]interface{})
+		if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
+			value := ingressApplicationGateway[0].(map[string]interface{})
+			config := make(map[string]*string)
+			enabled := value["enabled"].(bool)
+
+			if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
+				config["applicationGatewayId"] = utils.String(gatewayId.(string))
+			}
+
+			if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
+				config["applicationGatewayName"] = utils.String(gatewayName.(string))
+			}
+
+			if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
+				config["subnetCIDR"] = utils.String(subnetCIDR.(string))
+			}
+
+			if subnetId, ok := value["subnet_id"]; ok && subnetId != "" {
+				config["subnetId"] = utils.String(subnetId.(string))
+			}
+
+			addonProfiles[ingressApplicationGatewayKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  config,
+			}
+		}
+
+		openServiceMesh := profile["open_service_mesh"].([]interface{})
+		if len(openServiceMesh) > 0 && openServiceMesh[0] != nil {
+			value := openServiceMesh[0].(map[string]interface{})
+			enabled := value["enabled"].(bool)
+
+			addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  nil,
+			}
+		}
+
+		azureKeyvaultSecretsProvider := profile["azure_keyvault_secrets_provider"].([]interface{})
+		if len(azureKeyvaultSecretsProvider) > 0 && azureKeyvaultSecretsProvider[0] != nil {
+			value := azureKeyvaultSecretsProvider[0].(map[string]interface{})
+			config := make(map[string]*string)
+			enabled := value["enabled"].(bool)
+
+			enableSecretRotation := "false"
+			if value["secret_rotation_enabled"].(bool) {
+				enableSecretRotation = "true"
+			}
+			config["enableSecretRotation"] = utils.String(enableSecretRotation)
+			config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
+
+			addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
+				Enabled: utils.Bool(enabled),
+				Config:  config,
+			}
+		}
+
+		return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 	}
-
-	aciConnector := profile["aci_connector_linux"].([]interface{})
-	if len(aciConnector) > 0 && aciConnector[0] != nil {
-		value := aciConnector[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
-			config["SubnetName"] = utils.String(subnetName.(string))
-		}
-
-		addonProfiles[aciConnectorKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
-		}
-	}
-
-	kubeDashboard := profile["kube_dashboard"].([]interface{})
-	if len(kubeDashboard) > 0 && kubeDashboard[0] != nil {
-		value := kubeDashboard[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-
-		addonProfiles[kubernetesDashboardKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  nil,
-		}
-	}
-
-	azurePolicy := profile["azure_policy"].([]interface{})
-	if len(azurePolicy) > 0 && azurePolicy[0] != nil {
-		value := azurePolicy[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-
-		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config: map[string]*string{
-				"version": utils.String("v2"),
-			},
-		}
-	}
-
-	ingressApplicationGateway := profile["ingress_application_gateway"].([]interface{})
-	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
-		value := ingressApplicationGateway[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
-			config["applicationGatewayId"] = utils.String(gatewayId.(string))
-		}
-
-		if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
-			config["applicationGatewayName"] = utils.String(gatewayName.(string))
-		}
-
-		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
-			config["subnetCIDR"] = utils.String(subnetCIDR.(string))
-		}
-
-		if subnetId, ok := value["subnet_id"]; ok && subnetId != "" {
-			config["subnetId"] = utils.String(subnetId.(string))
-		}
-
-		addonProfiles[ingressApplicationGatewayKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
-		}
-	}
-
-	openServiceMesh := profile["open_service_mesh"].([]interface{})
-	if len(openServiceMesh) > 0 && openServiceMesh[0] != nil {
-		value := openServiceMesh[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-
-		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  nil,
-		}
-	}
-
-	azureKeyvaultSecretsProvider := profile["azure_keyvault_secrets_provider"].([]interface{})
-	if len(azureKeyvaultSecretsProvider) > 0 && azureKeyvaultSecretsProvider[0] != nil {
-		value := azureKeyvaultSecretsProvider[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		enableSecretRotation := "false"
-		if value["secret_rotation_enabled"].(bool) {
-			enableSecretRotation = "true"
-		}
-		config["enableSecretRotation"] = utils.String(enableSecretRotation)
-		config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
-
-		addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
-		}
-	}
-
-	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
 func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
@@ -661,187 +813,343 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 }
 
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	aciConnectors := make([]interface{}, 0)
-	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
-		enabled := false
-		if enabledVal := aciConnector.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
+	if features.ThreePointOh() {
+		result := make(map[string]interface{})
 
-		subnetName := ""
-		if v := aciConnector.Config["SubnetName"]; v != nil {
-			subnetName = *v
-		}
-
-		aciConnectors = append(aciConnectors, map[string]interface{}{
-			"enabled":     enabled,
-			"subnet_name": subnetName,
-		})
-	}
-
-	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
-		enabled := false
-		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		azurePolicies = append(azurePolicies, map[string]interface{}{
-			"enabled": enabled,
-		})
-	}
-
-	httpApplicationRoutes := make([]interface{}, 0)
-	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
-		enabled := false
-		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		zoneName := ""
-		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
-			zoneName = *v
-		}
-
-		httpApplicationRoutes = append(httpApplicationRoutes, map[string]interface{}{
-			"enabled":                            enabled,
-			"http_application_routing_zone_name": zoneName,
-		})
-	}
-
-	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
-		enabled := false
-		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		kubeDashboards = append(kubeDashboards, map[string]interface{}{
-			"enabled": enabled,
-		})
-	}
-
-	omsAgents := make([]interface{}, 0)
-	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
-		enabled := false
-		if enabledVal := omsAgent.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		workspaceID := ""
-		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
-			if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
-				workspaceID = lawid.ID()
+		aciConnectors := make([]interface{}, 0)
+		if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
+			subnetName := ""
+			if v := aciConnector.Config["SubnetName"]; v != nil {
+				subnetName = *v
 			}
+
+			aciConnectors = append(aciConnectors, map[string]interface{}{
+				"subnet_name": subnetName,
+			})
+
+			result["aci_connector_linux"] = aciConnectors
 		}
 
-		omsagentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
+		if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
+			enabled := false
+			if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
 
-		omsAgents = append(omsAgents, map[string]interface{}{
-			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsagentIdentity,
-		})
-	}
-
-	ingressApplicationGateways := make([]interface{}, 0)
-	if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
-		enabled := false
-		if enabledVal := ingressApplicationGateway.Enabled; enabledVal != nil {
-			enabled = *enabledVal
+			result["azure_policy_enabled"] = enabled
 		}
 
-		gatewayId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
-			gatewayId = *v
+		if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
+			enabled := false
+			if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			routingZoneName := ""
+			if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
+				routingZoneName = *v
+			}
+
+			result["http_application_routing_enabled"] = enabled
+			result["http_application_routing_zone_name"] = routingZoneName
 		}
 
-		gatewayName := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
-			gatewayName = *v
+		if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
+			enabled := false
+			if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			result["kube_dashboard_enabled"] = enabled
 		}
 
-		effectiveGatewayId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
-			effectiveGatewayId = *v
+		omsAgents := make([]interface{}, 0)
+		if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
+			workspaceID := ""
+			if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+				if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+					workspaceID = lawid.ID()
+				}
+			}
+
+			omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
+
+			omsAgents = append(omsAgents, map[string]interface{}{
+				"log_analytics_workspace_id": workspaceID,
+				"oms_agent_identity":         omsAgentIdentity,
+			})
+
+			result["oms_agent"] = omsAgents
 		}
 
-		subnetCIDR := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
-			subnetCIDR = *v
+		ingressApplicationGateways := make([]interface{}, 0)
+		if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
+			gatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
+				gatewayId = *v
+			}
+
+			gatewayName := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
+				gatewayName = *v
+			}
+
+			effectiveGatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
+				effectiveGatewayId = *v
+			}
+
+			subnetCIDR := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
+				subnetCIDR = *v
+			}
+
+			subnetId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
+				subnetId = *v
+			}
+
+			ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
+			ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+				"gateway_id":                           gatewayId,
+				"gateway_name":                         gatewayName,
+				"effective_gateway_id":                 effectiveGatewayId,
+				"subnet_cidr":                          subnetCIDR,
+				"subnet_id":                            subnetId,
+				"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
+			})
+
+			result["ingress_application_gateway"] = ingressApplicationGateways
 		}
 
-		subnetId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
-			subnetId = *v
+		if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
+			enabled := false
+			if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			result["open_service_mesh_enabled"] = enabled
 		}
 
-		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+		azureKeyVaultSecretsProviders := make([]interface{}, 0)
+		if azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyVaultSecretsProvider != nil {
+			enableSecretRotation := false
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
+				enableSecretRotation = true
+			}
 
-		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-			"enabled":                              enabled,
-			"gateway_id":                           gatewayId,
-			"gateway_name":                         gatewayName,
-			"effective_gateway_id":                 effectiveGatewayId,
-			"subnet_cidr":                          subnetCIDR,
-			"subnet_id":                            subnetId,
-			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
-		})
-	}
+			rotationPollInterval := ""
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+				rotationPollInterval = *v
+			}
 
-	openServiceMeshes := make([]interface{}, 0)
-	if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
-		enabled := false
-		if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
-			enabled = *enabledVal
+			azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
+
+			azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
+				"secret_rotation_enabled":  enableSecretRotation,
+				"secret_rotation_interval": rotationPollInterval,
+				"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+			})
+
+			result["azure_keyvault_secrets_provider"] = azureKeyVaultSecretsProviders
 		}
 
-		openServiceMeshes = append(openServiceMeshes, map[string]interface{}{
-			"enabled": enabled,
-		})
-	}
+		azurePoliciesEnabled := result["azure_policy_enabled"]
+		httpApplicationRoutesEnabled := result["http_application_routing_enabled"]
+		kubeDashboardsEnabled := result["kube_dashboard_enabled"]
+		openServiceMeshesEnabled := result["open_service_mesh_enabled"]
 
-	azureKeyvaultSecretsProviders := make([]interface{}, 0)
-	if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
-		enabled := false
-		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-		enableSecretRotation := false
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
-			enableSecretRotation = true
-		}
-		rotationPollInterval := ""
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
-			rotationPollInterval = *v
+		// this is a UX hack, since if the top level block isn't defined everything should be turned off
+		if len(aciConnectors) == 0 && azurePoliciesEnabled == false && httpApplicationRoutesEnabled == false && kubeDashboardsEnabled == false && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && openServiceMeshesEnabled == false && len(azureKeyVaultSecretsProviders) == 0 {
+			return []interface{}{}
 		}
 
-		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+		return []interface{}{result}
+	} else {
+		// TODO 3.0 - Remove this block
+		aciConnectors := make([]interface{}, 0)
+		if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
+			enabled := false
+			if enabledVal := aciConnector.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
 
-		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
-			"enabled":                  enabled,
-			"secret_rotation_enabled":  enableSecretRotation,
-			"secret_rotation_interval": rotationPollInterval,
-			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
-		})
-	}
+			subnetName := ""
+			if v := aciConnector.Config["SubnetName"]; v != nil {
+				subnetName = *v
+			}
 
-	// this is a UX hack, since if the top level block isn't defined everything should be turned off
-	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && len(openServiceMeshes) == 0 && len(azureKeyvaultSecretsProviders) == 0 {
-		return []interface{}{}
-	}
+			aciConnectors = append(aciConnectors, map[string]interface{}{
+				"enabled":     enabled,
+				"subnet_name": subnetName,
+			})
+		}
 
-	return []interface{}{
-		map[string]interface{}{
-			"aci_connector_linux":             aciConnectors,
-			"azure_policy":                    azurePolicies,
-			"http_application_routing":        httpApplicationRoutes,
-			"kube_dashboard":                  kubeDashboards,
-			"oms_agent":                       omsAgents,
-			"ingress_application_gateway":     ingressApplicationGateways,
-			"open_service_mesh":               openServiceMeshes,
-			"azure_keyvault_secrets_provider": azureKeyvaultSecretsProviders,
-		},
+		azurePolicies := make([]interface{}, 0)
+		if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
+			enabled := false
+			if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			azurePolicies = append(azurePolicies, map[string]interface{}{
+				"enabled": enabled,
+			})
+		}
+
+		httpApplicationRoutes := make([]interface{}, 0)
+		if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
+			enabled := false
+			if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			zoneName := ""
+			if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
+				zoneName = *v
+			}
+
+			httpApplicationRoutes = append(httpApplicationRoutes, map[string]interface{}{
+				"enabled":                            enabled,
+				"http_application_routing_zone_name": zoneName,
+			})
+		}
+
+		kubeDashboards := make([]interface{}, 0)
+		if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
+			enabled := false
+			if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			kubeDashboards = append(kubeDashboards, map[string]interface{}{
+				"enabled": enabled,
+			})
+		}
+
+		omsAgents := make([]interface{}, 0)
+		if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
+			enabled := false
+			if enabledVal := omsAgent.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			workspaceID := ""
+			if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+				if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+					workspaceID = lawid.ID()
+				}
+			}
+
+			omsagentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
+
+			omsAgents = append(omsAgents, map[string]interface{}{
+				"enabled":                    enabled,
+				"log_analytics_workspace_id": workspaceID,
+				"oms_agent_identity":         omsagentIdentity,
+			})
+		}
+
+		ingressApplicationGateways := make([]interface{}, 0)
+		if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
+			enabled := false
+			if enabledVal := ingressApplicationGateway.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			gatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
+				gatewayId = *v
+			}
+
+			gatewayName := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
+				gatewayName = *v
+			}
+
+			effectiveGatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
+				effectiveGatewayId = *v
+			}
+
+			subnetCIDR := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
+				subnetCIDR = *v
+			}
+
+			subnetId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
+				subnetId = *v
+			}
+
+			ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
+			ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+				"enabled":                              enabled,
+				"gateway_id":                           gatewayId,
+				"gateway_name":                         gatewayName,
+				"effective_gateway_id":                 effectiveGatewayId,
+				"subnet_cidr":                          subnetCIDR,
+				"subnet_id":                            subnetId,
+				"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
+			})
+		}
+
+		openServiceMeshes := make([]interface{}, 0)
+		if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
+			enabled := false
+			if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+
+			openServiceMeshes = append(openServiceMeshes, map[string]interface{}{
+				"enabled": enabled,
+			})
+		}
+
+		azureKeyvaultSecretsProviders := make([]interface{}, 0)
+		if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
+			enabled := false
+			if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
+				enabled = *enabledVal
+			}
+			enableSecretRotation := false
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
+				enableSecretRotation = true
+			}
+			rotationPollInterval := ""
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+				rotationPollInterval = *v
+			}
+
+			azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+
+			azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
+				"enabled":                  enabled,
+				"secret_rotation_enabled":  enableSecretRotation,
+				"secret_rotation_interval": rotationPollInterval,
+				"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+			})
+		}
+
+		// this is a UX hack, since if the top level block isn't defined everything should be turned off
+		if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && len(openServiceMeshes) == 0 && len(azureKeyvaultSecretsProviders) == 0 {
+			return []interface{}{}
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"aci_connector_linux":             aciConnectors,
+				"azure_policy":                    azurePolicies,
+				"http_application_routing":        httpApplicationRoutes,
+				"kube_dashboard":                  kubeDashboards,
+				"oms_agent":                       omsAgents,
+				"ingress_application_gateway":     ingressApplicationGateways,
+				"open_service_mesh":               openServiceMeshes,
+				"azure_keyvault_secrets_provider": azureKeyvaultSecretsProviders,
+			},
+		}
 	}
 }
 
@@ -899,4 +1207,3 @@ func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string)
 
 	return nil
 }
-

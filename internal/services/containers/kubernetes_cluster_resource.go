@@ -1084,7 +1084,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-	addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+	addonProfiles, err := expandKubernetesAddOnProfiles(d, addOnProfilesRaw, env)
 	if err != nil {
 		return err
 	}
@@ -1370,7 +1370,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("addon_profile") {
 		updateCluster = true
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+		addonProfiles, err := expandKubernetesAddOnProfiles(d, addOnProfilesRaw, env)
 		if err != nil {
 			return err
 		}
