@@ -631,7 +631,7 @@ func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxPatchAssessmentModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -653,7 +653,7 @@ func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxPatchAssessmentModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
