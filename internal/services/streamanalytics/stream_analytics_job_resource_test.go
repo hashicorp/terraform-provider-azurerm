@@ -156,23 +156,16 @@ provider "azurerm" {
   features {}
 }
 
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_stream_analytics_cluster" "example" {
-  name                = "examplestreamanalyticscluster"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  streaming_capacity  = 36
-}
-
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
+}
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
 }
 
 resource "azurerm_stream_analytics_job" "test" {
@@ -186,7 +179,7 @@ resource "azurerm_stream_analytics_job" "test" {
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
   streaming_units                          = 3
-  stream_analytics_cluster_id              = azurerm_stream_analytics_cluster.example.id
+  stream_analytics_cluster_id              = azurerm_stream_analytics_cluster.test.id
   tags = {
     environment = "Test"
   }
