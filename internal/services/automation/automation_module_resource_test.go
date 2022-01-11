@@ -61,6 +61,21 @@ func TestAccAutomationModule_multipleModules(t *testing.T) {
 	})
 }
 
+func TestAccAutomationModule_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
+	r := AutomationModuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("module_link"),
+	})
+}
+
 func (t AutomationModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ModuleID(state.ID)
 	if err != nil {
@@ -162,4 +177,37 @@ resource "azurerm_automation_module" "import" {
   }
 }
 `, template)
+}
+func (AutomationModuleResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_module" "test" {
+  name                    = "xActiveDirectory"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  module_link {
+    uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
+    hash {
+      algorithm = "SHA256"
+      value     = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
