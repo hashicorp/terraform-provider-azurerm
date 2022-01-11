@@ -592,7 +592,7 @@ func expandKubernetesAddOnProfiles(d *pluginsdk.ResourceData, input []interface{
 			props := &containerservice.ManagedClusterAddonProfile{
 				Enabled: utils.Bool(v),
 			}
-			if v != false {
+			if v {
 				props.Config = map[string]*string{
 					"version": utils.String("v2"),
 				}
