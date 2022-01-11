@@ -445,6 +445,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("patch_mode"); ok {
+		if v == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		}
+
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
 			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
 		}
