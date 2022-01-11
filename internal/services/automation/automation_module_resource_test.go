@@ -205,7 +205,7 @@ resource "azurerm_automation_module" "test" {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
     hash {
       algorithm = "SHA256"
-      value     = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
+      value     = "5277774C7D6FC0E60986519D2D16C7100B9948B2D0B62091ED7B489A252F0F6D"
     }
   }
 }
