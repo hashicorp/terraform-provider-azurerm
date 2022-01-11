@@ -70,19 +70,17 @@ func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 
 func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry scope map creation.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewContainerRegistryScopeMapID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing scope map %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -101,25 +99,16 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating scope map %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read scope map %q for Container Registry %q (resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
@@ -130,9 +119,10 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry scope map update.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
+	id, err := parse.ContainerRegistryScopeMapID(d.Id())
+	if err != nil {
+		return err
+	}
 	description := d.Get("description").(string)
 	actions := d.Get("actions").([]interface{})
 
@@ -143,25 +133,16 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read scope map %q (Container Registry %q, resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
