@@ -211,17 +211,6 @@ resource "azurerm_spring_cloud_service" "test" {
     }
 
     repository {
-      name         = "repo1"
-      uri          = "https://github.com/Azure-Samples/piggymetrics"
-      label        = "config"
-      search_paths = ["dir1", "dir2"]
-      http_basic_auth {
-        username = "username"
-        password = "password"
-      }
-    }
-
-    repository {
       name         = "repo2"
       uri          = "https://github.com/Azure-Samples/piggymetrics"
       label        = "config"
