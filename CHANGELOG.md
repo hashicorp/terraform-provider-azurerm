@@ -10,7 +10,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurem_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
+* `azurerm_consumption_budget_subscription` - Fix issue in migration logic [GH-14898]
+* `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
 
 
 ## 2.91.0 (January 07, 2022)
