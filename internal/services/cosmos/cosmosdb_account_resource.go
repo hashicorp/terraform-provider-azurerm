@@ -755,7 +755,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	_, err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
+	err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -893,14 +893,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
-	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+	if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
 	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+		if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
 			return fmt.Errorf("updating %s EnableMultipleWriteLocations: %+v", id, err)
 		}
 	}
@@ -927,14 +927,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+		if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
 			return fmt.Errorf("removing %s renamed locations: %+v", id, err)
 		}
 	}
 
 	// add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	_, err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
+	err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
 	if err != nil {
 		return fmt.Errorf("updating %s locations: %+v", id, err)
 	}
@@ -1181,14 +1181,14 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
+func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) error {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
-		return nil, fmt.Errorf("creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
 	}
 
 	// if a replication location is added or removed it can take some time to provision
@@ -1234,13 +1234,12 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}
 
-	r := resp.(documentdb.DatabaseAccountGetResults)
-	return &r, nil
+	return nil
 }
 
 func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *documentdb.ConsistencyPolicy {

@@ -116,7 +116,7 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update for: %+v", id, err)
+		return fmt.Errorf("waiting on create/update for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
