@@ -12,6 +12,7 @@ BUG FIXES:
 
 * `azurerm_consumption_budget_subscription` - Fix issue in migration logic [GH-14898]
 * `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
+* `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error [GH-14880]
 
 
 ## 2.91.0 (January 07, 2022)
