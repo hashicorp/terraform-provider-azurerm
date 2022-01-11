@@ -90,6 +90,7 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *pluginsdk.Resource {
 						"key": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
