@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -120,29 +121,28 @@ func dataSourceApiManagementApi() *pluginsdk.Resource {
 
 func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	name := d.Get("name").(string)
 	revision := d.Get("revision").(string)
+	id := parse.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId)
+	apiId := fmt.Sprintf("%s;rev=%s", id.Name, revision)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apiId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("API %q Revision %q (API Management Service %q / Resource Group %q) does not exist!", name, revision, serviceName, resourceGroup)
+			return fmt.Errorf("api %s Revision %q does not exist", id, revision)
 		}
 
-		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %s / Revision %q : %+v", id, revision, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("api_management_name", serviceName)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.APIContractProperties; props != nil {
 		d.Set("description", props.Description)

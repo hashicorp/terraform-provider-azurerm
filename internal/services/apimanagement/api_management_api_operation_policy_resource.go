@@ -63,19 +63,17 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 
 func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
-	operationID := d.Get("operation_id").(string)
+	id := parse.NewApiOperationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string), string(apimanagement.PolicyExportFormatXML))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, apimanagement.PolicyExportFormat(id.PolicyName))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing API Operation Policy (API Management Service %q / API %q / Operation %q / Resource Group %q): %s", serviceName, apiName, operationID, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -107,18 +105,11 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, operationID, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
-	if err != nil {
-		return fmt.Errorf("retrieving API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementAPIOperationPolicyRead(d, meta)
 }
