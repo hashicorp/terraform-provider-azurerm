@@ -107,7 +107,7 @@ func resourceLogicAppIntegrationAccountCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account); err != nil {
-		return fmt.Errorf("creating %s: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
