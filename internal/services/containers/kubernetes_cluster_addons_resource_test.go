@@ -2,11 +2,11 @@ package containers_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
@@ -117,14 +117,14 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
+			Config: r.addonProfileOMSDisabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileOMSConfig(data),
+			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -240,16 +240,16 @@ func TestAccKubernetesCluster_addonProfileAzureKeyVaultSecretsProvider(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Enable AzureKeyvaultSecretsProvider
-			Config: r.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"),
+			// Enable AzureKeyVaultSecretsProvider
+			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, true, "2m"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			// Disable AzureKeyvaultSecretsProvider
-			Config: r.addonProfileAzureKeyvaultSecretsProviderConfig(data, false, false, "2m"),
+			// Disable AzureKeyVaultSecretsProvider
+			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, false, false, "2m"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -262,157 +262,157 @@ func (KubernetesClusterResource) addonProfileAciConnectorLinuxConfig(data accept
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-name                = "acctestvirtnet%d"
-address_space       = ["172.0.0.0/16"]
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-name                 = "acctestsubnet%d"
-resource_group_name  = azurerm_resource_group.test.name
-virtual_network_name = azurerm_virtual_network.test.name
-address_prefix       = "172.0.2.0/24"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_subnet" "test-aci" {
-name                 = "acctestsubnet-aci%d"
-resource_group_name  = azurerm_resource_group.test.name
-virtual_network_name = azurerm_virtual_network.test.name
-address_prefix       = "172.0.3.0/24"
+  name                 = "acctestsubnet-aci%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.3.0/24"
 
-delegation {
-  name = "aciDelegation"
+  delegation {
+    name = "aciDelegation"
 
-  service_delegation {
-    name    = "Microsoft.ContainerInstance/containerGroups"
-    actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
   }
-}
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name           = "default"
-  node_count     = 1
-  vm_size        = "Standard_DS2_v2"
-  vnet_subnet_id = azurerm_subnet.test.id
-}
-
-addon_profile {
-  aci_connector_linux {
-    enabled     = true
-    subnet_name = azurerm_subnet.test-aci.name
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    aci_connector_linux {
+      enabled     = true
+      subnet_name = azurerm_subnet.test-aci.name
+    }
+  }
 
-network_profile {
-  network_plugin = "azure"
-}
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
- name                = "acctestvirtnet%d"
- address_space       = ["172.0.0.0/16"]
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
- name                 = "acctestsubnet%d"
- resource_group_name  = azurerm_resource_group.test.name
- virtual_network_name = azurerm_virtual_network.test.name
- address_prefix       = "172.0.2.0/24"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_subnet" "test-aci" {
- name                 = "acctestsubnet-aci%d"
- resource_group_name  = azurerm_resource_group.test.name
- virtual_network_name = azurerm_virtual_network.test.name
- address_prefix       = "172.0.3.0/24"
+  name                 = "acctestsubnet-aci%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.3.0/24"
 
- delegation {
-   name = "aciDelegation"
+  delegation {
+    name = "aciDelegation"
 
-   service_delegation {
-     name    = "Microsoft.ContainerInstance/containerGroups"
-     actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-   }
- }
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name           = "default"
-   node_count     = 1
-   vm_size        = "Standard_DS2_v2"
-   vnet_subnet_id = azurerm_subnet.test.id
- }
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
 
- addon_profile {
-   aci_connector_linux {
-     subnet_name = azurerm_subnet.test-aci.name
-   }
- }
+  addon_profile {
+    aci_connector_linux {
+      subnet_name = azurerm_subnet.test-aci.name
+    }
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 
- network_profile {
-   network_plugin = "azure"
- }
+  network_profile {
+    network_plugin = "azure"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -421,118 +421,118 @@ func (KubernetesClusterResource) addonProfileAciConnectorLinuxDisabledConfig(dat
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-name                = "acctestvirtnet%d"
-address_space       = ["172.0.0.0/16"]
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-name                 = "acctestsubnet%d"
-resource_group_name  = azurerm_resource_group.test.name
-virtual_network_name = azurerm_virtual_network.test.name
-address_prefix       = "172.0.2.0/24"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name           = "default"
-  node_count     = 1
-  vm_size        = "Standard_DS2_v2"
-  vnet_subnet_id = azurerm_subnet.test.id
-}
-
-addon_profile {
-  aci_connector_linux {
-    enabled = false
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    aci_connector_linux {
+      enabled = false
+    }
+  }
 
-network_profile {
-  network_plugin = "azure"
-}
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
- name                = "acctestvirtnet%d"
- address_space       = ["172.0.0.0/16"]
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
- name                 = "acctestsubnet%d"
- resource_group_name  = azurerm_resource_group.test.name
- virtual_network_name = azurerm_virtual_network.test.name
- address_prefix       = "172.0.2.0/24"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name           = "default"
-   node_count     = 1
-   vm_size        = "Standard_DS2_v2"
-   vnet_subnet_id = azurerm_subnet.test.id
- }
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 
- network_profile {
-   network_plugin = "azure"
- }
+  network_profile {
+    network_plugin = "azure"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -541,83 +541,83 @@ func (KubernetesClusterResource) addonProfileAzurePolicyConfig(data acceptance.T
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  azure_policy {
-    enabled = %t
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    azure_policy {
+      enabled = %t
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   azure_policy_enabled = %t
- }
+  addon_profile {
+    azure_policy_enabled = %t
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
@@ -626,83 +626,83 @@ func (KubernetesClusterResource) addonProfileKubeDashboardConfig(data acceptance
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  kube_dashboard {
-    enabled = false
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   kube_dashboard_enabled = false
- }
+  addon_profile {
+    kube_dashboard_enabled = false
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -711,126 +711,126 @@ func (KubernetesClusterResource) addonProfileOMSConfig(data acceptance.TestData)
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-name                = "acctest-%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-sku                 = "PerGB2018"
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
-solution_name         = "ContainerInsights"
-location              = azurerm_resource_group.test.location
-resource_group_name   = azurerm_resource_group.test.name
-workspace_resource_id = azurerm_log_analytics_workspace.test.id
-workspace_name        = azurerm_log_analytics_workspace.test.name
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
-plan {
-  publisher = "Microsoft"
-  product   = "OMSGallery/ContainerInsights"
-}
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  oms_agent {
-    enabled                    = true
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
- name                = "acctest-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- sku                 = "PerGB2018"
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
- solution_name         = "ContainerInsights"
- location              = azurerm_resource_group.test.location
- resource_group_name   = azurerm_resource_group.test.name
- workspace_resource_id = azurerm_log_analytics_workspace.test.id
- workspace_name        = azurerm_log_analytics_workspace.test.name
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
- plan {
-   publisher = "Microsoft"
-   product   = "OMSGallery/ContainerInsights"
- }
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   oms_agent {
-     log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-   }
- }
+  addon_profile {
+    oms_agent {
+      log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+    }
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -839,81 +839,79 @@ func (KubernetesClusterResource) addonProfileOMSDisabledConfig(data acceptance.T
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  oms_agent {
-    enabled = false
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    oms_agent {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {}
-
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -922,73 +920,73 @@ func (KubernetesClusterResource) addonProfileOMSScaleWithoutBlockConfig(data acc
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 2
-  vm_size    = "Standard_DS2_v2"
-}
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+  }
 
-identity {
-  type = "SystemAssigned"
-}
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 2
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -997,86 +995,86 @@ func (KubernetesClusterResource) addonProfileRoutingConfig(data acceptance.TestD
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  http_application_routing {
-    enabled = true
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    http_application_routing {
+      enabled = true
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   http_application_routing_enabled = true
- }
+  addon_profile {
+    http_application_routing_enabled = true
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1085,86 +1083,86 @@ func (KubernetesClusterResource) addonProfileRoutingConfigDisabled(data acceptan
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  http_application_routing {
-    enabled = false
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    http_application_routing {
+      enabled = false
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   http_application_routing_enabled = false
- }
+  addon_profile {
+    http_application_routing_enabled = false
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1173,242 +1171,242 @@ func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGateway
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-name                = "acctestvirtnet%d"
-address_space       = ["172.0.0.0/16"]
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-name                 = "acctestsubnet%d"
-resource_group_name  = azurerm_resource_group.test.name
-virtual_network_name = azurerm_virtual_network.test.name
-address_prefixes     = ["172.0.2.0/24"]
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
-name                = "acctestpublicip%d"
-resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
-sku                 = "Standard"
-allocation_method   = "Static"
+  name                = "acctestpublicip%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_application_gateway" "test" {
-name                = "acctestappgw%d"
-resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
+  name                = "acctestappgw%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-sku {
-  name     = "Standard_V2"
-  tier     = "Standard_V2"
-  capacity = 2
-}
+  sku {
+    name     = "Standard_V2"
+    tier     = "Standard_V2"
+    capacity = 2
+  }
 
-gateway_ip_configuration {
-  name      = "gwipcfg"
-  subnet_id = azurerm_subnet.test.id
-}
+  gateway_ip_configuration {
+    name      = "gwipcfg"
+    subnet_id = azurerm_subnet.test.id
+  }
 
-frontend_port {
-  name = "frontendport"
-  port = 80
-}
+  frontend_port {
+    name = "frontendport"
+    port = 80
+  }
 
-frontend_ip_configuration {
-  name                 = "frontendipcfg"
-  public_ip_address_id = azurerm_public_ip.test.id
-}
+  frontend_ip_configuration {
+    name                 = "frontendipcfg"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
 
-backend_address_pool {
-  name = "backendaddresspool"
-}
+  backend_address_pool {
+    name = "backendaddresspool"
+  }
 
-backend_http_settings {
-  name                  = "backendhttpsettings"
-  cookie_based_affinity = "Disabled"
-  port                  = 80
-  protocol              = "Http"
-  request_timeout       = 60
-}
+  backend_http_settings {
+    name                  = "backendhttpsettings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 60
+  }
 
-http_listener {
-  name                           = "httplistener"
-  frontend_ip_configuration_name = "frontendipcfg"
-  frontend_port_name             = "frontendport"
-  protocol                       = "Http"
-}
+  http_listener {
+    name                           = "httplistener"
+    frontend_ip_configuration_name = "frontendipcfg"
+    frontend_port_name             = "frontendport"
+    protocol                       = "Http"
+  }
 
-request_routing_rule {
-  name                       = "requestroutingrule"
-  rule_type                  = "Basic"
-  http_listener_name         = "httplistener"
-  backend_address_pool_name  = "backendaddresspool"
-  backend_http_settings_name = "backendhttpsettings"
-}
+  request_routing_rule {
+    name                       = "requestroutingrule"
+    rule_type                  = "Basic"
+    http_listener_name         = "httplistener"
+    backend_address_pool_name  = "backendaddresspool"
+    backend_http_settings_name = "backendhttpsettings"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  ingress_application_gateway {
-    enabled    = true
-    gateway_id = azurerm_application_gateway.test.id
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    ingress_application_gateway {
+      enabled    = true
+      gateway_id = azurerm_application_gateway.test.id
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
- name                = "acctestvirtnet%d"
- address_space       = ["172.0.0.0/16"]
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
- name                 = "acctestsubnet%d"
- resource_group_name  = azurerm_resource_group.test.name
- virtual_network_name = azurerm_virtual_network.test.name
- address_prefixes     = ["172.0.2.0/24"]
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
- name                = "acctestpublicip%d"
- resource_group_name = azurerm_resource_group.test.name
- location            = azurerm_resource_group.test.location
- sku                 = "Standard"
- allocation_method   = "Static"
+  name                = "acctestpublicip%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_application_gateway" "test" {
- name                = "acctestappgw%d"
- resource_group_name = azurerm_resource_group.test.name
- location            = azurerm_resource_group.test.location
+  name                = "acctestappgw%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
- sku {
-   name     = "Standard_V2"
-   tier     = "Standard_V2"
-   capacity = 2
- }
+  sku {
+    name     = "Standard_V2"
+    tier     = "Standard_V2"
+    capacity = 2
+  }
 
- gateway_ip_configuration {
-   name      = "gwipcfg"
-   subnet_id = azurerm_subnet.test.id
- }
+  gateway_ip_configuration {
+    name      = "gwipcfg"
+    subnet_id = azurerm_subnet.test.id
+  }
 
- frontend_port {
-   name = "frontendport"
-   port = 80
- }
+  frontend_port {
+    name = "frontendport"
+    port = 80
+  }
 
- frontend_ip_configuration {
-   name                 = "frontendipcfg"
-   public_ip_address_id = azurerm_public_ip.test.id
- }
+  frontend_ip_configuration {
+    name                 = "frontendipcfg"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
 
- backend_address_pool {
-   name = "backendaddresspool"
- }
+  backend_address_pool {
+    name = "backendaddresspool"
+  }
 
- backend_http_settings {
-   name                  = "backendhttpsettings"
-   cookie_based_affinity = "Disabled"
-   port                  = 80
-   protocol              = "Http"
-   request_timeout       = 60
- }
+  backend_http_settings {
+    name                  = "backendhttpsettings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 60
+  }
 
- http_listener {
-   name                           = "httplistener"
-   frontend_ip_configuration_name = "frontendipcfg"
-   frontend_port_name             = "frontendport"
-   protocol                       = "Http"
- }
+  http_listener {
+    name                           = "httplistener"
+    frontend_ip_configuration_name = "frontendipcfg"
+    frontend_port_name             = "frontendport"
+    protocol                       = "Http"
+  }
 
- request_routing_rule {
-   name                       = "requestroutingrule"
-   rule_type                  = "Basic"
-   http_listener_name         = "httplistener"
-   backend_address_pool_name  = "backendaddresspool"
-   backend_http_settings_name = "backendhttpsettings"
- }
+  request_routing_rule {
+    name                       = "requestroutingrule"
+    rule_type                  = "Basic"
+    http_listener_name         = "httplistener"
+    backend_address_pool_name  = "backendaddresspool"
+    backend_http_settings_name = "backendhttpsettings"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   ingress_application_gateway {
-     gateway_id = azurerm_application_gateway.test.id
-   }
-   kube_dashboard_enabled = false
- }
+  addon_profile {
+    ingress_application_gateway {
+      gateway_id = azurerm_application_gateway.test.id
+    }
+    kube_dashboard_enabled = false
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1417,92 +1415,92 @@ func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetCIDR
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  ingress_application_gateway {
-    enabled      = true
-    gateway_name = "acctestgwn%d"
-    subnet_cidr  = "%s"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    ingress_application_gateway {
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_cidr  = "%s"
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   ingress_application_gateway {
-     gateway_name = "acctestgwn%d"
-     subnet_cidr  = "%s"
-   }
-   kube_dashboard_enabled = false
- }
+  addon_profile {
+    ingress_application_gateway {
+      gateway_name = "acctestgwn%d"
+      subnet_cidr  = "%s"
+    }
+    kube_dashboard_enabled = false
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
 }
@@ -1511,84 +1509,84 @@ func (KubernetesClusterResource) addonProfileIngressApplicationGatewayDisabledCo
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  ingress_application_gateway {
-    enabled = false
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    ingress_application_gateway {
+      enabled = false
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {}
+  addon_profile {}
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1597,120 +1595,120 @@ func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetIdCo
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-name                = "acctestvirtnet%d"
-address_space       = ["172.0.0.0/16"]
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-name                 = "acctestsubnet%d"
-resource_group_name  = azurerm_resource_group.test.name
-virtual_network_name = azurerm_virtual_network.test.name
-address_prefixes     = ["172.0.2.0/24"]
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  ingress_application_gateway {
-    enabled      = true
-    gateway_name = "acctestgwn%d"
-    subnet_id    = azurerm_subnet.test.id
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-  kube_dashboard {
-    enabled = false
-  }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    ingress_application_gateway {
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_id    = azurerm_subnet.test.id
+    }
+    kube_dashboard {
+      enabled = false
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
- name                = "acctestvirtnet%d"
- address_space       = ["172.0.0.0/16"]
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
- name                 = "acctestsubnet%d"
- resource_group_name  = azurerm_resource_group.test.name
- virtual_network_name = azurerm_virtual_network.test.name
- address_prefixes     = ["172.0.2.0/24"]
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   ingress_application_gateway {
-     gateway_name = "acctestgwn%d"
-     subnet_id    = azurerm_subnet.test.id
-   }
-   kube_dashboard_enabled = false
- }
+  addon_profile {
+    ingress_application_gateway {
+      gateway_name = "acctestgwn%d"
+      subnet_id    = azurerm_subnet.test.id
+    }
+    kube_dashboard_enabled = false
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1719,173 +1717,173 @@ func (KubernetesClusterResource) addonProfileOpenServiceMeshConfig(data acceptan
 	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  open_service_mesh {
-    enabled = %t
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    open_service_mesh {
+      enabled = %t
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   open_service_mesh_enabled = %t
- }
+  addon_profile {
+    open_service_mesh_enabled = %t
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (KubernetesClusterResource) addonProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData, enabled bool, secretRotation bool, rotationInterval string) string {
-	if features.ThreePointOh() {
+func (KubernetesClusterResource) addonProfileAzureKeyVaultSecretsProviderConfig(data acceptance.TestData, enabled bool, secretRotation bool, rotationInterval string) string {
+	if !features.ThreePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
-linux_profile {
-  admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-  ssh_key {
-    key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
   }
-}
 
-default_node_pool {
-  name       = "default"
-  node_count = 1
-  vm_size    = "Standard_DS2_v2"
-}
-
-addon_profile {
-  azure_keyvault_secrets_provider {
-    enabled                  = %t
-    secret_rotation_enabled  = %t
-    secret_rotation_interval = "%s"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
-}
 
-identity {
-  type = "SystemAssigned"
-}
+  addon_profile {
+    azure_keyvault_secrets_provider {
+      enabled                  = %t
+      secret_rotation_enabled  = %t
+      secret_rotation_interval = "%s"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled, secretRotation, rotationInterval)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-aks-%d"
- location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
- name                = "acctestaks%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- dns_prefix          = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
- linux_profile {
-   admin_username = "acctestuser%d"
+  linux_profile {
+    admin_username = "acctestuser%d"
 
-   ssh_key {
-     key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-   }
- }
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
 
- default_node_pool {
-   name       = "default"
-   node_count = 1
-   vm_size    = "Standard_DS2_v2"
- }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
 
- addon_profile {
-   azure_keyvault_secrets_provider {
-     secret_rotation_enabled  = %t
-     secret_rotation_interval = "%s"
-   }
- }
+  addon_profile {
+    azure_keyvault_secrets_provider {
+      secret_rotation_enabled  = %t
+      secret_rotation_interval = "%s"
+    }
+  }
 
- identity {
-   type = "SystemAssigned"
- }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, secretRotation, rotationInterval)
 }
