@@ -236,7 +236,7 @@ resource "azurerm_data_lake_store" "test" {
   location            = azurerm_resource_group.test.location
   encryption_type     = "ServiceManaged"
 }
-`, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (DataLakeStoreResource) identity(data acceptance.TestData) string {
