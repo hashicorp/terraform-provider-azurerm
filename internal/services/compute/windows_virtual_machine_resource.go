@@ -486,14 +486,24 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
 	}
 
+	// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
+	// and if the image reference is using one of the following skus:
+	// 2022-datacenter-azure-edition-core or 2022-datacenter-azure-edition-core-smalldisk
 	if hotPatch {
-		// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
 		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "patch_mode", patchMode)
 		}
 
 		if !provisionVMAgent {
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "provisionVMAgent", "false")
+		}
+
+		if !isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId) {
+			if sourceImageId != "" {
+				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hot_patching_enabled", "source_image_id")
+			}
+
+			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hot_patching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
 		}
 	}
 
