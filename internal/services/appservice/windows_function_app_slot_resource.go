@@ -96,14 +96,14 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App",
+			Description:  "The ID of the App Service Plan within which to create this Function App Slot.",
 		},
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
-			Description:  "The backend storage account name which will be used by this Function App.",
+			Description:  "The backend storage account name which will be used by this Function App Slot.",
 		},
 
 		"storage_account_access_key": {
@@ -115,7 +115,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
-			Description: "The access key which will be used to access the storage account for the Function App.",
+			Description: "The access key which will be used to access the storage account for the Function App Slot.",
 		},
 
 		"storage_uses_managed_identity": {
@@ -126,7 +126,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
-			Description: "Should the Function App use its Managed Identity to access storage",
+			Description: "Should the Function App Slot use its Managed Identity to access storage.",
 		},
 
 		"app_settings": {
@@ -146,14 +146,14 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
+			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates",
+			Description: "Should the Function App Slot use Client Certificates.",
 		},
 
 		"client_certificate_mode": {
@@ -165,7 +165,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 				string(web.ClientCertModeRequired),
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -182,7 +182,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Windows Function App enabled.",
+			Description: "Is the Windows Function App Slot enabled.",
 		},
 
 		"content_share_force_disabled": {
@@ -196,19 +196,19 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     "~4",
-			Description: "The runtime version associated with the Function App.",
+			Description: "The runtime version associated with the Function App Slot.",
 		},
 
 		"https_only": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Can the Function App Slot only be accessed via HTTPS?",
 		},
 
 		"identity": helpers.IdentitySchema(),
 
-		"site_config": helpers.SiteConfigSchemaWindowsFunctionApp(),
+		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
 		"tags": tags.Schema(),
 	}
@@ -217,24 +217,28 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
 		},
 
 		"default_hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The default hostname of the Windows Function App Slot.",
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Kind value for this Windows Function App Slot.",
 		},
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "A comma separated list of outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12`.",
 		},
 
 		"outbound_ip_address_list": {
@@ -243,11 +247,13 @@ func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `[\"52.23.25.3\", \"52.143.43.12\",\"52.143.43.17\"]`.",
 		},
 
 		"possible_outbound_ip_address_list": {
@@ -256,6 +262,7 @@ func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			Description: "A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),

@@ -78,7 +78,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "Specifies the name of the Function App.",
+			Description:  "Specifies the name of the Function App Slot.",
 		},
 
 		"function_app_name": {
@@ -96,14 +96,14 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App",
+			Description:  "The ID of the App Service Plan within which to create this Function App Slot.",
 		},
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
-			Description:  "The backend storage account name which will be used by this Function App.",
+			Description:  "The backend storage account name which will be used by this Function App Slot.",
 		},
 
 		"storage_account_access_key": {
@@ -115,7 +115,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
-			Description: "The access key which will be used to access the storage account for the Function App.",
+			Description: "The access key which will be used to access the storage account for the Function App Slot.",
 		},
 
 		"storage_uses_managed_identity": {
@@ -126,7 +126,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
-			Description: "Should the Function App use its Managed Identity to access storage",
+			Description: "Should the Function App Slot use its Managed Identity to access storage.",
 		},
 
 		"app_settings": {
@@ -146,14 +146,14 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
+			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates",
+			Description: "Should the Function App Slot use Client Certificates.",
 		},
 
 		"client_certificate_mode": {
@@ -165,7 +165,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeRequired),
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -182,7 +182,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Linux Function App enabled.",
+			Description: "Is the Linux Function App Slot enabled.",
 		},
 
 		"content_share_force_disabled": {
@@ -196,19 +196,19 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     "~4",
-			Description: "The runtime version associated with the Function App.",
+			Description: "The runtime version associated with the Function App Slot.",
 		},
 
 		"https_only": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Can the Function App Slot only be accessed via HTTPS?",
 		},
 
 		"identity": helpers.IdentitySchema(),
 
-		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
+		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
 		"tags": tags.Schema(),
 	}
