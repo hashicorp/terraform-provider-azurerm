@@ -247,7 +247,7 @@ func (SubscriptionConsumptionBudgetV1ToV2) UpgradeFunc() pluginsdk.StateUpgrader
 			return nil, fmt.Errorf("parsing %q: %+v", idRaw, err)
 		}
 
-		oldSubscriptionId := rawState["subscription_id"].(string)
+		oldSubscriptionId := rawState["subscription_id"].(commonids.SubscriptionId)
 		newSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId).ID()
 		log.Printf("[DEBUG] Updating subscription_id from %q to %q", oldSubscriptionId, newSubscriptionId)
 		rawState["subscription_id"] = newSubscriptionId
