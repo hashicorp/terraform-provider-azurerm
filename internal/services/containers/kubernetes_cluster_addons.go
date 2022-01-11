@@ -2,12 +2,12 @@ package containers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -322,17 +322,19 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				"azure_policy_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-
+					Default:  false,
 				},
 
 				"kube_dashboard_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"http_application_routing_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 				"http_application_routing_zone_name": {
 					Type:     pluginsdk.TypeString,
@@ -458,6 +460,7 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				"open_service_mesh_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"azure_keyvault_secrets_provider": {
@@ -537,9 +540,9 @@ func expandKubernetesAddOnProfiles(d *pluginsdk.ResourceData, input []interface{
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
 	if features.ThreePointOh() {
-		if raw, ok := d.GetOkExists("addon_profile.0.http_application_routing_enabled"); ok {
+		if ok := d.HasChange("addon_profile.0.http_application_routing_enabled"); ok {
 			addonProfiles[httpApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
-				Enabled: utils.Bool(raw.(bool)),
+				Enabled: utils.Bool(profile["http_application_routing_enabled"].(bool)),
 			}
 		}
 
@@ -577,15 +580,15 @@ func expandKubernetesAddOnProfiles(d *pluginsdk.ResourceData, input []interface{
 			}
 		}
 
-		if raw, ok := d.GetOkExists("addon_profile.0.kube_dashboard_enabled"); ok {
+		if ok := d.HasChange("addon_profile.0.kube_dashboard_enabled"); ok {
 			addonProfiles[kubernetesDashboardKey] = &containerservice.ManagedClusterAddonProfile{
-				Enabled: utils.Bool(raw.(bool)),
+				Enabled: utils.Bool(profile["kube_dashboard_enabled"].(bool)),
 				Config:  nil,
 			}
 		}
 
-		if raw, ok := d.GetOkExists("addon_profile.0.azure_policy_enabled"); ok {
-			v := raw.(bool)
+		if ok := d.HasChange("addon_profile.0.azure_policy_enabled"); ok {
+			v := profile["azure_policy_enabled"].(bool)
 			props := &containerservice.ManagedClusterAddonProfile{
 				Enabled: utils.Bool(v),
 			}
@@ -624,9 +627,9 @@ func expandKubernetesAddOnProfiles(d *pluginsdk.ResourceData, input []interface{
 			}
 		}
 
-		if raw, ok := d.GetOkExists("addon_profile.0.open_service_mesh_enabled"); ok {
+		if ok := d.HasChange("addon_profile.0.open_service_mesh_enabled"); ok {
 			addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
-				Enabled: utils.Bool(raw.(bool)),
+				Enabled: utils.Bool(profile["open_service_mesh_enabled"].(bool)),
 				Config:  nil,
 			}
 		}
@@ -814,8 +817,6 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	if features.ThreePointOh() {
-		result := make(map[string]interface{})
-
 		aciConnectors := make([]interface{}, 0)
 		if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
 			subnetName := ""
@@ -826,41 +827,32 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			aciConnectors = append(aciConnectors, map[string]interface{}{
 				"subnet_name": subnetName,
 			})
-
-			result["aci_connector_linux"] = aciConnectors
 		}
 
+		azurePolicyEnabled := false
 		if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
-			enabled := false
 			if enabledVal := azurePolicy.Enabled; enabledVal != nil {
-				enabled = *enabledVal
+				azurePolicyEnabled = *enabledVal
 			}
-
-			result["azure_policy_enabled"] = enabled
 		}
 
+		httpApplicationRoutingEnabled := false
+		httpApplicationRoutingZone := ""
 		if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
-			enabled := false
 			if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-				enabled = *enabledVal
+				httpApplicationRoutingEnabled = *enabledVal
 			}
 
-			routingZoneName := ""
 			if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
-				routingZoneName = *v
+				httpApplicationRoutingZone = *v
 			}
-
-			result["http_application_routing_enabled"] = enabled
-			result["http_application_routing_zone_name"] = routingZoneName
 		}
 
+		kubeDashboardEnabled := false
 		if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
-			enabled := false
 			if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
-				enabled = *enabledVal
+				kubeDashboardEnabled = *enabledVal
 			}
-
-			result["kube_dashboard_enabled"] = enabled
 		}
 
 		omsAgents := make([]interface{}, 0)
@@ -878,8 +870,6 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 				"log_analytics_workspace_id": workspaceID,
 				"oms_agent_identity":         omsAgentIdentity,
 			})
-
-			result["oms_agent"] = omsAgents
 		}
 
 		ingressApplicationGateways := make([]interface{}, 0)
@@ -919,17 +909,13 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 				"subnet_id":                            subnetId,
 				"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
 			})
-
-			result["ingress_application_gateway"] = ingressApplicationGateways
 		}
 
+		openServiceMeshEnabled := false
 		if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
-			enabled := false
 			if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
-				enabled = *enabledVal
+				openServiceMeshEnabled = *enabledVal
 			}
-
-			result["open_service_mesh_enabled"] = enabled
 		}
 
 		azureKeyVaultSecretsProviders := make([]interface{}, 0)
@@ -951,21 +937,21 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 				"secret_rotation_interval": rotationPollInterval,
 				"secret_identity":          azureKeyvaultSecretsProviderIdentity,
 			})
-
-			result["azure_keyvault_secrets_provider"] = azureKeyVaultSecretsProviders
 		}
 
-		azurePoliciesEnabled := result["azure_policy_enabled"]
-		httpApplicationRoutesEnabled := result["http_application_routing_enabled"]
-		kubeDashboardsEnabled := result["kube_dashboard_enabled"]
-		openServiceMeshesEnabled := result["open_service_mesh_enabled"]
-
-		// this is a UX hack, since if the top level block isn't defined everything should be turned off
-		if len(aciConnectors) == 0 && azurePoliciesEnabled == false && httpApplicationRoutesEnabled == false && kubeDashboardsEnabled == false && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && openServiceMeshesEnabled == false && len(azureKeyVaultSecretsProviders) == 0 {
-			return []interface{}{}
+		return []interface{}{
+			map[string]interface{}{
+				"aci_connector_linux":                aciConnectors,
+				"azure_policy_enabled":               azurePolicyEnabled,
+				"http_application_routing_enabled":   httpApplicationRoutingEnabled,
+				"http_application_routing_zone_name": httpApplicationRoutingZone,
+				"kube_dashboard_enabled":             kubeDashboardEnabled,
+				"oms_agent":                          omsAgents,
+				"ingress_application_gateway":        ingressApplicationGateways,
+				"open_service_mesh_enabled":          openServiceMeshEnabled,
+				"azure_keyvault_secrets_provider":    azureKeyVaultSecretsProviders,
+			},
 		}
-
-		return []interface{}{result}
 	} else {
 		// TODO 3.0 - Remove this block
 		aciConnectors := make([]interface{}, 0)
