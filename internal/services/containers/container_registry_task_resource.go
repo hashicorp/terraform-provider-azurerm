@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -25,6 +26,7 @@ type ContainerRegistryTaskResource struct{}
 
 var _ sdk.ResourceWithUpdate = ContainerRegistryTaskResource{}
 var _ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
+var _ sdk.ResourceWithCustomImporter = ContainerRegistryTaskResource{}
 
 type AgentConfig struct {
 	CPU int `tfschema:"cpu"`
@@ -674,6 +676,12 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r ContainerRegistryTaskResource) CustomImporter() sdk.ResourceRunFunc {
+	return sdk.NormalizeIdImporter(func(input string) (resourceid.Formatter, error) {
+		return parse.ContainerRegistryTaskID(input)
+	})
 }
 
 func (r ContainerRegistryTaskResource) Attributes() map[string]*pluginsdk.Schema {
