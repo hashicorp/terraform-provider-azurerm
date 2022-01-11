@@ -2,11 +2,18 @@ package appservice
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type WindowsFunctionAppSlotResource struct{}
@@ -14,6 +21,7 @@ type WindowsFunctionAppSlotResource struct{}
 type WindowsFunctionAppSlotModel struct {
 	Name               string `tfschema:"name"`
 	ResourceGroup      string `tfschema:"resource_group_name"`
+	FunctionAppName    string `tfschema:"function_app_name"`
 	Location           string `tfschema:"location"`
 	ServicePlanId      string `tfschema:"service_plan_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
@@ -60,24 +68,197 @@ func (r WindowsFunctionAppSlotResource) ResourceType() string {
 }
 
 func (r WindowsFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	panic("Implement me") // TODO - Add Validation func return here
+	return validate.FunctionAppSlotID
 }
 
 func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		/*
-			TODO - This sections is for configurable items, `Required: true` items first, followed by `Optional: true`,
-			both in alphabetical order
-		*/
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.WebAppName,
+			Description:  "Specifies the name of the Windows Function App Slot.",
+		},
+
+		"function_app_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.WebAppName,
+			Description:  "The name of the Windows Function App this Slot is a member of.",
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": location.Schema(),
+
+		"service_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ServicePlanID,
+			Description:  "The ID of the App Service Plan within which to create this Function App",
+		},
+
+		"storage_account_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: storageValidate.StorageAccountName,
+			Description:  "The backend storage account name which will be used by this Function App.",
+		},
+
+		"storage_account_access_key": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true, // TODO - Uncomment this
+			ValidateFunc: validation.NoZeroValues,
+			ExactlyOneOf: []string{
+				"storage_uses_managed_identity",
+				"storage_account_access_key",
+			},
+			Description: "The access key which will be used to access the storage account for the Function App.",
+		},
+
+		"storage_uses_managed_identity": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ExactlyOneOf: []string{
+				"storage_uses_managed_identity",
+				"storage_account_access_key",
+			},
+			Description: "Should the Function App use its Managed Identity to access storage",
+		},
+
+		"app_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+		},
+
+		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"backup": helpers.BackupSchema(),
+
+		"builtin_logging_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
+		},
+
+		"client_certificate_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the function app use Client Certificates",
+		},
+
+		"client_certificate_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  web.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.ClientCertModeOptional),
+				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
+			}, false),
+			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+		},
+
+		"connection_string": helpers.ConnectionStringSchema(),
+
+		"daily_memory_time_quota": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      0,
+			ValidateFunc: validation.IntAtLeast(0),
+			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans.",
+		},
+
+		"enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Is the Windows Function App enabled.",
+		},
+
+		"content_share_force_disabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Force disable the content share settings.",
+		},
+
+		"functions_extension_version": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "~4",
+			Description: "The runtime version associated with the Function App.",
+		},
+
+		"https_only": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
+		"identity": helpers.IdentitySchema(),
+
+		"site_config": helpers.SiteConfigSchemaWindowsFunctionApp(),
+
+		"tags": tags.Schema(),
 	}
 }
 
 func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		/*
-			TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the
-			datasource that can be used as outputs or passed programmatically to other resources or data sources.
-		*/
+		"custom_domain_verification_id": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"possible_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"possible_outbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"site_credential": helpers.SiteCredentialSchema(),
 	}
 }
 
