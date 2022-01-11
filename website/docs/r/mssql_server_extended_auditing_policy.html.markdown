@@ -147,7 +147,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
   retention_in_days      = 6
   log_monitoring_enabled = false
 
-  storage_account_subscription_id = "00000000-0000-0000-0000-000000000000"
+  storage_account_subscription_id = azurerm_subscription.primary.subscription_id
 
   depends_on = [
     azurerm_role_assignment.example,
@@ -172,7 +172,7 @@ The following arguments are supported:
 
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
-* `storage_account_subscription_id` - (Optional) The storage account's subscription Id.
+* `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
 ## Attributes Reference
 
