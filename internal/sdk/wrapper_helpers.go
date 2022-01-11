@@ -1,10 +1,12 @@
 package sdk
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
 // combineSchema combines the arguments (user-configurable) and attributes (read-only) schema fields
@@ -54,4 +56,17 @@ func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMe
 	}
 
 	return metaData
+}
+
+// NormalizeIdImporter is a helper function which returns a ResourceRunFunc.
+// This function is intended to be used as the CustomImporter for a ResourceWithCustomImporter.
+func NormalizeIdImporter(parser func(string) (resourceid.Formatter, error)) ResourceRunFunc {
+	return func(ctx context.Context, metadata ResourceMetaData) error {
+		id, err := parser(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+		metadata.SetID(id)
+		return nil
+	}
 }

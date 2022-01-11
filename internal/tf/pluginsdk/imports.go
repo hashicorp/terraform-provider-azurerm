@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -44,6 +45,24 @@ func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc Im
 			}
 
 			return thenFunc(ctx, d, meta)
+		},
+	}
+}
+
+type IDParseFunc func(string) (resourceids.Id, error)
+
+func ImporterValidatingThenNormalizeId(parser IDParseFunc) *schema.ResourceImporter {
+	return &schema.ResourceImporter{
+		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
+			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
+
+			id, err := parser(d.Id())
+			if err != nil {
+				return []*ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
+			}
+
+			d.SetId(id.ID())
+			return []*ResourceData{d}, nil
 		},
 	}
 }
