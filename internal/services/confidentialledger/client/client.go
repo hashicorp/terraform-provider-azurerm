@@ -10,15 +10,7 @@ import (
 )
 
 type Client struct {
-	DeploymentsClient           *resources.DeploymentsClient
-	FeaturesClient              *features.Client
-	GroupsClient                *resources.GroupsClient
-	LocksClient                 *locks.ManagementLocksClient
-	ProvidersClient             *providers.ProvidersClient
-	ResourceProvidersClient     *resources.ProvidersClient
-	ResourcesClient             *resources.Client
-	TagsClient                  *resources.TagsClient
-	TemplateSpecsVersionsClient *templatespecs.VersionsClient
+	ConfidentialLedgerResourceClient *templatespecs.VersionsClient
 
 	options *common.ClientOptions
 }

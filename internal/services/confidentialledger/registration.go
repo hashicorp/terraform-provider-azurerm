@@ -1,4 +1,4 @@
-package resource
+package confidentialledger
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
