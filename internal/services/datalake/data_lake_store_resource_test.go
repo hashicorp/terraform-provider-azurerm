@@ -44,9 +44,6 @@ func TestAccDataLakeStore_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tier").HasValue("Consumption"),
-				check.That(data.ResourceName).Key("encryption_state").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("encryption_type").HasValue("ServiceManaged"),
 			),
 		},
 		data.ImportStep(),
