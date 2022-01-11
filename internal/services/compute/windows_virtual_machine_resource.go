@@ -211,7 +211,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"hot_patching_enabled": {
+			"hotpatching_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -408,7 +408,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	patchMode := d.Get("patch_mode").(string)
-	hotPatch := d.Get("hot_patching_enabled").(bool)
+	hotPatch := d.Get("hotpatching_enabled").(bool)
 	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -491,19 +491,19 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	// 2022-datacenter-azure-edition-core or 2022-datacenter-azure-edition-core-smalldisk
 	if hotPatch {
 		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "patch_mode", patchMode)
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
 		}
 
 		if !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "provisionVMAgent", "false")
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
 		}
 
 		if !isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId) {
 			if sourceImageId != "" {
-				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hot_patching_enabled", "source_image_id")
+				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
 			}
 
-			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hot_patching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
 		}
 	}
 
@@ -764,7 +764,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 			if patchSettings := config.PatchSettings; patchSettings != nil {
 				d.Set("patch_mode", patchSettings.PatchMode)
-				d.Set("hot_patching_enabled", patchSettings.EnableHotpatching)
+				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
 			}
 
 			d.Set("timezone", config.TimeZone)
@@ -956,7 +956,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string))
 	}
 
-	if d.HasChange("hot_patching_enabled") {
+	if d.HasChange("hotpatching_enabled") {
 		shouldUpdate = true
 
 		if update.OsProfile == nil {
@@ -971,7 +971,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
 		}
 
-		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(d.Get("hot_patching_enabled").(bool))
+		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(d.Get("hotpatching_enabled").(bool))
 	}
 
 	if d.HasChange("identity") {
