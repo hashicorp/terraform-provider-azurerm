@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -390,12 +391,12 @@ func resourceIotHub() *pluginsdk.Resource {
 							Optional: true,
 							Default:  "DeviceMessages",
 							ValidateFunc: validation.StringInSlice([]string{
-								"DeviceConnectionStateEvents",
-								"DeviceJobLifecycleEvents",
-								"DeviceLifecycleEvents",
-								"DeviceMessages",
-								"Invalid",
-								"TwinChangeEvents",
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
 						"condition": {
@@ -524,6 +525,10 @@ func resourceIotHub() *pluginsdk.Resource {
 			},
 
 			"event_hub_events_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"event_hub_events_namespace": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -726,6 +731,14 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if k == "events" {
 				d.Set("event_hub_events_endpoint", v.Endpoint)
+
+				if *v.Endpoint != "" {
+					uri, err := url.Parse(*v.Endpoint)
+					if err == nil {
+						d.Set("event_hub_events_namespace", strings.Split(uri.Hostname(), ".")[0])
+					}
+				}
+
 				d.Set("event_hub_events_path", v.Path)
 				d.Set("event_hub_partition_count", v.PartitionCount)
 				d.Set("event_hub_retention_in_days", v.RetentionTimeInDays)
