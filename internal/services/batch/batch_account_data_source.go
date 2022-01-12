@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,24 +76,24 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 
 func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.AccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Batch account %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.BatchAccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_endpoint", resp.AccountEndpoint)
 
 	if location := resp.Location; location != nil {
@@ -107,9 +108,9 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 		if poolAllocationMode == string(batch.PoolAllocationModeBatchService) {
-			keys, err := client.GetKeys(ctx, resourceGroup, name)
+			keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 			if err != nil {
-				return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+				return fmt.Errorf("cannot read keys for %s: %v", id, err)
 			}
 
 			d.Set("primary_access_key", keys.Primary)

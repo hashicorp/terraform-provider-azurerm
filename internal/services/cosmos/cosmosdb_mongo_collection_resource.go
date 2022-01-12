@@ -143,22 +143,20 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	account := d.Get("account_name").(string)
-	database := d.Get("database_name").(string)
+	id := parse.NewMongodbCollectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
+	existing, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", name, account, database, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos Mongo Collection %q (Account: %q, Database: %q)", name, account, database)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", *existing.ID)
@@ -177,7 +175,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
-				ID:      &name,
+				ID:      &id.CollectionName,
 				Indexes: indexes,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
@@ -204,25 +202,16 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	future, err := client.CreateUpdateMongoDBCollection(ctx, resourceGroup, account, database, name, db)
+	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName, db)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
-	if err != nil {
-		return fmt.Errorf("making get request for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", name, account, database, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos Mongo Collection %q (Account: %q, Database: %q)", name, account, database)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
