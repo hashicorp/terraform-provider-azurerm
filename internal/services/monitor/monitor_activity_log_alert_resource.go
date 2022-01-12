@@ -250,8 +250,8 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						return err
 					}
 
-					supportedEventTypes := make(map[string]string, 0)
-					supportedServiceTypes := make(map[string]string, 0)
+					supportedEventTypes := make(map[string]string)
+					supportedServiceTypes := make(map[string]string)
 
 					for _, data := range fetchedValues.Value {
 						if data.Name == "supportedEventTypes" {

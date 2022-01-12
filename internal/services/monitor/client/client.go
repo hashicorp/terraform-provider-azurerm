@@ -33,7 +33,7 @@ type Client struct {
 	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
 
-	//Resourcehealth custom client
+	// Resourcehealth custom client
 	ResourceHealthMetadataClient *resourcehealth.ResourceHealthMetadataClient
 }
 
