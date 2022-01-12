@@ -168,17 +168,17 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 
 func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing EventGrid Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -215,7 +215,7 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", topic)
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, topic)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, topic)
 	if err != nil {
 		return err
 	}
@@ -224,15 +224,7 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("reading EventGrid Topic %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceEventGridTopicRead(d, meta)
 }
