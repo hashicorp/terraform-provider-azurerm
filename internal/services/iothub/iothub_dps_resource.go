@@ -109,9 +109,14 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Default:  features.ThreePointOh(),
 						},
 						"allocation_weight": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      0,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Default: func() interface{} {
+								if features.ThreePointOh() {
+									return 1
+								}
+								return 0
+							}(),
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {
