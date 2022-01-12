@@ -178,7 +178,12 @@ resource "azurerm_application_insights_web_test" "test" {
   frequency               = 900
   timeout                 = 120
   enabled                 = true
-  geo_locations           = ["us-tx-sn1-azr", "us-il-ch1-azr"]
+  description             = "web_test"
+  retry_enabled           = true
+  tags = {
+    ENV = "web_test"
+  }
+  geo_locations = ["us-tx-sn1-azr", "us-il-ch1-azr"]
 
   configuration = <<XML
 <WebTest Name="WebTest1" Id="ABD48585-0831-40CB-9069-682EA6BB3583" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="default" StopOnError="False" RecordedResultFile="" ResultsLocale="">
