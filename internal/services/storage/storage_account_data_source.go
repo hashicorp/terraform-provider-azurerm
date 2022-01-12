@@ -402,7 +402,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 
 		infrastructure_encryption := false
-		if encryption := props.Encryption; encryption != nil {
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
 			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption", infrastructure_encryption)

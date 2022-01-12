@@ -1106,7 +1106,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				KeyType: storage.KeyType(tableEncryptionKeyType),
 			},
 		},
-		RequireInfrastructureEncryption: &infrastructureEncryption,
+	}
+
+	if accountKind == string(storage.KindStorageV2) {
+		parameters.Encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
 
 	// Create
@@ -1780,7 +1783,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 
 		infrastructure_encryption := false
-		if encryption := props.Encryption; encryption != nil {
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
 			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption", infrastructure_encryption)
