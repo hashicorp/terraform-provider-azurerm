@@ -102,29 +102,29 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 
 func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
 	certificate := d.Get("certificate").(string)
 	format := d.Get("format").(string)
 	password := d.Get("password").(string)
 	thumbprint := d.Get("thumbprint").(string)
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
 	name := thumbprintAlgorithm + "-" + thumbprint
+	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
 
 	if err := validateBatchCertificateFormatAndPassword(format, password); err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Batch Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroupName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -146,16 +146,12 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		CertificateCreateOrUpdateProperties: &certificateProperties,
 	}
 
-	_, err := client.Create(ctx, resourceGroupName, accountName, name, parameters, "", "")
+	_, err := client.Create(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "", "")
 	if err != nil {
-		return fmt.Errorf("creating Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroupName, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
-	}
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceBatchCertificateRead(d, meta)
 }
 
