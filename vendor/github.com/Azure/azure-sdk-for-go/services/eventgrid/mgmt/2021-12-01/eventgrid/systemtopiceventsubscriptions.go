@@ -14,34 +14,34 @@ import (
 	"net/http"
 )
 
-// PartnerTopicEventSubscriptionsClient is the azure EventGrid Management Client
-type PartnerTopicEventSubscriptionsClient struct {
+// SystemTopicEventSubscriptionsClient is the azure EventGrid Management Client
+type SystemTopicEventSubscriptionsClient struct {
 	BaseClient
 }
 
-// NewPartnerTopicEventSubscriptionsClient creates an instance of the PartnerTopicEventSubscriptionsClient client.
-func NewPartnerTopicEventSubscriptionsClient(subscriptionID string) PartnerTopicEventSubscriptionsClient {
-	return NewPartnerTopicEventSubscriptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewSystemTopicEventSubscriptionsClient creates an instance of the SystemTopicEventSubscriptionsClient client.
+func NewSystemTopicEventSubscriptionsClient(subscriptionID string) SystemTopicEventSubscriptionsClient {
+	return NewSystemTopicEventSubscriptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPartnerTopicEventSubscriptionsClientWithBaseURI creates an instance of the PartnerTopicEventSubscriptionsClient
+// NewSystemTopicEventSubscriptionsClientWithBaseURI creates an instance of the SystemTopicEventSubscriptionsClient
 // client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
 // (sovereign clouds, Azure stack).
-func NewPartnerTopicEventSubscriptionsClientWithBaseURI(baseURI string, subscriptionID string) PartnerTopicEventSubscriptionsClient {
-	return PartnerTopicEventSubscriptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewSystemTopicEventSubscriptionsClientWithBaseURI(baseURI string, subscriptionID string) SystemTopicEventSubscriptionsClient {
+	return SystemTopicEventSubscriptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate asynchronously creates or updates an event subscription of a partner topic with the specified
-// parameters. Existing event subscriptions will be updated with this API.
+// CreateOrUpdate asynchronously creates or updates an event subscription with the specified parameters. Existing event
+// subscriptions will be updated with this API.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
 // between 3 and 100 characters in length and use alphanumeric letters only.
 // eventSubscriptionInfo - event subscription properties containing the destination and filter information.
-func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string, eventSubscriptionInfo EventSubscription) (result PartnerTopicEventSubscriptionsCreateOrUpdateFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string, eventSubscriptionInfo EventSubscription) (result SystemTopicEventSubscriptionsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -50,15 +50,15 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName, eventSubscriptionInfo)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName, eventSubscriptionInfo)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -66,15 +66,15 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Co
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string, eventSubscriptionInfo EventSubscription) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string, eventSubscriptionInfo EventSubscription) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -84,7 +84,7 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
 		autorest.WithJSON(eventSubscriptionInfo),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -92,7 +92,7 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx co
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateSender(req *http.Request) (future PartnerTopicEventSubscriptionsCreateOrUpdateFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) CreateOrUpdateSender(req *http.Request) (future SystemTopicEventSubscriptionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -108,7 +108,7 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateSender(req *htt
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result EventSubscription, err error) {
+func (client SystemTopicEventSubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -118,15 +118,15 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateResponder(resp 
 	return
 }
 
-// Delete delete an event subscription of a partner topic.
+// Delete delete an event subscription of a system topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
 // between 3 and 100 characters in length and use alphanumeric letters only.
-func (client PartnerTopicEventSubscriptionsClient) Delete(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (result PartnerTopicEventSubscriptionsDeleteFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) Delete(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (result SystemTopicEventSubscriptionsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -135,15 +135,15 @@ func (client PartnerTopicEventSubscriptionsClient) Delete(ctx context.Context, r
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -151,15 +151,15 @@ func (client PartnerTopicEventSubscriptionsClient) Delete(ctx context.Context, r
 }
 
 // DeletePreparer prepares the Delete request.
-func (client PartnerTopicEventSubscriptionsClient) DeletePreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) DeletePreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,14 +167,14 @@ func (client PartnerTopicEventSubscriptionsClient) DeletePreparer(ctx context.Co
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) DeleteSender(req *http.Request) (future PartnerTopicEventSubscriptionsDeleteFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) DeleteSender(req *http.Request) (future SystemTopicEventSubscriptionsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -190,7 +190,7 @@ func (client PartnerTopicEventSubscriptionsClient) DeleteSender(req *http.Reques
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client SystemTopicEventSubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -199,15 +199,15 @@ func (client PartnerTopicEventSubscriptionsClient) DeleteResponder(resp *http.Re
 	return
 }
 
-// Get get an event subscription of a partner topic.
+// Get get an event subscription.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
-// eventSubscriptionName - name of the event subscription to be found. Event subscription names must be between
-// 3 and 100 characters in length and use alphanumeric letters only.
-func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (result EventSubscription, err error) {
+// systemTopicName - name of the system topic.
+// eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
+// between 3 and 100 characters in length and use alphanumeric letters only.
+func (client SystemTopicEventSubscriptionsClient) Get(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (result EventSubscription, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -216,22 +216,22 @@ func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, reso
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -239,15 +239,15 @@ func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, reso
 }
 
 // GetPreparer prepares the Get request.
-func (client PartnerTopicEventSubscriptionsClient) GetPreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) GetPreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -255,20 +255,20 @@ func (client PartnerTopicEventSubscriptionsClient) GetPreparer(ctx context.Conte
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client SystemTopicEventSubscriptionsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) GetResponder(resp *http.Response) (result EventSubscription, err error) {
+func (client SystemTopicEventSubscriptionsClient) GetResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -278,15 +278,15 @@ func (client PartnerTopicEventSubscriptionsClient) GetResponder(resp *http.Respo
 	return
 }
 
-// GetDeliveryAttributes get all delivery attributes for an event subscription of a partner topic.
+// GetDeliveryAttributes get all delivery attributes for an event subscription.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
 // between 3 and 100 characters in length and use alphanumeric letters only.
-func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributes(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (result DeliveryAttributeListResult, err error) {
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributes(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (result DeliveryAttributeListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.GetDeliveryAttributes")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.GetDeliveryAttributes")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -295,22 +295,22 @@ func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributes(ctx con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetDeliveryAttributesPreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName)
+	req, err := client.GetDeliveryAttributesPreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetDeliveryAttributes", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetDeliveryAttributesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetDeliveryAttributesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetDeliveryAttributes", resp, "Failure responding to request")
 		return
 	}
 
@@ -318,15 +318,15 @@ func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributes(ctx con
 }
 
 // GetDeliveryAttributesPreparer prepares the GetDeliveryAttributes request.
-func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributesPreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesPreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -334,20 +334,20 @@ func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributesPreparer
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}/getDeliveryAttributes", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}/getDeliveryAttributes", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetDeliveryAttributesSender sends the GetDeliveryAttributes request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributesSender(req *http.Request) (*http.Response, error) {
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetDeliveryAttributesResponder handles the response to the GetDeliveryAttributes request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributesResponder(resp *http.Response) (result DeliveryAttributeListResult, err error) {
+func (client SystemTopicEventSubscriptionsClient) GetDeliveryAttributesResponder(resp *http.Response) (result DeliveryAttributeListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -357,15 +357,15 @@ func (client PartnerTopicEventSubscriptionsClient) GetDeliveryAttributesResponde
 	return
 }
 
-// GetFullURL get the full endpoint URL for an event subscription of a partner topic.
+// GetFullURL get the full endpoint URL for an event subscription of a system topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
 // between 3 and 100 characters in length and use alphanumeric letters only.
-func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (result EventSubscriptionFullURL, err error) {
+func (client SystemTopicEventSubscriptionsClient) GetFullURL(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (result EventSubscriptionFullURL, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.GetFullURL")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.GetFullURL")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -374,22 +374,22 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetFullURLPreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName)
+	req, err := client.GetFullURLPreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetFullURL", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetFullURLSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetFullURLResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
 		return
 	}
 
@@ -397,15 +397,15 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Contex
 }
 
 // GetFullURLPreparer prepares the GetFullURL request.
-func (client PartnerTopicEventSubscriptionsClient) GetFullURLPreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) GetFullURLPreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -413,20 +413,20 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURLPreparer(ctx contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}/getFullUrl", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}/getFullUrl", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetFullURLSender sends the GetFullURL request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) GetFullURLSender(req *http.Request) (*http.Response, error) {
+func (client SystemTopicEventSubscriptionsClient) GetFullURLSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetFullURLResponder handles the response to the GetFullURL request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) GetFullURLResponder(resp *http.Response) (result EventSubscriptionFullURL, err error) {
+func (client SystemTopicEventSubscriptionsClient) GetFullURLResponder(resp *http.Response) (result EventSubscriptionFullURL, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -436,10 +436,10 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURLResponder(resp *htt
 	return
 }
 
-// ListByPartnerTopic list event subscriptions that belong to a specific partner topic.
+// ListBySystemTopic list event subscriptions that belong to a specific system topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
 // 'name' property only and with limited number of OData operations. These operations are: the 'contains'
 // function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
@@ -448,9 +448,9 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURLResponder(resp *htt
 // 'westus'.
 // top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
 // 100. If not specified, the default number of results to be returned is 20 items per page.
-func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx context.Context, resourceGroupName string, partnerTopicName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
+func (client SystemTopicEventSubscriptionsClient) ListBySystemTopic(ctx context.Context, resourceGroupName string, systemTopicName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.ListByPartnerTopic")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.ListBySystemTopic")
 		defer func() {
 			sc := -1
 			if result.eslr.Response.Response != nil {
@@ -459,23 +459,23 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.listByPartnerTopicNextResults
-	req, err := client.ListByPartnerTopicPreparer(ctx, resourceGroupName, partnerTopicName, filter, top)
+	result.fn = client.listBySystemTopicNextResults
+	req, err := client.ListBySystemTopicPreparer(ctx, resourceGroupName, systemTopicName, filter, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "ListBySystemTopic", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByPartnerTopicSender(req)
+	resp, err := client.ListBySystemTopicSender(req)
 	if err != nil {
 		result.eslr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "ListBySystemTopic", resp, "Failure sending request")
 		return
 	}
 
-	result.eslr, err = client.ListByPartnerTopicResponder(resp)
+	result.eslr, err = client.ListBySystemTopicResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "ListBySystemTopic", resp, "Failure responding to request")
 		return
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
@@ -486,15 +486,15 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx contex
 	return
 }
 
-// ListByPartnerTopicPreparer prepares the ListByPartnerTopic request.
-func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicPreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, filter string, top *int32) (*http.Request, error) {
+// ListBySystemTopicPreparer prepares the ListBySystemTopic request.
+func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicPreparer(ctx context.Context, resourceGroupName string, systemTopicName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerTopicName":  autorest.Encode("path", partnerTopicName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -508,20 +508,20 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicPreparer(ct
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByPartnerTopicSender sends the ListByPartnerTopic request. The method will close the
+// ListBySystemTopicSender sends the ListBySystemTopic request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicSender(req *http.Request) (*http.Response, error) {
+func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByPartnerTopicResponder handles the response to the ListByPartnerTopic request. The method always
+// ListBySystemTopicResponder handles the response to the ListBySystemTopic request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicResponder(resp *http.Response) (result EventSubscriptionsListResult, err error) {
+func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicResponder(resp *http.Response) (result EventSubscriptionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -531,31 +531,31 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicResponder(r
 	return
 }
 
-// listByPartnerTopicNextResults retrieves the next set of results, if any.
-func (client PartnerTopicEventSubscriptionsClient) listByPartnerTopicNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+// listBySystemTopicNextResults retrieves the next set of results, if any.
+func (client SystemTopicEventSubscriptionsClient) listBySystemTopicNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
 	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "listByPartnerTopicNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "listBySystemTopicNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByPartnerTopicSender(req)
+	resp, err := client.ListBySystemTopicSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "listByPartnerTopicNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "listBySystemTopicNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByPartnerTopicResponder(resp)
+	result, err = client.ListBySystemTopicResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "listByPartnerTopicNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "listBySystemTopicNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByPartnerTopicComplete enumerates all values, automatically crossing page boundaries as required.
-func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicComplete(ctx context.Context, resourceGroupName string, partnerTopicName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+// ListBySystemTopicComplete enumerates all values, automatically crossing page boundaries as required.
+func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicComplete(ctx context.Context, resourceGroupName string, systemTopicName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.ListByPartnerTopic")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.ListBySystemTopic")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -564,20 +564,20 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicComplete(ct
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByPartnerTopic(ctx, resourceGroupName, partnerTopicName, filter, top)
+	result.page, err = client.ListBySystemTopic(ctx, resourceGroupName, systemTopicName, filter, top)
 	return
 }
 
-// Update update event subscription of a partner topic.
+// Update update event subscription of a system topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerTopicName - name of the partner topic.
+// systemTopicName - name of the system topic.
 // eventSubscriptionName - name of the event subscription to be created. Event subscription names must be
 // between 3 and 100 characters in length and use alphanumeric letters only.
 // eventSubscriptionUpdateParameters - updated event subscription information.
-func (client PartnerTopicEventSubscriptionsClient) Update(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string, eventSubscriptionUpdateParameters EventSubscriptionUpdateParameters) (result PartnerTopicEventSubscriptionsUpdateFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) Update(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string, eventSubscriptionUpdateParameters EventSubscriptionUpdateParameters) (result SystemTopicEventSubscriptionsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicEventSubscriptionsClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/SystemTopicEventSubscriptionsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -586,15 +586,15 @@ func (client PartnerTopicEventSubscriptionsClient) Update(ctx context.Context, r
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, partnerTopicName, eventSubscriptionName, eventSubscriptionUpdateParameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, systemTopicName, eventSubscriptionName, eventSubscriptionUpdateParameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -602,15 +602,15 @@ func (client PartnerTopicEventSubscriptionsClient) Update(ctx context.Context, r
 }
 
 // UpdatePreparer prepares the Update request.
-func (client PartnerTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, partnerTopicName string, eventSubscriptionName string, eventSubscriptionUpdateParameters EventSubscriptionUpdateParameters) (*http.Request, error) {
+func (client SystemTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, systemTopicName string, eventSubscriptionName string, eventSubscriptionUpdateParameters EventSubscriptionUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"eventSubscriptionName": autorest.Encode("path", eventSubscriptionName),
-		"partnerTopicName":      autorest.Encode("path", partnerTopicName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"systemTopicName":       autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -619,7 +619,7 @@ func (client PartnerTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerTopics/{partnerTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/systemTopics/{systemTopicName}/eventSubscriptions/{eventSubscriptionName}", pathParameters),
 		autorest.WithJSON(eventSubscriptionUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -627,7 +627,7 @@ func (client PartnerTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Co
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerTopicEventSubscriptionsClient) UpdateSender(req *http.Request) (future PartnerTopicEventSubscriptionsUpdateFuture, err error) {
+func (client SystemTopicEventSubscriptionsClient) UpdateSender(req *http.Request) (future SystemTopicEventSubscriptionsUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -643,7 +643,7 @@ func (client PartnerTopicEventSubscriptionsClient) UpdateSender(req *http.Reques
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client PartnerTopicEventSubscriptionsClient) UpdateResponder(resp *http.Response) (result EventSubscription, err error) {
+func (client SystemTopicEventSubscriptionsClient) UpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),

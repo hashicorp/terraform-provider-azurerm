@@ -70,11 +70,12 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	topicInfo.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -151,7 +152,7 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -236,7 +237,7 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -323,7 +324,7 @@ func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -451,7 +452,7 @@ func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context, filte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -574,7 +575,7 @@ func (client TopicsClient) ListEventTypesPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -650,7 +651,7 @@ func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, res
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -726,7 +727,7 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -762,7 +763,7 @@ func (client TopicsClient) RegenerateKeySender(req *http.Request) (future Topics
 func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result TopicSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -808,7 +809,7 @@ func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

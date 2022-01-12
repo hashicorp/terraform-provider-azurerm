@@ -10,42 +10,42 @@ package eventgrid
 type CreatedByType string
 
 const (
-	// Application ...
-	Application CreatedByType = "Application"
-	// Key ...
-	Key CreatedByType = "Key"
-	// ManagedIdentity ...
-	ManagedIdentity CreatedByType = "ManagedIdentity"
-	// User ...
-	User CreatedByType = "User"
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
 )
 
 // PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
 func PossibleCreatedByTypeValues() []CreatedByType {
-	return []CreatedByType{Application, Key, ManagedIdentity, User}
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
 // DomainProvisioningState enumerates the values for domain provisioning state.
 type DomainProvisioningState string
 
 const (
-	// Canceled ...
-	Canceled DomainProvisioningState = "Canceled"
-	// Creating ...
-	Creating DomainProvisioningState = "Creating"
-	// Deleting ...
-	Deleting DomainProvisioningState = "Deleting"
-	// Failed ...
-	Failed DomainProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded DomainProvisioningState = "Succeeded"
-	// Updating ...
-	Updating DomainProvisioningState = "Updating"
+	// DomainProvisioningStateCanceled ...
+	DomainProvisioningStateCanceled DomainProvisioningState = "Canceled"
+	// DomainProvisioningStateCreating ...
+	DomainProvisioningStateCreating DomainProvisioningState = "Creating"
+	// DomainProvisioningStateDeleting ...
+	DomainProvisioningStateDeleting DomainProvisioningState = "Deleting"
+	// DomainProvisioningStateFailed ...
+	DomainProvisioningStateFailed DomainProvisioningState = "Failed"
+	// DomainProvisioningStateSucceeded ...
+	DomainProvisioningStateSucceeded DomainProvisioningState = "Succeeded"
+	// DomainProvisioningStateUpdating ...
+	DomainProvisioningStateUpdating DomainProvisioningState = "Updating"
 )
 
 // PossibleDomainProvisioningStateValues returns an array of possible values for the DomainProvisioningState const type.
 func PossibleDomainProvisioningStateValues() []DomainProvisioningState {
-	return []DomainProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
+	return []DomainProvisioningState{DomainProvisioningStateCanceled, DomainProvisioningStateCreating, DomainProvisioningStateDeleting, DomainProvisioningStateFailed, DomainProvisioningStateSucceeded, DomainProvisioningStateUpdating}
 }
 
 // DomainTopicProvisioningState enumerates the values for domain topic provisioning state.
@@ -103,70 +103,47 @@ func PossibleEndpointTypeValues() []EndpointType {
 type EndpointTypeBasicDeadLetterDestination string
 
 const (
-	// EndpointTypeDeadLetterDestination ...
-	EndpointTypeDeadLetterDestination EndpointTypeBasicDeadLetterDestination = "DeadLetterDestination"
-	// EndpointTypeStorageBlob ...
-	EndpointTypeStorageBlob EndpointTypeBasicDeadLetterDestination = "StorageBlob"
+	// EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination ...
+	EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination EndpointTypeBasicDeadLetterDestination = "DeadLetterDestination"
+	// EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob ...
+	EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob EndpointTypeBasicDeadLetterDestination = "StorageBlob"
 )
 
 // PossibleEndpointTypeBasicDeadLetterDestinationValues returns an array of possible values for the EndpointTypeBasicDeadLetterDestination const type.
 func PossibleEndpointTypeBasicDeadLetterDestinationValues() []EndpointTypeBasicDeadLetterDestination {
-	return []EndpointTypeBasicDeadLetterDestination{EndpointTypeDeadLetterDestination, EndpointTypeStorageBlob}
-}
-
-// EventChannelProvisioningState enumerates the values for event channel provisioning state.
-type EventChannelProvisioningState string
-
-const (
-	// EventChannelProvisioningStateCanceled ...
-	EventChannelProvisioningStateCanceled EventChannelProvisioningState = "Canceled"
-	// EventChannelProvisioningStateCreating ...
-	EventChannelProvisioningStateCreating EventChannelProvisioningState = "Creating"
-	// EventChannelProvisioningStateDeleting ...
-	EventChannelProvisioningStateDeleting EventChannelProvisioningState = "Deleting"
-	// EventChannelProvisioningStateFailed ...
-	EventChannelProvisioningStateFailed EventChannelProvisioningState = "Failed"
-	// EventChannelProvisioningStateSucceeded ...
-	EventChannelProvisioningStateSucceeded EventChannelProvisioningState = "Succeeded"
-	// EventChannelProvisioningStateUpdating ...
-	EventChannelProvisioningStateUpdating EventChannelProvisioningState = "Updating"
-)
-
-// PossibleEventChannelProvisioningStateValues returns an array of possible values for the EventChannelProvisioningState const type.
-func PossibleEventChannelProvisioningStateValues() []EventChannelProvisioningState {
-	return []EventChannelProvisioningState{EventChannelProvisioningStateCanceled, EventChannelProvisioningStateCreating, EventChannelProvisioningStateDeleting, EventChannelProvisioningStateFailed, EventChannelProvisioningStateSucceeded, EventChannelProvisioningStateUpdating}
+	return []EndpointTypeBasicDeadLetterDestination{EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination, EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob}
 }
 
 // EventDeliverySchema enumerates the values for event delivery schema.
 type EventDeliverySchema string
 
 const (
-	// CloudEventSchemaV10 ...
-	CloudEventSchemaV10 EventDeliverySchema = "CloudEventSchemaV1_0"
-	// CustomInputSchema ...
-	CustomInputSchema EventDeliverySchema = "CustomInputSchema"
-	// EventGridSchema ...
-	EventGridSchema EventDeliverySchema = "EventGridSchema"
+	// EventDeliverySchemaCloudEventSchemaV10 ...
+	EventDeliverySchemaCloudEventSchemaV10 EventDeliverySchema = "CloudEventSchemaV1_0"
+	// EventDeliverySchemaCustomInputSchema ...
+	EventDeliverySchemaCustomInputSchema EventDeliverySchema = "CustomInputSchema"
+	// EventDeliverySchemaEventGridSchema ...
+	EventDeliverySchemaEventGridSchema EventDeliverySchema = "EventGridSchema"
 )
 
 // PossibleEventDeliverySchemaValues returns an array of possible values for the EventDeliverySchema const type.
 func PossibleEventDeliverySchemaValues() []EventDeliverySchema {
-	return []EventDeliverySchema{CloudEventSchemaV10, CustomInputSchema, EventGridSchema}
+	return []EventDeliverySchema{EventDeliverySchemaCloudEventSchemaV10, EventDeliverySchemaCustomInputSchema, EventDeliverySchemaEventGridSchema}
 }
 
 // EventSubscriptionIdentityType enumerates the values for event subscription identity type.
 type EventSubscriptionIdentityType string
 
 const (
-	// SystemAssigned ...
-	SystemAssigned EventSubscriptionIdentityType = "SystemAssigned"
-	// UserAssigned ...
-	UserAssigned EventSubscriptionIdentityType = "UserAssigned"
+	// EventSubscriptionIdentityTypeSystemAssigned ...
+	EventSubscriptionIdentityTypeSystemAssigned EventSubscriptionIdentityType = "SystemAssigned"
+	// EventSubscriptionIdentityTypeUserAssigned ...
+	EventSubscriptionIdentityTypeUserAssigned EventSubscriptionIdentityType = "UserAssigned"
 )
 
 // PossibleEventSubscriptionIdentityTypeValues returns an array of possible values for the EventSubscriptionIdentityType const type.
 func PossibleEventSubscriptionIdentityTypeValues() []EventSubscriptionIdentityType {
-	return []EventSubscriptionIdentityType{SystemAssigned, UserAssigned}
+	return []EventSubscriptionIdentityType{EventSubscriptionIdentityTypeSystemAssigned, EventSubscriptionIdentityTypeUserAssigned}
 }
 
 // EventSubscriptionProvisioningState enumerates the values for event subscription provisioning state.
@@ -249,13 +226,13 @@ func PossibleInputSchemaMappingTypeValues() []InputSchemaMappingType {
 type IPActionType string
 
 const (
-	// Allow ...
-	Allow IPActionType = "Allow"
+	// IPActionTypeAllow ...
+	IPActionTypeAllow IPActionType = "Allow"
 )
 
 // PossibleIPActionTypeValues returns an array of possible values for the IPActionType const type.
 func PossibleIPActionTypeValues() []IPActionType {
-	return []IPActionType{Allow}
+	return []IPActionType{IPActionTypeAllow}
 }
 
 // OperatorType enumerates the values for operator type.
@@ -309,192 +286,38 @@ func PossibleOperatorTypeValues() []OperatorType {
 	return []OperatorType{OperatorTypeAdvancedFilter, OperatorTypeBoolEquals, OperatorTypeIsNotNull, OperatorTypeIsNullOrUndefined, OperatorTypeNumberGreaterThan, OperatorTypeNumberGreaterThanOrEquals, OperatorTypeNumberIn, OperatorTypeNumberInRange, OperatorTypeNumberLessThan, OperatorTypeNumberLessThanOrEquals, OperatorTypeNumberNotIn, OperatorTypeNumberNotInRange, OperatorTypeStringBeginsWith, OperatorTypeStringContains, OperatorTypeStringEndsWith, OperatorTypeStringIn, OperatorTypeStringNotBeginsWith, OperatorTypeStringNotContains, OperatorTypeStringNotEndsWith, OperatorTypeStringNotIn}
 }
 
-// PartnerNamespaceProvisioningState enumerates the values for partner namespace provisioning state.
-type PartnerNamespaceProvisioningState string
-
-const (
-	// PartnerNamespaceProvisioningStateCanceled ...
-	PartnerNamespaceProvisioningStateCanceled PartnerNamespaceProvisioningState = "Canceled"
-	// PartnerNamespaceProvisioningStateCreating ...
-	PartnerNamespaceProvisioningStateCreating PartnerNamespaceProvisioningState = "Creating"
-	// PartnerNamespaceProvisioningStateDeleting ...
-	PartnerNamespaceProvisioningStateDeleting PartnerNamespaceProvisioningState = "Deleting"
-	// PartnerNamespaceProvisioningStateFailed ...
-	PartnerNamespaceProvisioningStateFailed PartnerNamespaceProvisioningState = "Failed"
-	// PartnerNamespaceProvisioningStateSucceeded ...
-	PartnerNamespaceProvisioningStateSucceeded PartnerNamespaceProvisioningState = "Succeeded"
-	// PartnerNamespaceProvisioningStateUpdating ...
-	PartnerNamespaceProvisioningStateUpdating PartnerNamespaceProvisioningState = "Updating"
-)
-
-// PossiblePartnerNamespaceProvisioningStateValues returns an array of possible values for the PartnerNamespaceProvisioningState const type.
-func PossiblePartnerNamespaceProvisioningStateValues() []PartnerNamespaceProvisioningState {
-	return []PartnerNamespaceProvisioningState{PartnerNamespaceProvisioningStateCanceled, PartnerNamespaceProvisioningStateCreating, PartnerNamespaceProvisioningStateDeleting, PartnerNamespaceProvisioningStateFailed, PartnerNamespaceProvisioningStateSucceeded, PartnerNamespaceProvisioningStateUpdating}
-}
-
-// PartnerRegistrationProvisioningState enumerates the values for partner registration provisioning state.
-type PartnerRegistrationProvisioningState string
-
-const (
-	// PartnerRegistrationProvisioningStateCanceled ...
-	PartnerRegistrationProvisioningStateCanceled PartnerRegistrationProvisioningState = "Canceled"
-	// PartnerRegistrationProvisioningStateCreating ...
-	PartnerRegistrationProvisioningStateCreating PartnerRegistrationProvisioningState = "Creating"
-	// PartnerRegistrationProvisioningStateDeleting ...
-	PartnerRegistrationProvisioningStateDeleting PartnerRegistrationProvisioningState = "Deleting"
-	// PartnerRegistrationProvisioningStateFailed ...
-	PartnerRegistrationProvisioningStateFailed PartnerRegistrationProvisioningState = "Failed"
-	// PartnerRegistrationProvisioningStateSucceeded ...
-	PartnerRegistrationProvisioningStateSucceeded PartnerRegistrationProvisioningState = "Succeeded"
-	// PartnerRegistrationProvisioningStateUpdating ...
-	PartnerRegistrationProvisioningStateUpdating PartnerRegistrationProvisioningState = "Updating"
-)
-
-// PossiblePartnerRegistrationProvisioningStateValues returns an array of possible values for the PartnerRegistrationProvisioningState const type.
-func PossiblePartnerRegistrationProvisioningStateValues() []PartnerRegistrationProvisioningState {
-	return []PartnerRegistrationProvisioningState{PartnerRegistrationProvisioningStateCanceled, PartnerRegistrationProvisioningStateCreating, PartnerRegistrationProvisioningStateDeleting, PartnerRegistrationProvisioningStateFailed, PartnerRegistrationProvisioningStateSucceeded, PartnerRegistrationProvisioningStateUpdating}
-}
-
-// PartnerRegistrationVisibilityState enumerates the values for partner registration visibility state.
-type PartnerRegistrationVisibilityState string
-
-const (
-	// GenerallyAvailable ...
-	GenerallyAvailable PartnerRegistrationVisibilityState = "GenerallyAvailable"
-	// Hidden ...
-	Hidden PartnerRegistrationVisibilityState = "Hidden"
-	// PublicPreview ...
-	PublicPreview PartnerRegistrationVisibilityState = "PublicPreview"
-)
-
-// PossiblePartnerRegistrationVisibilityStateValues returns an array of possible values for the PartnerRegistrationVisibilityState const type.
-func PossiblePartnerRegistrationVisibilityStateValues() []PartnerRegistrationVisibilityState {
-	return []PartnerRegistrationVisibilityState{GenerallyAvailable, Hidden, PublicPreview}
-}
-
-// PartnerTopicActivationState enumerates the values for partner topic activation state.
-type PartnerTopicActivationState string
-
-const (
-	// Activated ...
-	Activated PartnerTopicActivationState = "Activated"
-	// Deactivated ...
-	Deactivated PartnerTopicActivationState = "Deactivated"
-	// NeverActivated ...
-	NeverActivated PartnerTopicActivationState = "NeverActivated"
-)
-
-// PossiblePartnerTopicActivationStateValues returns an array of possible values for the PartnerTopicActivationState const type.
-func PossiblePartnerTopicActivationStateValues() []PartnerTopicActivationState {
-	return []PartnerTopicActivationState{Activated, Deactivated, NeverActivated}
-}
-
-// PartnerTopicProvisioningState enumerates the values for partner topic provisioning state.
-type PartnerTopicProvisioningState string
-
-const (
-	// PartnerTopicProvisioningStateCanceled ...
-	PartnerTopicProvisioningStateCanceled PartnerTopicProvisioningState = "Canceled"
-	// PartnerTopicProvisioningStateCreating ...
-	PartnerTopicProvisioningStateCreating PartnerTopicProvisioningState = "Creating"
-	// PartnerTopicProvisioningStateDeleting ...
-	PartnerTopicProvisioningStateDeleting PartnerTopicProvisioningState = "Deleting"
-	// PartnerTopicProvisioningStateFailed ...
-	PartnerTopicProvisioningStateFailed PartnerTopicProvisioningState = "Failed"
-	// PartnerTopicProvisioningStateSucceeded ...
-	PartnerTopicProvisioningStateSucceeded PartnerTopicProvisioningState = "Succeeded"
-	// PartnerTopicProvisioningStateUpdating ...
-	PartnerTopicProvisioningStateUpdating PartnerTopicProvisioningState = "Updating"
-)
-
-// PossiblePartnerTopicProvisioningStateValues returns an array of possible values for the PartnerTopicProvisioningState const type.
-func PossiblePartnerTopicProvisioningStateValues() []PartnerTopicProvisioningState {
-	return []PartnerTopicProvisioningState{PartnerTopicProvisioningStateCanceled, PartnerTopicProvisioningStateCreating, PartnerTopicProvisioningStateDeleting, PartnerTopicProvisioningStateFailed, PartnerTopicProvisioningStateSucceeded, PartnerTopicProvisioningStateUpdating}
-}
-
-// PartnerTopicReadinessState enumerates the values for partner topic readiness state.
-type PartnerTopicReadinessState string
-
-const (
-	// ActivatedByUser ...
-	ActivatedByUser PartnerTopicReadinessState = "ActivatedByUser"
-	// DeactivatedByUser ...
-	DeactivatedByUser PartnerTopicReadinessState = "DeactivatedByUser"
-	// DeletedByUser ...
-	DeletedByUser PartnerTopicReadinessState = "DeletedByUser"
-	// NotActivatedByUserYet ...
-	NotActivatedByUserYet PartnerTopicReadinessState = "NotActivatedByUserYet"
-)
-
-// PossiblePartnerTopicReadinessStateValues returns an array of possible values for the PartnerTopicReadinessState const type.
-func PossiblePartnerTopicReadinessStateValues() []PartnerTopicReadinessState {
-	return []PartnerTopicReadinessState{ActivatedByUser, DeactivatedByUser, DeletedByUser, NotActivatedByUserYet}
-}
-
-// PartnerTopicTypeAuthorizationState enumerates the values for partner topic type authorization state.
-type PartnerTopicTypeAuthorizationState string
-
-const (
-	// Authorized ...
-	Authorized PartnerTopicTypeAuthorizationState = "Authorized"
-	// NotApplicable ...
-	NotApplicable PartnerTopicTypeAuthorizationState = "NotApplicable"
-	// NotAuthorized ...
-	NotAuthorized PartnerTopicTypeAuthorizationState = "NotAuthorized"
-)
-
-// PossiblePartnerTopicTypeAuthorizationStateValues returns an array of possible values for the PartnerTopicTypeAuthorizationState const type.
-func PossiblePartnerTopicTypeAuthorizationStateValues() []PartnerTopicTypeAuthorizationState {
-	return []PartnerTopicTypeAuthorizationState{Authorized, NotApplicable, NotAuthorized}
-}
-
 // PersistedConnectionStatus enumerates the values for persisted connection status.
 type PersistedConnectionStatus string
 
 const (
-	// Approved ...
-	Approved PersistedConnectionStatus = "Approved"
-	// Disconnected ...
-	Disconnected PersistedConnectionStatus = "Disconnected"
-	// Pending ...
-	Pending PersistedConnectionStatus = "Pending"
-	// Rejected ...
-	Rejected PersistedConnectionStatus = "Rejected"
+	// PersistedConnectionStatusApproved ...
+	PersistedConnectionStatusApproved PersistedConnectionStatus = "Approved"
+	// PersistedConnectionStatusDisconnected ...
+	PersistedConnectionStatusDisconnected PersistedConnectionStatus = "Disconnected"
+	// PersistedConnectionStatusPending ...
+	PersistedConnectionStatusPending PersistedConnectionStatus = "Pending"
+	// PersistedConnectionStatusRejected ...
+	PersistedConnectionStatusRejected PersistedConnectionStatus = "Rejected"
 )
 
 // PossiblePersistedConnectionStatusValues returns an array of possible values for the PersistedConnectionStatus const type.
 func PossiblePersistedConnectionStatusValues() []PersistedConnectionStatus {
-	return []PersistedConnectionStatus{Approved, Disconnected, Pending, Rejected}
+	return []PersistedConnectionStatus{PersistedConnectionStatusApproved, PersistedConnectionStatusDisconnected, PersistedConnectionStatusPending, PersistedConnectionStatusRejected}
 }
 
 // PublicNetworkAccess enumerates the values for public network access.
 type PublicNetworkAccess string
 
 const (
-	// Disabled ...
-	Disabled PublicNetworkAccess = "Disabled"
-	// Enabled ...
-	Enabled PublicNetworkAccess = "Enabled"
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
 )
 
 // PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
 func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
-	return []PublicNetworkAccess{Disabled, Enabled}
-}
-
-// ResourceKind enumerates the values for resource kind.
-type ResourceKind string
-
-const (
-	// Azure ...
-	Azure ResourceKind = "Azure"
-	// AzureArc ...
-	AzureArc ResourceKind = "AzureArc"
-)
-
-// PossibleResourceKindValues returns an array of possible values for the ResourceKind const type.
-func PossibleResourceKindValues() []ResourceKind {
-	return []ResourceKind{Azure, AzureArc}
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // ResourceProvisioningState enumerates the values for resource provisioning state.
@@ -524,30 +347,15 @@ func PossibleResourceProvisioningStateValues() []ResourceProvisioningState {
 type ResourceRegionType string
 
 const (
-	// GlobalResource ...
-	GlobalResource ResourceRegionType = "GlobalResource"
-	// RegionalResource ...
-	RegionalResource ResourceRegionType = "RegionalResource"
+	// ResourceRegionTypeGlobalResource ...
+	ResourceRegionTypeGlobalResource ResourceRegionType = "GlobalResource"
+	// ResourceRegionTypeRegionalResource ...
+	ResourceRegionTypeRegionalResource ResourceRegionType = "RegionalResource"
 )
 
 // PossibleResourceRegionTypeValues returns an array of possible values for the ResourceRegionType const type.
 func PossibleResourceRegionTypeValues() []ResourceRegionType {
-	return []ResourceRegionType{GlobalResource, RegionalResource}
-}
-
-// Sku enumerates the values for sku.
-type Sku string
-
-const (
-	// Basic ...
-	Basic Sku = "Basic"
-	// Premium ...
-	Premium Sku = "Premium"
-)
-
-// PossibleSkuValues returns an array of possible values for the Sku const type.
-func PossibleSkuValues() []Sku {
-	return []Sku{Basic, Premium}
+	return []ResourceRegionType{ResourceRegionTypeGlobalResource, ResourceRegionTypeRegionalResource}
 }
 
 // TopicProvisioningState enumerates the values for topic provisioning state.

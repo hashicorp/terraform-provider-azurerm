@@ -3,7 +3,7 @@ package eventgrid
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,6 +97,14 @@ func eventSubscriptionPublicNetworkAccessEnabled() *schema.Schema {
 	}
 }
 
+func localAuthEnabled() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  true,
+	}
+}
+
 func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
@@ -112,9 +120,9 @@ func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
 				"action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(eventgrid.Allow),
+					Default:  string(eventgrid.IPActionTypeAllow),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.Allow),
+						string(eventgrid.IPActionTypeAllow),
 					}, false),
 				},
 			},
@@ -124,13 +132,13 @@ func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
 
 func expandPublicNetworkAccess(d *pluginsdk.ResourceData) eventgrid.PublicNetworkAccess {
 	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		enabled := eventgrid.Disabled
+		enabled := eventgrid.PublicNetworkAccessDisabled
 		if v.(bool) {
-			enabled = eventgrid.Enabled
+			enabled = eventgrid.PublicNetworkAccessEnabled
 		}
 		return enabled
 	}
-	return eventgrid.Disabled
+	return eventgrid.PublicNetworkAccessDisabled
 }
 
 func expandInboundIPRules(d *pluginsdk.ResourceData) *[]eventgrid.InboundIPRule {
@@ -154,7 +162,7 @@ func expandInboundIPRules(d *pluginsdk.ResourceData) *[]eventgrid.InboundIPRule 
 }
 
 func flattenPublicNetworkAccess(in eventgrid.PublicNetworkAccess) bool {
-	return in == eventgrid.Enabled
+	return in == eventgrid.PublicNetworkAccessEnabled
 }
 
 func flattenInboundIPRules(in *[]eventgrid.InboundIPRule) []interface{} {

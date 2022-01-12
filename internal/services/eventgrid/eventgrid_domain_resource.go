@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -140,6 +140,20 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
 
+			"local_auth_enabled": localAuthEnabled(),
+
+			"auto_create_topic_with_first_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"auto_delete_topic_with_last_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
@@ -189,10 +203,13 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
-		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
-		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
-		PublicNetworkAccess: expandPublicNetworkAccess(d),
-		InboundIPRules:      expandInboundIPRules(d),
+		InputSchemaMapping:                   expandAzureRmEventgridDomainInputMapping(d),
+		InputSchema:                          eventgrid.InputSchema(d.Get("input_schema").(string)),
+		PublicNetworkAccess:                  expandPublicNetworkAccess(d),
+		InboundIPRules:                       expandInboundIPRules(d),
+		DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
+		AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
 	}
 
 	domain := eventgrid.Domain{
@@ -291,6 +308,27 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+
+		localAuthEnabled := true
+		if props.DisableLocalAuth != nil {
+			localAuthEnabled = !*props.DisableLocalAuth
+		}
+
+		d.Set("local_auth_enabled", localAuthEnabled)
+
+		autoCreateTopicWithFirstSubscription := true
+		if props.AutoCreateTopicWithFirstSubscription != nil {
+			autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
+		}
+
+		d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+		autoDeleteTopicWithLastSubscription := true
+		if props.AutoDeleteTopicWithLastSubscription != nil {
+			autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
+		}
+
+		d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)

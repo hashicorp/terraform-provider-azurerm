@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 
 // BasicAdvancedFilter this is the base type that represents an advanced filter. To configure an advanced filter, do
 // not directly instantiate an object of this class. Instead, instantiate an object of a derived class such as
@@ -581,7 +581,7 @@ func (beaf BoolEqualsAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilte
 
 // ConnectionState connectionState information.
 type ConnectionState struct {
-	// Status - Status of the connection. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	// Status - Status of the connection. Possible values include: 'PersistedConnectionStatusPending', 'PersistedConnectionStatusApproved', 'PersistedConnectionStatusRejected', 'PersistedConnectionStatusDisconnected'
 	Status PersistedConnectionStatus `json:"status,omitempty"`
 	// Description - Description of the connection state.
 	Description *string `json:"description,omitempty"`
@@ -602,7 +602,7 @@ type BasicDeadLetterDestination interface {
 // object of a derived class. Currently, StorageBlobDeadLetterDestination is the only class that derives from
 // this class.
 type DeadLetterDestination struct {
-	// EndpointType - Possible values include: 'EndpointTypeDeadLetterDestination', 'EndpointTypeStorageBlob'
+	// EndpointType - Possible values include: 'EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination', 'EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob'
 	EndpointType EndpointTypeBasicDeadLetterDestination `json:"endpointType,omitempty"`
 }
 
@@ -614,7 +614,7 @@ func unmarshalBasicDeadLetterDestination(body []byte) (BasicDeadLetterDestinatio
 	}
 
 	switch m["endpointType"] {
-	case string(EndpointTypeStorageBlob):
+	case string(EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob):
 		var sbdld StorageBlobDeadLetterDestination
 		err := json.Unmarshal(body, &sbdld)
 		return sbdld, err
@@ -645,7 +645,7 @@ func unmarshalBasicDeadLetterDestinationArray(body []byte) ([]BasicDeadLetterDes
 
 // MarshalJSON is the custom marshaler for DeadLetterDestination.
 func (dld DeadLetterDestination) MarshalJSON() ([]byte, error) {
-	dld.EndpointType = EndpointTypeDeadLetterDestination
+	dld.EndpointType = EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination
 	objectMap := make(map[string]interface{})
 	if dld.EndpointType != "" {
 		objectMap["endpointType"] = dld.EndpointType
@@ -873,11 +873,11 @@ func (dwri *DeliveryWithResourceIdentity) UnmarshalJSON(body []byte) error {
 // Domain eventGrid Domain.
 type Domain struct {
 	autorest.Response `json:"-"`
-	// DomainProperties - Properties of the domain.
+	// DomainProperties - Properties of the Event Grid Domain resource.
 	*DomainProperties `json:"properties,omitempty"`
-	// Sku - The Sku pricing tier for the domain.
-	Sku *ResourceSku `json:"sku,omitempty"`
-	// Identity - Identity information for the resource.
+	// SystemData - READ-ONLY; The system metadata relating to Domain resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// Identity - Identity information for the Event Grid Domain resource.
 	Identity *IdentityInfo `json:"identity,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
@@ -896,9 +896,6 @@ func (d Domain) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if d.DomainProperties != nil {
 		objectMap["properties"] = d.DomainProperties
-	}
-	if d.Sku != nil {
-		objectMap["sku"] = d.Sku
 	}
 	if d.Identity != nil {
 		objectMap["identity"] = d.Identity
@@ -930,14 +927,14 @@ func (d *Domain) UnmarshalJSON(body []byte) error {
 				}
 				d.DomainProperties = &domainProperties
 			}
-		case "sku":
+		case "systemData":
 			if v != nil {
-				var sku ResourceSku
-				err = json.Unmarshal(*v, &sku)
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
 				if err != nil {
 					return err
 				}
-				d.Sku = &sku
+				d.SystemData = &systemData
 			}
 		case "identity":
 			if v != nil {
@@ -999,11 +996,11 @@ func (d *Domain) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DomainProperties properties of the Domain.
+// DomainProperties properties of the Event Grid Domain Resource.
 type DomainProperties struct {
-	// PrivateEndpointConnections - List of private endpoint connections.
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connections.
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the domain. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Canceled', 'Failed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Event Grid Domain Resource. Possible values include: 'DomainProvisioningStateCreating', 'DomainProvisioningStateUpdating', 'DomainProvisioningStateDeleting', 'DomainProvisioningStateSucceeded', 'DomainProvisioningStateCanceled', 'DomainProvisioningStateFailed'
 	ProvisioningState DomainProvisioningState `json:"provisioningState,omitempty"`
 	// Endpoint - READ-ONLY; Endpoint for the domain.
 	Endpoint *string `json:"endpoint,omitempty"`
@@ -1014,18 +1011,33 @@ type DomainProperties struct {
 	// MetricResourceID - READ-ONLY; Metric resource id for the domain.
 	MetricResourceID *string `json:"metricResourceId,omitempty"`
 	// PublicNetworkAccess - This determines if traffic is allowed over public network. By default it is enabled.
-	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.DomainProperties.InboundIpRules" />. Possible values include: 'Enabled', 'Disabled'
+	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.DomainProperties.InboundIpRules" />. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// InboundIPRules - This can be used to restrict traffic from specific IPs instead of all IPs. Note: These are considered only if PublicNetworkAccess is enabled.
 	InboundIPRules *[]InboundIPRule `json:"inboundIpRules,omitempty"`
+	// DisableLocalAuth - This boolean is used to enable or disable local auth. Default value is false. When the property is set to true, only AAD token will be used to authenticate if user is allowed to publish to the domain.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+	// AutoCreateTopicWithFirstSubscription - This Boolean is used to specify the creation mechanism for 'all' the Event Grid Domain Topics associated with this Event Grid Domain resource.
+	// In this context, creation of domain topic can be auto-managed (when true) or self-managed (when false). The default value for this property is true.
+	// When this property is null or set to true, Event Grid is responsible of automatically creating the domain topic when the first event subscription is
+	// created at the scope of the domain topic. If this property is set to false, then creating the first event subscription will require creating a domain topic
+	// by the user. The self-management mode can be used if the user wants full control of when the domain topic is created, while auto-managed mode provides the
+	// flexibility to perform less operations and manage fewer resources by the user. Also, note that in auto-managed creation mode, user is allowed to create the
+	// domain topic on demand if needed.
+	AutoCreateTopicWithFirstSubscription *bool `json:"autoCreateTopicWithFirstSubscription,omitempty"`
+	// AutoDeleteTopicWithLastSubscription - This Boolean is used to specify the deletion mechanism for 'all' the Event Grid Domain Topics associated with this Event Grid Domain resource.
+	// In this context, deletion of domain topic can be auto-managed (when true) or self-managed (when false). The default value for this property is true.
+	// When this property is set to true, Event Grid is responsible of automatically deleting the domain topic when the last event subscription at the scope
+	// of the domain topic is deleted. If this property is set to false, then the user needs to manually delete the domain topic when it is no longer needed
+	// (e.g., when last event subscription is deleted and the resource needs to be cleaned up). The self-management mode can be used if the user wants full
+	// control of when the domain topic needs to be deleted, while auto-managed mode provides the flexibility to perform less operations and manage fewer
+	// resources by the user.
+	AutoDeleteTopicWithLastSubscription *bool `json:"autoDeleteTopicWithLastSubscription,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DomainProperties.
 func (dp DomainProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dp.PrivateEndpointConnections != nil {
-		objectMap["privateEndpointConnections"] = dp.PrivateEndpointConnections
-	}
 	if dp.InputSchema != "" {
 		objectMap["inputSchema"] = dp.InputSchema
 	}
@@ -1035,6 +1047,15 @@ func (dp DomainProperties) MarshalJSON() ([]byte, error) {
 	}
 	if dp.InboundIPRules != nil {
 		objectMap["inboundIpRules"] = dp.InboundIPRules
+	}
+	if dp.DisableLocalAuth != nil {
+		objectMap["disableLocalAuth"] = dp.DisableLocalAuth
+	}
+	if dp.AutoCreateTopicWithFirstSubscription != nil {
+		objectMap["autoCreateTopicWithFirstSubscription"] = dp.AutoCreateTopicWithFirstSubscription
+	}
+	if dp.AutoDeleteTopicWithLastSubscription != nil {
+		objectMap["autoDeleteTopicWithLastSubscription"] = dp.AutoDeleteTopicWithLastSubscription
 	}
 	return json.Marshal(objectMap)
 }
@@ -1118,6 +1139,33 @@ func (dp *DomainProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dp.InboundIPRules = &inboundIPRules
+			}
+		case "disableLocalAuth":
+			if v != nil {
+				var disableLocalAuth bool
+				err = json.Unmarshal(*v, &disableLocalAuth)
+				if err != nil {
+					return err
+				}
+				dp.DisableLocalAuth = &disableLocalAuth
+			}
+		case "autoCreateTopicWithFirstSubscription":
+			if v != nil {
+				var autoCreateTopicWithFirstSubscription bool
+				err = json.Unmarshal(*v, &autoCreateTopicWithFirstSubscription)
+				if err != nil {
+					return err
+				}
+				dp.AutoCreateTopicWithFirstSubscription = &autoCreateTopicWithFirstSubscription
+			}
+		case "autoDeleteTopicWithLastSubscription":
+			if v != nil {
+				var autoDeleteTopicWithLastSubscription bool
+				err = json.Unmarshal(*v, &autoDeleteTopicWithLastSubscription)
+				if err != nil {
+					return err
+				}
+				dp.AutoDeleteTopicWithLastSubscription = &autoDeleteTopicWithLastSubscription
 			}
 		}
 	}
@@ -1220,12 +1268,12 @@ type DomainSharedAccessKeys struct {
 	Key2 *string `json:"key2,omitempty"`
 }
 
-// DomainsListResult result of the List Domains operation
+// DomainsListResult result of the List Domains operation.
 type DomainsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A collection of Domains
+	// Value - A collection of Domains.
 	Value *[]Domain `json:"value,omitempty"`
-	// NextLink - A link for the next page of domains
+	// NextLink - A link for the next page of domains.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1425,8 +1473,10 @@ func (future *DomainsUpdateFuture) result(client DomainsClient) (d Domain, err e
 // DomainTopic domain Topic.
 type DomainTopic struct {
 	autorest.Response `json:"-"`
-	// DomainTopicProperties - Properties of the Domain Topic.
+	// DomainTopicProperties - READ-ONLY; Properties of the Domain Topic.
 	*DomainTopicProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to Domain Topic resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Name of the resource.
@@ -1438,9 +1488,6 @@ type DomainTopic struct {
 // MarshalJSON is the custom marshaler for DomainTopic.
 func (dt DomainTopic) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dt.DomainTopicProperties != nil {
-		objectMap["properties"] = dt.DomainTopicProperties
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1461,6 +1508,15 @@ func (dt *DomainTopic) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dt.DomainTopicProperties = &domainTopicProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				dt.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -1497,8 +1553,14 @@ func (dt *DomainTopic) UnmarshalJSON(body []byte) error {
 
 // DomainTopicProperties properties of the Domain Topic.
 type DomainTopicProperties struct {
-	// ProvisioningState - Provisioning state of the domain topic. Possible values include: 'DomainTopicProvisioningStateCreating', 'DomainTopicProvisioningStateUpdating', 'DomainTopicProvisioningStateDeleting', 'DomainTopicProvisioningStateSucceeded', 'DomainTopicProvisioningStateCanceled', 'DomainTopicProvisioningStateFailed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the domain topic. Possible values include: 'DomainTopicProvisioningStateCreating', 'DomainTopicProvisioningStateUpdating', 'DomainTopicProvisioningStateDeleting', 'DomainTopicProvisioningStateSucceeded', 'DomainTopicProvisioningStateCanceled', 'DomainTopicProvisioningStateFailed'
 	ProvisioningState DomainTopicProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DomainTopicProperties.
+func (dtp DomainTopicProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DomainTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1581,12 +1643,12 @@ func (future *DomainTopicsDeleteFuture) result(client DomainTopicsClient) (ar au
 	return
 }
 
-// DomainTopicsListResult result of the List Domain Topics operation
+// DomainTopicsListResult result of the List Domain Topics operation.
 type DomainTopicsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A collection of Domain Topics
+	// Value - A collection of Domain Topics.
 	Value *[]DomainTopic `json:"value,omitempty"`
-	// NextLink - A link for the next page of domain topics
+	// NextLink - A link for the next page of domain topics.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1743,10 +1805,28 @@ func NewDomainTopicsListResultPage(cur DomainTopicsListResult, getNextPage func(
 // DomainUpdateParameterProperties information of domain update parameter properties.
 type DomainUpdateParameterProperties struct {
 	// PublicNetworkAccess - This determines if traffic is allowed over public network. By default it is enabled.
-	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.DomainUpdateParameterProperties.InboundIpRules" />. Possible values include: 'Enabled', 'Disabled'
+	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.DomainUpdateParameterProperties.InboundIpRules" />. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// InboundIPRules - This can be used to restrict traffic from specific IPs instead of all IPs. Note: These are considered only if PublicNetworkAccess is enabled.
 	InboundIPRules *[]InboundIPRule `json:"inboundIpRules,omitempty"`
+	// DisableLocalAuth - This boolean is used to enable or disable local auth. Default value is false. When the property is set to true, only AAD token will be used to authenticate if user is allowed to publish to the domain.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+	// AutoCreateTopicWithFirstSubscription - This Boolean is used to specify the creation mechanism for 'all' the Event Grid Domain Topics associated with this Event Grid Domain resource.
+	// In this context, creation of domain topic can be auto-managed (when true) or self-managed (when false). The default value for this property is true.
+	// When this property is null or set to true, Event Grid is responsible of automatically creating the domain topic when the first event subscription is
+	// created at the scope of the domain topic. If this property is set to false, then creating the first event subscription will require creating a domain topic
+	// by the user. The self-management mode can be used if the user wants full control of when the domain topic is created, while auto-managed mode provides the
+	// flexibility to perform less operations and manage fewer resources by the user. Also, note that in auto-managed creation mode, user is allowed to create the
+	// domain topic on demand if needed.
+	AutoCreateTopicWithFirstSubscription *bool `json:"autoCreateTopicWithFirstSubscription,omitempty"`
+	// AutoDeleteTopicWithLastSubscription - This Boolean is used to specify the deletion mechanism for 'all' the Event Grid Domain Topics associated with this Event Grid Domain resource.
+	// In this context, deletion of domain topic can be auto-managed (when true) or self-managed (when false). The default value for this property is true.
+	// When this property is set to true, Event Grid is responsible of automatically deleting the domain topic when the last event subscription at the scope
+	// of the domain topic is deleted. If this property is set to false, then the user needs to manually delete the domain topic when it is no longer needed
+	// (e.g., when last event subscription is deleted and the resource needs to be cleaned up). The self-management mode can be used if the user wants full
+	// control of when the domain topic needs to be deleted, while auto-managed mode provides the flexibility to perform less operations and manage fewer
+	// resources by the user.
+	AutoDeleteTopicWithLastSubscription *bool `json:"autoDeleteTopicWithLastSubscription,omitempty"`
 }
 
 // DomainUpdateParameters properties of the Domain update.
@@ -1757,8 +1837,6 @@ type DomainUpdateParameters struct {
 	*DomainUpdateParameterProperties `json:"properties,omitempty"`
 	// Identity - Identity information for the resource.
 	Identity *IdentityInfo `json:"identity,omitempty"`
-	// Sku - The Sku pricing tier for the domain.
-	Sku *ResourceSku `json:"sku,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DomainUpdateParameters.
@@ -1772,9 +1850,6 @@ func (dup DomainUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if dup.Identity != nil {
 		objectMap["identity"] = dup.Identity
-	}
-	if dup.Sku != nil {
-		objectMap["sku"] = dup.Sku
 	}
 	return json.Marshal(objectMap)
 }
@@ -1814,15 +1889,6 @@ func (dup *DomainUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dup.Identity = &identity
-			}
-		case "sku":
-			if v != nil {
-				var sku ResourceSku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				dup.Sku = &sku
 			}
 		}
 	}
@@ -1922,386 +1988,6 @@ func (ddam *DynamicDeliveryAttributeMapping) UnmarshalJSON(body []byte) error {
 type DynamicDeliveryAttributeMappingProperties struct {
 	// SourceField - JSON path in the event which contains attribute value.
 	SourceField *string `json:"sourceField,omitempty"`
-}
-
-// EventChannel event Channel.
-type EventChannel struct {
-	autorest.Response `json:"-"`
-	// EventChannelProperties - Properties of the EventChannel.
-	*EventChannelProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
-	SystemData *SystemData `json:"systemData,omitempty"`
-	// ID - READ-ONLY; Fully qualified identifier of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EventChannel.
-func (ec EventChannel) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ec.EventChannelProperties != nil {
-		objectMap["properties"] = ec.EventChannelProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for EventChannel struct.
-func (ec *EventChannel) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var eventChannelProperties EventChannelProperties
-				err = json.Unmarshal(*v, &eventChannelProperties)
-				if err != nil {
-					return err
-				}
-				ec.EventChannelProperties = &eventChannelProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				ec.SystemData = &systemData
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ec.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ec.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ec.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// EventChannelDestination properties of the destination of an event channel.
-type EventChannelDestination struct {
-	// AzureSubscriptionID - Azure subscription ID of the customer creating the event channel. The partner topic
-	// associated with the event channel will be created under this Azure subscription.
-	AzureSubscriptionID *string `json:"azureSubscriptionId,omitempty"`
-	// ResourceGroup - Azure Resource Group of the customer creating the event channel. The partner topic
-	// associated with the event channel will be created under this resource group.
-	ResourceGroup *string `json:"resourceGroup,omitempty"`
-	// PartnerTopicName - Name of the partner topic associated with the event channel.
-	PartnerTopicName *string `json:"partnerTopicName,omitempty"`
-}
-
-// EventChannelFilter filter for the Event Channel.
-type EventChannelFilter struct {
-	// EnableAdvancedFilteringOnArrays - Allows advanced filters to be evaluated against an array of values instead of expecting a singular value.
-	EnableAdvancedFilteringOnArrays *bool `json:"enableAdvancedFilteringOnArrays,omitempty"`
-	// AdvancedFilters - An array of advanced filters that are used for filtering event channels.
-	AdvancedFilters *[]BasicAdvancedFilter `json:"advancedFilters,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for EventChannelFilter struct.
-func (ecf *EventChannelFilter) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "enableAdvancedFilteringOnArrays":
-			if v != nil {
-				var enableAdvancedFilteringOnArrays bool
-				err = json.Unmarshal(*v, &enableAdvancedFilteringOnArrays)
-				if err != nil {
-					return err
-				}
-				ecf.EnableAdvancedFilteringOnArrays = &enableAdvancedFilteringOnArrays
-			}
-		case "advancedFilters":
-			if v != nil {
-				advancedFilters, err := unmarshalBasicAdvancedFilterArray(*v)
-				if err != nil {
-					return err
-				}
-				ecf.AdvancedFilters = &advancedFilters
-			}
-		}
-	}
-
-	return nil
-}
-
-// EventChannelProperties properties of the Event Channel.
-type EventChannelProperties struct {
-	// Source - Source of the event channel. This represents a unique resource in the partner's resource model.
-	Source *EventChannelSource `json:"source,omitempty"`
-	// Destination - Represents the destination of an event channel.
-	Destination *EventChannelDestination `json:"destination,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the event channel. Possible values include: 'EventChannelProvisioningStateCreating', 'EventChannelProvisioningStateUpdating', 'EventChannelProvisioningStateDeleting', 'EventChannelProvisioningStateSucceeded', 'EventChannelProvisioningStateCanceled', 'EventChannelProvisioningStateFailed'
-	ProvisioningState EventChannelProvisioningState `json:"provisioningState,omitempty"`
-	// PartnerTopicReadinessState - READ-ONLY; The readiness state of the corresponding partner topic. Possible values include: 'NotActivatedByUserYet', 'ActivatedByUser', 'DeactivatedByUser', 'DeletedByUser'
-	PartnerTopicReadinessState PartnerTopicReadinessState `json:"partnerTopicReadinessState,omitempty"`
-	// ExpirationTimeIfNotActivatedUtc - Expiration time of the event channel. If this timer expires while the corresponding partner topic is never activated,
-	// the event channel and corresponding partner topic are deleted.
-	ExpirationTimeIfNotActivatedUtc *date.Time `json:"expirationTimeIfNotActivatedUtc,omitempty"`
-	// Filter - Information about the filter for the event channel.
-	Filter *EventChannelFilter `json:"filter,omitempty"`
-	// PartnerTopicFriendlyDescription - Friendly description about the topic. This can be set by the publisher/partner to show custom description for the customer partner topic.
-	// This will be helpful to remove any ambiguity of the origin of creation of the partner topic for the customer.
-	PartnerTopicFriendlyDescription *string `json:"partnerTopicFriendlyDescription,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EventChannelProperties.
-func (ecp EventChannelProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ecp.Source != nil {
-		objectMap["source"] = ecp.Source
-	}
-	if ecp.Destination != nil {
-		objectMap["destination"] = ecp.Destination
-	}
-	if ecp.ExpirationTimeIfNotActivatedUtc != nil {
-		objectMap["expirationTimeIfNotActivatedUtc"] = ecp.ExpirationTimeIfNotActivatedUtc
-	}
-	if ecp.Filter != nil {
-		objectMap["filter"] = ecp.Filter
-	}
-	if ecp.PartnerTopicFriendlyDescription != nil {
-		objectMap["partnerTopicFriendlyDescription"] = ecp.PartnerTopicFriendlyDescription
-	}
-	return json.Marshal(objectMap)
-}
-
-// EventChannelsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type EventChannelsDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(EventChannelsClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *EventChannelsDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for EventChannelsDeleteFuture.Result.
-func (future *EventChannelsDeleteFuture) result(client EventChannelsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.EventChannelsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// EventChannelsListResult result of the List Event Channels operation
-type EventChannelsListResult struct {
-	autorest.Response `json:"-"`
-	// Value - A collection of Event Channels
-	Value *[]EventChannel `json:"value,omitempty"`
-	// NextLink - A link for the next page of event channels
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// EventChannelsListResultIterator provides access to a complete listing of EventChannel values.
-type EventChannelsListResultIterator struct {
-	i    int
-	page EventChannelsListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *EventChannelsListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventChannelsListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *EventChannelsListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter EventChannelsListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter EventChannelsListResultIterator) Response() EventChannelsListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter EventChannelsListResultIterator) Value() EventChannel {
-	if !iter.page.NotDone() {
-		return EventChannel{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the EventChannelsListResultIterator type.
-func NewEventChannelsListResultIterator(page EventChannelsListResultPage) EventChannelsListResultIterator {
-	return EventChannelsListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (eclr EventChannelsListResult) IsEmpty() bool {
-	return eclr.Value == nil || len(*eclr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (eclr EventChannelsListResult) hasNextLink() bool {
-	return eclr.NextLink != nil && len(*eclr.NextLink) != 0
-}
-
-// eventChannelsListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (eclr EventChannelsListResult) eventChannelsListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !eclr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(eclr.NextLink)))
-}
-
-// EventChannelsListResultPage contains a page of EventChannel values.
-type EventChannelsListResultPage struct {
-	fn   func(context.Context, EventChannelsListResult) (EventChannelsListResult, error)
-	eclr EventChannelsListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *EventChannelsListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventChannelsListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.eclr)
-		if err != nil {
-			return err
-		}
-		page.eclr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *EventChannelsListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page EventChannelsListResultPage) NotDone() bool {
-	return !page.eclr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page EventChannelsListResultPage) Response() EventChannelsListResult {
-	return page.eclr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page EventChannelsListResultPage) Values() []EventChannel {
-	if page.eclr.IsEmpty() {
-		return nil
-	}
-	return *page.eclr.Value
-}
-
-// Creates a new instance of the EventChannelsListResultPage type.
-func NewEventChannelsListResultPage(cur EventChannelsListResult, getNextPage func(context.Context, EventChannelsListResult) (EventChannelsListResult, error)) EventChannelsListResultPage {
-	return EventChannelsListResultPage{
-		fn:   getNextPage,
-		eclr: cur,
-	}
-}
-
-// EventChannelSource properties of the source of an event channel.
-type EventChannelSource struct {
-	// Source - The identifier of the resource that's the source of the events.
-	// This represents a unique resource in the partner's resource model.
-	Source *string `json:"source,omitempty"`
 }
 
 // EventHubEventSubscriptionDestination information about the event hub destination for an event
@@ -2449,7 +2135,7 @@ type EventSubscription struct {
 	autorest.Response `json:"-"`
 	// EventSubscriptionProperties - Properties of the event subscription.
 	*EventSubscriptionProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	// SystemData - READ-ONLY; The system metadata relating to Event Subscription resource.
 	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
@@ -2759,7 +2445,7 @@ type EventSubscriptionFullURL struct {
 
 // EventSubscriptionIdentity the identity information with the event subscription.
 type EventSubscriptionIdentity struct {
-	// Type - The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove any identity. Possible values include: 'SystemAssigned', 'UserAssigned'
+	// Type - The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove any identity. Possible values include: 'EventSubscriptionIdentityTypeSystemAssigned', 'EventSubscriptionIdentityTypeUserAssigned'
 	Type EventSubscriptionIdentityType `json:"type,omitempty"`
 	// UserAssignedIdentity - The user identity associated with the resource.
 	UserAssignedIdentity *string `json:"userAssignedIdentity,omitempty"`
@@ -2772,7 +2458,6 @@ type EventSubscriptionProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning state of the event subscription. Possible values include: 'EventSubscriptionProvisioningStateCreating', 'EventSubscriptionProvisioningStateUpdating', 'EventSubscriptionProvisioningStateDeleting', 'EventSubscriptionProvisioningStateSucceeded', 'EventSubscriptionProvisioningStateCanceled', 'EventSubscriptionProvisioningStateFailed', 'EventSubscriptionProvisioningStateAwaitingManualAction'
 	ProvisioningState EventSubscriptionProvisioningState `json:"provisioningState,omitempty"`
 	// Destination - Information about the destination where events have to be delivered for the event subscription.
-	// Uses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering.
 	Destination BasicEventSubscriptionDestination `json:"destination,omitempty"`
 	// DeliveryWithResourceIdentity - Information about the destination where events have to be delivered for the event subscription.
 	// Uses the managed identity setup on the parent resource (namely, topic or domain) to acquire the authentication tokens being used during delivery / dead-lettering.
@@ -2783,12 +2468,11 @@ type EventSubscriptionProperties struct {
 	Labels *[]string `json:"labels,omitempty"`
 	// ExpirationTimeUtc - Expiration time of the event subscription.
 	ExpirationTimeUtc *date.Time `json:"expirationTimeUtc,omitempty"`
-	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CustomInputSchema', 'CloudEventSchemaV10'
+	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventDeliverySchemaEventGridSchema', 'EventDeliverySchemaCustomInputSchema', 'EventDeliverySchemaCloudEventSchemaV10'
 	EventDeliverySchema EventDeliverySchema `json:"eventDeliverySchema,omitempty"`
 	// RetryPolicy - The retry policy for events. This can be used to configure maximum number of delivery attempts and time to live for events.
 	RetryPolicy *RetryPolicy `json:"retryPolicy,omitempty"`
-	// DeadLetterDestination - The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.
-	// Uses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering.
+	// DeadLetterDestination - The DeadLetter destination of the event subscription.
 	DeadLetterDestination BasicDeadLetterDestination `json:"deadLetterDestination,omitempty"`
 	// DeadLetterWithResourceIdentity - The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.
 	// Uses the managed identity setup on the parent resource (namely, topic or domain) to acquire the authentication tokens being used during delivery / dead-lettering.
@@ -3221,7 +2905,6 @@ func (future *EventSubscriptionsUpdateFuture) result(client EventSubscriptionsCl
 // EventSubscriptionUpdateParameters properties of the Event Subscription update.
 type EventSubscriptionUpdateParameters struct {
 	// Destination - Information about the destination where events have to be delivered for the event subscription.
-	// Uses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering.
 	Destination BasicEventSubscriptionDestination `json:"destination,omitempty"`
 	// DeliveryWithResourceIdentity - Information about the destination where events have to be delivered for the event subscription.
 	// Uses the managed identity setup on the parent resource (topic / domain) to acquire the authentication tokens being used during delivery / dead-lettering.
@@ -3232,12 +2915,11 @@ type EventSubscriptionUpdateParameters struct {
 	Labels *[]string `json:"labels,omitempty"`
 	// ExpirationTimeUtc - Information about the expiration time for the event subscription.
 	ExpirationTimeUtc *date.Time `json:"expirationTimeUtc,omitempty"`
-	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CustomInputSchema', 'CloudEventSchemaV10'
+	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventDeliverySchemaEventGridSchema', 'EventDeliverySchemaCustomInputSchema', 'EventDeliverySchemaCloudEventSchemaV10'
 	EventDeliverySchema EventDeliverySchema `json:"eventDeliverySchema,omitempty"`
 	// RetryPolicy - The retry policy for events. This can be used to configure maximum number of delivery attempts and time to live for events.
 	RetryPolicy *RetryPolicy `json:"retryPolicy,omitempty"`
-	// DeadLetterDestination - The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.
-	// Uses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering.
+	// DeadLetterDestination - The DeadLetter destination of the event subscription.
 	DeadLetterDestination BasicDeadLetterDestination `json:"deadLetterDestination,omitempty"`
 	// DeadLetterWithResourceIdentity - The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.
 	// Uses the managed identity setup on the parent resource (topic / domain) to acquire the authentication tokens being used during delivery / dead-lettering.
@@ -3429,20 +3111,14 @@ type EventTypesListResult struct {
 	Value *[]EventType `json:"value,omitempty"`
 }
 
-// ExtendedLocation definition of an Extended Location
-type ExtendedLocation struct {
-	// Name - Fully qualified name of the extended location.
-	Name *string `json:"name,omitempty"`
-	// Type - Type of the extended location.
-	Type *string `json:"type,omitempty"`
-}
-
 // ExtensionTopic event grid Extension Topic. This is used for getting Event Grid related metrics for Azure
 // resources.
 type ExtensionTopic struct {
 	autorest.Response `json:"-"`
 	// ExtensionTopicProperties - Properties of the extension topic
 	*ExtensionTopicProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to the Extension Topic resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Name of the resource.
@@ -3477,6 +3153,15 @@ func (et *ExtensionTopic) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				et.ExtensionTopicProperties = &extensionTopicProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				et.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -3696,7 +3381,7 @@ func (ii IdentityInfo) MarshalJSON() ([]byte, error) {
 type InboundIPRule struct {
 	// IPMask - IP Address in CIDR notation e.g., 10.0.0.0/8.
 	IPMask *string `json:"ipMask,omitempty"`
-	// Action - Action to perform based on the match or no match of the IpMask. Possible values include: 'Allow'
+	// Action - Action to perform based on the match or no match of the IpMask. Possible values include: 'IPActionTypeAllow'
 	Action IPActionType `json:"action,omitempty"`
 }
 
@@ -5216,1449 +4901,6 @@ type OperationsListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 }
 
-// PartnerNamespace eventGrid Partner Namespace.
-type PartnerNamespace struct {
-	autorest.Response `json:"-"`
-	// PartnerNamespaceProperties - Properties of the partner namespace.
-	*PartnerNamespaceProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
-	SystemData *SystemData `json:"systemData,omitempty"`
-	// Location - Location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - Tags of the resource.
-	Tags map[string]*string `json:"tags"`
-	// ID - READ-ONLY; Fully qualified identifier of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerNamespace.
-func (pn PartnerNamespace) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pn.PartnerNamespaceProperties != nil {
-		objectMap["properties"] = pn.PartnerNamespaceProperties
-	}
-	if pn.Location != nil {
-		objectMap["location"] = pn.Location
-	}
-	if pn.Tags != nil {
-		objectMap["tags"] = pn.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PartnerNamespace struct.
-func (pn *PartnerNamespace) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var partnerNamespaceProperties PartnerNamespaceProperties
-				err = json.Unmarshal(*v, &partnerNamespaceProperties)
-				if err != nil {
-					return err
-				}
-				pn.PartnerNamespaceProperties = &partnerNamespaceProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				pn.SystemData = &systemData
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				pn.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				pn.Tags = tags
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pn.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pn.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pn.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PartnerNamespaceProperties properties of the partner namespace.
-type PartnerNamespaceProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning state of the partner namespace. Possible values include: 'PartnerNamespaceProvisioningStateCreating', 'PartnerNamespaceProvisioningStateUpdating', 'PartnerNamespaceProvisioningStateDeleting', 'PartnerNamespaceProvisioningStateSucceeded', 'PartnerNamespaceProvisioningStateCanceled', 'PartnerNamespaceProvisioningStateFailed'
-	ProvisioningState PartnerNamespaceProvisioningState `json:"provisioningState,omitempty"`
-	// PartnerRegistrationFullyQualifiedID - The fully qualified ARM Id of the partner registration that should be associated with this partner namespace. This takes the following format:
-	// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerRegistrations/{partnerRegistrationName}.
-	PartnerRegistrationFullyQualifiedID *string `json:"partnerRegistrationFullyQualifiedId,omitempty"`
-	// Endpoint - READ-ONLY; Endpoint for the partner namespace.
-	Endpoint *string `json:"endpoint,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerNamespaceProperties.
-func (pnp PartnerNamespaceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pnp.PartnerRegistrationFullyQualifiedID != nil {
-		objectMap["partnerRegistrationFullyQualifiedId"] = pnp.PartnerRegistrationFullyQualifiedID
-	}
-	return json.Marshal(objectMap)
-}
-
-// PartnerNamespaceRegenerateKeyRequest partnerNamespace regenerate shared access key request.
-type PartnerNamespaceRegenerateKeyRequest struct {
-	// KeyName - Key name to regenerate (key1 or key2).
-	KeyName *string `json:"keyName,omitempty"`
-}
-
-// PartnerNamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type PartnerNamespacesCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerNamespacesClient) (PartnerNamespace, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerNamespacesCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerNamespacesCreateOrUpdateFuture.Result.
-func (future *PartnerNamespacesCreateOrUpdateFuture) result(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		pn.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pn.Response.Response, err = future.GetResult(sender); err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
-		pn, err = client.CreateOrUpdateResponder(pn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// PartnerNamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type PartnerNamespacesDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerNamespacesClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerNamespacesDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerNamespacesDeleteFuture.Result.
-func (future *PartnerNamespacesDeleteFuture) result(client PartnerNamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// PartnerNamespaceSharedAccessKeys shared access keys of the partner namespace.
-type PartnerNamespaceSharedAccessKeys struct {
-	autorest.Response `json:"-"`
-	// Key1 - Shared access key1 for the partner namespace.
-	Key1 *string `json:"key1,omitempty"`
-	// Key2 - Shared access key2 for the partner namespace.
-	Key2 *string `json:"key2,omitempty"`
-}
-
-// PartnerNamespacesListResult result of the List Partner Namespaces operation
-type PartnerNamespacesListResult struct {
-	autorest.Response `json:"-"`
-	// Value - A collection of partner namespaces.
-	Value *[]PartnerNamespace `json:"value,omitempty"`
-	// NextLink - A link for the next page of partner namespaces.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// PartnerNamespacesListResultIterator provides access to a complete listing of PartnerNamespace values.
-type PartnerNamespacesListResultIterator struct {
-	i    int
-	page PartnerNamespacesListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *PartnerNamespacesListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *PartnerNamespacesListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter PartnerNamespacesListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter PartnerNamespacesListResultIterator) Response() PartnerNamespacesListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter PartnerNamespacesListResultIterator) Value() PartnerNamespace {
-	if !iter.page.NotDone() {
-		return PartnerNamespace{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the PartnerNamespacesListResultIterator type.
-func NewPartnerNamespacesListResultIterator(page PartnerNamespacesListResultPage) PartnerNamespacesListResultIterator {
-	return PartnerNamespacesListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (pnlr PartnerNamespacesListResult) IsEmpty() bool {
-	return pnlr.Value == nil || len(*pnlr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (pnlr PartnerNamespacesListResult) hasNextLink() bool {
-	return pnlr.NextLink != nil && len(*pnlr.NextLink) != 0
-}
-
-// partnerNamespacesListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (pnlr PartnerNamespacesListResult) partnerNamespacesListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !pnlr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(pnlr.NextLink)))
-}
-
-// PartnerNamespacesListResultPage contains a page of PartnerNamespace values.
-type PartnerNamespacesListResultPage struct {
-	fn   func(context.Context, PartnerNamespacesListResult) (PartnerNamespacesListResult, error)
-	pnlr PartnerNamespacesListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *PartnerNamespacesListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.pnlr)
-		if err != nil {
-			return err
-		}
-		page.pnlr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *PartnerNamespacesListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page PartnerNamespacesListResultPage) NotDone() bool {
-	return !page.pnlr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page PartnerNamespacesListResultPage) Response() PartnerNamespacesListResult {
-	return page.pnlr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page PartnerNamespacesListResultPage) Values() []PartnerNamespace {
-	if page.pnlr.IsEmpty() {
-		return nil
-	}
-	return *page.pnlr.Value
-}
-
-// Creates a new instance of the PartnerNamespacesListResultPage type.
-func NewPartnerNamespacesListResultPage(cur PartnerNamespacesListResult, getNextPage func(context.Context, PartnerNamespacesListResult) (PartnerNamespacesListResult, error)) PartnerNamespacesListResultPage {
-	return PartnerNamespacesListResultPage{
-		fn:   getNextPage,
-		pnlr: cur,
-	}
-}
-
-// PartnerNamespacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type PartnerNamespacesUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerNamespacesClient) (PartnerNamespace, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerNamespacesUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerNamespacesUpdateFuture.Result.
-func (future *PartnerNamespacesUpdateFuture) result(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		pn.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pn.Response.Response, err = future.GetResult(sender); err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
-		pn, err = client.UpdateResponder(pn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// PartnerNamespaceUpdateParameters properties of the PartnerNamespace update.
-type PartnerNamespaceUpdateParameters struct {
-	// Tags - Tags of the partner namespace.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerNamespaceUpdateParameters.
-func (pnup PartnerNamespaceUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pnup.Tags != nil {
-		objectMap["tags"] = pnup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// PartnerRegistration information about a partner registration.
-type PartnerRegistration struct {
-	autorest.Response `json:"-"`
-	// PartnerRegistrationProperties - Properties of the partner registration.
-	*PartnerRegistrationProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
-	SystemData *SystemData `json:"systemData,omitempty"`
-	// Location - Location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - Tags of the resource.
-	Tags map[string]*string `json:"tags"`
-	// ID - READ-ONLY; Fully qualified identifier of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerRegistration.
-func (pr PartnerRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pr.PartnerRegistrationProperties != nil {
-		objectMap["properties"] = pr.PartnerRegistrationProperties
-	}
-	if pr.Location != nil {
-		objectMap["location"] = pr.Location
-	}
-	if pr.Tags != nil {
-		objectMap["tags"] = pr.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PartnerRegistration struct.
-func (pr *PartnerRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var partnerRegistrationProperties PartnerRegistrationProperties
-				err = json.Unmarshal(*v, &partnerRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				pr.PartnerRegistrationProperties = &partnerRegistrationProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				pr.SystemData = &systemData
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				pr.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				pr.Tags = tags
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pr.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PartnerRegistrationEventTypesListResult result of the List Partner Registration Event Types operation.
-type PartnerRegistrationEventTypesListResult struct {
-	// Value - A collection of partner registration event types.
-	Value *[]EventType `json:"value,omitempty"`
-	// NextLink - A link for the next page of partner registration event types.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// PartnerRegistrationProperties properties of the partner registration.
-type PartnerRegistrationProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning state of the partner registration. Possible values include: 'PartnerRegistrationProvisioningStateCreating', 'PartnerRegistrationProvisioningStateUpdating', 'PartnerRegistrationProvisioningStateDeleting', 'PartnerRegistrationProvisioningStateSucceeded', 'PartnerRegistrationProvisioningStateCanceled', 'PartnerRegistrationProvisioningStateFailed'
-	ProvisioningState PartnerRegistrationProvisioningState `json:"provisioningState,omitempty"`
-	// PartnerName - Official name of the partner name. For example: "Contoso".
-	PartnerName *string `json:"partnerName,omitempty"`
-	// PartnerResourceTypeName - Name of the partner resource type.
-	PartnerResourceTypeName *string `json:"partnerResourceTypeName,omitempty"`
-	// PartnerResourceTypeDisplayName - Display name of the partner resource type.
-	PartnerResourceTypeDisplayName *string `json:"partnerResourceTypeDisplayName,omitempty"`
-	// PartnerResourceTypeDescription - Short description of the partner resource type. The length of this description should not exceed 256 characters.
-	PartnerResourceTypeDescription *string `json:"partnerResourceTypeDescription,omitempty"`
-	// LongDescription - Long description for the custom scenarios and integration to be displayed in the portal if needed.
-	// Length of this description should not exceed 2048 characters.
-	LongDescription *string `json:"longDescription,omitempty"`
-	// PartnerCustomerServiceNumber - The customer service number of the publisher. The expected phone format should start with a '+' sign
-	// followed by the country code. The remaining digits are then followed. Only digits and spaces are allowed and its
-	// length cannot exceed 16 digits including country code. Examples of valid phone numbers are: +1 515 123 4567 and
-	// +966 7 5115 2471. Examples of invalid phone numbers are: +1 (515) 123-4567, 1 515 123 4567 and +966 121 5115 24 7 551 1234 43
-	PartnerCustomerServiceNumber *string `json:"partnerCustomerServiceNumber,omitempty"`
-	// PartnerCustomerServiceExtension - The extension of the customer service number of the publisher. Only digits are allowed and number of digits should not exceed 10.
-	PartnerCustomerServiceExtension *string `json:"partnerCustomerServiceExtension,omitempty"`
-	// CustomerServiceURI - The extension of the customer service URI of the publisher.
-	CustomerServiceURI *string `json:"customerServiceUri,omitempty"`
-	// SetupURI - URI of the partner website that can be used by Azure customers to setup Event Grid
-	// integration on an event source.
-	SetupURI *string `json:"setupUri,omitempty"`
-	// LogoURI - URI of the logo.
-	LogoURI *string `json:"logoUri,omitempty"`
-	// VisibilityState - Visibility state of the partner registration. Possible values include: 'Hidden', 'PublicPreview', 'GenerallyAvailable'
-	VisibilityState PartnerRegistrationVisibilityState `json:"visibilityState,omitempty"`
-	// AuthorizedAzureSubscriptionIds - List of Azure subscription Ids that are authorized to create a partner namespace
-	// associated with this partner registration. This is an optional property. Creating
-	// partner namespaces is always permitted under the same Azure subscription as the one used
-	// for creating the partner registration.
-	AuthorizedAzureSubscriptionIds *[]string `json:"authorizedAzureSubscriptionIds,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerRegistrationProperties.
-func (prp PartnerRegistrationProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if prp.PartnerName != nil {
-		objectMap["partnerName"] = prp.PartnerName
-	}
-	if prp.PartnerResourceTypeName != nil {
-		objectMap["partnerResourceTypeName"] = prp.PartnerResourceTypeName
-	}
-	if prp.PartnerResourceTypeDisplayName != nil {
-		objectMap["partnerResourceTypeDisplayName"] = prp.PartnerResourceTypeDisplayName
-	}
-	if prp.PartnerResourceTypeDescription != nil {
-		objectMap["partnerResourceTypeDescription"] = prp.PartnerResourceTypeDescription
-	}
-	if prp.LongDescription != nil {
-		objectMap["longDescription"] = prp.LongDescription
-	}
-	if prp.PartnerCustomerServiceNumber != nil {
-		objectMap["partnerCustomerServiceNumber"] = prp.PartnerCustomerServiceNumber
-	}
-	if prp.PartnerCustomerServiceExtension != nil {
-		objectMap["partnerCustomerServiceExtension"] = prp.PartnerCustomerServiceExtension
-	}
-	if prp.CustomerServiceURI != nil {
-		objectMap["customerServiceUri"] = prp.CustomerServiceURI
-	}
-	if prp.SetupURI != nil {
-		objectMap["setupUri"] = prp.SetupURI
-	}
-	if prp.LogoURI != nil {
-		objectMap["logoUri"] = prp.LogoURI
-	}
-	if prp.VisibilityState != "" {
-		objectMap["visibilityState"] = prp.VisibilityState
-	}
-	if prp.AuthorizedAzureSubscriptionIds != nil {
-		objectMap["authorizedAzureSubscriptionIds"] = prp.AuthorizedAzureSubscriptionIds
-	}
-	return json.Marshal(objectMap)
-}
-
-// PartnerRegistrationsListResult result of the List Partner Registrations operation.
-type PartnerRegistrationsListResult struct {
-	autorest.Response `json:"-"`
-	// Value - A collection of partner registrations.
-	Value *[]PartnerRegistration `json:"value,omitempty"`
-	// NextLink - A link for the next page of partner registrations.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// PartnerRegistrationsListResultIterator provides access to a complete listing of PartnerRegistration
-// values.
-type PartnerRegistrationsListResultIterator struct {
-	i    int
-	page PartnerRegistrationsListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *PartnerRegistrationsListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerRegistrationsListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *PartnerRegistrationsListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter PartnerRegistrationsListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter PartnerRegistrationsListResultIterator) Response() PartnerRegistrationsListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter PartnerRegistrationsListResultIterator) Value() PartnerRegistration {
-	if !iter.page.NotDone() {
-		return PartnerRegistration{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the PartnerRegistrationsListResultIterator type.
-func NewPartnerRegistrationsListResultIterator(page PartnerRegistrationsListResultPage) PartnerRegistrationsListResultIterator {
-	return PartnerRegistrationsListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (prlr PartnerRegistrationsListResult) IsEmpty() bool {
-	return prlr.Value == nil || len(*prlr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (prlr PartnerRegistrationsListResult) hasNextLink() bool {
-	return prlr.NextLink != nil && len(*prlr.NextLink) != 0
-}
-
-// partnerRegistrationsListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (prlr PartnerRegistrationsListResult) partnerRegistrationsListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !prlr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(prlr.NextLink)))
-}
-
-// PartnerRegistrationsListResultPage contains a page of PartnerRegistration values.
-type PartnerRegistrationsListResultPage struct {
-	fn   func(context.Context, PartnerRegistrationsListResult) (PartnerRegistrationsListResult, error)
-	prlr PartnerRegistrationsListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *PartnerRegistrationsListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerRegistrationsListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.prlr)
-		if err != nil {
-			return err
-		}
-		page.prlr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *PartnerRegistrationsListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page PartnerRegistrationsListResultPage) NotDone() bool {
-	return !page.prlr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page PartnerRegistrationsListResultPage) Response() PartnerRegistrationsListResult {
-	return page.prlr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page PartnerRegistrationsListResultPage) Values() []PartnerRegistration {
-	if page.prlr.IsEmpty() {
-		return nil
-	}
-	return *page.prlr.Value
-}
-
-// Creates a new instance of the PartnerRegistrationsListResultPage type.
-func NewPartnerRegistrationsListResultPage(cur PartnerRegistrationsListResult, getNextPage func(context.Context, PartnerRegistrationsListResult) (PartnerRegistrationsListResult, error)) PartnerRegistrationsListResultPage {
-	return PartnerRegistrationsListResultPage{
-		fn:   getNextPage,
-		prlr: cur,
-	}
-}
-
-// PartnerRegistrationUpdateParameters properties of the Partner Registration update.
-type PartnerRegistrationUpdateParameters struct {
-	// Tags - Tags of the partner registration resource.
-	Tags map[string]*string `json:"tags"`
-	// PartnerTopicTypeName - Name of the partner topic type.
-	PartnerTopicTypeName *string `json:"partnerTopicTypeName,omitempty"`
-	// PartnerTopicTypeDisplayName - Display name of the partner topic type.
-	PartnerTopicTypeDisplayName *string `json:"partnerTopicTypeDisplayName,omitempty"`
-	// PartnerTopicTypeDescription - Description of the partner topic type.
-	PartnerTopicTypeDescription *string `json:"partnerTopicTypeDescription,omitempty"`
-	// SetupURI - URI of the partner website that can be used by Azure customers to setup Event Grid
-	// integration on an event source.
-	SetupURI *string `json:"setupUri,omitempty"`
-	// LogoURI - URI of the partner logo.
-	LogoURI *string `json:"logoUri,omitempty"`
-	// AuthorizedAzureSubscriptionIds - List of IDs of Azure AD applications that are authorized to create a partner namespace
-	// associated with this partner registration. This is an optional property. Creating
-	// partner namespaces is always permitted under the same Azure subscription as the one used
-	// for creating the partner registration.
-	AuthorizedAzureSubscriptionIds *[]string `json:"authorizedAzureSubscriptionIds,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerRegistrationUpdateParameters.
-func (prup PartnerRegistrationUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if prup.Tags != nil {
-		objectMap["tags"] = prup.Tags
-	}
-	if prup.PartnerTopicTypeName != nil {
-		objectMap["partnerTopicTypeName"] = prup.PartnerTopicTypeName
-	}
-	if prup.PartnerTopicTypeDisplayName != nil {
-		objectMap["partnerTopicTypeDisplayName"] = prup.PartnerTopicTypeDisplayName
-	}
-	if prup.PartnerTopicTypeDescription != nil {
-		objectMap["partnerTopicTypeDescription"] = prup.PartnerTopicTypeDescription
-	}
-	if prup.SetupURI != nil {
-		objectMap["setupUri"] = prup.SetupURI
-	}
-	if prup.LogoURI != nil {
-		objectMap["logoUri"] = prup.LogoURI
-	}
-	if prup.AuthorizedAzureSubscriptionIds != nil {
-		objectMap["authorizedAzureSubscriptionIds"] = prup.AuthorizedAzureSubscriptionIds
-	}
-	return json.Marshal(objectMap)
-}
-
-// PartnerTopic eventGrid Partner Topic.
-type PartnerTopic struct {
-	autorest.Response `json:"-"`
-	// PartnerTopicProperties - Properties of the partner topic.
-	*PartnerTopicProperties `json:"properties,omitempty"`
-	// Identity - Identity information for the resource.
-	Identity *IdentityInfo `json:"identity,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
-	SystemData *SystemData `json:"systemData,omitempty"`
-	// Location - Location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - Tags of the resource.
-	Tags map[string]*string `json:"tags"`
-	// ID - READ-ONLY; Fully qualified identifier of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerTopic.
-func (pt PartnerTopic) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pt.PartnerTopicProperties != nil {
-		objectMap["properties"] = pt.PartnerTopicProperties
-	}
-	if pt.Identity != nil {
-		objectMap["identity"] = pt.Identity
-	}
-	if pt.Location != nil {
-		objectMap["location"] = pt.Location
-	}
-	if pt.Tags != nil {
-		objectMap["tags"] = pt.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PartnerTopic struct.
-func (pt *PartnerTopic) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var partnerTopicProperties PartnerTopicProperties
-				err = json.Unmarshal(*v, &partnerTopicProperties)
-				if err != nil {
-					return err
-				}
-				pt.PartnerTopicProperties = &partnerTopicProperties
-			}
-		case "identity":
-			if v != nil {
-				var identity IdentityInfo
-				err = json.Unmarshal(*v, &identity)
-				if err != nil {
-					return err
-				}
-				pt.Identity = &identity
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				pt.SystemData = &systemData
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				pt.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				pt.Tags = tags
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pt.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pt.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pt.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PartnerTopicEventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type PartnerTopicEventSubscriptionsCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerTopicEventSubscriptionsClient) (EventSubscription, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerTopicEventSubscriptionsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerTopicEventSubscriptionsCreateOrUpdateFuture.Result.
-func (future *PartnerTopicEventSubscriptionsCreateOrUpdateFuture) result(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		es.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.CreateOrUpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// PartnerTopicEventSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type PartnerTopicEventSubscriptionsDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerTopicEventSubscriptionsClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerTopicEventSubscriptionsDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerTopicEventSubscriptionsDeleteFuture.Result.
-func (future *PartnerTopicEventSubscriptionsDeleteFuture) result(client PartnerTopicEventSubscriptionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// PartnerTopicEventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type PartnerTopicEventSubscriptionsUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerTopicEventSubscriptionsClient) (EventSubscription, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerTopicEventSubscriptionsUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerTopicEventSubscriptionsUpdateFuture.Result.
-func (future *PartnerTopicEventSubscriptionsUpdateFuture) result(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		es.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.UpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// PartnerTopicProperties properties of the Partner Topic.
-type PartnerTopicProperties struct {
-	// Source - Source associated with this partner topic. This represents a unique partner resource.
-	Source *string `json:"source,omitempty"`
-	// ExpirationTimeIfNotActivatedUtc - Expiration time of the partner topic. If this timer expires while the partner topic is still never activated,
-	// the partner topic and corresponding event channel are deleted.
-	ExpirationTimeIfNotActivatedUtc *date.Time `json:"expirationTimeIfNotActivatedUtc,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the partner topic. Possible values include: 'PartnerTopicProvisioningStateCreating', 'PartnerTopicProvisioningStateUpdating', 'PartnerTopicProvisioningStateDeleting', 'PartnerTopicProvisioningStateSucceeded', 'PartnerTopicProvisioningStateCanceled', 'PartnerTopicProvisioningStateFailed'
-	ProvisioningState PartnerTopicProvisioningState `json:"provisioningState,omitempty"`
-	// ActivationState - Activation state of the partner topic. Possible values include: 'NeverActivated', 'Activated', 'Deactivated'
-	ActivationState PartnerTopicActivationState `json:"activationState,omitempty"`
-	// PartnerTopicFriendlyDescription - Friendly description about the topic. This can be set by the publisher/partner to show custom description for the customer partner topic.
-	// This will be helpful to remove any ambiguity of the origin of creation of the partner topic for the customer.
-	PartnerTopicFriendlyDescription *string `json:"partnerTopicFriendlyDescription,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerTopicProperties.
-func (ptp PartnerTopicProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ptp.Source != nil {
-		objectMap["source"] = ptp.Source
-	}
-	if ptp.ExpirationTimeIfNotActivatedUtc != nil {
-		objectMap["expirationTimeIfNotActivatedUtc"] = ptp.ExpirationTimeIfNotActivatedUtc
-	}
-	if ptp.ActivationState != "" {
-		objectMap["activationState"] = ptp.ActivationState
-	}
-	if ptp.PartnerTopicFriendlyDescription != nil {
-		objectMap["partnerTopicFriendlyDescription"] = ptp.PartnerTopicFriendlyDescription
-	}
-	return json.Marshal(objectMap)
-}
-
-// PartnerTopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type PartnerTopicsDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PartnerTopicsClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PartnerTopicsDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PartnerTopicsDeleteFuture.Result.
-func (future *PartnerTopicsDeleteFuture) result(client PartnerTopicsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// PartnerTopicsListResult result of the List Partner Topics operation.
-type PartnerTopicsListResult struct {
-	autorest.Response `json:"-"`
-	// Value - A collection of partner topics.
-	Value *[]PartnerTopic `json:"value,omitempty"`
-	// NextLink - A link for the next page of partner topics.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// PartnerTopicsListResultIterator provides access to a complete listing of PartnerTopic values.
-type PartnerTopicsListResultIterator struct {
-	i    int
-	page PartnerTopicsListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *PartnerTopicsListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicsListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *PartnerTopicsListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter PartnerTopicsListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter PartnerTopicsListResultIterator) Response() PartnerTopicsListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter PartnerTopicsListResultIterator) Value() PartnerTopic {
-	if !iter.page.NotDone() {
-		return PartnerTopic{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the PartnerTopicsListResultIterator type.
-func NewPartnerTopicsListResultIterator(page PartnerTopicsListResultPage) PartnerTopicsListResultIterator {
-	return PartnerTopicsListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (ptlr PartnerTopicsListResult) IsEmpty() bool {
-	return ptlr.Value == nil || len(*ptlr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (ptlr PartnerTopicsListResult) hasNextLink() bool {
-	return ptlr.NextLink != nil && len(*ptlr.NextLink) != 0
-}
-
-// partnerTopicsListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (ptlr PartnerTopicsListResult) partnerTopicsListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !ptlr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(ptlr.NextLink)))
-}
-
-// PartnerTopicsListResultPage contains a page of PartnerTopic values.
-type PartnerTopicsListResultPage struct {
-	fn   func(context.Context, PartnerTopicsListResult) (PartnerTopicsListResult, error)
-	ptlr PartnerTopicsListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *PartnerTopicsListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicsListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.ptlr)
-		if err != nil {
-			return err
-		}
-		page.ptlr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *PartnerTopicsListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page PartnerTopicsListResultPage) NotDone() bool {
-	return !page.ptlr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page PartnerTopicsListResultPage) Response() PartnerTopicsListResult {
-	return page.ptlr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page PartnerTopicsListResultPage) Values() []PartnerTopic {
-	if page.ptlr.IsEmpty() {
-		return nil
-	}
-	return *page.ptlr.Value
-}
-
-// Creates a new instance of the PartnerTopicsListResultPage type.
-func NewPartnerTopicsListResultPage(cur PartnerTopicsListResult, getNextPage func(context.Context, PartnerTopicsListResult) (PartnerTopicsListResult, error)) PartnerTopicsListResultPage {
-	return PartnerTopicsListResultPage{
-		fn:   getNextPage,
-		ptlr: cur,
-	}
-}
-
-// PartnerTopicType properties of a partner topic type.
-type PartnerTopicType struct {
-	// PartnerTopicTypeProperties - Properties of the partner topic type.
-	*PartnerTopicTypeProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified identifier of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerTopicType.
-func (ptt PartnerTopicType) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ptt.PartnerTopicTypeProperties != nil {
-		objectMap["properties"] = ptt.PartnerTopicTypeProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PartnerTopicType struct.
-func (ptt *PartnerTopicType) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var partnerTopicTypeProperties PartnerTopicTypeProperties
-				err = json.Unmarshal(*v, &partnerTopicTypeProperties)
-				if err != nil {
-					return err
-				}
-				ptt.PartnerTopicTypeProperties = &partnerTopicTypeProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ptt.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ptt.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ptt.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PartnerTopicTypeProperties properties of a partner topic type.
-type PartnerTopicTypeProperties struct {
-	// PartnerName - Official name of the partner.
-	PartnerName *string `json:"partnerName,omitempty"`
-	// TopicTypeName - Name of the partner topic type. This name should be unique among all partner topic types names.
-	TopicTypeName *string `json:"topicTypeName,omitempty"`
-	// DisplayName - Display Name for the partner topic type.
-	DisplayName *string `json:"displayName,omitempty"`
-	// Description - Description of the partner topic type.
-	Description *string `json:"description,omitempty"`
-	// SetupURI - URI of the partner website that can be used by Azure customers to setup Event Grid
-	// integration on an event source.
-	SetupURI *string `json:"setupUri,omitempty"`
-	// AuthorizationState - Status of whether the customer has authorized a partner to create partner topics
-	// in the customer's subscription. Possible values include: 'NotApplicable', 'NotAuthorized', 'Authorized'
-	AuthorizationState PartnerTopicTypeAuthorizationState `json:"authorizationState,omitempty"`
-}
-
-// PartnerTopicTypesListResult result of the List Partner Topic Types operation.
-type PartnerTopicTypesListResult struct {
-	// Value - A collection of partner topic types.
-	Value *[]PartnerTopicType `json:"value,omitempty"`
-}
-
-// PartnerTopicUpdateParameters properties of the Partner Topic update.
-type PartnerTopicUpdateParameters struct {
-	// Tags - Tags of the partner topic.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for PartnerTopicUpdateParameters.
-func (ptup PartnerTopicUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ptup.Tags != nil {
-		objectMap["tags"] = ptup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
 // PrivateEndpoint privateEndpoint information.
 type PrivateEndpoint struct {
 	// ID - The ARM identifier for Private Endpoint.
@@ -7240,7 +5482,7 @@ func NewPrivateLinkResourcesListResultPage(cur PrivateLinkResourcesListResult, g
 	}
 }
 
-// Resource definition of a Resource
+// Resource definition of a Resource.
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified identifier of the resource.
 	ID *string `json:"id,omitempty"`
@@ -7254,12 +5496,6 @@ type Resource struct {
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
-}
-
-// ResourceSku describes an EventGrid Resource Sku.
-type ResourceSku struct {
-	// Name - The Sku name of the resource. The possible values are: Basic or Premium. Possible values include: 'Basic', 'Premium'
-	Name Sku `json:"name,omitempty"`
 }
 
 // RetryPolicy information about the retry policy for an event subscription.
@@ -7652,13 +5888,13 @@ type StaticDeliveryAttributeMappingProperties struct {
 type StorageBlobDeadLetterDestination struct {
 	// StorageBlobDeadLetterDestinationProperties - The properties of the Storage Blob based deadletter destination
 	*StorageBlobDeadLetterDestinationProperties `json:"properties,omitempty"`
-	// EndpointType - Possible values include: 'EndpointTypeDeadLetterDestination', 'EndpointTypeStorageBlob'
+	// EndpointType - Possible values include: 'EndpointTypeBasicDeadLetterDestinationEndpointTypeDeadLetterDestination', 'EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob'
 	EndpointType EndpointTypeBasicDeadLetterDestination `json:"endpointType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageBlobDeadLetterDestination.
 func (sbdld StorageBlobDeadLetterDestination) MarshalJSON() ([]byte, error) {
-	sbdld.EndpointType = EndpointTypeStorageBlob
+	sbdld.EndpointType = EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob
 	objectMap := make(map[string]interface{})
 	if sbdld.StorageBlobDeadLetterDestinationProperties != nil {
 		objectMap["properties"] = sbdld.StorageBlobDeadLetterDestinationProperties
@@ -8887,13 +7123,13 @@ func (sniaf StringNotInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFil
 type SystemData struct {
 	// CreatedBy - The identity that created the resource.
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
 	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
@@ -8906,7 +7142,7 @@ type SystemTopic struct {
 	*SystemTopicProperties `json:"properties,omitempty"`
 	// Identity - Identity information for the resource.
 	Identity *IdentityInfo `json:"identity,omitempty"`
-	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	// SystemData - READ-ONLY; The system metadata relating to System Topic resource.
 	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
@@ -9479,14 +7715,10 @@ type Topic struct {
 	autorest.Response `json:"-"`
 	// TopicProperties - Properties of the topic.
 	*TopicProperties `json:"properties,omitempty"`
-	// Sku - The Sku pricing tier for the topic.
-	Sku *ResourceSku `json:"sku,omitempty"`
 	// Identity - Identity information for the resource.
 	Identity *IdentityInfo `json:"identity,omitempty"`
-	// Kind - Kind of the resource. Possible values include: 'Azure', 'AzureArc'
-	Kind ResourceKind `json:"kind,omitempty"`
-	// ExtendedLocation - Extended location of the resource.
-	ExtendedLocation *ExtendedLocation `json:"extendedLocation,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to Topic resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource.
@@ -9505,17 +7737,8 @@ func (t Topic) MarshalJSON() ([]byte, error) {
 	if t.TopicProperties != nil {
 		objectMap["properties"] = t.TopicProperties
 	}
-	if t.Sku != nil {
-		objectMap["sku"] = t.Sku
-	}
 	if t.Identity != nil {
 		objectMap["identity"] = t.Identity
-	}
-	if t.Kind != "" {
-		objectMap["kind"] = t.Kind
-	}
-	if t.ExtendedLocation != nil {
-		objectMap["extendedLocation"] = t.ExtendedLocation
 	}
 	if t.Location != nil {
 		objectMap["location"] = t.Location
@@ -9544,15 +7767,6 @@ func (t *Topic) UnmarshalJSON(body []byte) error {
 				}
 				t.TopicProperties = &topicProperties
 			}
-		case "sku":
-			if v != nil {
-				var sku ResourceSku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				t.Sku = &sku
-			}
 		case "identity":
 			if v != nil {
 				var identity IdentityInfo
@@ -9562,23 +7776,14 @@ func (t *Topic) UnmarshalJSON(body []byte) error {
 				}
 				t.Identity = &identity
 			}
-		case "kind":
+		case "systemData":
 			if v != nil {
-				var kind ResourceKind
-				err = json.Unmarshal(*v, &kind)
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
 				if err != nil {
 					return err
 				}
-				t.Kind = kind
-			}
-		case "extendedLocation":
-			if v != nil {
-				var extendedLocation ExtendedLocation
-				err = json.Unmarshal(*v, &extendedLocation)
-				if err != nil {
-					return err
-				}
-				t.ExtendedLocation = &extendedLocation
+				t.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -9633,6 +7838,7 @@ func (t *Topic) UnmarshalJSON(body []byte) error {
 
 // TopicProperties properties of the Topic
 type TopicProperties struct {
+	// PrivateEndpointConnections - READ-ONLY
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the topic. Possible values include: 'TopicProvisioningStateCreating', 'TopicProvisioningStateUpdating', 'TopicProvisioningStateDeleting', 'TopicProvisioningStateSucceeded', 'TopicProvisioningStateCanceled', 'TopicProvisioningStateFailed'
 	ProvisioningState TopicProvisioningState `json:"provisioningState,omitempty"`
@@ -9645,18 +7851,17 @@ type TopicProperties struct {
 	// MetricResourceID - READ-ONLY; Metric resource id for the topic.
 	MetricResourceID *string `json:"metricResourceId,omitempty"`
 	// PublicNetworkAccess - This determines if traffic is allowed over public network. By default it is enabled.
-	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.TopicProperties.InboundIpRules" />. Possible values include: 'Enabled', 'Disabled'
+	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.TopicProperties.InboundIpRules" />. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// InboundIPRules - This can be used to restrict traffic from specific IPs instead of all IPs. Note: These are considered only if PublicNetworkAccess is enabled.
 	InboundIPRules *[]InboundIPRule `json:"inboundIpRules,omitempty"`
+	// DisableLocalAuth - This boolean is used to enable or disable local auth. Default value is false. When the property is set to true, only AAD token will be used to authenticate if user is allowed to publish to the topic.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TopicProperties.
 func (tp TopicProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if tp.PrivateEndpointConnections != nil {
-		objectMap["privateEndpointConnections"] = tp.PrivateEndpointConnections
-	}
 	if tp.InputSchema != "" {
 		objectMap["inputSchema"] = tp.InputSchema
 	}
@@ -9666,6 +7871,9 @@ func (tp TopicProperties) MarshalJSON() ([]byte, error) {
 	}
 	if tp.InboundIPRules != nil {
 		objectMap["inboundIpRules"] = tp.InboundIPRules
+	}
+	if tp.DisableLocalAuth != nil {
+		objectMap["disableLocalAuth"] = tp.DisableLocalAuth
 	}
 	return json.Marshal(objectMap)
 }
@@ -9749,6 +7957,15 @@ func (tp *TopicProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				tp.InboundIPRules = &inboundIPRules
+			}
+		case "disableLocalAuth":
+			if v != nil {
+				var disableLocalAuth bool
+				err = json.Unmarshal(*v, &disableLocalAuth)
+				if err != nil {
+					return err
+				}
+				tp.DisableLocalAuth = &disableLocalAuth
 			}
 		}
 	}
@@ -10175,7 +8392,7 @@ type TopicTypeProperties struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// Description - Description of the topic type.
 	Description *string `json:"description,omitempty"`
-	// ResourceRegionType - Region type of the resource. Possible values include: 'RegionalResource', 'GlobalResource'
+	// ResourceRegionType - Region type of the resource. Possible values include: 'ResourceRegionTypeRegionalResource', 'ResourceRegionTypeGlobalResource'
 	ResourceRegionType ResourceRegionType `json:"resourceRegionType,omitempty"`
 	// ProvisioningState - Provisioning state of the topic type. Possible values include: 'TopicTypeProvisioningStateCreating', 'TopicTypeProvisioningStateUpdating', 'TopicTypeProvisioningStateDeleting', 'TopicTypeProvisioningStateSucceeded', 'TopicTypeProvisioningStateCanceled', 'TopicTypeProvisioningStateFailed'
 	ProvisioningState TopicTypeProvisioningState `json:"provisioningState,omitempty"`
@@ -10197,22 +8414,22 @@ type TopicTypesListResult struct {
 // TopicUpdateParameterProperties information of topic update parameter properties.
 type TopicUpdateParameterProperties struct {
 	// PublicNetworkAccess - This determines if traffic is allowed over public network. By default it is enabled.
-	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.TopicUpdateParameterProperties.InboundIpRules" />. Possible values include: 'Enabled', 'Disabled'
+	// You can further restrict to specific IPs by configuring <seealso cref="P:Microsoft.Azure.Events.ResourceProvider.Common.Contracts.TopicUpdateParameterProperties.InboundIpRules" />. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// InboundIPRules - This can be used to restrict traffic from specific IPs instead of all IPs. Note: These are considered only if PublicNetworkAccess is enabled.
 	InboundIPRules *[]InboundIPRule `json:"inboundIpRules,omitempty"`
+	// DisableLocalAuth - This boolean is used to enable or disable local auth. Default value is false. When the property is set to true, only AAD token will be used to authenticate if user is allowed to publish to the topic.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
 }
 
 // TopicUpdateParameters properties of the Topic update
 type TopicUpdateParameters struct {
 	// Tags - Tags of the resource.
 	Tags map[string]*string `json:"tags"`
-	// Identity - Resource identity information.
+	// Identity - Topic resource identity information.
 	Identity *IdentityInfo `json:"identity,omitempty"`
 	// TopicUpdateParameterProperties - Properties of the resource.
 	*TopicUpdateParameterProperties `json:"properties,omitempty"`
-	// Sku - The Sku pricing tier for the topic.
-	Sku *ResourceSku `json:"sku,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TopicUpdateParameters.
@@ -10226,9 +8443,6 @@ func (tup TopicUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if tup.TopicUpdateParameterProperties != nil {
 		objectMap["properties"] = tup.TopicUpdateParameterProperties
-	}
-	if tup.Sku != nil {
-		objectMap["sku"] = tup.Sku
 	}
 	return json.Marshal(objectMap)
 }
@@ -10268,15 +8482,6 @@ func (tup *TopicUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				tup.TopicUpdateParameterProperties = &topicUpdateParameterProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku ResourceSku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				tup.Sku = &sku
 			}
 		}
 	}

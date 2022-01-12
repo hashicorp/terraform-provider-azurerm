@@ -15,31 +15,30 @@ import (
 	"net/http"
 )
 
-// PartnerNamespacesClient is the azure EventGrid Management Client
-type PartnerNamespacesClient struct {
+// DomainsClient is the azure EventGrid Management Client
+type DomainsClient struct {
 	BaseClient
 }
 
-// NewPartnerNamespacesClient creates an instance of the PartnerNamespacesClient client.
-func NewPartnerNamespacesClient(subscriptionID string) PartnerNamespacesClient {
-	return NewPartnerNamespacesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewDomainsClient creates an instance of the DomainsClient client.
+func NewDomainsClient(subscriptionID string) DomainsClient {
+	return NewDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPartnerNamespacesClientWithBaseURI creates an instance of the PartnerNamespacesClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
-func NewPartnerNamespacesClientWithBaseURI(baseURI string, subscriptionID string) PartnerNamespacesClient {
-	return PartnerNamespacesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewDomainsClientWithBaseURI creates an instance of the DomainsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewDomainsClientWithBaseURI(baseURI string, subscriptionID string) DomainsClient {
+	return DomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate asynchronously creates a new partner namespace with the specified parameters.
+// CreateOrUpdate asynchronously creates or updates a new domain with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
-// partnerNamespaceInfo - partnerNamespace information.
-func (client PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, partnerNamespaceName string, partnerNamespaceInfo PartnerNamespace) (result PartnerNamespacesCreateOrUpdateFuture, err error) {
+// domainName - name of the domain.
+// domainInfo - domain information.
+func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, domainName string, domainInfo Domain) (result DomainsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -48,15 +47,15 @@ func (client PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, resour
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, partnerNamespaceName, partnerNamespaceInfo)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, domainName, domainInfo)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -64,32 +63,32 @@ func (client PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, resour
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client PartnerNamespacesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string, partnerNamespaceInfo PartnerNamespace) (*http.Request, error) {
+func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, domainName string, domainInfo Domain) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	partnerNamespaceInfo.SystemData = nil
+	domainInfo.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}", pathParameters),
-		autorest.WithJSON(partnerNamespaceInfo),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
+		autorest.WithJSON(domainInfo),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) CreateOrUpdateSender(req *http.Request) (future PartnerNamespacesCreateOrUpdateFuture, err error) {
+func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future DomainsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -105,7 +104,7 @@ func (client PartnerNamespacesClient) CreateOrUpdateSender(req *http.Request) (f
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) CreateOrUpdateResponder(resp *http.Response) (result PartnerNamespace, err error) {
+func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -115,13 +114,13 @@ func (client PartnerNamespacesClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
-// Delete delete existing partner namespace.
+// Delete delete existing domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
-func (client PartnerNamespacesClient) Delete(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (result PartnerNamespacesDeleteFuture, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string, domainName string) (result DomainsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -130,15 +129,15 @@ func (client PartnerNamespacesClient) Delete(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, partnerNamespaceName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -146,14 +145,14 @@ func (client PartnerNamespacesClient) Delete(ctx context.Context, resourceGroupN
 }
 
 // DeletePreparer prepares the Delete request.
-func (client PartnerNamespacesClient) DeletePreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (*http.Request, error) {
+func (client DomainsClient) DeletePreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,14 +160,14 @@ func (client PartnerNamespacesClient) DeletePreparer(ctx context.Context, resour
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) DeleteSender(req *http.Request) (future PartnerNamespacesDeleteFuture, err error) {
+func (client DomainsClient) DeleteSender(req *http.Request) (future DomainsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -184,7 +183,7 @@ func (client PartnerNamespacesClient) DeleteSender(req *http.Request) (future Pa
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client DomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -193,13 +192,13 @@ func (client PartnerNamespacesClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Get get properties of a partner namespace.
+// Get get properties of a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
-func (client PartnerNamespacesClient) Get(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (result PartnerNamespace, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, domainName string) (result Domain, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -208,22 +207,22 @@ func (client PartnerNamespacesClient) Get(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, partnerNamespaceName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -231,14 +230,14 @@ func (client PartnerNamespacesClient) Get(ctx context.Context, resourceGroupName
 }
 
 // GetPreparer prepares the Get request.
-func (client PartnerNamespacesClient) GetPreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (*http.Request, error) {
+func (client DomainsClient) GetPreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,20 +245,20 @@ func (client PartnerNamespacesClient) GetPreparer(ctx context.Context, resourceG
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) GetResponder(resp *http.Response) (result PartnerNamespace, err error) {
+func (client DomainsClient) GetResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -269,7 +268,7 @@ func (client PartnerNamespacesClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// ListByResourceGroup list all the partner namespaces under a resource group.
+// ListByResourceGroup list all the domains under a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
@@ -280,13 +279,13 @@ func (client PartnerNamespacesClient) GetResponder(resp *http.Response) (result 
 // 'westus'.
 // top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
 // 100. If not specified, the default number of results to be returned is 20 items per page.
-func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result PartnerNamespacesListResultPage, err error) {
+func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result DomainsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.ListByResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.pnlr.Response.Response != nil {
-				sc = result.pnlr.Response.Response.StatusCode
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -294,23 +293,23 @@ func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, r
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListByResourceGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.pnlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListByResourceGroup", resp, "Failure sending request")
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.pnlr, err = client.ListByResourceGroupResponder(resp)
+	result.dlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
 		return
 	}
-	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -319,13 +318,13 @@ func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, r
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client PartnerNamespacesClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
+func (client DomainsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,20 +338,20 @@ func (client PartnerNamespacesClient) ListByResourceGroupPreparer(ctx context.Co
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerNamespacesListResult, err error) {
+func (client DomainsClient) ListByResourceGroupResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -363,10 +362,10 @@ func (client PartnerNamespacesClient) ListByResourceGroupResponder(resp *http.Re
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client PartnerNamespacesClient) listByResourceGroupNextResults(ctx context.Context, lastResults PartnerNamespacesListResult) (result PartnerNamespacesListResult, err error) {
-	req, err := lastResults.partnerNamespacesListResultPreparer(ctx)
+func (client DomainsClient) listByResourceGroupNextResults(ctx context.Context, lastResults DomainsListResult) (result DomainsListResult, err error) {
+	req, err := lastResults.domainsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -374,19 +373,19 @@ func (client PartnerNamespacesClient) listByResourceGroupNextResults(ctx context
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client PartnerNamespacesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result PartnerNamespacesListResultIterator, err error) {
+func (client DomainsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result DomainsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.ListByResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -399,7 +398,7 @@ func (client PartnerNamespacesClient) ListByResourceGroupComplete(ctx context.Co
 	return
 }
 
-// ListBySubscription list all the partner namespaces under an Azure subscription.
+// ListBySubscription list all the domains under an Azure subscription.
 // Parameters:
 // filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
 // 'name' property only and with limited number of OData operations. These operations are: the 'contains'
@@ -409,13 +408,13 @@ func (client PartnerNamespacesClient) ListByResourceGroupComplete(ctx context.Co
 // 'westus'.
 // top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
 // 100. If not specified, the default number of results to be returned is 20 items per page.
-func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, filter string, top *int32) (result PartnerNamespacesListResultPage, err error) {
+func (client DomainsClient) ListBySubscription(ctx context.Context, filter string, top *int32) (result DomainsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.pnlr.Response.Response != nil {
-				sc = result.pnlr.Response.Response.StatusCode
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -423,23 +422,23 @@ func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, fi
 	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx, filter, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListBySubscription", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.pnlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListBySubscription", resp, "Failure sending request")
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.pnlr, err = client.ListBySubscriptionResponder(resp)
+	result.dlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListBySubscription", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure responding to request")
 		return
 	}
-	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -448,12 +447,12 @@ func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, fi
 }
 
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
-func (client PartnerNamespacesClient) ListBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
+func (client DomainsClient) ListBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -467,20 +466,20 @@ func (client PartnerNamespacesClient) ListBySubscriptionPreparer(ctx context.Con
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.EventGrid/partnerNamespaces", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.EventGrid/domains", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerNamespacesListResult, err error) {
+func (client DomainsClient) ListBySubscriptionResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -491,10 +490,10 @@ func (client PartnerNamespacesClient) ListBySubscriptionResponder(resp *http.Res
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client PartnerNamespacesClient) listBySubscriptionNextResults(ctx context.Context, lastResults PartnerNamespacesListResult) (result PartnerNamespacesListResult, err error) {
-	req, err := lastResults.partnerNamespacesListResultPreparer(ctx)
+func (client DomainsClient) listBySubscriptionNextResults(ctx context.Context, lastResults DomainsListResult) (result DomainsListResult, err error) {
+	req, err := lastResults.domainsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -502,19 +501,19 @@ func (client PartnerNamespacesClient) listBySubscriptionNextResults(ctx context.
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client PartnerNamespacesClient) ListBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result PartnerNamespacesListResultIterator, err error) {
+func (client DomainsClient) ListBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result DomainsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListBySubscription")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -527,13 +526,13 @@ func (client PartnerNamespacesClient) ListBySubscriptionComplete(ctx context.Con
 	return
 }
 
-// ListSharedAccessKeys list the two keys used to publish to a partner namespace.
+// ListSharedAccessKeys list the two keys used to publish to a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
-func (client PartnerNamespacesClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (result PartnerNamespaceSharedAccessKeys, err error) {
+// domainName - name of the domain.
+func (client DomainsClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, domainName string) (result DomainSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.ListSharedAccessKeys")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.ListSharedAccessKeys")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -542,22 +541,22 @@ func (client PartnerNamespacesClient) ListSharedAccessKeys(ctx context.Context, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListSharedAccessKeysPreparer(ctx, resourceGroupName, partnerNamespaceName)
+	req, err := client.ListSharedAccessKeysPreparer(ctx, resourceGroupName, domainName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListSharedAccessKeys", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSharedAccessKeysSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListSharedAccessKeys", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListSharedAccessKeysResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListSharedAccessKeys", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", resp, "Failure responding to request")
 		return
 	}
 
@@ -565,14 +564,14 @@ func (client PartnerNamespacesClient) ListSharedAccessKeys(ctx context.Context, 
 }
 
 // ListSharedAccessKeysPreparer prepares the ListSharedAccessKeys request.
-func (client PartnerNamespacesClient) ListSharedAccessKeysPreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string) (*http.Request, error) {
+func (client DomainsClient) ListSharedAccessKeysPreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -580,20 +579,20 @@ func (client PartnerNamespacesClient) ListSharedAccessKeysPreparer(ctx context.C
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}/listKeys", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}/listKeys", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSharedAccessKeysSender sends the ListSharedAccessKeys request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) ListSharedAccessKeysSender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) ListSharedAccessKeysSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSharedAccessKeysResponder handles the response to the ListSharedAccessKeys request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) ListSharedAccessKeysResponder(resp *http.Response) (result PartnerNamespaceSharedAccessKeys, err error) {
+func (client DomainsClient) ListSharedAccessKeysResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -603,14 +602,14 @@ func (client PartnerNamespacesClient) ListSharedAccessKeysResponder(resp *http.R
 	return
 }
 
-// RegenerateKey regenerate a shared access key for a partner namespace.
+// RegenerateKey regenerate a shared access key for a domain.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
+// domainName - name of the domain.
 // regenerateKeyRequest - request body to regenerate key.
-func (client PartnerNamespacesClient) RegenerateKey(ctx context.Context, resourceGroupName string, partnerNamespaceName string, regenerateKeyRequest PartnerNamespaceRegenerateKeyRequest) (result PartnerNamespaceSharedAccessKeys, err error) {
+func (client DomainsClient) RegenerateKey(ctx context.Context, resourceGroupName string, domainName string, regenerateKeyRequest DomainRegenerateKeyRequest) (result DomainSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.RegenerateKey")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.RegenerateKey")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -622,25 +621,25 @@ func (client PartnerNamespacesClient) RegenerateKey(ctx context.Context, resourc
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: regenerateKeyRequest,
 			Constraints: []validation.Constraint{{Target: "regenerateKeyRequest.KeyName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("eventgrid.PartnerNamespacesClient", "RegenerateKey", err.Error())
+		return result, validation.NewError("eventgrid.DomainsClient", "RegenerateKey", err.Error())
 	}
 
-	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, partnerNamespaceName, regenerateKeyRequest)
+	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, domainName, regenerateKeyRequest)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "RegenerateKey", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.RegenerateKeySender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "RegenerateKey", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "RegenerateKey", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", resp, "Failure responding to request")
 		return
 	}
 
@@ -648,14 +647,14 @@ func (client PartnerNamespacesClient) RegenerateKey(ctx context.Context, resourc
 }
 
 // RegenerateKeyPreparer prepares the RegenerateKey request.
-func (client PartnerNamespacesClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string, regenerateKeyRequest PartnerNamespaceRegenerateKeyRequest) (*http.Request, error) {
+func (client DomainsClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, domainName string, regenerateKeyRequest DomainRegenerateKeyRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -664,7 +663,7 @@ func (client PartnerNamespacesClient) RegenerateKeyPreparer(ctx context.Context,
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}/regenerateKey", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}/regenerateKey", pathParameters),
 		autorest.WithJSON(regenerateKeyRequest),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -672,13 +671,13 @@ func (client PartnerNamespacesClient) RegenerateKeyPreparer(ctx context.Context,
 
 // RegenerateKeySender sends the RegenerateKey request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
+func (client DomainsClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateKeyResponder handles the response to the RegenerateKey request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) RegenerateKeyResponder(resp *http.Response) (result PartnerNamespaceSharedAccessKeys, err error) {
+func (client DomainsClient) RegenerateKeyResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -688,14 +687,14 @@ func (client PartnerNamespacesClient) RegenerateKeyResponder(resp *http.Response
 	return
 }
 
-// Update asynchronously updates a partner namespace with the specified parameters.
+// Update asynchronously updates a domain with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// partnerNamespaceName - name of the partner namespace.
-// partnerNamespaceUpdateParameters - partner namespace update information.
-func (client PartnerNamespacesClient) Update(ctx context.Context, resourceGroupName string, partnerNamespaceName string, partnerNamespaceUpdateParameters PartnerNamespaceUpdateParameters) (result PartnerNamespacesUpdateFuture, err error) {
+// domainName - name of the domain.
+// domainUpdateParameters - domain update information.
+func (client DomainsClient) Update(ctx context.Context, resourceGroupName string, domainName string, domainUpdateParameters DomainUpdateParameters) (result DomainsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerNamespacesClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -704,15 +703,15 @@ func (client PartnerNamespacesClient) Update(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, partnerNamespaceName, partnerNamespaceUpdateParameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, domainName, domainUpdateParameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -720,14 +719,14 @@ func (client PartnerNamespacesClient) Update(ctx context.Context, resourceGroupN
 }
 
 // UpdatePreparer prepares the Update request.
-func (client PartnerNamespacesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, partnerNamespaceName string, partnerNamespaceUpdateParameters PartnerNamespaceUpdateParameters) (*http.Request, error) {
+func (client DomainsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, domainName string, domainUpdateParameters DomainUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"partnerNamespaceName": autorest.Encode("path", partnerNamespaceName),
-		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
-		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -736,15 +735,15 @@ func (client PartnerNamespacesClient) UpdatePreparer(ctx context.Context, resour
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/partnerNamespaces/{partnerNamespaceName}", pathParameters),
-		autorest.WithJSON(partnerNamespaceUpdateParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}", pathParameters),
+		autorest.WithJSON(domainUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartnerNamespacesClient) UpdateSender(req *http.Request) (future PartnerNamespacesUpdateFuture, err error) {
+func (client DomainsClient) UpdateSender(req *http.Request) (future DomainsUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -760,7 +759,7 @@ func (client PartnerNamespacesClient) UpdateSender(req *http.Request) (future Pa
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client PartnerNamespacesClient) UpdateResponder(resp *http.Response) (result PartnerNamespace, err error) {
+func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),

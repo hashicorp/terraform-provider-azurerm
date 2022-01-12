@@ -78,7 +78,7 @@ func (client EventSubscriptionsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +166,7 @@ func (client EventSubscriptionsClient) DeletePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +257,7 @@ func (client EventSubscriptionsClient) GetPreparer(ctx context.Context, scope st
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,7 +339,7 @@ func (client EventSubscriptionsClient) GetDeliveryAttributesPreparer(ctx context
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -421,7 +421,7 @@ func (client EventSubscriptionsClient) GetFullURLPreparer(ctx context.Context, s
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -512,7 +512,7 @@ func (client EventSubscriptionsClient) ListByDomainTopicPreparer(ctx context.Con
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -648,7 +648,7 @@ func (client EventSubscriptionsClient) ListByResourcePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -779,7 +779,7 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -912,7 +912,7 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypePrep
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1040,7 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionPreparer(ctx cont
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1171,7 +1171,7 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypePrepa
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1304,7 +1304,7 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1439,7 +1439,7 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypePr
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1569,7 +1569,7 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionPreparer(ctx co
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1702,7 +1702,7 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypePre
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1821,7 +1821,7 @@ func (client EventSubscriptionsClient) UpdatePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

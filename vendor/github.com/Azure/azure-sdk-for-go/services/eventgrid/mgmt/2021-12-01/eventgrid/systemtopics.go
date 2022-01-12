@@ -69,7 +69,7 @@ func (client SystemTopicsClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -151,7 +151,7 @@ func (client SystemTopicsClient) DeletePreparer(ctx context.Context, resourceGro
 		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -236,7 +236,7 @@ func (client SystemTopicsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -323,7 +323,7 @@ func (client SystemTopicsClient) ListByResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -451,7 +451,7 @@ func (client SystemTopicsClient) ListBySubscriptionPreparer(ctx context.Context,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -564,7 +564,7 @@ func (client SystemTopicsClient) UpdatePreparer(ctx context.Context, resourceGro
 		"systemTopicName":   autorest.Encode("path", systemTopicName),
 	}
 
-	const APIVersion = "2020-10-15-preview"
+	const APIVersion = "2021-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
