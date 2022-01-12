@@ -26,10 +26,6 @@ func (WindowsPerformanceCounterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 }
 
 func (WindowsPerformanceCounterV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return windowsPerformanceCounterSchemaForV0AndV1()
-}
-
-func windowsPerformanceCounterSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
