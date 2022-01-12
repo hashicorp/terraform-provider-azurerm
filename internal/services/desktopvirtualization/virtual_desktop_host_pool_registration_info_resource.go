@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,7 +37,6 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 			return err
 		}),
 
-
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(hostpoolRegistrationInfoCustomDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -44,7 +44,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.HostPoolID,
 			},
 
 			"expiration_date": {
@@ -136,15 +136,15 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
-	if resp.{.. Generated Name ..}Properties == nil || resp.{.. Generated Name ..}Properties.ExpirationDate == nil || resp.{.. Generated Name ..}Properties.Token == nil {
+	if resp.ExpirationTime == nil || resp.Token == nil {
 		log.Printf("HostPool is missing registration info - marking as gone")
-		d.SetID("")
+		d.SetId("")
 		return nil
 	}
 	hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
 	d.Set("hostpool_id", hostpoolId.ID())
-	d.Set("expiration_date", resp.{.. Generated Name ..}Properties.ExpirationTime.Format(time.RFC3339))
-	d.Set("token", resp.{.. Generated Name ..}Properties.Token)
+	d.Set("expiration_date", resp.ExpirationTime.Format(time.RFC3339))
+	d.Set("token", resp.Token)
 
 	return nil
 }
