@@ -2,11 +2,12 @@
 
 FEATURES:
 
-* `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release [GH-14628]
+* **New Resource:** `azurerm_api_management_api_tag` [GH-14711]
 
 ENHANCEMENTS:
 
 * dependencies: upgrading `eventgrid` to API version `2021-12-01` [GH-14433]
+* `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release [GH-14628]
 * `azurerm_monitor_action_group` - support for the `event_hub_receiver` block [GH-14771]
 * `azurerm_mssql_server_extended_auditing_policy` - support storing audit data in storage account that is behind a firewall and VNet [GH-14656]
 * `azurerm_eventgrid_domain` - support for the `local_auth_enabled`, `auto_create_topic_with_first_subscription`, and `auto_delete_topic_with_last_subscription` properties [GH-14433]
