@@ -16,6 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_consumption_budget_subscription` - fix issue in migration logic [GH-14898]
+* `azurerm_cosmosdb_account` - only force ForceMongo when kind is set to mongo [GH-14924]
 * `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
 * `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error [GH-14880]
 * `azurerm_log_analytics_datasource_windows_performance_counter` - state migration for case conversion of ID element [GH-14916]
