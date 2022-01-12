@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -170,16 +172,8 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Incident",
-												"Maintenance",
-												"Informational",
-												"ActionRequired",
-												"Security",
-											},
-												false,
-											),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 										Set: pluginsdk.HashString,
 									},
@@ -244,6 +238,83 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			customdiff.ValidateValue("criteria", func(ctx context.Context, value, meta interface{}) error {
+				criteriaRaw := value.([]interface{})
+				v := criteriaRaw[0].(map[string]interface{})
+
+				if serviceHealth := v["service_health"].([]interface{}); len(serviceHealth) > 0 {
+					client := meta.(*clients.Client).Monitor.ResourceHealthMetadataClient
+					fetchedValues, err := client.GetMetaData(ctx)
+					if err != nil {
+						return err
+					}
+
+					supportedEventTypes := make(map[string]string, 0)
+					supportedServiceTypes := make(map[string]string, 0)
+
+					for _, data := range fetchedValues.Value {
+						if data.Name == "supportedEventTypes" {
+							for _, se := range data.Properties.SupportedValues {
+								supportedEventTypes[strings.ToLower(se.ID)] = se.ID
+							}
+						}
+						if data.Name == "supportedServices" {
+							for _, ss := range data.Properties.SupportedValues {
+								supportedServiceTypes[strings.ToLower(ss.ID)] = ss.ID
+							}
+						}
+					}
+
+					for _, serviceItem := range serviceHealth {
+						if serviceItem == nil {
+							continue
+						}
+
+						vs := serviceItem.(map[string]interface{})
+						ev := vs["events"].(*pluginsdk.Set)
+						if len(ev.List()) > 0 {
+							for _, e := range ev.List() {
+								event := e.(string)
+								val, ok := supportedEventTypes[strings.ToLower(event)]
+								if !ok {
+									supportedEvents := make([]string, 0, len(supportedEventTypes))
+									for _, setv := range supportedEventTypes {
+										supportedEvents = append(supportedEvents, setv)
+									}
+									return fmt.Errorf("use one of the supported events [ %s ]", strings.Join(supportedEvents, ", "))
+								}
+
+								if val != event {
+									return fmt.Errorf("use %s instead of %s - API is case sensitive", val, event)
+								}
+							}
+						}
+
+						sv := vs["services"].(*pluginsdk.Set)
+						if len(sv.List()) > 0 {
+							for _, s := range sv.List() {
+								service := s.(string)
+								val, ok := supportedServiceTypes[strings.ToLower(service)]
+								if !ok {
+									supportedServices := make([]string, 0, len(supportedServiceTypes))
+									for _, sstv := range supportedServiceTypes {
+										supportedServices = append(supportedServices, sstv)
+									}
+									return fmt.Errorf("use one of the supported Services [ %s ]", strings.Join(supportedServices, ", "))
+								}
+
+								if val != service {
+									return fmt.Errorf("use %s instead of %s - API is case sensitive", val, service)
+								}
+							}
+						}
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
