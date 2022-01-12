@@ -59,6 +59,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				caps := diff.Get("capabilities")
 				mongo34found := false
 				enableMongo := false
+				isMongo := strings.EqualFold(diff.Get("kind").(string), string(documentdb.DatabaseAccountKindMongoDB))
+
 				for _, cap := range caps.(*pluginsdk.Set).List() {
 					m := cap.(map[string]interface{})
 					if v, ok := m["name"].(string); ok {
@@ -70,7 +72,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if mongo34found && !enableMongo {
+				if isMongo && (mongo34found && !enableMongo) {
 					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
