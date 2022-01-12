@@ -12,7 +12,7 @@ var _ resourceids.Id = ServiceVersionId{}
 
 func TestServiceVersionIDFormatter(t *testing.T) {
 	actual := NewServiceVersionID("12345678-1234-9876-4563-123456789012", "location1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.ContainerService/locations/location1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.ContainerService/locations/location1/orchestrators"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
