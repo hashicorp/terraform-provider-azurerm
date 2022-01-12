@@ -89,10 +89,21 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 
+			"reservation_capcity_in_gb_per_day": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
+				Deprecated:    "As this property name contained a typo originally, please switch to using 'reservation_capacity_in_gb_per_day' instead.",
+				ConflictsWith: []string{"reservation_capacity_in_gb_per_day"},
+			},
+
 			"reservation_capacity_in_gb_per_day": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
+				ConflictsWith: []string{"reservation_capcity_in_gb_per_day"},
 			},
 
 			"retention_in_days": {
@@ -216,16 +227,23 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	capacityReservationLevel, ok := d.GetOk("reservation_capacity_in_gb_per_day")
+	// Handle typoed property name
+	propName := "reservation_capacity_in_gb_per_day"
+	capacityReservationLevel, ok := d.GetOk(propName)
+	if !ok {
+		propName := "reservation_capcity_in_gb_per_day"
+		capacityReservationLevel, ok = d.GetOk(propName)
+	}
+
 	if ok {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
 			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
 		} else {
-			return fmt.Errorf("`reservation_capacity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
+			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
 		}
 	} else {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
-			return fmt.Errorf("`reservation_capacity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
+			return fmt.Errorf("`%s` must be set when using the `CapacityReservation` SKU", propName)
 		}
 	}
 
@@ -278,6 +296,8 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 			d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
+			// Handle typoed property name
+			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
 		}
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
