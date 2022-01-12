@@ -3,12 +3,12 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -85,6 +85,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"function_app_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
 			Description:  "The name of the Windows Function App this Slot is a member of.",
 		},
@@ -586,7 +587,128 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Update Func
+			client := metadata.Client.AppService.WebAppsClient
+
+			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state LinuxFunctionAppSlotModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Linux %s: %v", id, err)
+			}
+
+			// Some service plan updates are allowed - see customiseDiff for exceptions
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
+			}
+
+			if metadata.ResourceData.HasChange("enabled") {
+				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
+			}
+
+			if metadata.ResourceData.HasChange("https_only") {
+				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
+				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
+				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				existing.Identity = helpers.ExpandIdentity(state.Identity)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.FromTypedObject(state.Tags)
+			}
+
+			storageString := ""
+			if !state.StorageUsesMSI {
+				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+			}
+
+			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppSlot(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			if state.BuiltinLogging {
+				if state.AppSettings == nil && !state.StorageUsesMSI {
+					state.AppSettings = make(map[string]string)
+				}
+				state.AppSettings["AzureWebJobsDashboard"] = storageString
+			}
+
+			if metadata.ResourceData.HasChange("site_config") {
+				if err != nil {
+					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+				}
+				existing.SiteConfig = siteConfig
+			}
+
+			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+				existing.SiteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(state.SiteConfig[0].ApplicationStack)
+			}
+
+			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("updating Linux %s: %+v", id, err)
+			}
+			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting to update %s: %+v", id, err)
+			}
+
+			if _, err := client.UpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}, id.SlotName); err != nil {
+				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("connection_string") {
+				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
+				if connectionStringUpdate.Properties == nil {
+					connectionStringUpdate.Properties = map[string]*web.ConnStringValueTypePair{}
+				}
+				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_settings") {
+				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("backup") {
+				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				if backupUpdate.BackupRequestProperties == nil {
+					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupUpdate, id.SlotName); err != nil {
+						return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
+					}
+				}
+			}
+
+			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
+				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
+				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
+					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
+
 			return nil
 		},
 	}
