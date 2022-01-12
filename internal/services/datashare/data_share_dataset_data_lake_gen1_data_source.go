@@ -59,15 +59,13 @@ func dataSourceDataShareDatasetDataLakeGen1() *pluginsdk.Resource {
 
 func dataSourceDataShareDatasetDataLakeGen1Read(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	shareID := d.Get("data_share_id").(string)
-	shareId, err := parse.ShareID(shareID)
-	if err != nil {
-		return err
-	}
+	id := parse.NewShareID(subscriptionId)
 
 	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
 	if err != nil {
