@@ -389,7 +389,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						"source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "DeviceMessages",
+							Default:  string(devices.RoutingSourceDeviceMessages),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.RoutingSourceDeviceConnectionStateEvents),
 								string(devices.RoutingSourceDeviceJobLifecycleEvents),
