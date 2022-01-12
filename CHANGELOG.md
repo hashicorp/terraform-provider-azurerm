@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
 * `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error [GH-14880]
 * `azurerm_mysql_server_key` - Fix issue when checking for existing resource on create [GH-14883]
+* `azurerm_spring_cloud_service` - Fix panic when removing git repos [GH-14900]
 
 
 ## 2.91.0 (January 07, 2022)
