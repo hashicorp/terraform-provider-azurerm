@@ -36,7 +36,6 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(hostpoolRegistrationInfoCustomDiff),
 
