@@ -384,9 +384,21 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 func (r LinuxFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Delete Func
+			client := metadata.Client.AppService.WebAppsClient
+			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("deleting Linux %s", *id)
+
+			deleteMetrics := true
+			deleteEmptyServerFarm := false
+			if _, err := client.DeleteSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+				return fmt.Errorf("deleting Linux %s: %+v", id, err)
+			}
 			return nil
 		},
 	}
