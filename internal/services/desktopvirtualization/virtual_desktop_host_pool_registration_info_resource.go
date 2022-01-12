@@ -136,12 +136,15 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
-	if resp.Token != nil && resp.ExpirationTime != nil {
-		hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
-		d.Set("hostpool_id", hostpoolId.ID())
-		d.Set("expiration_date", resp.ExpirationTime.Format(time.RFC3339))
-		d.Set("token", resp.Token)
+	if resp.{.. Generated Name ..}Properties == nil || resp.{.. Generated Name ..}Properties.ExpirationDate == nil || resp.{.. Generated Name ..}Properties.Token == nil {
+		log.Printf("HostPool is missing registration info - marking as gone")
+		d.SetID("")
+		return nil
 	}
+	hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
+	d.Set("hostpool_id", hostpoolId.ID())
+	d.Set("expiration_date", resp.{.. Generated Name ..}Properties.ExpirationTime.Format(time.RFC3339))
+	d.Set("token", resp.{.. Generated Name ..}Properties.Token)
 
 	return nil
 }
