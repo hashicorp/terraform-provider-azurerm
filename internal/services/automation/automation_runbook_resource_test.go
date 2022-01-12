@@ -167,7 +167,9 @@ resource "azurerm_automation_runbook" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-
+  tags={
+      ENV="runbook_test"
+  }
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
