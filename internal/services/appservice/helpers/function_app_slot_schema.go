@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -641,6 +643,237 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 	}
 }
 
+func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFunctionAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
+	if len(siteConfig) == 0 {
+		return nil, nil
+	}
+	expanded := &web.SiteConfig{}
+	if existing != nil {
+		expanded = existing
+		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
+		expanded.LinuxFxVersion = utils.String("")
+	}
+
+	appSettings := make([]web.NameValuePair, 0)
+
+	appSettings = append(appSettings, web.NameValuePair{
+		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
+		Value: utils.String(version),
+	})
+
+	if storageUsesMSI {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("AzureWebJobsStorage__accountName"),
+			Value: utils.String(storageString),
+		})
+	} else {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("AzureWebJobsStorage"),
+			Value: utils.String(storageString),
+		})
+	}
+
+	windowsSlotSiteConfig := siteConfig[0]
+
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		if windowsSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+			v := strconv.Itoa(windowsSlotSiteConfig.HealthCheckEvictionTime)
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
+				Value: utils.String(v),
+			})
+		}
+	}
+
+	expanded.AlwaysOn = utils.Bool(windowsSlotSiteConfig.AlwaysOn)
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = utils.String(windowsSlotSiteConfig.AutoSwapSlotName)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
+		expanded.FunctionAppScaleLimit = utils.Int32(int32(windowsSlotSiteConfig.AppScaleLimit))
+	}
+
+	if windowsSlotSiteConfig.AppInsightsConnectionString != "" {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+			Value: utils.String(windowsSlotSiteConfig.AppInsightsConnectionString),
+		})
+	}
+
+	if windowsSlotSiteConfig.AppInsightsInstrumentationKey != "" {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
+			Value: utils.String(windowsSlotSiteConfig.AppInsightsInstrumentationKey),
+		})
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: utils.String(windowsSlotSiteConfig.ApiManagementConfigId),
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: utils.String(windowsSlotSiteConfig.ApiDefinition),
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
+		expanded.AppCommandLine = utils.String(windowsSlotSiteConfig.AppCommandLine)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(windowsSlotSiteConfig.ApplicationStack) > 0 {
+		if len(windowsSlotSiteConfig.ApplicationStack) > 0 {
+			linuxAppStack := windowsSlotSiteConfig.ApplicationStack[0]
+			if linuxAppStack.DotNetVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("dotnet"),
+				})
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+			}
+
+			if linuxAppStack.NodeVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("node"),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+					Value: utils.String(linuxAppStack.NodeVersion),
+				})
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
+			}
+
+			if linuxAppStack.JavaVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("java"),
+				})
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
+			}
+
+			if linuxAppStack.PowerShellCoreVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("powershell"),
+				})
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
+			}
+
+			if linuxAppStack.CustomHandler {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("custom"),
+				})
+				windowsSlotSiteConfig.WindowsFxVersion = "" // Custom needs an explicit empty string here
+			}
+		} else {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String(""),
+			})
+			windowsSlotSiteConfig.WindowsFxVersion = ""
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
+		expanded.DefaultDocuments = &windowsSlotSiteConfig.DefaultDocuments
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
+		expanded.HTTP20Enabled = utils.Bool(windowsSlotSiteConfig.Http2Enabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
+		ipRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.IPSecurityRestrictions = ipRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
+		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(windowsSlotSiteConfig.ScmUseMainIpRestriction)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
+		scmIpRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
+		expanded.LoadBalancing = web.SiteLoadBalancing(windowsSlotSiteConfig.LoadBalancing)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(windowsSlotSiteConfig.ManagedPipelineMode)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
+		expanded.RemoteDebuggingEnabled = utils.Bool(windowsSlotSiteConfig.RemoteDebugging)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
+		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
+		expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
+		expanded.WebSocketsEnabled = utils.Bool(windowsSlotSiteConfig.WebSockets)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
+		expanded.FtpsState = web.FtpsState(windowsSlotSiteConfig.FtpsState)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		expanded.HealthCheckPath = utils.String(windowsSlotSiteConfig.HealthCheckPath)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = utils.Int32(int32(windowsSlotSiteConfig.NumberOfWorkers))
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
+		expanded.MinTLSVersion = web.SupportedTLSVersions(windowsSlotSiteConfig.MinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(windowsSlotSiteConfig.ScmMinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.cors") {
+		cors := ExpandCorsSettings(windowsSlotSiteConfig.Cors)
+		expanded.Cors = cors
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
+		expanded.PreWarmedInstanceCount = utils.Int32(int32(windowsSlotSiteConfig.PreWarmedInstanceCount))
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	}
+
+	expanded.AppSettings = &appSettings
+
+	return expanded, nil
+}
+
 func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
@@ -717,6 +950,270 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	result.ApplicationStack = appStack
 
 	return result, nil
+}
+
+func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
+	if len(siteConfig) == 0 {
+		return nil, nil
+	}
+	expanded := &web.SiteConfig{}
+	if existing != nil {
+		expanded = existing
+		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
+		expanded.LinuxFxVersion = utils.String("")
+	}
+
+	appSettings := make([]web.NameValuePair, 0)
+
+	appSettings = append(appSettings, web.NameValuePair{
+		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
+		Value: utils.String(version),
+	})
+
+	if storageUsesMSI {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("AzureWebJobsStorage__accountName"),
+			Value: utils.String(storageString),
+		})
+	} else {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("AzureWebJobsStorage"),
+			Value: utils.String(storageString),
+		})
+	}
+
+	linuxSlotSiteConfig := siteConfig[0]
+
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		if linuxSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+			v := strconv.Itoa(linuxSlotSiteConfig.HealthCheckEvictionTime)
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
+				Value: utils.String(v),
+			})
+		}
+	}
+
+	expanded.AlwaysOn = utils.Bool(linuxSlotSiteConfig.AlwaysOn)
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = utils.String(linuxSlotSiteConfig.AutoSwapSlotName)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
+		expanded.FunctionAppScaleLimit = utils.Int32(int32(linuxSlotSiteConfig.AppScaleLimit))
+	}
+
+	if linuxSlotSiteConfig.AppInsightsConnectionString != "" {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+			Value: utils.String(linuxSlotSiteConfig.AppInsightsConnectionString),
+		})
+	}
+
+	if linuxSlotSiteConfig.AppInsightsInstrumentationKey != "" {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
+			Value: utils.String(linuxSlotSiteConfig.AppInsightsInstrumentationKey),
+		})
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: utils.String(linuxSlotSiteConfig.ApiManagementConfigId),
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: utils.String(linuxSlotSiteConfig.ApiDefinition),
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
+		expanded.AppCommandLine = utils.String(linuxSlotSiteConfig.AppCommandLine)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSlotSiteConfig.ApplicationStack) > 0 {
+		if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
+			linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
+			if linuxAppStack.DotNetVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("dotnet"),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+			}
+
+			if linuxAppStack.NodeVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("node"),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+					Value: utils.String(linuxAppStack.NodeVersion),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
+			}
+
+			if linuxAppStack.PythonVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("python"),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
+			}
+
+			if linuxAppStack.JavaVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("java"),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
+			}
+
+			if linuxAppStack.PowerShellCoreVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("powershell"),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
+			}
+
+			if linuxAppStack.CustomHandler {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("custom"),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
+			}
+
+			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+				dockerConfig := linuxAppStack.Docker[0]
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
+					Value: utils.String(dockerConfig.RegistryURL),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
+					Value: utils.String(dockerConfig.RegistryUsername),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
+					Value: utils.String(dockerConfig.RegistryPassword),
+				})
+				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
+			}
+		} else {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String(""),
+			})
+			linuxSlotSiteConfig.LinuxFxVersion = ""
+		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
+		expanded.AcrUserManagedIdentityID = utils.String(linuxSlotSiteConfig.ContainerRegistryMSI)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
+		expanded.DefaultDocuments = &linuxSlotSiteConfig.DefaultDocuments
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
+		expanded.HTTP20Enabled = utils.Bool(linuxSlotSiteConfig.Http2Enabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
+		ipRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.IPSecurityRestrictions = ipRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
+		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSlotSiteConfig.ScmUseMainIpRestriction)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
+		scmIpRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
+		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSlotSiteConfig.LoadBalancing)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSlotSiteConfig.ManagedPipelineMode)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
+		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSlotSiteConfig.RemoteDebugging)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
+		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
+		expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
+		expanded.WebSocketsEnabled = utils.Bool(linuxSlotSiteConfig.WebSockets)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
+		expanded.FtpsState = web.FtpsState(linuxSlotSiteConfig.FtpsState)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		expanded.HealthCheckPath = utils.String(linuxSlotSiteConfig.HealthCheckPath)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = utils.Int32(int32(linuxSlotSiteConfig.WorkerCount))
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
+		expanded.MinTLSVersion = web.SupportedTLSVersions(linuxSlotSiteConfig.MinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSlotSiteConfig.ScmMinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.cors") {
+		cors := ExpandCorsSettings(linuxSlotSiteConfig.Cors)
+		expanded.Cors = cors
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
+		expanded.PreWarmedInstanceCount = utils.Int32(int32(linuxSlotSiteConfig.PreWarmedInstanceCount))
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	}
+
+	expanded.AppSettings = &appSettings
+
+	return expanded, nil
 }
 
 func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {

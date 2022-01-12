@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"strconv"
 	"strings"
 	"time"
@@ -266,8 +267,185 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Create Func
-			// TODO - Don't forget to set the ID! e.g. metadata.SetID(id)
+			var functionAppSlot LinuxFunctionAppSlotModel
+
+			if err := metadata.Decode(&functionAppSlot); err != nil {
+				return err
+			}
+
+			client := metadata.Client.AppService.WebAppsClient
+			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
+			servicePlanClient := metadata.Client.AppService.ServicePlanClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppSlot.ResourceGroup, functionAppSlot.FunctionAppName, functionAppSlot.Name)
+
+			servicePlanId, err := parse.ServicePlanID(functionAppSlot.ServicePlanId)
+			if err != nil {
+				return err
+			}
+
+			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+			}
+
+			sendContentSettings := !functionAppSlot.ForceDisableContentShare
+			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
+				switch tier := *planSku.Tier; strings.ToLower(tier) {
+				case "dynamic": // Consumption Plan modifications to request
+					sendContentSettings = false
+				case "elastic": // ElasticPremium Plan modifications to request?
+				case "basic": // App Service Plan modifications to request?
+					sendContentSettings = false
+				case "standard":
+					sendContentSettings = false
+				case "premiumv2", "premiumv3":
+					sendContentSettings = false
+				}
+			} else {
+				return fmt.Errorf("determining plan type for Linux %s: %v", id, err)
+			}
+
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
+			}
+
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			availabilityRequest := web.ResourceNameAvailabilityRequest{
+				Name: utils.String(functionAppSlot.Name),
+				Type: web.CheckNameResourceTypesMicrosoftWebsites,
+			}
+
+			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
+				// Attempt to check the ASE for the appropriate suffix for the name availability request.
+				// This varies between internal and external ASE Types, and potentially has other names in other clouds
+				// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
+				nameSuffix := "appserviceenvironment.net"
+				if ase.ID != nil {
+					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
+					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+					if err != nil {
+						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
+					} else {
+						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+						if err != nil {
+							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
+						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+							nameSuffix = *props.DNSSuffix
+						}
+					}
+				}
+
+				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix))
+				availabilityRequest.IsFqdn = utils.Bool(true)
+			}
+
+			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
+			if err != nil {
+				return fmt.Errorf("checking name availability for Linux %s: %+v", id, err)
+			}
+			if checkName.NameAvailable != nil && !*checkName.NameAvailable {
+				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
+			}
+
+			storageString := functionAppSlot.StorageAccountName
+			if !functionAppSlot.StorageUsesMSI {
+				storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+			}
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppSlot(functionAppSlot.SiteConfig, nil, metadata, functionAppSlot.FunctionExtensionsVersion, storageString, functionAppSlot.StorageUsesMSI)
+			if err != nil {
+				return fmt.Errorf("expanding site_config for Linux %s: %+v", id, err)
+			}
+
+			if functionAppSlot.BuiltinLogging {
+				if functionAppSlot.AppSettings == nil {
+					functionAppSlot.AppSettings = make(map[string]string)
+				}
+				if !functionAppSlot.StorageUsesMSI {
+					functionAppSlot.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					functionAppSlot.AppSettings["AzureWebJobsDashboard__accountName"] = functionAppSlot.StorageAccountName
+				}
+			}
+			if sendContentSettings {
+				if functionAppSlot.AppSettings == nil {
+					functionAppSlot.AppSettings = make(map[string]string)
+				}
+				suffix := uuid.New().String()[0:4]
+				functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+				functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+			}
+
+			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
+			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
+
+			siteEnvelope := web.Site{
+				Location: utils.String(functionAppSlot.Location),
+				Tags:     tags.FromTypedObject(functionAppSlot.Tags),
+				Kind:     utils.String("functionapp,linux"),
+				Identity: helpers.ExpandIdentity(functionAppSlot.Identity),
+				SiteProperties: &web.SiteProperties{
+					ServerFarmID:         utils.String(functionAppSlot.ServicePlanId),
+					Enabled:              utils.Bool(functionAppSlot.Enabled),
+					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    utils.Bool(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
+					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+				},
+			}
+
+			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("creating Linux %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
+			}
+
+			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("updating properties of Linux %s: %+v", id, err)
+			}
+			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
+			}
+
+			backupConfig := helpers.ExpandBackupConfig(functionAppSlot.Backup)
+			if backupConfig.BackupRequestProperties != nil {
+				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
+					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			auth := helpers.ExpandAuthSettings(functionAppSlot.AuthSettings)
+			if auth.SiteAuthSettingsProperties != nil {
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
+					return fmt.Errorf("setting Authorisation Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			connectionStrings := helpers.ExpandConnectionStrings(functionAppSlot.ConnectionStrings)
+			if connectionStrings.Properties != nil {
+				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
+					return fmt.Errorf("setting Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if _, ok := metadata.ResourceData.GetOk("site_config.0.app_service_logs"); ok {
+				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(functionAppSlot.SiteConfig[0].AppServiceLogs)
+				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
+					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
+
+			metadata.SetID(id)
 			return nil
 		},
 	}
