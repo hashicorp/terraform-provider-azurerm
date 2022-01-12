@@ -77,7 +77,7 @@ func (client VaultExtendedInfoClient) CreateOrUpdatePreparer(ctx context.Context
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -155,7 +155,7 @@ func (client VaultExtendedInfoClient) GetPreparer(ctx context.Context, resourceG
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -232,7 +232,7 @@ func (client VaultExtendedInfoClient) UpdatePreparer(ctx context.Context, resour
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

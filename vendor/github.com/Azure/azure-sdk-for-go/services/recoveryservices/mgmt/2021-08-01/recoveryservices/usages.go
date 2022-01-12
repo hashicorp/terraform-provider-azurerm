@@ -75,7 +75,7 @@ func (client UsagesClient) ListByVaultsPreparer(ctx context.Context, resourceGro
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

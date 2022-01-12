@@ -48,11 +48,27 @@ The following arguments are supported:
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
+* `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
+
+!> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
+
 ---
 
 An `identity` block supports the following:
 
 * `type` - (Required) The Type of Identity which should be used for this Recovery Services Vault. At this time the only possible value is `SystemAssigned`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_id` - (Required) The Key Vault key id used to encrypt this vault. Key managed by Vault Managed Hardware Security Module is also supported.
+
+* `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
+
+* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. At this time the only possible value is `true`. Defaults to `true`.
+
+!> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 
 ---
 
