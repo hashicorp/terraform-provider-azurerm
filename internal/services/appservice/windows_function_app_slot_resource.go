@@ -2,6 +2,9 @@ package appservice
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -9,52 +12,49 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsFunctionAppSlotResource struct{}
 
 type WindowsFunctionAppSlotModel struct {
-	Name               string `tfschema:"name"`
-	ResourceGroup      string `tfschema:"resource_group_name"`
-	FunctionAppName    string `tfschema:"function_app_name"`
-	Location           string `tfschema:"location"`
-	ServicePlanId      string `tfschema:"service_plan_id"`
-	StorageAccountName string `tfschema:"storage_account_name"`
-
-	StorageAccountKey string `tfschema:"storage_account_access_key"`
-	StorageUsesMSI    bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
-
-	AppSettings               map[string]string                      `tfschema:"app_settings"`
-	AuthSettings              []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	Backup                    []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode            string                                 `tfschema:"client_certificate_mode"`
-	ConnectionStrings         []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota      int                                    `tfschema:"daily_memory_time_quota"`
-	Enabled                   bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                 bool                                   `tfschema:"https_only"`
-	Identity                  []helpers.Identity                     `tfschema:"identity"`
-	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	Tags                      map[string]string                      `tfschema:"tags"`
-
-	// Computed
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
-
-	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroup                 string                                     `tfschema:"resource_group_name"`
+	FunctionAppName               string                                     `tfschema:"function_app_name"`
+	Location                      string                                     `tfschema:"location"`
+	ServicePlanId                 string                                     `tfschema:"service_plan_id"`
+	StorageAccountName            string                                     `tfschema:"storage_account_name"`
+	StorageAccountKey             string                                     `tfschema:"storage_account_access_key"`
+	StorageUsesMSI                bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	AppSettings                   map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                  []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	Backup                        []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled             bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                                     `tfschema:"client_certificate_mode"`
+	ConnectionStrings             []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota          int                                        `tfschema:"daily_memory_time_quota"`
+	Enabled                       bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion     string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare      bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                     bool                                       `tfschema:"https_only"`
+	Identity                      []helpers.Identity                         `tfschema:"identity"`
+	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
+	Tags                          map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string                                     `tfschema:"default_hostname"`
+	Kind                          string                                     `tfschema:"kind"`
+	OutboundIPAddresses           string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -282,10 +282,109 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 25 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Read Func
-			return nil
+			client := metadata.Client.AppService.WebAppsClient
+			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				if utils.ResponseWasNotFound(functionAppSlot.Response) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading Windows %s: %+v", id, err)
+			}
+
+			if functionAppSlot.SiteProperties == nil {
+				return fmt.Errorf("reading properties of Windows %s", id)
+			}
+			props := *functionAppSlot.SiteProperties
+
+			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+			}
+
+			connectionStrings, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
+			}
+
+			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for Site Publishing Credential information for Windows %s: %+v", id, err)
+			}
+			siteCredentials, err := siteCredentialsFuture.Result(*client)
+			if err != nil {
+				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
+			}
+
+			auth, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+			}
+
+			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(backup.Response) {
+					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
+				}
+			}
+
+			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
+			}
+
+			state := WindowsFunctionAppSlotModel{
+				Name:                 id.SiteName,
+				ResourceGroup:        id.ResourceGroup,
+				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
+				Location:             location.NormalizeNilable(functionAppSlot.Location),
+				Enabled:              utils.NormaliseNilableBool(functionAppSlot.Enabled),
+				ClientCertMode:       string(functionAppSlot.ClientCertMode),
+				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                 tags.ToTypedObject(functionAppSlot.Tags),
+				Kind:                 utils.NormalizeNilableString(functionAppSlot.Kind),
+			}
+
+			if identity := helpers.FlattenIdentity(functionAppSlot.Identity); identity != nil {
+				state.Identity = identity
+			}
+
+			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+			}
+
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+			}
+			state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
+
+			state.unpackWindowsFunctionAppSettings(appSettingsResp)
+
+			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+
+			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.Backup = helpers.FlattenBackupConfig(backup)
+
+			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -308,4 +407,60 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
+	if input.Properties == nil {
+		return
+	}
+
+	appSettings := make(map[string]string)
+	var dockerSettings helpers.ApplicationStackDocker
+	m.BuiltinLogging = false
+
+	for k, v := range input.Properties {
+		switch k {
+		case "FUNCTIONS_EXTENSION_VERSION":
+			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+
+		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+		case "WEBSITE_CONTENTSHARE":
+		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
+		case "FUNCTIONS_WORKER_RUNTIME":
+			if m.SiteConfig[0].ApplicationStack != nil {
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
+			}
+
+		case "DOCKER_REGISTRY_SERVER_URL":
+			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
+
+		case "DOCKER_REGISTRY_SERVER_USERNAME":
+			dockerSettings.RegistryUsername = utils.NormalizeNilableString(v)
+
+		case "DOCKER_REGISTRY_SERVER_PASSWORD":
+			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
+
+		case "APPINSIGHTS_INSTRUMENTATIONKEY":
+			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
+
+		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
+			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
+
+		case "AzureWebJobsStorage":
+			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+
+		case "AzureWebJobsDashboard":
+			m.BuiltinLogging = true
+
+		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
+			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
+			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+
+		default:
+			appSettings[k] = utils.NormalizeNilableString(v)
+		}
+	}
+
+	m.AppSettings = appSettings
 }

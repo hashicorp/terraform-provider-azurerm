@@ -1,10 +1,14 @@
 package helpers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigWindowsFunctionAppSlot struct {
@@ -635,4 +639,162 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
+	if functionAppSlotSiteConfig == nil {
+		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+	}
+
+	result := &SiteConfigWindowsFunctionAppSlot{
+		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
+		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
+		WindowsFxVersion:        utils.NormalizeNilableString(functionAppSlotSiteConfig.WindowsFxVersion),
+		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
+		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
+		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
+		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+	}
+
+	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {
+		result.ApiDefinition = *v.URL
+	}
+
+	if v := functionAppSlotSiteConfig.APIManagementConfig; v != nil && v.ID != nil {
+		result.ApiManagementConfigId = *v.ID
+	}
+
+	if functionAppSlotSiteConfig.IPSecurityRestrictions != nil {
+		result.IpRestriction = FlattenIpRestrictions(functionAppSlotSiteConfig.IPSecurityRestrictions)
+	}
+
+	if functionAppSlotSiteConfig.ScmIPSecurityRestrictions != nil {
+		result.ScmIpRestriction = FlattenIpRestrictions(functionAppSlotSiteConfig.ScmIPSecurityRestrictions)
+	}
+
+	if v := functionAppSlotSiteConfig.DefaultDocuments; v != nil {
+		result.DefaultDocuments = *v
+	}
+
+	if functionAppSlotSiteConfig.Cors != nil {
+		corsSettings := functionAppSlotSiteConfig.Cors
+		cors := CorsSetting{}
+		if corsSettings.SupportCredentials != nil {
+			cors.SupportCredentials = *corsSettings.SupportCredentials
+		}
+
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
+			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			result.Cors = []CorsSetting{cors}
+		}
+	}
+
+	var appStack []ApplicationStackWindowsFunctionApp
+	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
+		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
+		if err != nil {
+			return nil, fmt.Errorf("flattening site config: %s", err)
+		}
+		appStack = decoded
+	}
+	result.ApplicationStack = appStack
+
+	return result, nil
+}
+
+func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {
+	if functionAppSlotSiteConfig == nil {
+		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+	}
+
+	result := &SiteConfigLinuxFunctionAppSlot{
+		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
+		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
+		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSlotSiteConfig.LinuxFxVersion),
+		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
+		WorkerCount:             int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
+		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
+		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
+		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+	}
+
+	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {
+		result.ApiDefinition = *v.URL
+	}
+
+	if v := functionAppSlotSiteConfig.APIManagementConfig; v != nil && v.ID != nil {
+		result.ApiManagementConfigId = *v.ID
+	}
+
+	if functionAppSlotSiteConfig.IPSecurityRestrictions != nil {
+		result.IpRestriction = FlattenIpRestrictions(functionAppSlotSiteConfig.IPSecurityRestrictions)
+	}
+
+	if functionAppSlotSiteConfig.ScmIPSecurityRestrictions != nil {
+		result.ScmIpRestriction = FlattenIpRestrictions(functionAppSlotSiteConfig.ScmIPSecurityRestrictions)
+	}
+
+	if v := functionAppSlotSiteConfig.DefaultDocuments; v != nil {
+		result.DefaultDocuments = *v
+	}
+
+	if functionAppSlotSiteConfig.Cors != nil {
+		corsSettings := functionAppSlotSiteConfig.Cors
+		cors := CorsSetting{}
+		if corsSettings.SupportCredentials != nil {
+			cors.SupportCredentials = *corsSettings.SupportCredentials
+		}
+
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
+			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			result.Cors = []CorsSetting{cors}
+		}
+	}
+
+	var appStack []ApplicationStackLinuxFunctionApp
+	if functionAppSlotSiteConfig.LinuxFxVersion != nil {
+		decoded, err := DecodeFunctionAppLinuxFxVersion(*functionAppSlotSiteConfig.LinuxFxVersion)
+		if err != nil {
+			return nil, fmt.Errorf("flattening site config: %s", err)
+		}
+		appStack = decoded
+	}
+	result.ApplicationStack = appStack
+
+	return result, nil
 }
