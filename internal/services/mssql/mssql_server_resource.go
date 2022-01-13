@@ -309,8 +309,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
 	}
 
+	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
+	}
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
+		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
 	}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
@@ -448,8 +452,12 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
+	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
+	}
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
+		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
 	}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)

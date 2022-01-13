@@ -736,11 +736,11 @@ The following attributes are exported:
 
 * `portal_fqdn` - The FQDN for the Azure Portal resources when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
-* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
 
 ~> **NOTE:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
 
-* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 

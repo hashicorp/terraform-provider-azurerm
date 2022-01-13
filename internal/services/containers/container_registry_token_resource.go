@@ -65,20 +65,17 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
-
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token creation.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewContainerRegistryTokenID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing token %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -102,25 +99,16 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating token %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read token %q for Container Registry %q (resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryTokenRead(d, meta)
 }
@@ -130,9 +118,10 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token update.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
+	id, err := parse.ContainerRegistryTokenID(d.Id())
+	if err != nil {
+		return err
+	}
 	scopeMapID := d.Get("scope_map_id").(string)
 	enabled := d.Get("enabled").(bool)
 	status := containerregistry.TokenStatusEnabled
@@ -148,25 +137,16 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read token %q (Container Registry %q, resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryTokenRead(d, meta)
 }

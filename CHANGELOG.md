@@ -2,7 +2,30 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_api_management_api_tag` [GH-14711]
+
+ENHANCEMENTS:
+
+* dependencies: upgrading `eventgrid` to API version `2021-12-01` [GH-14433]
 * `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release [GH-14628]
+* `azurerm_databricks_workspace_customer_managed_key` - allow creation of resource when `infrastructure_encryption_enabled` is set to `true` for the databricks workspace [GH-14915]
+* `azurerm_eventgrid_domain` - support for the `local_auth_enabled`, `auto_create_topic_with_first_subscription`, and `auto_delete_topic_with_last_subscription` properties [GH-14433]
+* `azurerm_monitor_action_group` - support for the `event_hub_receiver` block [GH-14771]
+* `azurerm_mssql_server_extended_auditing_policy` - support storing audit data in storage account that is behind a firewall and VNet [GH-14656]
+* `azurerm_recovery_services_vault`- support for customer-managed keys (CMK) with the `encryption` block [GH-14718]
+
+BUG FIXES:
+
+* `azurerm_consumption_budget_subscription` - fix issue in migration logic [GH-14898]
+* `azurerm_cosmosdb_account` - only force ForceMongo when kind is set to mongo [GH-14924]
+* `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
+* `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error [GH-14880]
+* `azurerm_log_analytics_datasource_windows_performance_counter` - state migration for case conversion of ID element [GH-14916]
+* `azurerm_mysql_server_key` - fix issue when checking for existing resource on create [GH-14883]
+* `azurerm_spring_cloud_service` - rix panic when removing git repos [GH-14900]
+* `azurerm_log_analytics_workspace` - the `reservation_capcity_in_gb_per_day` has been deprecated and renamed to `reservation_capacity_in_gb_per_day` [GH-14910]
+
+
 
 ## 2.91.0 (January 07, 2022)
 

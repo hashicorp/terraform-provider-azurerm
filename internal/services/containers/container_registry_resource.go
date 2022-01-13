@@ -420,18 +420,18 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for  Container Registry creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Container Registry %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -441,16 +441,16 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	availabilityRequest := containerregistry.RegistryNameCheckRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		Type: utils.String("Microsoft.ContainerRegistry/registries"),
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.Name, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the Container Registry needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("the name %q used for the Container Registry needs to be globally unique and isn't available: %s", id.Name, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -515,13 +515,13 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	// the ACR is being created so no previous geo-replication locations
@@ -533,22 +533,13 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }
@@ -559,8 +550,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for  Container Registry update.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id, err := parse.RegistryID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	sku := d.Get("sku").(string)
 	skuChange := d.HasChange("sku")
@@ -583,8 +576,8 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
-		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		if err := applyContainerRegistrySku(d, meta, sku, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("applying sku %q for %s: %+v", sku, id, err)
 		}
 	}
 
@@ -634,43 +627,34 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplicationsFromLocations(oldGeoReplicationLocations.List()), expandReplicationsFromLocations(newGeoReplicationLocations.List()))
+		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations.List()), expandReplicationsFromLocations(newGeoReplicationLocations.List()))
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	// downgrade to Basic or Standard SKU
 	if skuChange && (isBasicSku || isStandardSku) {
-		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		if err := applyContainerRegistrySku(d, meta, sku, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("applying sku %q for %s: %+v", sku, id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }

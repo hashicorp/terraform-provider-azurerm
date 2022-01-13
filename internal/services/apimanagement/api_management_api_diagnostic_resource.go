@@ -163,19 +163,17 @@ func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 
 func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId := d.Get("identifier").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
+	id := parse.NewApiDiagnosticID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("identifier").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, diagnosticId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %s", diagnosticId, resourceGroup, serviceName, apiName, err)
+				return fmt.Errorf("checking for presence of existing Diagnostic %s: %s", id, err)
 			}
 		}
 
@@ -241,18 +239,18 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, diagnosticId, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId, resourceGroup, serviceName, apiName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Diagnostic %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, diagnosticId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
 	if err != nil {
-		return fmt.Errorf("retrieving Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId, resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("retrieving Diagnostic %s: %+v", id, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading ID for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): ID is empty", diagnosticId, resourceGroup, serviceName, apiName)
+		return fmt.Errorf("reading ID for Diagnostic %s: ID is empty", id)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementApiDiagnosticRead(d, meta)
 }

@@ -53,6 +53,7 @@ func (c FrontDoorsClient) preparerForDelete(ctx context.Context, id FrontDoorId)
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsDelete(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(id.ID()),
