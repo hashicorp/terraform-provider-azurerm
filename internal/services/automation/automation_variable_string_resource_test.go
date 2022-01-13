@@ -41,7 +41,7 @@ func TestAccAutomationVariableString_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 	})
 }
 
@@ -130,6 +130,7 @@ resource "azurerm_automation_variable_string" "test" {
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
   value                   = "Hello, Terraform Complete Test."
+  encrypted               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
