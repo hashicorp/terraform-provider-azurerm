@@ -245,7 +245,6 @@ func (DiskPoolResource) retryError(err error) *resource.RetryError {
 	}
 	// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-deploying-a-disk-pool the errors below are retryable.
 	retryableErrors := []string{
-		"UnexpectedError",
 		"DeploymentTimeout",
 		"GoalStateApplicationTimeoutError",
 		"OngoingOperationInProgress",
