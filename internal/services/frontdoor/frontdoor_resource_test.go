@@ -1011,9 +1011,32 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
         header_name        = "Access-Control-Allow-Credentials"
         value              = "true"
       }
+      routing_configuration {
+        forwarding_configuration {
+          forwarding_protocol = "MatchRequest"
+          backend_pool_name   = "acctest-FD-%[1]d-pool-bing"
+          cache_enabled       = false
+        }
+      }
     }
+
+
   }
 
+  rule {
+    name     = "redirect"
+    priority = 3
+
+    action {
+      routing_configuration {
+        redirect_configuration {
+          custom_host       = "www.bing.com"
+          redirect_protocol = "MatchRequest"
+          redirect_type     = "PermanentRedirect"
+        }
+      }
+    }
+  }
   depends_on = [
     azurerm_frontdoor.test
   ]

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
@@ -234,6 +235,124 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
+
+									"routing_configuration": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 100,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+
+												"redirect_configuration": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"custom_fragment": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+															},
+															"custom_host": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+															},
+															"custom_path": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+															},
+															"custom_query_string": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+															},
+															"redirect_protocol": {
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoors.FrontDoorRedirectProtocolHttpOnly),
+																	string(frontdoors.FrontDoorRedirectProtocolHttpsOnly),
+																	string(frontdoors.FrontDoorRedirectProtocolMatchRequest),
+																}, false),
+															},
+															"redirect_type": {
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoors.FrontDoorRedirectTypeFound),
+																	string(frontdoors.FrontDoorRedirectTypeMoved),
+																	string(frontdoors.FrontDoorRedirectTypePermanentRedirect),
+																	string(frontdoors.FrontDoorRedirectTypeTemporaryRedirect),
+																}, false),
+															},
+														},
+													},
+												},
+												"forwarding_configuration": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"backend_pool_name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+															},
+															"cache_enabled": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+															"cache_use_dynamic_compression": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+															"cache_query_parameter_strip_directive": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																Default:  string(frontdoors.FrontDoorQueryStripAll),
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoors.FrontDoorQueryStripAll),
+																	string(frontdoors.FrontDoorQueryStripNone),
+																	string(frontdoors.FrontDoorQueryStripOnly),
+																	string(frontdoors.FrontDoorQueryStripAllExcept),
+																}, false),
+															},
+															"cache_query_parameters": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MaxItems: 25,
+																Elem: &pluginsdk.Schema{
+																	Type:         pluginsdk.TypeString,
+																	ValidateFunc: validation.StringIsNotEmpty,
+																},
+															},
+															"cache_duration": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
+															},
+															"custom_forwarding_path": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+															},
+															"forwarding_protocol": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																Default:  string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoors.FrontDoorForwardingProtocolHttpOnly),
+																	string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+																	string(frontdoors.FrontDoorForwardingProtocolMatchRequest),
+																}, false),
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -252,14 +371,13 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	frontDoorName := d.Get("frontdoor_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	frontDoorId := frontdoors.NewFrontDoorID(subscriptionId, resourceGroup, frontDoorName)
 	rulesEngineName := d.Get("name").(string)
-
 	rules := d.Get("rule").([]interface{})
-
 	id := frontdoors.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName)
 
 	frontdoorRulesEngineProperties := frontdoors.RulesEngineProperties{
-		Rules: expandFrontDoorRulesEngineRules(rules),
+		Rules: expandFrontDoorRulesEngineRules(frontDoorId, rules),
 	}
 
 	frontdoorRulesEngine := frontdoors.RulesEngine{
@@ -275,19 +393,29 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceFrontDoorRulesEngineRead(d, meta)
 }
 
-func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngineAction {
+func expandFrontDoorRulesEngineAction(frontDoorId frontdoors.FrontDoorId, input []interface{}) frontdoors.RulesEngineAction {
 	if len(input) == 0 || input[0] == nil {
 		return frontdoors.RulesEngineAction{}
 	}
 
 	ruleAction := input[0].(map[string]interface{})
-
 	requestHeaderActions := ruleAction["request_header"].([]interface{})
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
+	var routingConfiguration frontdoors.RouteConfiguration
+	if rco := ruleAction["routing_configuration"].([]interface{}); len(rco) != 0 {
+		routeConfigurationOverride := ruleAction["routing_configuration"].([]interface{})[0].(map[string]interface{})
+		if rc := routeConfigurationOverride["redirect_configuration"].([]interface{}); len(rc) != 0 {
+			routingConfiguration = expandFrontDoorRedirectConfiguration(rc)
+		} else if fc := routeConfigurationOverride["forwarding_configuration"].([]interface{}); len(fc) != 0 {
+			routingConfiguration = expandFrontDoorForwardingConfiguration(fc, frontDoorId)
+		}
+	}
+
 	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
-		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
-		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
+		RequestHeaderActions:       expandHeaderAction(requestHeaderActions),
+		ResponseHeaderActions:      expandHeaderAction(responseHeaderActions),
+		RouteConfigurationOverride: &routingConfiguration,
 	}
 
 	return frontdoorRulesEngineRuleAction
@@ -318,7 +446,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 	return &output
 }
 
-func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEngineRule {
+func expandFrontDoorRulesEngineRules(frontDoorId frontdoors.FrontDoorId, input []interface{}) *[]frontdoors.RulesEngineRule {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -336,7 +464,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEng
 		frontdoorRulesEngineRule := frontdoors.RulesEngineRule{
 			Name:            ruleName,
 			Priority:        priority,
-			Action:          expandFrontDoorRulesEngineAction(actions),
+			Action:          expandFrontDoorRulesEngineAction(frontDoorId, actions),
 			MatchConditions: expandFrontDoorRulesEngineMatchCondition(matchConditions),
 		}
 
