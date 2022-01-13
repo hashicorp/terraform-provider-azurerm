@@ -79,11 +79,11 @@ A `identity` block exports the following:
 
 A `managed_resources` block exports the following:
 
-* `event_hub_namespace` - The ID of the managed event hub namespace.
+* `event_hub_namespace_id` - The ID of the managed event hub namespace.
 
-* `resource_group` - The ID of the managed resource group.
+* `resource_group_id` - The ID of the managed resource group.
 
-* `storage_account` - The ID of the managed storage account.
+* `storage_account_id` - The ID of the managed storage account.
 
 ## Timeouts
 
