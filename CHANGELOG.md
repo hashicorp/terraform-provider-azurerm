@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_server_extended_auditing_policy` - support storing audit data in storage account that is behind a firewall and VNet [GH-14656]
 * `azurerm_purview_account` - export the `managed_resources` block [GH-14865]
 * `azurerm_recovery_services_vault`- support for customer-managed keys (CMK) with the `encryption` block [GH-14718]
+* `azurerm_storage_account` - support for the `infrastructure_encryption_enabled` property [GH-14864]
 
 BUG FIXES:
 
