@@ -108,6 +108,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Optional: true,
 							Default:  features.ThreePointOh(),
 						},
+						// TODO update docs with new default for 3.0
 						"allocation_weight": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
