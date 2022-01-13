@@ -55,7 +55,7 @@ func dataSourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
