@@ -604,6 +604,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_dedicated_host.test
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -671,6 +675,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_dedicated_host.second
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

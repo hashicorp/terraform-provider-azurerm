@@ -572,6 +572,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_dedicated_host.test
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -635,6 +639,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_dedicated_host.second
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
