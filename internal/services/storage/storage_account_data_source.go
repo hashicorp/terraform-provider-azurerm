@@ -266,6 +266,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"infrastructure_encryption": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -395,6 +400,12 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+
+		infrastructure_encryption := false
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
+			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
+		}
+		d.Set("infrastructure_encryption", infrastructure_encryption)
 	}
 
 	if accessKeys := accountKeys; accessKeys != nil {
