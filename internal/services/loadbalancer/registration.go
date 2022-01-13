@@ -46,6 +46,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_lb_outbound_rule":        resourceArmLoadBalancerOutboundRule(),
 		"azurerm_lb_rule":                 resourceArmLoadBalancerRule(),
 		"azurerm_lb":                      resourceArmLoadBalancer(),
+		"azurerm_crlb_backend_address_pool_address": resourceArmCrossRegionLoadBalancerBackendAddressPoolAddress(),
 	}
 }
 
