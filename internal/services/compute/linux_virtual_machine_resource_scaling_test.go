@@ -687,6 +687,22 @@ func (r LinuxVirtualMachineResource) scalingDedicatedHostGroupRemoved(data accep
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_dedicated_host_group" "second" {
+  name                        = "acctestDHG2-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+  automatic_placement_enabled = true
+}
+
+resource "azurerm_dedicated_host" "second" {
+  name                    = "acctestDH2-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.second.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+
 resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -714,7 +730,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) scalingProximityPlacementGroup(data acceptance.TestData) string {
