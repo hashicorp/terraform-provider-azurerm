@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_api_management_api_tag` [GH-14711]
+* **New Resource:** `azurerm_disk_pool_managed_disk_attachment` [GH-14268]
 
 ENHANCEMENTS:
 
