@@ -1,6 +1,8 @@
 run:
   timeout: 60m
   modules-download-mode: vendor
+  skip-dirs:
+    - /sdk/ # Excluding sdk folders as these are externally generated
 
 issues:
   max-per-linter: 0
@@ -34,5 +36,9 @@ linters:
 linters-settings:
   errcheck:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
+  misspell:
+    ignore-words:
+      - hdinsight
+      - exportfs
   nakedret:
     max-func-lines: 40
