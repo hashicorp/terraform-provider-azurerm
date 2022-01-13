@@ -43,7 +43,7 @@ func TestAccAutomationVariableDateTime_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("2019-04-20T08:40:04.02Z"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 	})
 }
 
@@ -132,6 +132,7 @@ resource "azurerm_automation_variable_datetime" "test" {
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
   value                   = "2019-04-20T08:40:04.02Z"
+  encrypted               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
