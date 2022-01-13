@@ -61,8 +61,12 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"GP_Gen4",
 					"GP_Gen5",
+					"GP_Gen8IH",
+					"GP_Gen8IM",
 					"BC_Gen4",
 					"BC_Gen5",
+					"BC_Gen8IH",
+					"BC_Gen8IM",
 				}, false),
 			},
 
