@@ -2,8 +2,7 @@
 subcategory: "Web Publishing Subscription"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
-description: |-
-  Manages an Azure Web Pubsub service.
+description: |- Manages an Azure Web Pubsub service.
 ---
 
 # azurerm_web_pubsub
@@ -29,11 +28,9 @@ resource "azurerm_web_pubsub" "example" {
   public_network_access_enabled = false
 
   live_trace {
-    enabled = true
-    categories {
-      name    = "MessagingLogs"
-      enabled = true
-    }
+    enabled                   = true
+    messaging_logs_enabled    = true
+    connectivity_logs_enabled = false
   }
 }
 ```
@@ -44,23 +41,27 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Web Pubsub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Web Pubsub service. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web Pubsub service. Changing
+  this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this
+  forces a new resource to be created.
 
 * `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are: Free: 1, Standard: 1, 2, 5, 10, 20, 50, 100.
+* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
+  Free: 1, Standard: 1, 2, 5, 10, 20, 50, 100.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `live_trace` - (Optional) A `live_trace` block as documented below.
+* `live_trace` - (Optional) A `live_trace` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
 
-* `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults to `false`.
+* `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults
+  to `false`.
 
 ---
 
@@ -68,16 +69,11 @@ A `live_trace` block supports the following:
 
 * `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
 
-* `category` - (Optional) A `category` block as documented below.
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
 
----
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
 
-A `category` block supports the following:
-
-* `name` - (Required) The name of the Log Category for this Resource. Possible values are `ConnectivityLogs`, `MessagingLogs` and `HttpRequestLogs`.
-
-* `enabled` - (Optional) Whether this log category is enabled? Defaults to `true`.
-
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
 
 ## Attributes Reference
 
@@ -103,7 +99,8 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to
+specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Service.

@@ -246,11 +246,10 @@ resource "azurerm_web_pubsub" "test" {
   public_network_access_enabled = true
 
   live_trace {
-    enabled = true
-    category {
-      name    = "MessagingLogs"
-      enabled = true
-    }
+    enabled                   = true
+    messaging_logs_enabled    = true
+    connectivity_logs_enabled = false
+    http_request_logs_enabled  = false
   }
 
   local_auth_enabled = true
@@ -305,18 +304,9 @@ resource "azurerm_web_pubsub" "test" {
   public_network_access_enabled = false
 
   live_trace {
-    enabled = false
-    category {
-      name    = "MessagingLogs"
-      enabled = false
-    }
-    category {
-      name    = "ConnectivityLogs"
-      enabled = true
-    }
-    category {
-      name = "HttpRequestLogs"
-    }
+    enabled                   = false
+    messaging_logs_enabled    = false
+    connectivity_logs_enabled = true
   }
 
   local_auth_enabled      = false

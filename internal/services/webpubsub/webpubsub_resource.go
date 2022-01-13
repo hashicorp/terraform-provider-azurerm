@@ -79,27 +79,21 @@ func resourceWebPubSub() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
-						"category": {
-							Type:     pluginsdk.TypeSet,
+
+						"connectivity_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
 							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"ConnectivityLogs",
-											"MessagingLogs",
-											"HttpRequestLogs",
-										}, false),
-									},
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
-								},
-							},
+						},
+						"messaging_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
+						},
+						"http_request_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
 						},
 					},
 				},
@@ -339,7 +333,6 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguration {
 	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
-
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -351,21 +344,33 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		enabled = "true"
 	}
 
-	for _, item := range v["category"].(*pluginsdk.Set).List() {
-		setting := item.(map[string]interface{})
-
-		settingEnabled := "false"
-		if setting["enabled"].(bool) {
-			settingEnabled = "true"
-		}
-
-		liveTraceCategory := webpubsub.LiveTraceCategory{
-			Name:    utils.String(setting["name"].(string)),
-			Enabled: utils.String(settingEnabled),
-		}
-
-		resourceCategories = append(resourceCategories, liveTraceCategory)
+	messageLogEnabled := "false"
+	if v["messaging_logs_enabled"].(bool) {
+		messageLogEnabled = "true"
 	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messageLogEnabled),
+	})
+
+	connectivityLogEnabled := "false"
+	if v["connectivity_logs_enabled"].(bool) {
+		connectivityLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLogEnabled),
+	})
+
+	httpLogEnabled := "false"
+	if v["http_request_logs_enabled"].(bool) {
+		httpLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLogEnabled),
+	})
+
 	return &webpubsub.LiveTraceConfiguration{
 		Enabled:    &enabled,
 		Categories: &resourceCategories,
@@ -383,11 +388,14 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		enabled = strings.EqualFold(*input.Enabled, "true")
 	}
 
-	resourceCategories := make([]interface{}, 0)
+	var (
+		messagingLogEnabled    bool
+		connectivityLogEnabled bool
+		httpLogsEnabled        bool
+	)
+
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			block := make(map[string]interface{})
-
 			name := ""
 			if item.Name != nil {
 				name = *item.Name
@@ -398,14 +406,22 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 				cateEnabled = *item.Enabled
 			}
 
-			block["name"] = name
-			block["enabled"] = strings.EqualFold(cateEnabled, "true")
-
-			resourceCategories = append(resourceCategories, block)
+			switch name {
+			case "MessagingLogs":
+				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "ConnectivityLogs":
+				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "HttpRequestLogs":
+				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+			default:
+				continue
+			}
 		}
 	}
 	return []interface{}{map[string]interface{}{
-		"enabled":  enabled,
-		"category": resourceCategories,
+		"enabled":                   enabled,
+		"messaging_logs_enabled":    messagingLogEnabled,
+		"connectivity_logs_enabled": connectivityLogEnabled,
+		"http_request_logs_enabled": httpLogsEnabled,
 	}}
 }
