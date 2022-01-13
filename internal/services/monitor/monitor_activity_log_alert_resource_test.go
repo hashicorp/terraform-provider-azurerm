@@ -653,9 +653,9 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   criteria {
     category = "ResourceHealth"
     resource_health {
-      current_health   = ["Degraded", "Unavailable"]
-      previous_health  = ["Available", "Unknown"]
-      reason           = ["PlatformInitiated", "UserInitiated"]
+      current  = ["Degraded", "Unavailable"]
+      previous = ["Available", "Unknown"]
+      reason   = ["PlatformInitiated", "UserInitiated"]
     }
   }
 
@@ -720,9 +720,9 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   criteria {
     category = "ResourceHealth"
     resource_health {
-      current_health   = ["Degraded", "Unavailable", "Unknown"]
-      previous_health  = ["Available"]
-      reason           = ["PlatformInitiated", "Unknown"]
+      current  = ["Degraded", "Unavailable", "Unknown"]
+      previous = ["Available"]
+      reason   = ["PlatformInitiated", "Unknown"]
     }
   }
 

@@ -166,7 +166,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"current_health": {
+									"current": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -182,7 +182,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										},
 										Set: pluginsdk.HashString,
 									},
-									"previous_health": {
+									"previous": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -518,7 +518,7 @@ func expandResourceHealth(resourceHealth []interface{}, conditions []insights.Al
 		}
 		vs := serviceItem.(map[string]interface{})
 
-		cv := vs["current_health"].(*pluginsdk.Set)
+		cv := vs["current"].(*pluginsdk.Set)
 		if len(cv.List()) > 0 {
 			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
 			for _, e := range cv.List() {
@@ -533,7 +533,7 @@ func expandResourceHealth(resourceHealth []interface{}, conditions []insights.Al
 			})
 		}
 
-		pv := vs["previous_health"].(*pluginsdk.Set)
+		pv := vs["previous"].(*pluginsdk.Set)
 		if len(pv.List()) > 0 {
 			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
 			for _, e := range pv.List() {
@@ -683,9 +683,9 @@ func flattenMonitorActivityLogAlertResourceHealth(input *insights.AlertRuleAllOf
 				}
 				switch strings.ToLower(*cond.Field) {
 				case "properties.currentHealthStatus":
-					rhResult["current_health"] = values
+					rhResult["current"] = values
 				case "properties.previousHealthStatus":
-					rhResult["previous_health"] = values
+					rhResult["previous"] = values
 				case "properties.cause":
 					rhResult["reason"] = values
 				}

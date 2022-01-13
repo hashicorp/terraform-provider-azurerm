@@ -103,8 +103,8 @@ A `criteria` block supports the following:
 
 A `resource_health` block supports the following:
 
-* `current_health` (Optional) Current resource health status this alert will monitor. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
-* `previous_health` (Optional) Previous resource health status this alert will monitor. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `current` (Optional) Current resource health status this alert will monitor. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `previous` (Optional) Previous resource health status this alert will monitor. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
 * `reason` (Optional) Reason this alert will monitor. Possible values are `PlatformInitiated`, `UserInitiated` and `Unknown`.
 
 ---
