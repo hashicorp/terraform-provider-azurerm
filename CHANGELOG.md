@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_mysql_server_key` - fix issue when checking for existing resource on create [GH-14883]
 * `azurerm_spring_cloud_service` - rix panic when removing git repos [GH-14900]
 * `azurerm_log_analytics_workspace` - the `reservation_capcity_in_gb_per_day` has been deprecated and renamed to `reservation_capacity_in_gb_per_day` [GH-14910]
+* `azurerm_iothub_dps` - fixed default value of `allocation_weight` to match azure default [GH-14943]
 
 
 
