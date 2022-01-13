@@ -503,14 +503,6 @@ func (r WindowsVirtualMachineResource) scalingDedicatedHostGroupInitial(data acc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  platform_fault_domain_count = 2
-  automatic_placement_enabled = true
-}
-
 resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -534,7 +526,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineResource) scalingDedicatedHostGroup(data acceptance.TestData) string {
@@ -547,6 +539,14 @@ resource "azurerm_dedicated_host_group" "test" {
   location                    = azurerm_resource_group.test.location
   platform_fault_domain_count = 2
   automatic_placement_enabled = true
+}
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctestDH-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -573,7 +573,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineResource) scalingDedicatedHostGroupUpdate(data acceptance.TestData) string {
@@ -588,12 +588,28 @@ resource "azurerm_dedicated_host_group" "test" {
   automatic_placement_enabled = true
 }
 
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctestDH-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+
 resource "azurerm_dedicated_host_group" "second" {
   name                        = "acctestDHG2-%d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   platform_fault_domain_count = 2
   automatic_placement_enabled = true
+}
+
+resource "azurerm_dedicated_host" "second" {
+  name                    = "acctestDH2-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.second.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -620,20 +636,12 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineResource) scalingDedicatedHostGroupRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  platform_fault_domain_count = 2
-  automatic_placement_enabled = true
-}
 
 resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
@@ -658,7 +666,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineResource) scalingProximityPlacementGroup(data acceptance.TestData) string {
