@@ -1115,7 +1115,7 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 			Config: r.infrastructureEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("infrastructure_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1123,7 +1123,7 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 			Config: r.infrastructureEncryptionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("infrastructure_encryption").HasValue("false"),
+				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -3196,10 +3196,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  infrastructure_encryption = true
+  location                          = azurerm_resource_group.test.location
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -3219,10 +3219,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  infrastructure_encryption = false
+  location                          = azurerm_resource_group.test.location
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

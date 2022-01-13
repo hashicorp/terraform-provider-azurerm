@@ -266,7 +266,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"infrastructure_encryption": {
+			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -405,7 +405,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
 			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
 		}
-		d.Set("infrastructure_encryption", infrastructure_encryption)
+		d.Set("infrastructure_encryption_enabled", infrastructure_encryption)
 	}
 
 	if accessKeys := accountKeys; accessKeys != nil {
