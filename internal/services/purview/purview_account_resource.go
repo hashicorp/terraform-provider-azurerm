@@ -99,15 +99,15 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"resource_group": {
+						"resource_group_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"storage_account": {
+						"storage_account_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"event_hub_namespace": {
+						"event_hub_namespace_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
