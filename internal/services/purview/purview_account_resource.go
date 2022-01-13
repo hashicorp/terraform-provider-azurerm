@@ -323,9 +323,9 @@ func flattenPurviewAccountManagedResources(managedResources *purview.AccountProp
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"resource_group":      resourceGroup,
-			"storage_account":     storageAccount,
-			"event_hub_namespace": eventHubNamespace,
+			"resource_group_id":      resourceGroup,
+			"storage_account_id":     storageAccount,
+			"event_hub_namespace_id": eventHubNamespace,
 		},
 	}
 }
