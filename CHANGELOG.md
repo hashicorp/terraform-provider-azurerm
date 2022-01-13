@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
 * `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error [GH-14880]
 * `azurerm_log_analytics_datasource_windows_performance_counter` - state migration for case conversion of ID element [GH-14916]
+* `azurerm_monitor_aad_diagnostic_setting` - use the correct parser function for event hub rule IDs [GH-14944]
 * `azurerm_mysql_server_key` - fix issue when checking for existing resource on create [GH-14883]
 * `azurerm_spring_cloud_service` - rix panic when removing git repos [GH-14900]
 * `azurerm_log_analytics_workspace` - the `reservation_capcity_in_gb_per_day` has been deprecated and renamed to `reservation_capacity_in_gb_per_day` [GH-14910]

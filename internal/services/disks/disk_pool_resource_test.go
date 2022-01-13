@@ -140,6 +140,9 @@ resource "azurerm_disk_pool" "test" {
   sku_name            = "Basic_B1"
   subnet_id           = azurerm_subnet.test.id
   zones               = ["1"]
+  tags = {
+    ENV = "Test"
+  }
 }
 `, template, data.RandomString)
 }
