@@ -271,7 +271,12 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 
-		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
+		reginfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Making Read request for registration token on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(&reginfo)); err != nil {
 			return fmt.Errorf("setting `registration_info`: %+v", err)
 		}
 	}
