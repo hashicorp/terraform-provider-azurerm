@@ -1083,7 +1083,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := d.Get("queue_encryption_key_type").(string)
 	tableEncryptionKeyType := d.Get("table_encryption_key_type").(string)
-	infrastructureEncryption := d.Get("infrastructure_encryption").(bool)
 
 	if accountKind != string(storage.KindStorageV2) {
 		if queueEncryptionKeyType == string(storage.KeyTypeAccount) {
@@ -1091,9 +1090,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		if tableEncryptionKeyType == string(storage.KeyTypeAccount) {
 			return fmt.Errorf("`table_encryption_key_type = \"Account\"` can only be used with account kind `StorageV2`")
-		}
-		if infrastructureEncryption {
-			return fmt.Errorf("`infrastructure_encryption` can only be used with account kind `StorageV2`")
 		}
 	}
 	parameters.Encryption = &storage.Encryption{
@@ -1108,7 +1104,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	if accountKind == string(storage.KindStorageV2) {
+	infrastructureEncryption := d.Get("infrastructure_encryption").(bool)
+
+	if infrastructureEncryption {
+		if accountKind != string(storage.KindStorageV2) {
+			return fmt.Errorf("`infrastructure_encryption` can only be used with account kind `StorageV2`")
+		}
+
 		parameters.Encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
 
