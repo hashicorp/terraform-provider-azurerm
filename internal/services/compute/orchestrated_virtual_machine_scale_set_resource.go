@@ -267,6 +267,38 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Sku = sku
 	}
 
+	// hasHealthExtension is currently not needed but I added the plumming because we will need it
+	// once upgrade policy is added to OVMSS
+	hasHealthExtension := false
+
+	if v, ok := d.GetOk("extension"); ok {
+		var err error
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+		if err != nil {
+			return err
+		}
+	}
+
+	if hasHealthExtension {
+		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", name, resourceGroup)
+	}
+
+	if v, ok := d.GetOk("extensions_time_budget"); ok {
+		if virtualMachineProfile.ExtensionProfile == nil {
+			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+		}
+		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
+	}
+
+	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+	sourceImageId := d.Get("source_image_id").(string)
+	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+	if err != nil {
+		return err
+	}
+
+	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+
 	osType := compute.OperatingSystemTypesWindows
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
@@ -286,6 +318,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if len(winConfigRaw) > 0 {
 			winConfig := winConfigRaw[0].(map[string]interface{})
+			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
+
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
@@ -296,6 +330,36 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
 				vmssOsProfile.ComputerNamePrefix = utils.String(name)
+			}
+
+			// Validate patch mode and hotpatching configuration
+			patchMode := winConfig["patch_mode"].(string)
+			HotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
+
+			if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) && (!provisionVMAgent || !hasHealthExtension) {
+				if provisionVMAgent && !hasHealthExtension {
+					return fmt.Errorf("%q cannot be set to %q when an application health extension has not been defined", "patch_mode", patchMode)
+				}
+
+				if !provisionVMAgent && hasHealthExtension {
+					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", patchMode, "provision_vm_agent", "false")
+				}
+
+				return fmt.Errorf("%q cannot be set to %q when an application health extension has not been defined and the %q is set to %q", "patch_mode", patchMode, "provision_vm_agent", "false")
+			}
+
+			if HotpatchingEnabled {
+				if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
+				}
+
+				if !isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId) {
+					if sourceImageId != "" {
+						return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+					}
+
+					return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+				}
 			}
 		}
 
@@ -330,18 +394,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
 	}
 
-	if v, ok := d.GetOk("source_image_reference"); ok {
-		sourceImageId := ""
-		if sid, ok := d.GetOk("source_image_id"); ok {
-			sourceImageId = sid.(string)
-		}
-		sourceImageReference, err := expandSourceImageReference(v.([]interface{}), sourceImageId)
-		if err != nil {
-			return err
-		}
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
-	}
-
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := false // Currently not supported in orchestrated VMSS
 		dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(v.([]interface{}), ultraSSDEnabled)
@@ -359,28 +411,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		networkProfile.NetworkInterfaceConfigurations = networkInterfaces
 		virtualMachineProfile.NetworkProfile = networkProfile
-	}
-
-	// hasHealthExtension is currently not needed but I added the plumming because we will need it
-	// once upgrade policy is added to OVMSS
-	hasHealthExtension := false
-	if v, ok := d.GetOk("extension"); ok {
-		var err error
-		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
-		if err != nil {
-			return err
-		}
-	}
-
-	if v, ok := d.GetOk("extensions_time_budget"); ok {
-		if virtualMachineProfile.ExtensionProfile == nil {
-			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
-		}
-		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
-	}
-
-	if hasHealthExtension {
-		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", name, resourceGroup)
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -573,6 +603,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		osProfileRaw := d.Get("os_profile").([]interface{})
 		vmssOsProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
 		windowsConfig := compute.WindowsConfiguration{}
+		windowsConfig.PatchSettings = &compute.PatchSettings{}
 		linuxConfig := compute.LinuxConfiguration{}
 
 		if len(osProfileRaw) > 0 {
@@ -607,12 +638,18 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
 				}
 
-				if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
-					windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
-				}
+				// TODO: Add check here to see if if the the image is a valid hotpatching image and the
+				// patch mode is not AutomaticByPlatform. Currently if the image allows hotpatching the
+				// patch mode can only ever be AutomaticByPlatform.
+				windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(winConfig["hotpatching_enabled"].(bool))
+				windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(winConfig["patch_mode"].(string))
 
 				if d.HasChange("os_profile.0.windows_configuration.0.secret") {
 					vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
+					windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
