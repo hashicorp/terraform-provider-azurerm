@@ -85,11 +85,13 @@ func resourceWebPubSub() *pluginsdk.Resource {
 							Default:  true,
 							Optional: true,
 						},
+
 						"messaging_logs_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Default:  true,
 							Optional: true,
 						},
+
 						"http_request_logs_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Default:  true,

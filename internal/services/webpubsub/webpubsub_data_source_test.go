@@ -59,11 +59,8 @@ resource "azurerm_web_pubsub" "test" {
   public_network_access_enabled = true
 
   live_trace {
-    enabled = true
-    category {
-      name    = "MessagingLogs"
-      enabled = true
-    }
+    enabled                = true
+    messaging_logs_enabled = true
   }
 
   local_auth_enabled = true

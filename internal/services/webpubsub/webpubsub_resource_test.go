@@ -249,7 +249,7 @@ resource "azurerm_web_pubsub" "test" {
     enabled                   = true
     messaging_logs_enabled    = true
     connectivity_logs_enabled = false
-    http_request_logs_enabled  = false
+    http_request_logs_enabled = false
   }
 
   local_auth_enabled = true
