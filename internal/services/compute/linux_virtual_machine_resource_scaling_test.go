@@ -578,12 +578,12 @@ resource "azurerm_dedicated_host_group" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
-  admin_username      = "adminuser"
-  dedicated_host_id   = azurerm_dedicated_host_group.test.id
+  name                    = "acctestVM-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  size                    = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username          = "adminuser"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -629,12 +629,12 @@ resource "azurerm_dedicated_host_group" "second" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
-  admin_username      = "adminuser"
-  dedicated_host_id   = azurerm_dedicated_host_group.second.id
+  name                    = "acctestVM-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  size                    = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username          = "adminuser"
+  dedicated_host_group_id = azurerm_dedicated_host_group.second.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
