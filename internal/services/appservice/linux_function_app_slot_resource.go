@@ -515,7 +515,8 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppSlotModel{
-				Name:                 id.SiteName,
+				Name:                 id.SlotName,
+				FunctionAppName:      id.SiteName,
 				ResourceGroup:        id.ResourceGroup,
 				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
 				Location:             location.NormalizeNilable(functionApp.Location),

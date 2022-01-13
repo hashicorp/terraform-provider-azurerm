@@ -521,7 +521,8 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := WindowsFunctionAppSlotModel{
-				Name:                 id.SiteName,
+				Name:                 id.SlotName,
+				FunctionAppName:      id.SiteName,
 				ResourceGroup:        id.ResourceGroup,
 				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
 				Location:             location.NormalizeNilable(functionAppSlot.Location),
