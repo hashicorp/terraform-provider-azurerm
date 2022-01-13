@@ -80,13 +80,13 @@ func TestAccDataSourceStorageAccount_withInfrastructureEncryption(t *testing.T) 
 		{
 			Config: StorageAccountDataSource{}.infrastructureEncryptionWithDataSource(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("infrastructure_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: StorageAccountDataSource{}.infrastructureEncryptionWithDataSource(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("infrastructure_encryption").HasValue("false"),
+				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -199,10 +199,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  infrastructure_encryption = %s
+  location                          = azurerm_resource_group.test.location
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = %s
 }
 
 data "azurerm_storage_account" "test" {

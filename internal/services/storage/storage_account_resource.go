@@ -712,7 +712,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default: string(storage.KeyTypeService),
 			},
 
-			"infrastructure_encryption": {
+			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -1104,11 +1104,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	infrastructureEncryption := d.Get("infrastructure_encryption").(bool)
+	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
 
 	if infrastructureEncryption {
 		if accountKind != string(storage.KindStorageV2) {
-			return fmt.Errorf("`infrastructure_encryption` can only be used with account kind `StorageV2`")
+			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`")
 		}
 
 		parameters.Encryption.RequireInfrastructureEncryption = &infrastructureEncryption
@@ -1788,7 +1788,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
 			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
 		}
-		d.Set("infrastructure_encryption", infrastructure_encryption)
+		d.Set("infrastructure_encryption_enabled", infrastructure_encryption)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
