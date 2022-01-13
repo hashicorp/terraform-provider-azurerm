@@ -18,21 +18,6 @@ import (
 type LinuxFunctionAppSlotResource struct{}
 
 // Plan types
-func TestAccLinuxFunctionAppSlot_basicBasicPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, SkuBasicPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
 
 func TestAccLinuxFunctionAppSlot_basicConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
@@ -99,23 +84,6 @@ func TestAccLinuxFunctionAppSlot_basicStandardPlan(t *testing.T) {
 }
 
 // App Settings by Plan Type
-
-func TestAccLinuxFunctionAppSlot_withAppSettingsBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.appSettings(data, SkuBasicPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
 
 func TestAccLinuxFunctionAppSlot_withAppSettingsConsumption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
@@ -581,7 +549,7 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet31(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "3.1"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "3.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -597,7 +565,7 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "6"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "6"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -613,7 +581,7 @@ func TestAccLinuxFunctionAppSlot_appStackPython(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.7"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -629,7 +597,7 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.7"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -637,7 +605,7 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.9"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -653,7 +621,7 @@ func TestAccLinuxFunctionAppSlot_appStackNode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuStandardPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -669,7 +637,7 @@ func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "12"),
+			Config: r.appStackNode(data, SkuStandardPlan, "12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -677,7 +645,7 @@ func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuStandardPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -693,7 +661,7 @@ func TestAccLinuxFunctionAppSlot_appStackJava(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackJava(data, SkuBasicPlan, "11"),
+			Config: r.appStackJava(data, SkuStandardPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -709,14 +677,14 @@ func TestAccLinuxFunctionAppSlot_appStackJavaUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackJava(data, SkuBasicPlan, "8"),
+			Config: r.appStackJava(data, SkuStandardPlan, "8"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
 		data.ImportStep(), {
-			Config: r.appStackJava(data, SkuBasicPlan, "11"),
+			Config: r.appStackJava(data, SkuStandardPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -732,7 +700,7 @@ func TestAccLinuxFunctionAppSlot_appStackDocker(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDocker(data, SkuBasicPlan),
+			Config: r.appStackDocker(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
@@ -748,7 +716,7 @@ func TestAccLinuxFunctionAppSlot_appStackDockerManagedServiceIdentity(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDockerUseMSI(data, SkuBasicPlan),
+			Config: r.appStackDockerUseMSI(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
@@ -764,7 +732,7 @@ func TestAccLinuxFunctionAppSlot_appStackPowerShellCore(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Config: r.appStackPowerShellCore(data, SkuStandardPlan, "7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -843,7 +811,7 @@ func TestAccLinuxFunctionAppSlot_basicPlanBackupShouldError(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.backup(data, SkuBasicPlan),
+			Config:      r.backup(data, SkuStandardPlan),
 			ExpectError: regexp.MustCompile("cannot specify backup configuration for Basic tier Service Plans"),
 		},
 	})
