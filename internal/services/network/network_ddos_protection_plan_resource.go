@@ -64,19 +64,19 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 
 func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDdosProtectionPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DDoS Protection Plan %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -93,8 +93,8 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
 
-	locks.ByName(name, azureNetworkDDoSProtectionPlanResourceName)
-	defer locks.UnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	locks.ByName(id.Name, azureNetworkDDoSProtectionPlanResourceName)
+	defer locks.UnlockByName(id.Name, azureNetworkDDoSProtectionPlanResourceName)
 
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
@@ -104,25 +104,16 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	plan, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if plan.ID == nil {
-		return fmt.Errorf("Cannot read DDoS Protection Plan %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*plan.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
