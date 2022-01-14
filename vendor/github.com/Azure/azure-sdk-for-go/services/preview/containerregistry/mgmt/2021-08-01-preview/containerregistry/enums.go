@@ -10,122 +10,122 @@ package containerregistry
 type Action string
 
 const (
-	// Allow ...
-	Allow Action = "Allow"
+	// ActionAllow ...
+	ActionAllow Action = "Allow"
 )
 
 // PossibleActionValues returns an array of possible values for the Action const type.
 func PossibleActionValues() []Action {
-	return []Action{Allow}
+	return []Action{ActionAllow}
 }
 
 // ActionsRequired enumerates the values for actions required.
 type ActionsRequired string
 
 const (
-	// None ...
-	None ActionsRequired = "None"
-	// Recreate ...
-	Recreate ActionsRequired = "Recreate"
+	// ActionsRequiredNone ...
+	ActionsRequiredNone ActionsRequired = "None"
+	// ActionsRequiredRecreate ...
+	ActionsRequiredRecreate ActionsRequired = "Recreate"
 )
 
 // PossibleActionsRequiredValues returns an array of possible values for the ActionsRequired const type.
 func PossibleActionsRequiredValues() []ActionsRequired {
-	return []ActionsRequired{None, Recreate}
+	return []ActionsRequired{ActionsRequiredNone, ActionsRequiredRecreate}
 }
 
 // ActivationStatus enumerates the values for activation status.
 type ActivationStatus string
 
 const (
-	// Active ...
-	Active ActivationStatus = "Active"
-	// Inactive ...
-	Inactive ActivationStatus = "Inactive"
+	// ActivationStatusActive ...
+	ActivationStatusActive ActivationStatus = "Active"
+	// ActivationStatusInactive ...
+	ActivationStatusInactive ActivationStatus = "Inactive"
 )
 
 // PossibleActivationStatusValues returns an array of possible values for the ActivationStatus const type.
 func PossibleActivationStatusValues() []ActivationStatus {
-	return []ActivationStatus{Active, Inactive}
+	return []ActivationStatus{ActivationStatusActive, ActivationStatusInactive}
 }
 
 // Architecture enumerates the values for architecture.
 type Architecture string
 
 const (
-	// Amd64 ...
-	Amd64 Architecture = "amd64"
-	// Arm ...
-	Arm Architecture = "arm"
-	// Arm64 ...
-	Arm64 Architecture = "arm64"
-	// ThreeEightSix ...
-	ThreeEightSix Architecture = "386"
-	// X86 ...
-	X86 Architecture = "x86"
+	// ArchitectureAmd64 ...
+	ArchitectureAmd64 Architecture = "amd64"
+	// ArchitectureArm ...
+	ArchitectureArm Architecture = "arm"
+	// ArchitectureArm64 ...
+	ArchitectureArm64 Architecture = "arm64"
+	// ArchitectureThreeEightSix ...
+	ArchitectureThreeEightSix Architecture = "386"
+	// ArchitectureX86 ...
+	ArchitectureX86 Architecture = "x86"
 )
 
 // PossibleArchitectureValues returns an array of possible values for the Architecture const type.
 func PossibleArchitectureValues() []Architecture {
-	return []Architecture{Amd64, Arm, Arm64, ThreeEightSix, X86}
+	return []Architecture{ArchitectureAmd64, ArchitectureArm, ArchitectureArm64, ArchitectureThreeEightSix, ArchitectureX86}
 }
 
 // AuditLogStatus enumerates the values for audit log status.
 type AuditLogStatus string
 
 const (
-	// Disabled ...
-	Disabled AuditLogStatus = "Disabled"
-	// Enabled ...
-	Enabled AuditLogStatus = "Enabled"
+	// AuditLogStatusDisabled ...
+	AuditLogStatusDisabled AuditLogStatus = "Disabled"
+	// AuditLogStatusEnabled ...
+	AuditLogStatusEnabled AuditLogStatus = "Enabled"
 )
 
 // PossibleAuditLogStatusValues returns an array of possible values for the AuditLogStatus const type.
 func PossibleAuditLogStatusValues() []AuditLogStatus {
-	return []AuditLogStatus{Disabled, Enabled}
+	return []AuditLogStatus{AuditLogStatusDisabled, AuditLogStatusEnabled}
 }
 
 // BaseImageDependencyType enumerates the values for base image dependency type.
 type BaseImageDependencyType string
 
 const (
-	// BuildTime ...
-	BuildTime BaseImageDependencyType = "BuildTime"
-	// RunTime ...
-	RunTime BaseImageDependencyType = "RunTime"
+	// BaseImageDependencyTypeBuildTime ...
+	BaseImageDependencyTypeBuildTime BaseImageDependencyType = "BuildTime"
+	// BaseImageDependencyTypeRunTime ...
+	BaseImageDependencyTypeRunTime BaseImageDependencyType = "RunTime"
 )
 
 // PossibleBaseImageDependencyTypeValues returns an array of possible values for the BaseImageDependencyType const type.
 func PossibleBaseImageDependencyTypeValues() []BaseImageDependencyType {
-	return []BaseImageDependencyType{BuildTime, RunTime}
+	return []BaseImageDependencyType{BaseImageDependencyTypeBuildTime, BaseImageDependencyTypeRunTime}
 }
 
 // BaseImageTriggerType enumerates the values for base image trigger type.
 type BaseImageTriggerType string
 
 const (
-	// All ...
-	All BaseImageTriggerType = "All"
-	// Runtime ...
-	Runtime BaseImageTriggerType = "Runtime"
+	// BaseImageTriggerTypeAll ...
+	BaseImageTriggerTypeAll BaseImageTriggerType = "All"
+	// BaseImageTriggerTypeRuntime ...
+	BaseImageTriggerTypeRuntime BaseImageTriggerType = "Runtime"
 )
 
 // PossibleBaseImageTriggerTypeValues returns an array of possible values for the BaseImageTriggerType const type.
 func PossibleBaseImageTriggerTypeValues() []BaseImageTriggerType {
-	return []BaseImageTriggerType{All, Runtime}
+	return []BaseImageTriggerType{BaseImageTriggerTypeAll, BaseImageTriggerTypeRuntime}
 }
 
 // CertificateType enumerates the values for certificate type.
 type CertificateType string
 
 const (
-	// LocalDirectory ...
-	LocalDirectory CertificateType = "LocalDirectory"
+	// CertificateTypeLocalDirectory ...
+	CertificateTypeLocalDirectory CertificateType = "LocalDirectory"
 )
 
 // PossibleCertificateTypeValues returns an array of possible values for the CertificateType const type.
 func PossibleCertificateTypeValues() []CertificateType {
-	return []CertificateType{LocalDirectory}
+	return []CertificateType{CertificateTypeLocalDirectory}
 }
 
 // ConnectedRegistryMode enumerates the values for connected registry mode.
@@ -134,70 +134,74 @@ type ConnectedRegistryMode string
 const (
 	// ConnectedRegistryModeMirror ...
 	ConnectedRegistryModeMirror ConnectedRegistryMode = "Mirror"
+	// ConnectedRegistryModeReadOnly ...
+	ConnectedRegistryModeReadOnly ConnectedRegistryMode = "ReadOnly"
+	// ConnectedRegistryModeReadWrite ...
+	ConnectedRegistryModeReadWrite ConnectedRegistryMode = "ReadWrite"
 	// ConnectedRegistryModeRegistry ...
 	ConnectedRegistryModeRegistry ConnectedRegistryMode = "Registry"
 )
 
 // PossibleConnectedRegistryModeValues returns an array of possible values for the ConnectedRegistryMode const type.
 func PossibleConnectedRegistryModeValues() []ConnectedRegistryMode {
-	return []ConnectedRegistryMode{ConnectedRegistryModeMirror, ConnectedRegistryModeRegistry}
+	return []ConnectedRegistryMode{ConnectedRegistryModeMirror, ConnectedRegistryModeReadOnly, ConnectedRegistryModeReadWrite, ConnectedRegistryModeRegistry}
 }
 
 // ConnectionState enumerates the values for connection state.
 type ConnectionState string
 
 const (
-	// Offline ...
-	Offline ConnectionState = "Offline"
-	// Online ...
-	Online ConnectionState = "Online"
-	// Syncing ...
-	Syncing ConnectionState = "Syncing"
-	// Unhealthy ...
-	Unhealthy ConnectionState = "Unhealthy"
+	// ConnectionStateOffline ...
+	ConnectionStateOffline ConnectionState = "Offline"
+	// ConnectionStateOnline ...
+	ConnectionStateOnline ConnectionState = "Online"
+	// ConnectionStateSyncing ...
+	ConnectionStateSyncing ConnectionState = "Syncing"
+	// ConnectionStateUnhealthy ...
+	ConnectionStateUnhealthy ConnectionState = "Unhealthy"
 )
 
 // PossibleConnectionStateValues returns an array of possible values for the ConnectionState const type.
 func PossibleConnectionStateValues() []ConnectionState {
-	return []ConnectionState{Offline, Online, Syncing, Unhealthy}
+	return []ConnectionState{ConnectionStateOffline, ConnectionStateOnline, ConnectionStateSyncing, ConnectionStateUnhealthy}
 }
 
 // ConnectionStatus enumerates the values for connection status.
 type ConnectionStatus string
 
 const (
-	// Approved ...
-	Approved ConnectionStatus = "Approved"
-	// Disconnected ...
-	Disconnected ConnectionStatus = "Disconnected"
-	// Pending ...
-	Pending ConnectionStatus = "Pending"
-	// Rejected ...
-	Rejected ConnectionStatus = "Rejected"
+	// ConnectionStatusApproved ...
+	ConnectionStatusApproved ConnectionStatus = "Approved"
+	// ConnectionStatusDisconnected ...
+	ConnectionStatusDisconnected ConnectionStatus = "Disconnected"
+	// ConnectionStatusPending ...
+	ConnectionStatusPending ConnectionStatus = "Pending"
+	// ConnectionStatusRejected ...
+	ConnectionStatusRejected ConnectionStatus = "Rejected"
 )
 
 // PossibleConnectionStatusValues returns an array of possible values for the ConnectionStatus const type.
 func PossibleConnectionStatusValues() []ConnectionStatus {
-	return []ConnectionStatus{Approved, Disconnected, Pending, Rejected}
+	return []ConnectionStatus{ConnectionStatusApproved, ConnectionStatusDisconnected, ConnectionStatusPending, ConnectionStatusRejected}
 }
 
 // CreatedByType enumerates the values for created by type.
 type CreatedByType string
 
 const (
-	// Application ...
-	Application CreatedByType = "Application"
-	// Key ...
-	Key CreatedByType = "Key"
-	// ManagedIdentity ...
-	ManagedIdentity CreatedByType = "ManagedIdentity"
-	// User ...
-	User CreatedByType = "User"
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
 )
 
 // PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
 func PossibleCreatedByTypeValues() []CreatedByType {
-	return []CreatedByType{Application, Key, ManagedIdentity, User}
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
 // DefaultAction enumerates the values for default action.
@@ -230,19 +234,34 @@ func PossibleEncryptionStatusValues() []EncryptionStatus {
 	return []EncryptionStatus{EncryptionStatusDisabled, EncryptionStatusEnabled}
 }
 
+// ExportPolicyStatus enumerates the values for export policy status.
+type ExportPolicyStatus string
+
+const (
+	// ExportPolicyStatusDisabled ...
+	ExportPolicyStatusDisabled ExportPolicyStatus = "disabled"
+	// ExportPolicyStatusEnabled ...
+	ExportPolicyStatusEnabled ExportPolicyStatus = "enabled"
+)
+
+// PossibleExportPolicyStatusValues returns an array of possible values for the ExportPolicyStatus const type.
+func PossibleExportPolicyStatusValues() []ExportPolicyStatus {
+	return []ExportPolicyStatus{ExportPolicyStatusDisabled, ExportPolicyStatusEnabled}
+}
+
 // ImportMode enumerates the values for import mode.
 type ImportMode string
 
 const (
-	// Force ...
-	Force ImportMode = "Force"
-	// NoForce ...
-	NoForce ImportMode = "NoForce"
+	// ImportModeForce ...
+	ImportModeForce ImportMode = "Force"
+	// ImportModeNoForce ...
+	ImportModeNoForce ImportMode = "NoForce"
 )
 
 // PossibleImportModeValues returns an array of possible values for the ImportMode const type.
 func PossibleImportModeValues() []ImportMode {
-	return []ImportMode{Force, NoForce}
+	return []ImportMode{ImportModeForce, ImportModeNoForce}
 }
 
 // LastModifiedByType enumerates the values for last modified by type.
@@ -304,62 +323,62 @@ func PossibleNetworkRuleBypassOptionsValues() []NetworkRuleBypassOptions {
 type OS string
 
 const (
-	// Linux ...
-	Linux OS = "Linux"
-	// Windows ...
-	Windows OS = "Windows"
+	// OSLinux ...
+	OSLinux OS = "Linux"
+	// OSWindows ...
+	OSWindows OS = "Windows"
 )
 
 // PossibleOSValues returns an array of possible values for the OS const type.
 func PossibleOSValues() []OS {
-	return []OS{Linux, Windows}
+	return []OS{OSLinux, OSWindows}
 }
 
 // PasswordName enumerates the values for password name.
 type PasswordName string
 
 const (
-	// Password ...
-	Password PasswordName = "password"
-	// Password2 ...
-	Password2 PasswordName = "password2"
+	// PasswordNamePassword ...
+	PasswordNamePassword PasswordName = "password"
+	// PasswordNamePassword2 ...
+	PasswordNamePassword2 PasswordName = "password2"
 )
 
 // PossiblePasswordNameValues returns an array of possible values for the PasswordName const type.
 func PossiblePasswordNameValues() []PasswordName {
-	return []PasswordName{Password, Password2}
+	return []PasswordName{PasswordNamePassword, PasswordNamePassword2}
 }
 
 // PipelineOptions enumerates the values for pipeline options.
 type PipelineOptions string
 
 const (
-	// ContinueOnErrors ...
-	ContinueOnErrors PipelineOptions = "ContinueOnErrors"
-	// DeleteSourceBlobOnSuccess ...
-	DeleteSourceBlobOnSuccess PipelineOptions = "DeleteSourceBlobOnSuccess"
-	// OverwriteBlobs ...
-	OverwriteBlobs PipelineOptions = "OverwriteBlobs"
-	// OverwriteTags ...
-	OverwriteTags PipelineOptions = "OverwriteTags"
+	// PipelineOptionsContinueOnErrors ...
+	PipelineOptionsContinueOnErrors PipelineOptions = "ContinueOnErrors"
+	// PipelineOptionsDeleteSourceBlobOnSuccess ...
+	PipelineOptionsDeleteSourceBlobOnSuccess PipelineOptions = "DeleteSourceBlobOnSuccess"
+	// PipelineOptionsOverwriteBlobs ...
+	PipelineOptionsOverwriteBlobs PipelineOptions = "OverwriteBlobs"
+	// PipelineOptionsOverwriteTags ...
+	PipelineOptionsOverwriteTags PipelineOptions = "OverwriteTags"
 )
 
 // PossiblePipelineOptionsValues returns an array of possible values for the PipelineOptions const type.
 func PossiblePipelineOptionsValues() []PipelineOptions {
-	return []PipelineOptions{ContinueOnErrors, DeleteSourceBlobOnSuccess, OverwriteBlobs, OverwriteTags}
+	return []PipelineOptions{PipelineOptionsContinueOnErrors, PipelineOptionsDeleteSourceBlobOnSuccess, PipelineOptionsOverwriteBlobs, PipelineOptionsOverwriteTags}
 }
 
 // PipelineRunSourceType enumerates the values for pipeline run source type.
 type PipelineRunSourceType string
 
 const (
-	// AzureStorageBlob ...
-	AzureStorageBlob PipelineRunSourceType = "AzureStorageBlob"
+	// PipelineRunSourceTypeAzureStorageBlob ...
+	PipelineRunSourceTypeAzureStorageBlob PipelineRunSourceType = "AzureStorageBlob"
 )
 
 // PossiblePipelineRunSourceTypeValues returns an array of possible values for the PipelineRunSourceType const type.
 func PossiblePipelineRunSourceTypeValues() []PipelineRunSourceType {
-	return []PipelineRunSourceType{AzureStorageBlob}
+	return []PipelineRunSourceType{PipelineRunSourceTypeAzureStorageBlob}
 }
 
 // PipelineRunTargetType enumerates the values for pipeline run target type.
@@ -379,13 +398,13 @@ func PossiblePipelineRunTargetTypeValues() []PipelineRunTargetType {
 type PipelineSourceType string
 
 const (
-	// AzureStorageBlobContainer ...
-	AzureStorageBlobContainer PipelineSourceType = "AzureStorageBlobContainer"
+	// PipelineSourceTypeAzureStorageBlobContainer ...
+	PipelineSourceTypeAzureStorageBlobContainer PipelineSourceType = "AzureStorageBlobContainer"
 )
 
 // PossiblePipelineSourceTypeValues returns an array of possible values for the PipelineSourceType const type.
 func PossiblePipelineSourceTypeValues() []PipelineSourceType {
-	return []PipelineSourceType{AzureStorageBlobContainer}
+	return []PipelineSourceType{PipelineSourceTypeAzureStorageBlobContainer}
 }
 
 // PolicyStatus enumerates the values for policy status.
@@ -407,23 +426,23 @@ func PossiblePolicyStatusValues() []PolicyStatus {
 type ProvisioningState string
 
 const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
+	// ProvisioningStateCanceled ...
+	ProvisioningStateCanceled ProvisioningState = "Canceled"
+	// ProvisioningStateCreating ...
+	ProvisioningStateCreating ProvisioningState = "Creating"
+	// ProvisioningStateDeleting ...
+	ProvisioningStateDeleting ProvisioningState = "Deleting"
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	// ProvisioningStateUpdating ...
+	ProvisioningStateUpdating ProvisioningState = "Updating"
 )
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
+	return []ProvisioningState{ProvisioningStateCanceled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUpdating}
 }
 
 // PublicNetworkAccess enumerates the values for public network access.
@@ -445,15 +464,15 @@ func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
 type RegistryUsageUnit string
 
 const (
-	// Bytes ...
-	Bytes RegistryUsageUnit = "Bytes"
-	// Count ...
-	Count RegistryUsageUnit = "Count"
+	// RegistryUsageUnitBytes ...
+	RegistryUsageUnitBytes RegistryUsageUnit = "Bytes"
+	// RegistryUsageUnitCount ...
+	RegistryUsageUnitCount RegistryUsageUnit = "Count"
 )
 
 // PossibleRegistryUsageUnitValues returns an array of possible values for the RegistryUsageUnit const type.
 func PossibleRegistryUsageUnitValues() []RegistryUsageUnit {
-	return []RegistryUsageUnit{Bytes, Count}
+	return []RegistryUsageUnit{RegistryUsageUnitBytes, RegistryUsageUnitCount}
 }
 
 // ResourceIdentityType enumerates the values for resource identity type.
@@ -506,53 +525,53 @@ func PossibleRunStatusValues() []RunStatus {
 type RunType string
 
 const (
-	// AutoBuild ...
-	AutoBuild RunType = "AutoBuild"
-	// AutoRun ...
-	AutoRun RunType = "AutoRun"
-	// QuickBuild ...
-	QuickBuild RunType = "QuickBuild"
-	// QuickRun ...
-	QuickRun RunType = "QuickRun"
+	// RunTypeAutoBuild ...
+	RunTypeAutoBuild RunType = "AutoBuild"
+	// RunTypeAutoRun ...
+	RunTypeAutoRun RunType = "AutoRun"
+	// RunTypeQuickBuild ...
+	RunTypeQuickBuild RunType = "QuickBuild"
+	// RunTypeQuickRun ...
+	RunTypeQuickRun RunType = "QuickRun"
 )
 
 // PossibleRunTypeValues returns an array of possible values for the RunType const type.
 func PossibleRunTypeValues() []RunType {
-	return []RunType{AutoBuild, AutoRun, QuickBuild, QuickRun}
+	return []RunType{RunTypeAutoBuild, RunTypeAutoRun, RunTypeQuickBuild, RunTypeQuickRun}
 }
 
 // SecretObjectType enumerates the values for secret object type.
 type SecretObjectType string
 
 const (
-	// Opaque ...
-	Opaque SecretObjectType = "Opaque"
-	// Vaultsecret ...
-	Vaultsecret SecretObjectType = "Vaultsecret"
+	// SecretObjectTypeOpaque ...
+	SecretObjectTypeOpaque SecretObjectType = "Opaque"
+	// SecretObjectTypeVaultsecret ...
+	SecretObjectTypeVaultsecret SecretObjectType = "Vaultsecret"
 )
 
 // PossibleSecretObjectTypeValues returns an array of possible values for the SecretObjectType const type.
 func PossibleSecretObjectTypeValues() []SecretObjectType {
-	return []SecretObjectType{Opaque, Vaultsecret}
+	return []SecretObjectType{SecretObjectTypeOpaque, SecretObjectTypeVaultsecret}
 }
 
 // SkuName enumerates the values for sku name.
 type SkuName string
 
 const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Classic ...
-	Classic SkuName = "Classic"
-	// Premium ...
-	Premium SkuName = "Premium"
-	// Standard ...
-	Standard SkuName = "Standard"
+	// SkuNameBasic ...
+	SkuNameBasic SkuName = "Basic"
+	// SkuNameClassic ...
+	SkuNameClassic SkuName = "Classic"
+	// SkuNamePremium ...
+	SkuNamePremium SkuName = "Premium"
+	// SkuNameStandard ...
+	SkuNameStandard SkuName = "Standard"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Classic, Premium, Standard}
+	return []SkuName{SkuNameBasic, SkuNameClassic, SkuNamePremium, SkuNameStandard}
 }
 
 // SkuTier enumerates the values for sku tier.
@@ -578,15 +597,15 @@ func PossibleSkuTierValues() []SkuTier {
 type SourceControlType string
 
 const (
-	// Github ...
-	Github SourceControlType = "Github"
-	// VisualStudioTeamService ...
-	VisualStudioTeamService SourceControlType = "VisualStudioTeamService"
+	// SourceControlTypeGithub ...
+	SourceControlTypeGithub SourceControlType = "Github"
+	// SourceControlTypeVisualStudioTeamService ...
+	SourceControlTypeVisualStudioTeamService SourceControlType = "VisualStudioTeamService"
 )
 
 // PossibleSourceControlTypeValues returns an array of possible values for the SourceControlType const type.
 func PossibleSourceControlTypeValues() []SourceControlType {
-	return []SourceControlType{Github, VisualStudioTeamService}
+	return []SourceControlType{SourceControlTypeGithub, SourceControlTypeVisualStudioTeamService}
 }
 
 // SourceRegistryLoginMode enumerates the values for source registry login mode.
@@ -608,15 +627,15 @@ func PossibleSourceRegistryLoginModeValues() []SourceRegistryLoginMode {
 type SourceTriggerEvent string
 
 const (
-	// Commit ...
-	Commit SourceTriggerEvent = "commit"
-	// Pullrequest ...
-	Pullrequest SourceTriggerEvent = "pullrequest"
+	// SourceTriggerEventCommit ...
+	SourceTriggerEventCommit SourceTriggerEvent = "commit"
+	// SourceTriggerEventPullrequest ...
+	SourceTriggerEventPullrequest SourceTriggerEvent = "pullrequest"
 )
 
 // PossibleSourceTriggerEventValues returns an array of possible values for the SourceTriggerEvent const type.
 func PossibleSourceTriggerEventValues() []SourceTriggerEvent {
-	return []SourceTriggerEvent{Commit, Pullrequest}
+	return []SourceTriggerEvent{SourceTriggerEventCommit, SourceTriggerEventPullrequest}
 }
 
 // TaskStatus enumerates the values for task status.
@@ -653,15 +672,15 @@ func PossibleTLSStatusValues() []TLSStatus {
 type TokenCertificateName string
 
 const (
-	// Certificate1 ...
-	Certificate1 TokenCertificateName = "certificate1"
-	// Certificate2 ...
-	Certificate2 TokenCertificateName = "certificate2"
+	// TokenCertificateNameCertificate1 ...
+	TokenCertificateNameCertificate1 TokenCertificateName = "certificate1"
+	// TokenCertificateNameCertificate2 ...
+	TokenCertificateNameCertificate2 TokenCertificateName = "certificate2"
 )
 
 // PossibleTokenCertificateNameValues returns an array of possible values for the TokenCertificateName const type.
 func PossibleTokenCertificateNameValues() []TokenCertificateName {
-	return []TokenCertificateName{Certificate1, Certificate2}
+	return []TokenCertificateName{TokenCertificateNameCertificate1, TokenCertificateNameCertificate2}
 }
 
 // TokenPasswordName enumerates the values for token password name.
@@ -698,15 +717,15 @@ func PossibleTokenStatusValues() []TokenStatus {
 type TokenType string
 
 const (
-	// OAuth ...
-	OAuth TokenType = "OAuth"
-	// PAT ...
-	PAT TokenType = "PAT"
+	// TokenTypeOAuth ...
+	TokenTypeOAuth TokenType = "OAuth"
+	// TokenTypePAT ...
+	TokenTypePAT TokenType = "PAT"
 )
 
 // PossibleTokenTypeValues returns an array of possible values for the TokenType const type.
 func PossibleTokenTypeValues() []TokenType {
-	return []TokenType{OAuth, PAT}
+	return []TokenType{TokenTypeOAuth, TokenTypePAT}
 }
 
 // TriggerStatus enumerates the values for trigger status.
@@ -728,13 +747,13 @@ func PossibleTriggerStatusValues() []TriggerStatus {
 type TrustPolicyType string
 
 const (
-	// Notary ...
-	Notary TrustPolicyType = "Notary"
+	// TrustPolicyTypeNotary ...
+	TrustPolicyTypeNotary TrustPolicyType = "Notary"
 )
 
 // PossibleTrustPolicyTypeValues returns an array of possible values for the TrustPolicyType const type.
 func PossibleTrustPolicyTypeValues() []TrustPolicyType {
-	return []TrustPolicyType{Notary}
+	return []TrustPolicyType{TrustPolicyTypeNotary}
 }
 
 // Type enumerates the values for type.
@@ -762,19 +781,19 @@ func PossibleTypeValues() []Type {
 type TypeBasicTaskStepProperties string
 
 const (
-	// TypeDocker ...
-	TypeDocker TypeBasicTaskStepProperties = "Docker"
-	// TypeEncodedTask ...
-	TypeEncodedTask TypeBasicTaskStepProperties = "EncodedTask"
-	// TypeFileTask ...
-	TypeFileTask TypeBasicTaskStepProperties = "FileTask"
-	// TypeTaskStepProperties ...
-	TypeTaskStepProperties TypeBasicTaskStepProperties = "TaskStepProperties"
+	// TypeBasicTaskStepPropertiesTypeDocker ...
+	TypeBasicTaskStepPropertiesTypeDocker TypeBasicTaskStepProperties = "Docker"
+	// TypeBasicTaskStepPropertiesTypeEncodedTask ...
+	TypeBasicTaskStepPropertiesTypeEncodedTask TypeBasicTaskStepProperties = "EncodedTask"
+	// TypeBasicTaskStepPropertiesTypeFileTask ...
+	TypeBasicTaskStepPropertiesTypeFileTask TypeBasicTaskStepProperties = "FileTask"
+	// TypeBasicTaskStepPropertiesTypeTaskStepProperties ...
+	TypeBasicTaskStepPropertiesTypeTaskStepProperties TypeBasicTaskStepProperties = "TaskStepProperties"
 )
 
 // PossibleTypeBasicTaskStepPropertiesValues returns an array of possible values for the TypeBasicTaskStepProperties const type.
 func PossibleTypeBasicTaskStepPropertiesValues() []TypeBasicTaskStepProperties {
-	return []TypeBasicTaskStepProperties{TypeDocker, TypeEncodedTask, TypeFileTask, TypeTaskStepProperties}
+	return []TypeBasicTaskStepProperties{TypeBasicTaskStepPropertiesTypeDocker, TypeBasicTaskStepPropertiesTypeEncodedTask, TypeBasicTaskStepPropertiesTypeFileTask, TypeBasicTaskStepPropertiesTypeTaskStepProperties}
 }
 
 // TypeBasicTaskStepUpdateParameters enumerates the values for type basic task step update parameters.
@@ -815,38 +834,38 @@ func PossibleUpdateTriggerPayloadTypeValues() []UpdateTriggerPayloadType {
 type Variant string
 
 const (
-	// V6 ...
-	V6 Variant = "v6"
-	// V7 ...
-	V7 Variant = "v7"
-	// V8 ...
-	V8 Variant = "v8"
+	// VariantV6 ...
+	VariantV6 Variant = "v6"
+	// VariantV7 ...
+	VariantV7 Variant = "v7"
+	// VariantV8 ...
+	VariantV8 Variant = "v8"
 )
 
 // PossibleVariantValues returns an array of possible values for the Variant const type.
 func PossibleVariantValues() []Variant {
-	return []Variant{V6, V7, V8}
+	return []Variant{VariantV6, VariantV7, VariantV8}
 }
 
 // WebhookAction enumerates the values for webhook action.
 type WebhookAction string
 
 const (
-	// ChartDelete ...
-	ChartDelete WebhookAction = "chart_delete"
-	// ChartPush ...
-	ChartPush WebhookAction = "chart_push"
-	// Delete ...
-	Delete WebhookAction = "delete"
-	// Push ...
-	Push WebhookAction = "push"
-	// Quarantine ...
-	Quarantine WebhookAction = "quarantine"
+	// WebhookActionChartDelete ...
+	WebhookActionChartDelete WebhookAction = "chart_delete"
+	// WebhookActionChartPush ...
+	WebhookActionChartPush WebhookAction = "chart_push"
+	// WebhookActionDelete ...
+	WebhookActionDelete WebhookAction = "delete"
+	// WebhookActionPush ...
+	WebhookActionPush WebhookAction = "push"
+	// WebhookActionQuarantine ...
+	WebhookActionQuarantine WebhookAction = "quarantine"
 )
 
 // PossibleWebhookActionValues returns an array of possible values for the WebhookAction const type.
 func PossibleWebhookActionValues() []WebhookAction {
-	return []WebhookAction{ChartDelete, ChartPush, Delete, Push, Quarantine}
+	return []WebhookAction{WebhookActionChartDelete, WebhookActionChartPush, WebhookActionDelete, WebhookActionPush, WebhookActionQuarantine}
 }
 
 // WebhookStatus enumerates the values for webhook status.

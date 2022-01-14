@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,11 +91,11 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(containerregistry.ChartDelete),
-						string(containerregistry.ChartPush),
-						string(containerregistry.Delete),
-						string(containerregistry.Push),
-						string(containerregistry.Quarantine),
+						string(containerregistry.WebhookActionChartDelete),
+						string(containerregistry.WebhookActionChartPush),
+						string(containerregistry.WebhookActionDelete),
+						string(containerregistry.WebhookActionPush),
+						string(containerregistry.WebhookActionQuarantine),
 					}, false),
 				},
 			},
