@@ -66,9 +66,21 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.  Review [Azure Bastion Host FAQ](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq) for supported locations.
 
+* `copy_paste_enabled` - (Optional) Is Copy/Paste feature enabled for the Bastion Host.
+
+* `file_copy_enabled` - (Optional) Is File Copy feature enabled for the Bastion Host.
+
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
 * `ip_configuration` - (Required) A `ip_configuration` block as defined below.
+
+* `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host.
+
+* `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
+
+* `shareable_link_enabled` - (Optional) Is Shareable Link feature enabled for the Bastion Host.
+
+* `tunneling_enabled` - (Optional) Is Tunneling feature enabled for the Bastion Host.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -81,6 +93,8 @@ A `ip_configuration` block supports the following:
 * `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created.
 
 * `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
+
+* `private_ip_allocation_method` (Required)  The private IP address allocation method for the Bastion Host. Possible values are `Static` and `Dynamic`. Defaults to `Dynamic`.
 
 ## Attributes Reference
 
