@@ -79,6 +79,13 @@ func resourceBastionHost() *pluginsdk.Resource {
 				},
 			},
 
+			"scale_units": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(2, 50),
+				Default:      2,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -110,6 +117,12 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	id := parse.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+	scaleUnits := d.Get("scale_units").(int)
+	sku := d.Get("sku").(string)
+
+	if scaleUnits > 2 && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -128,9 +141,10 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
 			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:       utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
-			Name: network.BastionHostSkuName(d.Get("sku").(string)),
+			Name: network.BastionHostSkuName(sku),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -182,6 +196,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
 		d.Set("dns_name", props.DNSName)
+		d.Set("scale_units", props.ScaleUnits)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
