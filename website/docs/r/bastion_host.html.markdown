@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
-**Note:** `scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`.
+~> **Note:** `scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
