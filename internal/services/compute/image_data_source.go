@@ -141,7 +141,7 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		var err error
 		if img, err = client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
-				return fmt.Errorf("%swas not found", id)
+				return fmt.Errorf("%s was not found", id)
 			}
 			return fmt.Errorf("making Read request on %s: %+v", id, err)
 		}
