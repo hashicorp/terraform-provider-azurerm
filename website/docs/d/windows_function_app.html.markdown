@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Windows Function App.
 
-* `app_settings` - A `app_settings` block as defined below.
+* `app_settings` - A `map of key-value pairs for App Settings and custom values.
 
 * `auth_settings` - A `auth_settings` block as defined below.
 
@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_certificate_mode` - The mode of the Function App's client certificates requirement for incoming requests.
 
-* `connection_string` - A `connection_string` block as defined below.
+* `connection_string` - One or more `connection_string` blocks as defined below.
 
 * `content_share_force_disabled` - Are Content Share Settings disabled?
 
@@ -71,11 +71,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Windows Function App exists.
 
-* `outbound_ip_address_list` - A `outbound_ip_address_list` block as defined below.
+* `outbound_ip_address_list` - A list of outbound IP addresses.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12`.
 
-* `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list` block as defined below.
+* `possible_outbound_ip_address_list` - AA list of possible outbound IP addresses, not all of which are necessarily in use.
 
 * `possible_outbound_ip_addresses` - A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `["52.23.25.3", "52.143.43.12"]`.
 
@@ -151,7 +151,7 @@ A `auth_settings` block exports the following:
 
 * `microsoft` - A `microsoft` block as defined below.
 
-* `runtime_version` - The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Function App.
+* `runtime_version` - The Runtime Version of the Authentication / Authorization feature in use for the Windows Function App.
 
 * `token_refresh_extension_hours` - The number of hours after session token expiration that a session token can be used to call the token refresh API.
 
@@ -319,7 +319,7 @@ A `site_config` block exports the following:
 
 * `runtime_scale_monitoring_enabled` - Is Scale Monitoring of the Functions Runtime enabled?
 
-* `scm_ip_restriction` - `scm_ip_restriction` block as defined above.
+* `scm_ip_restriction` - One or more `scm_ip_restriction` blocks as defined above.
 
 * `scm_minimum_tls_version` - The minimum version of TLS required for SSL requests to the SCM site.
 

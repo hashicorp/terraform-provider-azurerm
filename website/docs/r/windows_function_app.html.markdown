@@ -170,7 +170,7 @@ An `auth_settings` block supports the following:
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
-* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Function App.
+* `runtime_version` - (Optional) The Runtime Version of the Authentication / Authorization feature in use for the Windows Function App.
 
 * `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
