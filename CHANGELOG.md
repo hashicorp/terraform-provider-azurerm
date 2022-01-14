@@ -1,3 +1,9 @@
+## 2.93.0 (Unreleased)
+
+ENHANCEMENTS: 
+
+* `azurerm_bastion_host` - support for `scale_units` [GH-14968]
+
 ## 2.92.0 (January 14, 2022)
 
 FEATURES:
