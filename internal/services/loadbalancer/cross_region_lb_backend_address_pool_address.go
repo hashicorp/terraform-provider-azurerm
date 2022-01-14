@@ -43,12 +43,6 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddress() *pluginsdk.Re
 
 		Schema: func() map[string]*schema.Schema {
 			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
 				"backend_address_pool_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -77,7 +71,7 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddress() *pluginsdk.Re
 
 										"lb_ip_address": {
 											Type:         pluginsdk.TypeString,
-											Required:     true,
+											Optional:     true,
 											ValidateFunc: validation.IsIPAddress,
 										},
 
@@ -100,9 +94,8 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddress() *pluginsdk.Re
 
 func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	//todo: forCreate or forCreatUpdate?
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	poolId, err := parse.LoadBalancerBackendAddressPoolID(d.Get("backend_address_pool_id").(string))
@@ -110,18 +103,15 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressCreateUpdate(d *
 		return err
 	}
 
-	//Outer load balancer which contains the backend address pool
 	lb, err := meta.(*clients.Client).LoadBalancers.LoadBalancersClient.Get(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", poolId.LoadBalancerName, poolId.ResourceGroup, err)
 	}
 
 	if lb.Sku != nil && lb.Sku.Tier != network.LoadBalancerSkuTierGlobal {
-		return fmt.Errorf("Different Regional Backend Address Pool Addresses can only be set under the Global SKU tier")
+		return fmt.Errorf("Regional Backend Address Pool Addresses can only be set under the Global SKU tier")
 	}
 
-	addressName := d.Get("name").(string)
-	id := parse.NewBackendAddressPoolAddressID(subscriptionId, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName, addressName)
 	pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *poolId, err)
@@ -130,38 +120,30 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressCreateUpdate(d *
 		return fmt.Errorf("retrieving %s: `properties` was nil", *poolId)
 	}
 
-	addresses := make([]network.LoadBalancerBackendAddress, 0)
-	if pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses != nil {
-		addresses = *pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses
-	}
-
-	log.Printf("checking for existing %s..", id)
-	for _, address := range addresses {
-		if address.Name == nil {
-			continue
-		}
-
-		if *address.Name == id.AddressName {
-			return tf.ImportAsExistsError("azurerm_crlb_backend_address_pool_address", id.ID())
+	backendAddress := d.Get("backend_addresses")
+	if d.IsNewResource() {
+		if !isNewResource(pool, backendAddress.([]interface{})) {
+			return tf.ImportAsExistsError("azurerm_crlb_backend_address_pool_address", poolId.ID())
 		}
 	}
-	addresses = expandBackendAddressPoolAddresses(d.Get("backend_addresses").([]interface{}))
+
+	addresses := expandBackendAddressPoolAddresses(backendAddress.([]interface{}))
 
 	pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses = &addresses
 
-	log.Printf("adding %s..", id)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, pool)
+	log.Printf("adding backend addresses for backend address pool %s..", poolId)
+	future, err := client.CreateOrUpdate(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName, pool)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("updating backend addresses for backend address pool %s: %+v", poolId, err)
 	}
-	log.Printf("waiting for update %s..", id)
+	log.Printf("waiting for updating backend addresses for backend address pool %s..", poolId)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of backend addresses for backend address pool %s: %+v", poolId, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(poolId.ID())
 
-	return resourceArmLoadBalancerRead(d, meta)
+	return resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressRead(d, meta)
 }
 
 func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -169,24 +151,22 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressRead(d *pluginsd
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//backend address pool address id
-	id, err := parse.BackendAddressPoolAddressID(d.Id())
+	poolId, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	pool, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *poolId, err)
 	}
 	if pool.BackendAddressPoolPropertiesFormat == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *poolId)
 	}
 
-	d.Set("name", id.AddressName)
-	d.Set("backend_address_pool_id", (parse.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)).ID())
+	d.Set("backend_address_pool_id", poolId)
 	if err := d.Set("backend_addresses", flattenBackendAddressPoolAddresses(pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses)); err != nil {
-		return fmt.Errorf("setting `backend_addresses` for backend address pool %s: %+v", id.BackendAddressPoolName, err)
+		return fmt.Errorf("setting `backend_addresses` for backend address pool %s: %+v", poolId.BackendAddressPoolName, err)
 	}
 
 	return nil
@@ -197,30 +177,30 @@ func resourceArmCrossRegionLoadBalancerBackendAddressPoolAddressDelete(d *plugin
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackendAddressPoolAddressID(d.Id())
+	poolId, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
-	defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
+	locks.ByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
+	defer locks.UnlockByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
 
-	pool, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *poolId, err)
 	}
 	if pool.BackendAddressPoolPropertiesFormat == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *poolId)
 	}
 
 	pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses = nil
-	log.Printf("removing %s..", id)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, pool)
+	log.Printf("removing backend addresses for backend address pool %s..", poolId)
+	future, err := client.CreateOrUpdate(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName, pool)
 	if err != nil {
-		return fmt.Errorf("removing %s: %+v", *id, err)
+		return fmt.Errorf("removing backend addresses for backend address pool %s: %+v", *poolId, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for removal of backend addresses for backend address pool %s: %+v", *poolId, err)
 	}
 	return nil
 }
@@ -243,7 +223,6 @@ func expandBackendAddressPoolAddresses(input []interface{}) []network.LoadBalanc
 						LoadBalancerFrontendIPConfiguration: &network.SubResource{
 							ID: utils.String(lbBlocks["lb_frontend_ip_configuration_id"].(string)),
 						},
-						IPAddress: utils.String(lbBlocks["lb_ip_address"].(string)),
 					},
 				})
 			}
@@ -280,4 +259,32 @@ func flattenBackendAddressPoolAddresses(backendAddresses *[]network.LoadBalancer
 	return []interface{}{map[string]interface{}{
 		"load_balancer": lbBlock,
 	}}
+}
+
+func isNewResource(pool network.BackendAddressPool, input []interface{}) bool {
+	if pool.BackendAddressPoolPropertiesFormat == nil ||
+		pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses == nil ||
+		len(input) == 0 {
+		return true
+	}
+
+	existingName := map[string]bool{}
+	for _, address := range *pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses {
+		existingName[*address.Name] = true
+	}
+
+	inputBackendAddresses := input[0].(map[string]interface{})
+	if v, ok := inputBackendAddresses["load_balancer"].([]interface{}); ok {
+		if len(v) > 0 {
+			for _, r := range v {
+				lbBlocks := r.(map[string]interface{})
+				inputName := lbBlocks["lb_name"].(string)
+				if existingName[inputName] {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
 }
