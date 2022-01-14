@@ -173,12 +173,12 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on %s AppSettings %q: %+v", id, err)
+		return fmt.Errorf("making Read request on %s AppSettings: %+v", id, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on %s ConnectionStrings %q: %+v", id, err)
+		return fmt.Errorf("making Read request on %s ConnectionStrings: %+v", id, err)
 	}
 
 	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
