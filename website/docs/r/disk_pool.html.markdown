@@ -41,7 +41,7 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-resource "azurerm_storage_disks_pool" "example" {
+resource "azurerm_disk_pool" "example" {
   name                = "example-disk-pool"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -91,5 +91,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Disk Pools can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_disks_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/diskPool1
+terraform import azurerm_disk_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/diskPool1
 ```

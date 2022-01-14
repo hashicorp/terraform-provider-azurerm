@@ -794,20 +794,20 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		existing, err := client.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -903,7 +903,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:                             &name,
+		Name:                             &id.Name,
 		Location:                         &location,
 		Tags:                             tags.Expand(t),
 		Sku:                              sku,
@@ -923,7 +923,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		properties.Plan = expandAzureRmVirtualMachineScaleSetPlan(d)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
 		return err
 	}
@@ -932,16 +932,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Machine Scale Set %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualMachineScaleSetRead(d, meta)
 }

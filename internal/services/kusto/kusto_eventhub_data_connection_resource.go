@@ -148,21 +148,19 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 
 func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Event Hub Data Connection creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-	databaseName := d.Get("database_name").(string)
+	id := parse.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		connectionModel, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
+		connectionModel, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(connectionModel.Response) {
-				return fmt.Errorf("checking for presence of existing Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %s", name, resourceGroup, clusterName, databaseName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -178,33 +176,21 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 	eventHubDataConnectionProperties := expandKustoEventHubDataConnectionProperties(d)
 
 	dataConnection1 := kusto.EventHubDataConnection{
-		Name:                         &name,
+		Name:                         &id.Name,
 		Location:                     &location,
 		EventHubConnectionProperties: eventHubDataConnectionProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, databaseName, name, dataConnection1)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection1)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	connectionModel, getDetailsErr := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-
-	if getDetailsErr != nil {
-		return fmt.Errorf("retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
-	}
-
-	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
-		if dataConnection.ID == nil {
-			return fmt.Errorf("Cannot read ID for Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
-		}
-
-		d.SetId(*dataConnection.ID)
-	}
+	d.SetId(id.ID())
 
 	return resourceKustoEventHubDataConnectionRead(d, meta)
 }

@@ -98,21 +98,21 @@ func resourceRouteFilter() *pluginsdk.Resource {
 
 func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Route Filter create/update.")
 
-	name := d.Get("name").(string)
+	id := parse.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -122,7 +122,7 @@ func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	routeSet := network.RouteFilter{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		RouteFilterPropertiesFormat: &network.RouteFilterPropertiesFormat{
 			Rules: expandRouteFilterRules(d),
@@ -130,25 +130,16 @@ func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, routeSet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, routeSet)
 	if err != nil {
-		return fmt.Errorf("creating/updating Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("ID was nil for Route Filter %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceRouteFilterRead(d, meta)
 }

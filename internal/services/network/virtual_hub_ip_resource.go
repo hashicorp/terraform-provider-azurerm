@@ -89,21 +89,21 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
+	virtHubId, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, virtualHubResourceName)
-	defer locks.UnlockByName(id.Name, virtualHubResourceName)
+	locks.ByName(virtHubId.Name, virtualHubResourceName)
+	defer locks.UnlockByName(virtHubId.Name, virtualHubResourceName)
 
-	name := d.Get("name").(string)
+	id := parse.NewVirtualHubIpConfigurationID(virtHubId.SubscriptionId, virtHubId.ResourceGroup, virtHubId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
@@ -117,7 +117,7 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	parameters := network.HubIPConfiguration{
-		Name: utils.String(d.Get("name").(string)),
+		Name: utils.String(id.IpConfigurationName),
 		HubIPConfigurationPropertiesFormat: &network.HubIPConfigurationPropertiesFormat{
 			Subnet: &network.Subnet{
 				ID: utils.String(d.Get("subnet_id").(string)),
@@ -139,25 +139,16 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("waiting on creating/updating future for %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Virtual Hub IP %q (Resource Group %q / Virtual Hub %q) ID", name, id.ResourceGroup, id.Name)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualHubIPRead(d, meta)
 }
