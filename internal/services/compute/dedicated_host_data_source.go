@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -45,28 +46,27 @@ func dataSourceDedicatedHost() *pluginsdk.Resource {
 
 func dataSourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-	hostGroupName := d.Get("dedicated_host_group_name").(string)
+	id := parse.NewDedicatedHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("dedicated_host_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Dedicated Host %q (Host Group Name %q / Resource Group %q) was not found", name, hostGroupName, resourceGroupName)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroupName)
+	d.SetId(id.ID())
+	d.Set("name", id.HostName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("dedicated_host_group_name", hostGroupName)
+	d.Set("dedicated_host_group_name", id.HostGroupName)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -77,24 +77,21 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 
 func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-	containerName := d.Get("container_name").(string)
-	databaseName := d.Get("database_name").(string)
-	accountName := d.Get("account_name").(string)
 	storedProcBody := d.Get("body").(string)
+	id := parse.NewSqlStoredProcedureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
 
-	existing, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
+	existing, err := client.GetSQLStoredProcedure(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos  SQL Stored Proecdure '%q' (Container %q / Database %q / Account %q)", name, containerName, databaseName, accountName)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", *existing.ID)
@@ -103,28 +100,23 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 	storedProcParams := documentdb.SQLStoredProcedureCreateUpdateParameters{
 		SQLStoredProcedureCreateUpdateProperties: &documentdb.SQLStoredProcedureCreateUpdateProperties{
 			Resource: &documentdb.SQLStoredProcedureResource{
-				ID:   &name,
+				ID:   &id.StoredProcedureName,
 				Body: &storedProcBody,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 
-	future, err := client.CreateUpdateSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name, storedProcParams)
+	future, err := client.CreateUpdateSQLStoredProcedure(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName, storedProcParams)
 	if err != nil {
-		return fmt.Errorf("creating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }

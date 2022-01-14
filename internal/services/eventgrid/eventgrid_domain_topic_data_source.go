@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,26 +42,25 @@ func dataSourceEventGridDomainTopic() *pluginsdk.Resource {
 
 func dataSourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	domainName := d.Get("domain_name").(string)
+	id := parse.NewDomainTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("domain_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, domainName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: EventGrid Domain Topic %s (Resource Group %s) was not found: %+v", name, resourceGroup, err)
+			return fmt.Errorf("%s was not found: %+v", id, err)
 		}
 
-		return fmt.Errorf("making Read request on EventGrid Domain Topic '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("domain_name", domainName)
+	d.SetId(id.ID())
+	d.Set("name", id.TopicName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("domain_name", id.DomainName)
 
 	return nil
 }

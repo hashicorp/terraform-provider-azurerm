@@ -59,6 +59,13 @@ func TestAccSpringCloudService_update(t *testing.T) {
 			"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
 		),
 		{
+			Config: r.singleGitRepo(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -166,6 +173,62 @@ resource "azurerm_spring_cloud_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SpringCloudServiceResource) singleGitRepo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  config_server_git_setting {
+    uri          = "git@bitbucket.org:Azure-Samples/piggymetrics.git"
+    label        = "config"
+    search_paths = ["dir1", "dir4"]
+
+    ssh_auth {
+      private_key                      = file("testdata/private_key")
+      host_key                         = file("testdata/host_key")
+      host_key_algorithm               = "ssh-rsa"
+      strict_host_key_checking_enabled = false
+    }
+
+    repository {
+      name         = "repo2"
+      uri          = "https://github.com/Azure-Samples/piggymetrics"
+      label        = "config"
+      search_paths = ["dir1", "dir2"]
+    }
+  }
+
+  trace {
+    connection_string = azurerm_application_insights.test.connection_string
+    sample_rate       = 20
+  }
+
+  tags = {
+    Env     = "Test"
+    version = "1"
+  }
+}
+	  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (SpringCloudServiceResource) complete(data acceptance.TestData) string {

@@ -72,21 +72,20 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 
 func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	account := d.Get("account_name").(string)
+	id := parse.NewSqlDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
+	existing, err := client.GetSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos SQL Database %q (Account: %q): %+v", name, account, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos SQL Database %q (Account: %q)", name, account)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_database", *existing.ID)
@@ -95,7 +94,7 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 	db := documentdb.SQLDatabaseCreateUpdateParameters{
 		SQLDatabaseCreateUpdateProperties: &documentdb.SQLDatabaseCreateUpdateProperties{
 			Resource: &documentdb.SQLDatabaseResource{
-				ID: &name,
+				ID: &id.Name,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -111,25 +110,16 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 		db.SQLDatabaseCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	future, err := client.CreateUpdateSQLDatabase(ctx, resourceGroup, account, name, db)
+	future, err := client.CreateUpdateSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos SQL Database %q (Account: %q): %+v", name, account, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos SQL Database %q (Account: %q): %+v", name, account, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
-	if err != nil {
-		return fmt.Errorf("making get request for Cosmos SQL Database %q (Account: %q): %+v", name, account, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos SQL Database %q (Account: %q)", name, account)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbSQLDatabaseRead(d, meta)
 }

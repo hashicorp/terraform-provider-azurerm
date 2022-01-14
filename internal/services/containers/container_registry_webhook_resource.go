@@ -109,19 +109,18 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 
 func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.WebhooksClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for  Container Registry Webhook creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	registryName := d.Get("registry_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewWebhookID(subscriptionId, d.Get("resource_group_name").(string), d.Get("registry_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, registryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Container Registry Webhook %q (Resource Group %q, Registry %q): %s", name, resourceGroup, registryName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -139,25 +138,16 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:                              tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, registryName, name, webhook)
+	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.Name, webhook)
 	if err != nil {
-		return fmt.Errorf("creating Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, registryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %q (resource group %q, Registry %q) ID", name, resourceGroup, registryName)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryWebhookRead(d, meta)
 }

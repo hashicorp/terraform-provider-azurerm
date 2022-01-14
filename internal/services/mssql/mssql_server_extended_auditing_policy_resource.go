@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,7 +50,6 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
-
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -73,6 +74,12 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+			"storage_account_subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsUUID,
 			},
 		},
 	}
@@ -112,6 +119,14 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
+	}
+
+	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
+		u, err := uuid.FromString(v.(string))
+		if err != nil {
+			return fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
+		}
+		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
@@ -173,6 +188,11 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+
+		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
+			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+		}
+
 	}
 
 	return nil
