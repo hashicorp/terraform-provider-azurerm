@@ -642,7 +642,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
-					Computed: true, // Note - several factors change the default for this, so needs to be computed.
+					Computed: true,
 				},
 
 				"api_management_api_id": {
@@ -707,7 +707,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
-				"load_balancing_mode": { // Supported on Function Apps?
+				"load_balancing_mode": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -762,7 +762,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
+				"health_check_eviction_time_in_min": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},

@@ -298,9 +298,9 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 
-			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
-
 			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
+
+			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
 			functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
