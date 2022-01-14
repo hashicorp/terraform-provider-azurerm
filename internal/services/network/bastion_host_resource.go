@@ -135,15 +135,12 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
 			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:       utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
 			Name: network.BastionHostSkuName(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("scale_units"); ok {
-		parameters.BastionHostPropertiesFormat.ScaleUnits = utils.Int32(int32(v.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
