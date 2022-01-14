@@ -1,5 +1,5 @@
 ---
-subcategory: "Windows Function App (Function Apps)"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_windows_function_app"
 description: |-
