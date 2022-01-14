@@ -19,6 +19,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_aadb2c_directory` - fix importing existing resources [GH-14879]
 * `azurerm_consumption_budget_subscription` - fix issue in migration logic [GH-14898]
 * `azurerm_cosmosdb_account` - only force ForceMongo when kind is set to mongo [GH-14924]
 * `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key [GH-14857]
@@ -30,8 +31,6 @@ BUG FIXES:
 * `azurerm_log_analytics_workspace` - the `reservation_capcity_in_gb_per_day` has been deprecated and renamed to `reservation_capacity_in_gb_per_day` [GH-14910]
 * `azurerm_iothub_dps` - fixed default value of `allocation_weight` to match azure default [GH-14943]
 * `azurerm_iothub` - now exports `event_hub_events_namespace` and has a fallback route by default [GH-14942]
-
-
 
 ## 2.91.0 (January 07, 2022)
 
