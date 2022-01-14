@@ -181,7 +181,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	iotdps := iothub.ProvisioningServiceDescription{
-		Location: utils.String(d.Get("location").(string)),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
@@ -322,7 +322,7 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription
 			ConnectionString:      utils.String(linkedHubConfig["connection_string"].(string)),
 			AllocationWeight:      utils.Int32(int32(linkedHubConfig["allocation_weight"].(int))),
 			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
-			Location:              utils.String(linkedHubConfig["location"].(string)),
+			Location:              utils.String(azure.NormalizeLocation(linkedHubConfig["location"].(string))),
 		}
 
 		linkedHubs = append(linkedHubs, linkedHub)
@@ -364,7 +364,7 @@ func flattenIoTHubDPSLinkedHub(input *[]iothub.DefinitionDescription) []interfac
 			linkedHub["connection_string"] = *attr.ConnectionString
 		}
 		if attr.Location != nil {
-			linkedHub["location"] = *attr.Location
+			linkedHub["location"] = azure.NormalizeLocation(*attr.Location)
 		}
 
 		linkedHubs = append(linkedHubs, linkedHub)
