@@ -92,7 +92,9 @@ The `action` block supports the following:
 
 * `response_header` - (Optional) A `response_header` block as defined below.
 
-* `routing_configuration` - (Optional) A `routing_configuration` block as defined below, must be unique per action.
+* `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below, must be unique per action.
+
+* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below, must be unique per action.
 
 ---
 
@@ -113,14 +115,6 @@ The `response_header` block supports the following:
 * `header_name` header name (string).
 
 * `value` value name (string).
-
----
-
-The `routing_configuration` block supports the following:
-
-* `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
-
-* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
 
 ---
 

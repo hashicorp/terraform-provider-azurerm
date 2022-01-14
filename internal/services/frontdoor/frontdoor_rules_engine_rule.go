@@ -171,7 +171,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"request_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
@@ -203,7 +202,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
-
 									"response_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
@@ -235,120 +233,109 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
-
-									"routing_configuration": {
+									"redirect_configuration": {
 										Type:     pluginsdk.TypeList,
-										MaxItems: 100,
 										Optional: true,
+										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
-												"redirect_configuration": {
+												"custom_fragment": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+												"custom_host": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+												"custom_path": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+												"custom_query_string": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+												"redirect_protocol": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoors.FrontDoorRedirectProtocolHttpOnly),
+														string(frontdoors.FrontDoorRedirectProtocolHttpsOnly),
+														string(frontdoors.FrontDoorRedirectProtocolMatchRequest),
+													}, false),
+												},
+												"redirect_type": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoors.FrontDoorRedirectTypeFound),
+														string(frontdoors.FrontDoorRedirectTypeMoved),
+														string(frontdoors.FrontDoorRedirectTypePermanentRedirect),
+														string(frontdoors.FrontDoorRedirectTypeTemporaryRedirect),
+													}, false),
+												},
+											},
+										},
+									},
+									"forwarding_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"backend_pool_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+												},
+												"cache_enabled": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"cache_use_dynamic_compression": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"cache_query_parameter_strip_directive": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  string(frontdoors.FrontDoorQueryStripAll),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoors.FrontDoorQueryStripAll),
+														string(frontdoors.FrontDoorQueryStripNone),
+														string(frontdoors.FrontDoorQueryStripOnly),
+														string(frontdoors.FrontDoorQueryStripAllExcept),
+													}, false),
+												},
+												"cache_query_parameters": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"custom_fragment": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-															},
-															"custom_host": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-															},
-															"custom_path": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-															},
-															"custom_query_string": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-															},
-															"redirect_protocol": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(frontdoors.FrontDoorRedirectProtocolHttpOnly),
-																	string(frontdoors.FrontDoorRedirectProtocolHttpsOnly),
-																	string(frontdoors.FrontDoorRedirectProtocolMatchRequest),
-																}, false),
-															},
-															"redirect_type": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(frontdoors.FrontDoorRedirectTypeFound),
-																	string(frontdoors.FrontDoorRedirectTypeMoved),
-																	string(frontdoors.FrontDoorRedirectTypePermanentRedirect),
-																	string(frontdoors.FrontDoorRedirectTypeTemporaryRedirect),
-																}, false),
-															},
-														},
+													MaxItems: 25,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
-												"forwarding_configuration": {
-													Type:     pluginsdk.TypeList,
+												"cache_duration": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
+												},
+												"custom_forwarding_path": {
+													Type:     pluginsdk.TypeString,
 													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"backend_pool_name": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: azValidate.BackendPoolRoutingRuleName,
-															},
-															"cache_enabled": {
-																Type:     pluginsdk.TypeBool,
-																Optional: true,
-																Default:  false,
-															},
-															"cache_use_dynamic_compression": {
-																Type:     pluginsdk.TypeBool,
-																Optional: true,
-																Default:  false,
-															},
-															"cache_query_parameter_strip_directive": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-																Default:  string(frontdoors.FrontDoorQueryStripAll),
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(frontdoors.FrontDoorQueryStripAll),
-																	string(frontdoors.FrontDoorQueryStripNone),
-																	string(frontdoors.FrontDoorQueryStripOnly),
-																	string(frontdoors.FrontDoorQueryStripAllExcept),
-																}, false),
-															},
-															"cache_query_parameters": {
-																Type:     pluginsdk.TypeList,
-																Optional: true,
-																MaxItems: 25,
-																Elem: &pluginsdk.Schema{
-																	Type:         pluginsdk.TypeString,
-																	ValidateFunc: validation.StringIsNotEmpty,
-																},
-															},
-															"cache_duration": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
-															},
-															"custom_forwarding_path": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-															},
-															"forwarding_protocol": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-																Default:  string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(frontdoors.FrontDoorForwardingProtocolHttpOnly),
-																	string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
-																	string(frontdoors.FrontDoorForwardingProtocolMatchRequest),
-																}, false),
-															},
-														},
-													},
+												},
+												"forwarding_protocol": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoors.FrontDoorForwardingProtocolHttpOnly),
+														string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+														string(frontdoors.FrontDoorForwardingProtocolMatchRequest),
+													}, false),
 												},
 											},
 										},
@@ -403,13 +390,10 @@ func expandFrontDoorRulesEngineAction(frontDoorId frontdoors.FrontDoorId, input 
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
 	var routingConfiguration frontdoors.RouteConfiguration
-	if rco := ruleAction["routing_configuration"].([]interface{}); len(rco) != 0 {
-		routeConfigurationOverride := ruleAction["routing_configuration"].([]interface{})[0].(map[string]interface{})
-		if rc := routeConfigurationOverride["redirect_configuration"].([]interface{}); len(rc) != 0 {
-			routingConfiguration = expandFrontDoorRedirectConfiguration(rc)
-		} else if fc := routeConfigurationOverride["forwarding_configuration"].([]interface{}); len(fc) != 0 {
-			routingConfiguration = expandFrontDoorForwardingConfiguration(fc, frontDoorId)
-		}
+	if rc := ruleAction["redirect_configuration"].([]interface{}); len(rc) != 0 {
+		routingConfiguration = expandFrontDoorRedirectConfiguration(rc)
+	} else if fc := ruleAction["forwarding_configuration"].([]interface{}); len(fc) != 0 {
+		routingConfiguration = expandFrontDoorForwardingConfiguration(fc, frontDoorId)
 	}
 
 	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
