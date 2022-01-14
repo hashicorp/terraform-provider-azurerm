@@ -117,6 +117,12 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	id := parse.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+	scaleUnits := d.Get("scale_units").(int)
+	sku := d.Get("sku").(string)
+
+	if scaleUnits > 2 && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -138,7 +144,7 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			ScaleUnits:       utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
-			Name: network.BastionHostSkuName(d.Get("sku").(string)),
+			Name: network.BastionHostSkuName(sku),
 		},
 		Tags: tags.Expand(t),
 	}
