@@ -426,14 +426,14 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			backupConfig := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if backupConfig.BackupRequestProperties != nil {
-				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
+				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			auth := helpers.ExpandAuthSettings(functionAppSlot.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
-				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Windows %s: %+v", id, err)
 				}
 			}

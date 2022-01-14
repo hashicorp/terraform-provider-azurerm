@@ -805,18 +805,6 @@ func TestAccLinuxFunctionAppSlot_consumptionPlanBackupShouldError(t *testing.T) 
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_basicPlanBackupShouldError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.backup(data, SkuStandardPlan),
-			ExpectError: regexp.MustCompile("cannot specify backup configuration for Basic tier Service Plans"),
-		},
-	})
-}
-
 // Configs
 
 func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1848,7 +1836,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFA-%d"
+  name                       = "acctest-LFAS-%d"
   function_app_name          = azurerm_linux_function_app.test.name
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
