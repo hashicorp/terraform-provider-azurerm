@@ -107,6 +107,8 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		groupName = uuid.New().String()
 	}
 
+	id := parse.NewManagementGroupId(groupName)
+
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
@@ -114,7 +116,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	recurse := false
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+		existing, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
 			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
@@ -144,7 +146,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, groupName, properties, managementGroupCacheControl)
+	future, err := client.CreateOrUpdate(ctx, id.Name, properties, managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
 	}
@@ -171,12 +173,12 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
-	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*pluginsdk.Set))
 
