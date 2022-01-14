@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,25 +103,23 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 
 func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	imageVersion := d.Get("name").(string)
-	imageName := d.Get("image_name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
 	sortBySemVer := d.Get("sort_versions_by_semver").(bool)
 
-	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion, sortBySemVer)
+	image, err := obtainImage(client, ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, sortBySemVer)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*image.ID)
+	d.SetId(id.ID())
 	d.Set("name", image.Name)
-	d.Set("image_name", imageName)
-	d.Set("gallery_name", galleryName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("image_name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sort_versions_by_semver", sortBySemVer)
 
 	if location := image.Location; location != nil {

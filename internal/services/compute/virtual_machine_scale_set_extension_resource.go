@@ -119,18 +119,16 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	virtualMachineScaleSetId, err := parse.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
-	resourceGroup := virtualMachineScaleSetId.ResourceGroup
-	vmssName := virtualMachineScaleSetId.Name
+	id := parse.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, vmssName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
@@ -160,7 +158,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	props := compute.VirtualMachineScaleSetExtension{
-		Name: utils.String(name),
+		Name: utils.String(id.ExtensionName),
 		VirtualMachineScaleSetExtensionProperties: &compute.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                utils.String(d.Get("publisher").(string)),
 			Type:                     utils.String(d.Get("type").(string)),
@@ -176,20 +174,16 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 		props.VirtualMachineScaleSetExtensionProperties.ForceUpdateTag = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, vmssName, name, props)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, props)
 	if err != nil {
-		return fmt.Errorf("creating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err = client.Get(ctx, resourceGroup, vmssName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
