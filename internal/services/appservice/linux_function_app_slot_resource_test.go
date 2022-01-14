@@ -3,7 +3,6 @@ package appservice_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -789,19 +788,6 @@ func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-// CustomDiff tests
-func TestAccLinuxFunctionAppSlot_consumptionPlanBackupShouldError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.backup(data, SkuConsumptionPlan),
-			ExpectError: regexp.MustCompile("cannot specify backup configuration for Dynamic tier Service Plans"),
-		},
 	})
 }
 
