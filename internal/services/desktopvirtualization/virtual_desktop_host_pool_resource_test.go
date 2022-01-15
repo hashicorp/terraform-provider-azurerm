@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	// "github.com/Azure/go-autorest/autorest/date"
 )
 
 type VirtualDesktopHostPoolResource struct{}
@@ -33,10 +35,13 @@ func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolResource{}
+	// Set the expiration time to be 1 day from now
+	timeNow := time.Now()
+	expirationTime := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, expirationTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -49,6 +54,10 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolResource{}
 
+	// Set the expiration time to be 1 day from now
+	timeNow := time.Now()
+	expirationTime := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -58,7 +67,7 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, expirationTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -128,7 +137,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
-func (VirtualDesktopHostPoolResource) complete(data acceptance.TestData) string {
+func (VirtualDesktopHostPoolResource) complete(data acceptance.TestData, expirationTime string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,21 +162,16 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   preferred_app_group_type = "Desktop"
   custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
 
-  # Do not use timestamp() outside of testing due to https://github.com/hashicorp/terraform/issues/22461
+  
   registration_info {
-    expiration_date = timeadd(timestamp(), "48h")
+    expiration_date = "%s"
   }
-  lifecycle {
-    ignore_changes = [
-      registration_info[0].expiration_date,
-    ]
-  }
-
+  
   tags = {
     Purpose = "Acceptance-Testing"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, expirationTime)
 }
 
 func (r VirtualDesktopHostPoolResource) requiresImport(data acceptance.TestData) string {
