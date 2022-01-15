@@ -268,7 +268,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVPNGatewayRead(d, meta)
 }
@@ -278,15 +278,17 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	locks.ByName(name, VPNGatewayResourceName)
-	defer locks.UnlockByName(name, VPNGatewayResourceName)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id, err := parse.VpnGatewayID(d.Id())
 	if err != nil {
-		return fmt.Errorf("retrieving for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return err
+	}
+
+	locks.ByName(id.Name, VPNGatewayResourceName)
+	defer locks.UnlockByName(id.Name, VPNGatewayResourceName)
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving for presence of existing %s: %+v", id, err)
 	}
 
 	if d.HasChange("scale_unit") {
@@ -314,10 +316,10 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing); err != nil {
-		return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 

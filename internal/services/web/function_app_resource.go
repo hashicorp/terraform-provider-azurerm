@@ -263,19 +263,19 @@ func resourceFunctionApp() *pluginsdk.Resource {
 
 func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
@@ -284,16 +284,16 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("the name %q used for the Function App needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -327,7 +327,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for %s: %s", id, err)
 	}
 
 	siteConfig.AppSettings = appSettingsMapToNameValuePair(appSettings)
@@ -361,7 +361,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -379,33 +379,24 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
 		// TODO - Do we need to lock the function app for updates?
-		_, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
 		if err != nil {
-			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("failed to create %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         read.ID,
+		ID:                         utils.String(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
-	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
+	if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, auth); err != nil {
+		return fmt.Errorf("updating auth settings for %s: %+v", id, err)
 	}
 
 	return resourceFunctionAppUpdate(d, meta)

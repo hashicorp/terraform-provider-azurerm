@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,28 +46,25 @@ func dataSourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 
 func dataSourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDdosProtectionPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("DDoS Protection Plan %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving DDoS Protection Plan %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

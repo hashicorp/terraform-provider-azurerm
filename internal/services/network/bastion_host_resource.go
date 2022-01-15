@@ -79,6 +79,13 @@ func resourceBastionHost() *pluginsdk.Resource {
 				},
 			},
 
+			"scale_units": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(2, 50),
+				Default:      2,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -101,21 +108,27 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+	scaleUnits := d.Get("scale_units").(int)
+	sku := d.Get("sku").(string)
+
+	if scaleUnits > 2 && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Bastion Host %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -128,28 +141,24 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
 			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:       utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
-			Name: network.BastionHostSkuName(d.Get("sku").(string)),
+			Name: network.BastionHostSkuName(sku),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceBastionHostRead(d, meta)
 }
@@ -187,6 +196,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
 		d.Set("dns_name", props.DNSName)
+		d.Set("scale_units", props.ScaleUnits)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {

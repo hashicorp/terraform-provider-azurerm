@@ -299,6 +299,7 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub.
 
 * `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
+* `event_hub_events_namespace` - The EventHub namespace for events data   
 * `event_hub_events_path` -  The EventHub compatible path for events data
 * `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
 * `event_hub_operations_path` -  The EventHub compatible path for operational data

@@ -70,17 +70,17 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 
 func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSSHPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	public_key := d.Get("public_key").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
@@ -93,7 +93,7 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	t := d.Get("tags").(map[string]interface{})
 
 	params := compute.SSHPublicKeyResource{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		SSHPublicKeyResourceProperties: &compute.SSHPublicKeyResourceProperties{
@@ -101,20 +101,11 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, params); err != nil {
-		return fmt.Errorf("creating SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, params); err != nil {
+		return fmt.Errorf("creating SSH Public Key %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceSshPublicKeyRead(d, meta)
 }
 

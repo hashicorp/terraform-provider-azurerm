@@ -113,16 +113,16 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -163,22 +163,15 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Disk Encryption Set %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDiskEncryptionSetRead(d, meta)
 }

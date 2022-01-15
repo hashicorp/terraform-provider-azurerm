@@ -53,20 +53,20 @@ func resourceDiskAccess() *pluginsdk.Resource {
 
 func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
+	subscriptionid := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Disk Access creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDiskAccessID(subscriptionid, d.Get("resource_group_name").(string), d.Get("name").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Disk Access %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -77,29 +77,21 @@ func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	createDiskAccess := compute.DiskAccess{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		Tags:     tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDiskAccess)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, createDiskAccess)
 	if err != nil {
-		return fmt.Errorf("creating/updating Disk Access %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of Disk Access %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Disk Access %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("reading Disk Access %s (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceDiskAccessRead(d, meta)
 }

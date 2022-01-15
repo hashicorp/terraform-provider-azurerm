@@ -162,6 +162,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -222,7 +223,8 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	d.SetId(*storageAccount.ID)
+	id := parse.NewStorageAccountID(subscriptionId, resourceGroup, storageAccountName)
+	d.SetId(id.ID())
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
