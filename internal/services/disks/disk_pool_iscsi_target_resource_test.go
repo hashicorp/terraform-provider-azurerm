@@ -137,7 +137,7 @@ resource "azurerm_disk_pool" "test" {
 
 resource "azurerm_disk_pool_managed_disk_attachment" "test" {
   depends_on      = [azurerm_role_assignment.test]
-  disk_pool_id   = azurerm_disk_pool.test.id
+  disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test.id
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
