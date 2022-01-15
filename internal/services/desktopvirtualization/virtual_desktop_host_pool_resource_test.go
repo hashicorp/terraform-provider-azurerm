@@ -162,11 +162,11 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   preferred_app_group_type = "Desktop"
   custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
 
-  
+
   registration_info {
     expiration_date = "%s"
   }
-  
+
   tags = {
     Purpose = "Acceptance-Testing"
   }
