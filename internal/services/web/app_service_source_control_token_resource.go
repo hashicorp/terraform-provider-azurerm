@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -70,12 +72,12 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
 
-	scmType := d.Get("type").(string)
 	token := d.Get("token").(string)
 	tokenSecret := d.Get("token_secret").(string)
+	id := parse.NewAppServiceSourceControlTokenID(d.Get("type").(string))
 
-	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
-	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
+	locks.ByName(id.Type, appServiceSourceControlTokenResourceName)
+	defer locks.UnlockByName(id.Type, appServiceSourceControlTokenResourceName)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
@@ -84,19 +86,11 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 		},
 	}
 
-	if _, err := client.UpdateSourceControl(ctx, scmType, properties); err != nil {
-		return fmt.Errorf("updating App Service Source Control Token (Type %q): %s", scmType, err)
+	if _, err := client.UpdateSourceControl(ctx, id.Type, properties); err != nil {
+		return fmt.Errorf("updating %s: %s", id, err)
 	}
 
-	read, err := client.GetSourceControl(ctx, scmType)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Source Control Token (Type %q): %s", scmType, err)
-	}
-	if read.Name == nil {
-		return fmt.Errorf("Cannot read App Service Source Control Token (Type %q)", scmType)
-	}
-
-	d.SetId(*read.Name)
+	d.SetId(id.Type)
 
 	return resourceAppServiceSourceControlTokenRead(d, meta)
 }

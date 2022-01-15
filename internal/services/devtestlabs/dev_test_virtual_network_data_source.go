@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,26 +98,25 @@ func dataSourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 
 func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	labName := d.Get("lab_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewDevTestVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resGroup, labName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Virtual Network %q in Dev Test Lab %q (Resource Group %q) was not found", name, labName, resGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Virtual Network %q in Dev Test Lab %q (Resource Group %q): %+v", name, labName, resGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Virtual Network %q in Dev Test Lab %q (Resource Group %q): %+v", name, labName, resGroup, err)
+		return fmt.Errorf("API returns a nil/empty id on %s: %+v", id, err)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if props := resp.VirtualNetworkProperties; props != nil {
 		if as := props.AllowedSubnets; as != nil {
