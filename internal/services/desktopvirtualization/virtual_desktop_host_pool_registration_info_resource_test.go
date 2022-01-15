@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -20,14 +21,18 @@ func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
+	// Set the expiration times
+	timeNow := time.Now()
+	expirationTime := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, expirationTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
-			ExpectNonEmptyPlan: true,
+			//ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -36,25 +41,30 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
+	// Set the expiration times
+	timeNow := time.Now()
+	expirationTimeBasic := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
+	expirationTimeComplete := timeNow.AddDate(0, 0, 2).Format(time.RFC3339)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, expirationTimeBasic),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
-			ExpectNonEmptyPlan: true,
+			// ExpectNonEmptyPlan: true,
 		},
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, expirationTimeComplete),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
-			ExpectNonEmptyPlan: true,
+			// ExpectNonEmptyPlan: true,
 		},
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, expirationTimeBasic),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("token").Exists(),
 			),
@@ -80,7 +90,7 @@ func (VirtualDesktopHostPoolRegistrationInfoResource) Exists(ctx context.Context
 	return utils.Bool(exists), nil
 }
 
-func (VirtualDesktopHostPoolRegistrationInfoResource) basic(data acceptance.TestData) string {
+func (VirtualDesktopHostPoolRegistrationInfoResource) basic(data acceptance.TestData, expirationDate string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -103,14 +113,14 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 
 resource "azurerm_virtual_desktop_host_pool_registration_info" "test" {
   hostpool_id     = azurerm_virtual_desktop_host_pool.test.id
-  expiration_date = timeadd(timestamp(), "48h")
+  expiration_date = "%s"
 }
 
 
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, expirationDate)
 }
 
-func (VirtualDesktopHostPoolRegistrationInfoResource) complete(data acceptance.TestData) string {
+func (VirtualDesktopHostPoolRegistrationInfoResource) complete(data acceptance.TestData, expirationDate string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,8 +143,8 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 
 resource "azurerm_virtual_desktop_host_pool_registration_info" "test" {
   hostpool_id     = azurerm_virtual_desktop_host_pool.test.id
-  expiration_date = timeadd(timestamp(), "72h")
+  expiration_date = "%s"
 }
 
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, expirationDate)
 }
