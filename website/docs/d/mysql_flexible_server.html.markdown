@@ -83,7 +83,7 @@ A `maintenance_window` block exports the following:
 
 * `day_of_week` - The day of week of the maintenance window.
 
-* `start_hour` - The day of week of the maintenance window.
+* `start_hour` - The start hour of the maintenance window.
 
 * `start_minute` - The start minute of the maintenance window.
 
@@ -91,7 +91,7 @@ A `maintenance_window` block exports the following:
 
 A `storage` block exports the following:
 
-* `auto_grow_enabled` - Is Storage Auto Grow be enabled?
+* `auto_grow_enabled` - Is Storage Auto Grow enabled?
 
 * `iops` - The storage IOPS of the MySQL Flexible Server.
 

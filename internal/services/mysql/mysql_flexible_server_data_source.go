@@ -29,7 +29,6 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerName,
 			},
 
