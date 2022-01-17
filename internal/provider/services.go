@@ -77,6 +77,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
@@ -205,6 +206,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		postgresqlhsc.Registration{},
 		powerbi.Registration{},
 		privatedns.Registration{},
 		purview.Registration{},
