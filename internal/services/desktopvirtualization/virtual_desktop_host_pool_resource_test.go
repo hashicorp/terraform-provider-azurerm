@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	// "github.com/Azure/go-autorest/autorest/date"
 )
 
 type VirtualDesktopHostPoolResource struct{}
