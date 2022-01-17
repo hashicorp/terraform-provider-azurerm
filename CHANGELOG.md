@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
 
+BUG FIXES:
+
+* `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
+
 ## 2.92.0 (January 14, 2022)
 
 FEATURES:
