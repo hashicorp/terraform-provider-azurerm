@@ -43,6 +43,21 @@ func TestAccFirewallApplicationRuleCollection_basic(t *testing.T) {
 	})
 }
 
+func TestAccFirewallApplicationRuleCollection_fqdnTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
+	r := FirewallApplicationRuleCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fqdnTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewallApplicationRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
@@ -478,6 +493,30 @@ resource "azurerm_firewall_application_rule_collection" "test" {
       port = 443
       type = "Https"
     }
+  }
+}
+`, template)
+}
+
+func (FirewallApplicationRuleCollectionResource) fqdnTags(data acceptance.TestData) string {
+	template := FirewallResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "acctestarc"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name        = "rule1"
+    description = "test description"
+    fqdn_tags   = ["WindowsDiagnostics"]
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
   }
 }
 `, template)
