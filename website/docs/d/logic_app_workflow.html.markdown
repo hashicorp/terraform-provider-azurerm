@@ -65,7 +65,7 @@ The following attributes are exported:
 
 The `identity` block exports the following:
 
-* `type` - The Type of Managed Identity assigned to this Logic App Workflow. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - The Type of Managed Identity assigned to this Logic App Workflow.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
 
