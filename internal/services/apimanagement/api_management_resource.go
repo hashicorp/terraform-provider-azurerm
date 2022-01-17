@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,6 +88,12 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
+			},
+
+			"remove_samples_on_create": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"identity": {
@@ -618,6 +625,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
+	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -740,6 +749,66 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+
+	// Remove sample products and APIs after creating
+	if d.IsNewResource() && d.Get("remove_samples_on_create").(bool) {
+		d.Set("remove_samples_on_create", true)
+
+		apis := make([]apimanagement.APIContract, 0)
+
+		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs after creation of %s: %+v", id, err)
+			}
+			if apisIter.Response().IsEmpty() {
+				break
+			}
+			if apisList := apisIter.Values(); apisList != nil {
+				apis = append(apis, apisList...)
+			}
+		}
+
+		for _, api := range apis {
+			if api.ID != nil {
+				apiId, err := parse.ApiID(*api.ID)
+				if err != nil {
+					return fmt.Errorf("parsing API ID: %+v", err)
+				}
+				log.Printf("[DEBUG] Deleting %s", apiId)
+				if resp, err := apiClient.Delete(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+					return fmt.Errorf("deleting %s: %+v", apiId, err)
+				}
+			}
+		}
+
+		products := make([]apimanagement.ProductContract, 0)
+
+		for productsIter, err := productsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); productsIter.NotDone(); err = productsIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing products after creation of %s: %+v", id, err)
+			}
+			if productsIter.Response().IsEmpty() {
+				break
+			}
+			if productList := productsIter.Values(); products != nil {
+				products = append(products, productList...)
+			}
+		}
+
+		for _, product := range products {
+			if product.ID != nil {
+				productId, err := parse.ProductID(*product.ID)
+				if err != nil {
+					return fmt.Errorf("parsing product ID: %+v", err)
+				}
+				log.Printf("[DEBUG] Deleting %s", productId)
+				if resp, err := productsClient.Delete(ctx, productId.ResourceGroup, productId.ServiceName, productId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+					return fmt.Errorf("deleting %s: %+v", productId, err)
+				}
+			}
+		}
+
+	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
@@ -942,6 +1011,12 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `tenant_access`: %+v", err)
 		}
 	}
+
+	removeSamplesOnCreate := false
+	if v, ok := d.GetOk("remove_samples_on_create"); ok && v.(bool) {
+		removeSamplesOnCreate = true
+	}
+	d.Set("remove_samples_on_create", removeSamplesOnCreate)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

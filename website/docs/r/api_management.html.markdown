@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `protocols` - (Optional) A `protocols` block as defined below.
 
+* `remove_samples_on_create` - (Optional) When `true`, will remove the sample Products and APIs that are automatically created by Azure when a new API Management resource is created. This property has no effect when updating an API Management resource. Defaults to `false`. 
+
 * `security` - (Optional) A `security` block as defined below.
 
 * `sign_in` - (Optional) A `sign_in` block as defined below.
