@@ -297,27 +297,24 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network
 		return nil
 	}
 
-	results := make([]network.BastionHostIPConfiguration, 0)
 	property := input[0].(map[string]interface{})
 	ipConfName := property["name"].(string)
 	subID := property["subnet_id"].(string)
 	pipID := property["public_ip_address_id"].(string)
 
-	result := network.BastionHostIPConfiguration{
-		Name: &ipConfName,
-		BastionHostIPConfigurationPropertiesFormat: &network.BastionHostIPConfigurationPropertiesFormat{
-			Subnet: &network.SubResource{
-				ID: &subID,
-			},
-			PublicIPAddress: &network.SubResource{
-				ID: &pipID,
+	return &[]network.BastionHostIPConfiguration{
+		{
+			Name: &ipConfName,
+			BastionHostIPConfigurationPropertiesFormat: &network.BastionHostIPConfigurationPropertiesFormat{
+				Subnet: &network.SubResource{
+					ID: &subID,
+				},
+				PublicIPAddress: &network.SubResource{
+					ID: &pipID,
+				},
 			},
 		},
 	}
-
-	results = append(results, result)
-
-	return &results
 }
 
 func flattenBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
