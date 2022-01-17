@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
 * dependencies: updating `containerregistry` to API version `2021-08-01-preview` [GH-14961]
+* Data Source `azurerm_logic_app_workflow` - exporting the `identity` block [GH-14896]
 * `azurerm_bastion_host` - support for `copy_paste_enabled` [GH-14987]
 * `azurerm_bastion_host` - support for `file_copy_enabled` [GH-14987]
 * `azurerm_bastion_host` - support for `ip_connect_enabled` [GH-14987]
