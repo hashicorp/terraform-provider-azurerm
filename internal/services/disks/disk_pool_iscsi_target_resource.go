@@ -3,7 +3,9 @@ package disks
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -149,17 +151,23 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(d.ResourceType(), id)
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, iscsitargets.IscsiTargetCreate{
+			future, err := client.CreateOrUpdate(ctx, id, iscsitargets.IscsiTargetCreate{
 				Properties: iscsitargets.IscsiTargetCreateProperties{
 					AclMode:   iscsitargets.IscsiTargetAclMode(m.ACLMode),
 					TargetIqn: &m.TargetIqn,
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("waiting for creation of DisksPool iscsi target %q : %+v", id.ID(), err)
+				return fmt.Errorf("creating DisksPool iscsi target %q : %+v", id.ID(), err)
 			}
-			metadata.SetID(id)
-			return nil
+
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+				if err := d.retryError("waiting for creation DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone()); err != nil {
+					return err
+				}
+				metadata.SetID(id)
+				return nil
+			})
 		}}
 }
 
@@ -212,11 +220,13 @@ func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 			defer locks.UnlockByID(id.ID())
 
 			client := metadata.Client.Disks.DisksPoolIscsiTargetClient
-			err = client.DeleteThenPoll(ctx, *id)
+			future, err := client.Delete(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("waiting for deletion of DisksPool iscsi target %q: %+v", id.ID(), err)
+				return fmt.Errorf("deleting DisksPool iscsi target %q: %+v", id.ID(), err)
 			}
-			return nil
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
+				return d.retryError("waiting for deletion of DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone())
+			})
 		},
 	}
 }
@@ -249,11 +259,31 @@ func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
 				Properties: iscsitargets.IscsiTargetUpdateProperties{},
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, patch)
+			future, err := client.Update(ctx, *id, patch)
 			if err != nil {
-				return fmt.Errorf("waiting for update of DiskPool iscsi taraget %q : %+v", id.ID(), err)
+				return fmt.Errorf("updating DiskPool iscsi taraget %q : %+v", id.ID(), err)
 			}
-			return nil
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
+				return d.retryError("waiting for update of DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone())
+			})
 		},
 	}
+}
+
+func (DisksPoolIscsiTargetResource) retryError(action string, id string, err error) *resource.RetryError {
+	if err == nil {
+		return nil
+	}
+
+	// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-enabling-iscsi-on-disk-pools the errors below are retryable.
+	retryableErrors := []string{
+		"GoalStateApplicationTimeoutError",
+		"OngoingOperationInProgress",
+	}
+	for _, retryableError := range retryableErrors {
+		if strings.Contains(err.Error(), retryableError) {
+			return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+		}
+	}
+	return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 }
