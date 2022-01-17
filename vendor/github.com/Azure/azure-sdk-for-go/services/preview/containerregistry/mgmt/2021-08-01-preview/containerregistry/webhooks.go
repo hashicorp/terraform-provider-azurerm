@@ -92,7 +92,7 @@ func (client WebhooksClient) CreatePreparer(ctx context.Context, resourceGroupNa
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -189,7 +189,7 @@ func (client WebhooksClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -290,7 +290,7 @@ func (client WebhooksClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -382,7 +382,7 @@ func (client WebhooksClient) GetCallbackConfigPreparer(ctx context.Context, reso
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -473,7 +473,7 @@ func (client WebhooksClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -607,7 +607,7 @@ func (client WebhooksClient) ListEventsPreparer(ctx context.Context, resourceGro
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -736,7 +736,7 @@ func (client WebhooksClient) PingPreparer(ctx context.Context, resourceGroupName
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -822,7 +822,7 @@ func (client WebhooksClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"webhookName":       autorest.Encode("path", webhookName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

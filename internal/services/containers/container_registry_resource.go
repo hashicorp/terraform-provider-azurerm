@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -67,13 +67,13 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"sku": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          string(containerregistry.Classic),
+				Default:          string(containerregistry.SkuNameClassic),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerregistry.Classic),
-					string(containerregistry.Basic),
-					string(containerregistry.Standard),
-					string(containerregistry.Premium),
+					string(containerregistry.SkuNameClassic),
+					string(containerregistry.SkuNameBasic),
+					string(containerregistry.SkuNameStandard),
+					string(containerregistry.SkuNamePremium),
 				}, true),
 			},
 
@@ -248,7 +248,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerregistry.Allow),
+											string(containerregistry.ActionAllow),
 										}, false),
 									},
 									"ip_range": {
@@ -270,7 +270,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerregistry.Allow),
+											string(containerregistry.ActionAllow),
 										}, false),
 									},
 									"subnet_id": {
@@ -366,50 +366,50 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			geoReplications := d.Get("georeplications").([]interface{})
 			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
-			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
-			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set quarantine_policy {}")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
-			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set retention_policy {}")
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
-			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
-			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
 			}
 
 			// zone redundancy is only available for Premium Sku.
 			zoneRedundancyEnabled, ok := d.GetOk("zone_redundancy_enabled")
-			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 			}
 			for _, loc := range geoReplications {
 				loc := loc.(map[string]interface{})
 				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
-				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 				}
 			}
 
 			// anonymous pull is only available for Standard/Premium Sku.
-			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.Standard)) && !strings.EqualFold(sku, string(containerregistry.Premium))) {
+			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.SkuNameStandard)) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium))) {
 				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
 			}
 
 			// data endpoint is only available for Premium Sku.
-			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
@@ -461,7 +461,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	geoReplications := d.Get("georeplications").([]interface{})
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
-	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
@@ -557,9 +557,9 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	sku := d.Get("sku").(string)
 	skuChange := d.HasChange("sku")
-	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
-	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
-	isStandardSku := strings.EqualFold(sku, string(containerregistry.Standard))
+	isBasicSku := strings.EqualFold(sku, string(containerregistry.SkuNameBasic))
+	isPremiumSku := strings.EqualFold(sku, string(containerregistry.SkuNamePremium))
+	isStandardSku := strings.EqualFold(sku, string(containerregistry.SkuNameStandard))
 
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -622,7 +622,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// geo replication is only supported by Premium Sku
 	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || len(newReplications) > 0
-	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
@@ -937,7 +937,7 @@ func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 		if enabled {
 			trustPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
-		trustPolicy.Type = containerregistry.Notary
+		trustPolicy.Type = containerregistry.TrustPolicyTypeNotary
 	}
 
 	return &trustPolicy
@@ -1118,7 +1118,7 @@ func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {
 	r := *p.RetentionPolicy
 	retentionPolicy := make(map[string]interface{})
 	retentionPolicy["days"] = r.Days
-	enabled := strings.EqualFold(string(r.Status), string(containerregistry.Enabled))
+	enabled := strings.EqualFold(string(r.Status), string(containerregistry.PolicyStatusEnabled))
 	retentionPolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{retentionPolicy}
 }
@@ -1130,7 +1130,7 @@ func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 
 	t := *p.TrustPolicy
 	trustPolicy := make(map[string]interface{})
-	enabled := strings.EqualFold(string(t.Status), string(containerregistry.Enabled))
+	enabled := strings.EqualFold(string(t.Status), string(containerregistry.PolicyStatusEnabled))
 	trustPolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{trustPolicy}
 }
