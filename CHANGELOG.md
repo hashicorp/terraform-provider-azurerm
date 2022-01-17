@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
 * dependencies: updating `containerregistry` to API version `2021-08-01-preview` [GH-14961]
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
+* `azurerm_static_site` - support for the `identity` block [GH-14911]
 
 BUG FIXES:
 
