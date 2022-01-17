@@ -158,19 +158,19 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
 	}
 
-	if fileCopyEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+	if fileCopyEnabled && sku == string(network.BastionHostSkuNameBasic) {
 		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if ipConnectEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+	if ipConnectEnabled && sku == string(network.BastionHostSkuNameBasic) {
 		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if shareableLinkEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+	if shareableLinkEnabled && sku == string(network.BastionHostSkuNameBasic) {
 		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if tunnelingEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+	if tunnelingEnabled && sku == string(network.BastionHostSkuNameBasic) {
 		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
 	}
 
