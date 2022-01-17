@@ -253,7 +253,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 			if utils.ResponseWasNotFound(resp.Response) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
-			if resp.Response.StatusCode == 400 { // ResourceNotYetSynced error
+			if utils.ResponseWasBadRequest(resp.Response) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
 
@@ -268,8 +268,11 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	// storage type is not updated instantaneously, so we wait until storage type is correct
 	err = pluginsdk.Retry(stateConf.Timeout, func() *pluginsdk.RetryError {
 		if resp, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup); err == nil {
+			if resp.Properties == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
+			}
 			if resp.Properties.StorageType != storageCfg.Properties.StorageModelType {
-				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
+				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 			}
 		} else {
 			return pluginsdk.NonRetryableError(err)
