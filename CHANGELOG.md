@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS: 
 
+* dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
 
 ## 2.92.0 (January 14, 2022)
