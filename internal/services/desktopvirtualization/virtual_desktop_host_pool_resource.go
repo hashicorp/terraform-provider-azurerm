@@ -273,7 +273,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 
 		reginfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Making Read request for registration token on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Registration Token for %s: %+v", *id, err)
 		}
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(&reginfo)); err != nil {
