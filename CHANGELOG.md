@@ -15,6 +15,8 @@ ENHANCEMENTS:
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
 * `azurerm_bastion_host` - support for `shareable_link_enabled` [GH-14987]
 * `azurerm_bastion_host` - support for `tunneling_enabled` [GH-14987]
+* `azurerm_security_center_automation ` - `event_source` can now be set to `AssessmentsSnapshot`,
+`RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
 * `azurerm_static_site` - support for the `identity` block [GH-14911]
 
 BUG FIXES:
