@@ -1,5 +1,9 @@
 ## 2.93.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_mysql_flexible_server` [GH-14976]
+
 ENHANCEMENTS: 
 
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
