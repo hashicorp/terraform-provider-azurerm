@@ -50,6 +50,18 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"copy_paste_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"file_copy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				ForceNew: true,
@@ -79,11 +91,23 @@ func resourceBastionHost() *pluginsdk.Resource {
 				},
 			},
 
+			"ip_connect_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(2, 50),
 				Default:      2,
+			},
+
+			"shareable_link_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"sku": {
@@ -94,6 +118,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 					string(network.BastionHostSkuNameStandard),
 				}, false),
 				Default: string(network.BastionHostSkuNameBasic),
+			},
+
+			"tunneling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"dns_name": {
@@ -119,9 +149,29 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	scaleUnits := d.Get("scale_units").(int)
 	sku := d.Get("sku").(string)
+	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
+	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
+	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
+	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 
 	if scaleUnits > 2 && sku == string(network.BastionHostSkuNameBasic) {
 		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	}
+
+	if fileCopyEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if ipConnectEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if shareableLinkEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if tunnelingEnabled == true && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
 	}
 
 	if d.IsNewResource() {
@@ -140,8 +190,13 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
-			ScaleUnits:       utils.Int32(int32(d.Get("scale_units").(int))),
+			DisableCopyPaste:    utils.Bool(!d.Get("copy_paste_enabled").(bool)),
+			EnableFileCopy:      utils.Bool(fileCopyEnabled),
+			EnableIPConnect:     utils.Bool(ipConnectEnabled),
+			EnableShareableLink: utils.Bool(shareableLinkEnabled),
+			EnableTunneling:     utils.Bool(tunnelingEnabled),
+			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:          utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
 			Name: network.BastionHostSkuName(sku),
@@ -197,6 +252,11 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
 		d.Set("dns_name", props.DNSName)
 		d.Set("scale_units", props.ScaleUnits)
+		d.Set("copy_paste_enabled", !*props.DisableCopyPaste)
+		d.Set("file_copy_enabled", props.EnableFileCopy)
+		d.Set("ip_connect_enabled", props.EnableIPConnect)
+		d.Set("shareable_link_enabled", props.EnableShareableLink)
+		d.Set("tunneling_enabled", props.EnableTunneling)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
@@ -237,24 +297,27 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network
 		return nil
 	}
 
+	results := make([]network.BastionHostIPConfiguration, 0)
 	property := input[0].(map[string]interface{})
 	ipConfName := property["name"].(string)
 	subID := property["subnet_id"].(string)
 	pipID := property["public_ip_address_id"].(string)
 
-	return &[]network.BastionHostIPConfiguration{
-		{
-			Name: &ipConfName,
-			BastionHostIPConfigurationPropertiesFormat: &network.BastionHostIPConfigurationPropertiesFormat{
-				Subnet: &network.SubResource{
-					ID: &subID,
-				},
-				PublicIPAddress: &network.SubResource{
-					ID: &pipID,
-				},
+	result := network.BastionHostIPConfiguration{
+		Name: &ipConfName,
+		BastionHostIPConfigurationPropertiesFormat: &network.BastionHostIPConfigurationPropertiesFormat{
+			Subnet: &network.SubResource{
+				ID: &subID,
+			},
+			PublicIPAddress: &network.SubResource{
+				ID: &pipID,
 			},
 		},
 	}
+
+	results = append(results, result)
+
+	return &results
 }
 
 func flattenBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {

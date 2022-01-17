@@ -194,10 +194,14 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_bastion_host" "test" {
-  name                = "acctestBastion%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
+  name                   = "acctestBastion%s"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  sku                    = "Standard"
+  file_copy_enabled      = true
+  ip_connect_enabled     = true
+  shareable_link_enabled = true
+  tunneling_enabled      = true
 
   ip_configuration {
     name                 = "ip-configuration"
@@ -245,6 +249,7 @@ resource "azurerm_bastion_host" "test" {
   name                = "acctestBastion%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  copy_paste_enabled  = false
 
   ip_configuration {
     name                 = "ip-configuration"
