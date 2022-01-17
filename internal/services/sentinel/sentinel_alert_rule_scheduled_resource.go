@@ -151,7 +151,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									"entity_matching_method": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  securityinsight.MatchingMethodAllEntities,
+										Default:  securityinsight.MatchingMethodAnyAlert,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(securityinsight.MatchingMethodAnyAlert),
 											string(securityinsight.MatchingMethodSelected),
