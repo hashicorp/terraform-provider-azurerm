@@ -513,12 +513,11 @@ resource "azurerm_firewall_application_rule_collection" "test" {
   rule {
     name        = "rule1"
     description = "test description"
-	fqdn_tags  = ["WindowsDiagnostics"]
+    fqdn_tags   = ["WindowsDiagnostics"]
     source_addresses = [
       "10.0.0.0/16",
     ]
   }
-
 }
 `, template)
 }
