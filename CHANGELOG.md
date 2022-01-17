@@ -19,6 +19,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
+* `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config [GH-14844]
 
 ## 2.92.0 (January 14, 2022)
 
