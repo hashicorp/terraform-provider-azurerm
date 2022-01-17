@@ -363,6 +363,10 @@ resource "azurerm_mariadb_server" "test" {
   create_mode                  = "Default"
   geo_redundant_backup_enabled = false
   ssl_enforcement_enabled      = true
+  public_network_access_enabled = true
+  tags = {
+    environment = "test"
+  }
   storage_mb                   = 51200
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
