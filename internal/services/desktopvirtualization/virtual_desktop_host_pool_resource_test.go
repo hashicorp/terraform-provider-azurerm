@@ -70,6 +70,7 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("registration_info.0.token").Exists(),
 			),
 		},
 		{
