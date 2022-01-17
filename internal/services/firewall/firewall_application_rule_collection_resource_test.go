@@ -518,6 +518,7 @@ resource "azurerm_firewall_application_rule_collection" "test" {
       "10.0.0.0/16",
     ]
   }
+
 }
 `, template)
 }
