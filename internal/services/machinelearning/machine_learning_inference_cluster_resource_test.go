@@ -146,6 +146,21 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 	})
 }
 
+func TestAccInferenceCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
+	r := InferenceClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.InferenceClusterID(state.ID)
@@ -554,4 +569,24 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(17), data.RandomIntOfLength(17), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
+}
+
+func (r InferenceClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_inference_cluster" "test" {
+  name                          = "AIC-%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "DevTest"
+  description                   = "This is an example cluster used with Terraform"
+
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
