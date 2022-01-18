@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Conflicts with `dedicated_host_group_id`.
 
-* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group that this Windows Virtual Machine should be run within. The target Host Group must have automatic placement enabled. Conflicts with `dedicated_host_id`.
+* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group that this Windows Virtual Machine should be run within. Conflicts with `dedicated_host_id`.
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
