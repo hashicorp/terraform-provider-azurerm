@@ -68,6 +68,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			"content_md5": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -82,6 +83,11 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				ForceNew:     true,
+			},
+
+			"content_length": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
 			},
 
 			"metadata": MetaDataSchema(),
@@ -163,6 +169,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("'stat'-ing File %q (File Share %q / Account %q): %+v", fileName, storageShareID.Name, storageShareID.AccountName, err)
 		}
 
+		d.Set("content_length", int(info.Size()))
 		input.ContentLength = info.Size()
 	}
 
@@ -225,11 +232,12 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") || d.HasChange("content_md5") {
+	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
 		input := files.SetPropertiesInput{
 			ContentType:        utils.String(d.Get("content_type").(string)),
 			ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
 			ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+			ContentLength:      int64(d.Get("content_length").(int)),
 			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
 		}
 
