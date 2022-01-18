@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_mysql_flexible_server` [GH-14976]
+* **New Beta Data Source**: `azurerm_windows_function_app` [GH-14964]
 
 ENHANCEMENTS: 
 
