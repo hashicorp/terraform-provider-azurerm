@@ -634,6 +634,172 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 	}
 }
 
+func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"api_management_api_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"api_definition_url": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_command_line": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_scale_limit": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"application_insights_key": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"application_insights_connection_string": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"application_stack": windowsFunctionAppStackSchemaComputed(),
+
+				"app_service_logs": FunctionAppAppServiceLogsSchemaComputed(),
+
+				"default_documents": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"elastic_instance_minimum": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": IpRestrictionSchemaComputed(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": IpRestrictionSchemaComputed(),
+
+				"load_balancing_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"managed_pipeline_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"pre_warmed_instance_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"remote_debugging_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"remote_debugging_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"websockets_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_eviction_time_in_min": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"worker_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true},
+
+				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true},
+
+				"cors": CorsSettingsSchemaComputed(),
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true},
+
+				"detailed_error_logging_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
 	DotNetVersion         string                   `tfschema:"dotnet_version"`          // Supported values `3.1`. Version 6 is in preview on Windows Only
@@ -926,6 +1092,41 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 	}
 }
 
+func windowsFunctionAppStackSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"dotnet_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"node_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"powershell_core_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_custom_runtime": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type FunctionAppAppServiceLogs struct {
 	DiskQuotaMB         int `tfschema:"disk_quota_mb"`
 	RetentionPeriodDays int `tfschema:"retention_period_days"`
@@ -948,6 +1149,25 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
+				},
+			},
+		},
+	}
+}
+
+func FunctionAppAppServiceLogsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"disk_quota_mb": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"retention_period_days": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 			},
 		},
