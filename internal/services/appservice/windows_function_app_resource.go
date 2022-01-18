@@ -847,14 +847,10 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
-			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].AppInsightsInstrumentationKey) > 0 {
-				m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
-			}
+			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
 
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
-			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].AppInsightsConnectionString) > 0 {
-				m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
-			}
+			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
 
 		case "AzureWebJobsStorage":
 			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
@@ -864,9 +860,7 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
-			if len(m.SiteConfig) > 0 && m.SiteConfig[0].HealthCheckEvictionTime > 0 {
-				m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
-			}
+			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
