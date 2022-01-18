@@ -1186,7 +1186,7 @@ resource "azurerm_linux_web_app" "test" {
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
     remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = true
+    use_32_bit_worker           = false
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"

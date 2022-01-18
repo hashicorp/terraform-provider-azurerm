@@ -780,17 +780,13 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		}
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
-	}
+	expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &windowsSlotSiteConfig.DefaultDocuments
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = utils.Bool(windowsSlotSiteConfig.Http2Enabled)
-	}
+	expanded.HTTP20Enabled = utils.Bool(windowsSlotSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.IpRestriction)
@@ -800,9 +796,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
-		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(windowsSlotSiteConfig.ScmUseMainIpRestriction)
-	}
+	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(windowsSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.ScmIpRestriction)
@@ -820,17 +814,13 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(windowsSlotSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = utils.Bool(windowsSlotSiteConfig.RemoteDebugging)
-	}
+	expanded.RemoteDebuggingEnabled = utils.Bool(windowsSlotSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
 		expanded.WebSocketsEnabled = utils.Bool(windowsSlotSiteConfig.WebSockets)
@@ -863,10 +853,6 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
 		expanded.PreWarmedInstanceCount = utils.Int32(int32(windowsSlotSiteConfig.PreWarmedInstanceCount))
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
 	expanded.AppSettings = &appSettings
@@ -1114,13 +1100,9 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		}
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)
-	}
+	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)
 
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
-	}
+	expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = utils.String(linuxSlotSiteConfig.ContainerRegistryMSI)
@@ -1130,9 +1112,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.DefaultDocuments = &linuxSlotSiteConfig.DefaultDocuments
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = utils.Bool(linuxSlotSiteConfig.Http2Enabled)
-	}
+	expanded.HTTP20Enabled = utils.Bool(linuxSlotSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.IpRestriction)
@@ -1142,9 +1122,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
-		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSlotSiteConfig.ScmUseMainIpRestriction)
-	}
+	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.ScmIpRestriction)
@@ -1170,13 +1148,9 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
 
-	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = utils.Bool(linuxSlotSiteConfig.WebSockets)
-	}
+	expanded.WebSocketsEnabled = utils.Bool(linuxSlotSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(linuxSlotSiteConfig.FtpsState)
@@ -1205,10 +1179,6 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
 		expanded.PreWarmedInstanceCount = utils.Int32(int32(linuxSlotSiteConfig.PreWarmedInstanceCount))
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
 	expanded.AppSettings = &appSettings
