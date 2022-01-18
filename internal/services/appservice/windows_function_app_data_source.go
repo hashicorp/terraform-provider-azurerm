@@ -3,8 +3,11 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -214,7 +217,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var functionApp WindowsFunctionAppModel
+			var functionApp WindowsFunctionAppDataSourceModel
 			if err := metadata.Decode(&functionApp); err != nil {
 				return err
 			}
@@ -298,9 +301,9 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 
-			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
-
 			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
+
+			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
 
 			functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -321,4 +324,66 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&functionApp)
 		},
 	}
+}
+
+func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
+	if input.Properties == nil {
+		return
+	}
+
+	appSettings := make(map[string]string)
+	var dockerSettings helpers.ApplicationStackDocker
+	m.BuiltinLogging = false
+
+	for k, v := range input.Properties {
+		switch k {
+		case "FUNCTIONS_EXTENSION_VERSION":
+			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+
+		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+		case "WEBSITE_CONTENTSHARE":
+		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
+		case "FUNCTIONS_WORKER_RUNTIME":
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
+			}
+
+		case "DOCKER_REGISTRY_SERVER_URL":
+			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
+
+		case "DOCKER_REGISTRY_SERVER_USERNAME":
+			dockerSettings.RegistryUsername = utils.NormalizeNilableString(v)
+
+		case "DOCKER_REGISTRY_SERVER_PASSWORD":
+			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
+
+		case "APPINSIGHTS_INSTRUMENTATIONKEY":
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].AppInsightsInstrumentationKey) > 0 {
+				m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
+			}
+
+		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].AppInsightsConnectionString) > 0 {
+				m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
+			}
+
+		case "AzureWebJobsStorage":
+			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+
+		case "AzureWebJobsDashboard":
+			m.BuiltinLogging = true
+
+		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
+			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
+			if len(m.SiteConfig) > 0 && m.SiteConfig[0].HealthCheckEvictionTime > 0 {
+				m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+			}
+
+		default:
+			appSettings[k] = utils.NormalizeNilableString(v)
+		}
+	}
+
+	m.AppSettings = appSettings
 }
