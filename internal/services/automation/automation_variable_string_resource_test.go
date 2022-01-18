@@ -64,7 +64,7 @@ func TestAccAutomationVariableString_update(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
 			),
 		},
-		data.ImportStep("value"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
