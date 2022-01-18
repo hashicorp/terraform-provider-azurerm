@@ -17,40 +17,40 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "example-rg"
+  name     = "West US 2"
   location = "%s"
 }
 resource "azurerm_elastic_monitor" "test" {
- name = "example_elastic_monitor"
- resource_group_name = azurerm_resource_group.test.name
- location = azurerm_resource_group.test.location
- user_info {
-  email_address = "abc@microsoft.com"
- }
- sku {
-  name = "staging_Monthly"
- }
+  name                = "example_elastic_monitor"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  user_info {
+    email_address = "abc@microsoft.com"
+  }
+  sku {
+    name = "staging_Monthly"
+  }
 }
 resource "azurerm_elastic_tag_rule" "test" {
-  name = azurerm_elastic_monitor.test.name
+  monitor_name        = azurerm_elastic_monitor.test.name
   resource_group_name = azurerm_elastic_monitor.test.resource_group_name
-  log_rules{
-   send_subscription_logs = true
-   send_activity_logs = true
-   filtering_tag {
-    name = "Test"
-    value = "Terraform"
-    action = "Exclude"
-   }
+  log_rules {
+    send_subscription_logs = true
+    send_activity_logs     = true
+    filtering_tag {
+      name   = "Test"
+      value  = "Terraform"
+      action = "Exclude"
+    }
   }
- }
+}
 ```
 
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Elastic Monitor. Changing this forces a new elastic Tag Rule to be created.
+* `monitor_name` - (Required) The name of the Elastic Monitor. Changing this forces a new elastic Tag Rule to be created.
 
 * `resource_group_name` - (Required) The resource group of of the Elastic Monitor associated with the rule. Changing this forces a new elastic Tag Rule to be created.
 

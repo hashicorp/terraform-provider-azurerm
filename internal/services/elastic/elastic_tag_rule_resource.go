@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
@@ -36,7 +37,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": {
+			"monitor_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -50,16 +51,6 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  utils.String("default"),
-			},
-
-			"id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"log_rules": {
@@ -109,11 +100,6 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -124,16 +110,21 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	name := d.Get("monitor_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	ruleSetName := d.Get("rule_set_name").(string)
 
-	id := parse.NewElasticTagRuleID(subscriptionId, resourceGroup, name, ruleSetName).ID()
+	id := parse.NewElasticTagRuleID(subscriptionId, resourceGroup, name, ruleSetName)
 
-	existing, err := client.Get(ctx, resourceGroup, name, ruleSetName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name, ruleSetName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_elastic_tag_rule", *existing.ID)
 		}
 	}
 
@@ -143,10 +134,10 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, ruleSetName, &body); err != nil {
-		return fmt.Errorf("configuring Tag Rules on Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 	return resourceElasticTagRuleRead(d, meta)
 }
 
@@ -169,7 +160,7 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	d.Set("name", id.MonitorName)
+	d.Set("monitor_name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("rule_set_name", id.TagRuleName)
 
@@ -177,10 +168,8 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
 			return fmt.Errorf("setting `log_rules`: %+v", err)
 		}
-		d.Set("provisioning_state", props.ProvisioningState)
 	}
-	d.Set("type", resp.Type)
-	d.Set("id", resp.ID)
+	d.SetId(id.ID())
 
 	return nil
 }

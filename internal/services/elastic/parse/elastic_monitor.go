@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ElasticMonitorId struct {
@@ -39,7 +39,7 @@ func (id ElasticMonitorId) ID() string {
 
 // ElasticMonitorID parses a ElasticMonitor ID into an ElasticMonitorId struct
 func ElasticMonitorID(input string) (*ElasticMonitorId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

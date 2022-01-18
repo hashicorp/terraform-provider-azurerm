@@ -17,19 +17,19 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "example-rg"
+  name     = "West US 2"
   location = "%s"
 }
 resource "azurerm_elastic_monitor" "test" {
- name = "example_elastic_monitor"
- resource_group_name = azurerm_resource_group.test.name
- location = azurerm_resource_group.test.location
- user_info {
-  email_address = "abc@microsoft.com"
- }
- sku {
-  name = "staging_Monthly"
- }
+  name                = "example_elastic_monitor"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  user_info {
+    email_address = "abc@microsoft.com"
+  }
+  sku {
+    name = "staging_Monthly"
+  }
 }
 ```
 

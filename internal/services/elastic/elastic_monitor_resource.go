@@ -51,9 +51,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 
 			"elastic_properties": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"elastic_cloud_user": {
@@ -160,11 +158,6 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"liftr_resource_category": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -172,11 +165,6 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 
 			"liftr_resource_preference": {
 				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -194,16 +182,16 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewElasticMonitorID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewElasticMonitorID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %q: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_elastic_monitor", id)
+		return tf.ImportAsExistsError("azurerm_elastic_monitor", id.ID())
 	}
 
 	monitoringStatus := elastic.MonitoringStatusDisabled
@@ -220,16 +208,16 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	future, err := client.Create(ctx, resourceGroup, name, &body)
+	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, &body)
 	if err != nil {
 		return fmt.Errorf("creating Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 	return resourceElasticMonitorRead(d, meta)
 }
 
@@ -264,12 +252,10 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
-		d.Set("provisioning_state", props.ProvisioningState)
 	}
 	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
-	d.Set("type", resp.Type)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

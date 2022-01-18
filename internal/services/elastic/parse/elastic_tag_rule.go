@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ElasticTagRuleId struct {
@@ -42,7 +42,7 @@ func (id ElasticTagRuleId) ID() string {
 
 // ElasticTagRuleID parses a ElasticTagRule ID into an ElasticTagRuleId struct
 func ElasticTagRuleID(input string) (*ElasticTagRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

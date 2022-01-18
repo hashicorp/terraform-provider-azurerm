@@ -104,7 +104,7 @@ func (r TagRuleElasticMonitorResource) basic(data acceptance.TestData) string {
 		`
 	%s
 	resource "azurerm_elastic_tag_rule" "test" {
-		name = azurerm_elastic_monitor.test.name
+		monitor_name = azurerm_elastic_monitor.test.name
 		resource_group_name = azurerm_elastic_monitor.test.resource_group_name
 		log_rules{
 			send_subscription_logs = false
@@ -124,7 +124,7 @@ func (r TagRuleElasticMonitorResource) update(data acceptance.TestData) string {
 		`
 	%s
 	resource "azurerm_elastic_tag_rule" "test" {
-		name = azurerm_elastic_monitor.test.name
+		monitor_name = azurerm_elastic_monitor.test.name
 		resource_group_name = azurerm_elastic_monitor.test.resource_group_name
 		log_rules{
 			send_subscription_logs = true
