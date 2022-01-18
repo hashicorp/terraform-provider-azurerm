@@ -276,6 +276,8 @@ resource "azurerm_mysql_server" "test" {
   backup_retention_days            = 7
   create_mode                      = "Default"
   geo_redundant_backup_enabled     = false
+  infrastructure_encryption_enabled= false
+  public_network_access_enabled    = true
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_2"
   storage_mb                       = 51200
@@ -286,6 +288,9 @@ resource "azurerm_mysql_server" "test" {
     email_account_admins = true
     email_addresses      = ["pearcec@example.com", "admin@example.com"]
     retention_days       = 7
+  }
+  tags = {
+    environment = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
