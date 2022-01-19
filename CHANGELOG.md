@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_security_center_automation ` - `event_source` can now be set to `AssessmentsSnapshot`,
 `RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
 * `azurerm_static_site` - support for the `identity` block [GH-14911]
+* `azurerm_iothub` - Support for Identity-Based Endpoint [GH-14705]
 
 BUG FIXES:
 
