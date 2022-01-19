@@ -45,7 +45,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix = "main"
+      computer_name_prefix = var.prefix
       admin_username       = "adminuser"
       admin_password       = "P@$$w0rd1234!"
      
@@ -65,7 +65,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
     ip_configuration {
       name      = "PrimaryIPConfiguration"
       primary   = true
-      subnet_id = azurerm_subnet.main.id
+      subnet_id = azurerm_subnet.internal.id
 
       public_ip_address {
         name                    = "${var.prefix}-PublicIpConfiguration"

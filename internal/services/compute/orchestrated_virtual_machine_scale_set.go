@@ -944,13 +944,20 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		// winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
 		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
-		winConfig.TimeZone = utils.String(input["timezone"].(string))
 		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
 		winConfig.WinRM = expandWinRMListener(winRmListenersRaw)
 
+		// Automatic VM Guest Patching and Hotpatching settings
 		patchSettings.PatchMode = compute.WindowsVMGuestPatchMode(input["patch_mode"].(string))
 		patchSettings.EnableHotpatching = utils.Bool(input["hotpatching_enabled"].(bool))
 		winConfig.PatchSettings = &patchSettings
+
+		// due to a change in RP behavor, it will now throw and error if we pass an empty
+		// string add check to only include it if it is actually defined in the config file
+		timeZone := input["timezone"].(string)
+		if timeZone != "" {
+			winConfig.TimeZone = utils.String(timeZone)
+		}
 	}
 
 	osProfile.WindowsConfiguration = &winConfig

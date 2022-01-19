@@ -79,13 +79,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatchingUp
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windowsVMGuestPatching(data, "AutomaticByPlatform"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-		{
 			Config: r.windowsVMGuestPatching(data, "AutomaticByOS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -94,6 +87,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatchingUp
 		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
 		{
 			Config: r.windowsVMGuestPatching(data, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+		{
+			Config: r.windowsVMGuestPatching(data, "AutomaticByOS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -215,7 +215,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
-      timezone             = "W. Europe Standard Time"
 
       patch_mode          = "AutomaticByPlatform"
       hotpatching_enabled = true
@@ -297,7 +296,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
-      timezone             = "W. Europe Standard Time"
 
       patch_mode = "%[3]s"
     }
