@@ -20,6 +20,7 @@ ENHANCEMENTS:
 `RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
 * `azurerm_static_site` - support for the `identity` block [GH-14911]
 * `azurerm_iothub` - Support for Identity-Based Endpoint [GH-14705]
+* `azurerm_servicebus_namespace_network_rule_set` -  support for `public_network_access_enabled` [GH-14967]
 
 BUG FIXES:
 
