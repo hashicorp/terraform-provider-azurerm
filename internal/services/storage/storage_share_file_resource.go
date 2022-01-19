@@ -169,7 +169,6 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("'stat'-ing File %q (File Share %q / Account %q): %+v", fileName, storageShareID.Name, storageShareID.AccountName, err)
 		}
 
-		d.Set("content_length", int(info.Size()))
 		input.ContentLength = info.Size()
 	}
 
@@ -311,6 +310,12 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("content_encoding", props.ContentEncoding)
 	d.Set("content_md5", props.ContentMD5)
 	d.Set("content_disposition", props.ContentDisposition)
+
+	if props.ContentLength == nil {
+		return fmt.Errorf("file share file properties %q returned no information about the content-length", id.FileName)
+	}
+
+	d.Set("content_length", int(*props.ContentLength))
 
 	return nil
 }
