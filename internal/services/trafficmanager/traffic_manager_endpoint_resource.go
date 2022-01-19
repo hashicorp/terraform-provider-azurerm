@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,10 +62,11 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"azureEndpoints",
-					"nestedEndpoints",
-					"externalEndpoints",
-				}, false),
+					string(endpoints.EndpointTypeAzureEndpoints),
+					string(endpoints.EndpointTypeNestedEndpoints),
+					string(endpoints.EndpointTypeExternalEndpoints),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"target": {
@@ -82,8 +86,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.EndpointStatusDisabled),
-					string(trafficmanager.EndpointStatusEnabled),
+					string(endpoints.EndpointStatusDisabled),
+					string(endpoints.EndpointStatusEnabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -201,28 +205,25 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *pluginsdk.ResourceData, me
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId, err := parse.NewEndpointId(subscriptionId, resourceGroup, profileName, endpointType, name)
-	if err != nil {
-		return err
-	}
+	resourceId := endpoints.NewEndpointTypeID(subscriptionId, resourceGroup, profileName, endpoints.EndpointType(endpointType), name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
+		existing, err := client.Get(ctx, resourceId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID())
 		}
 	}
 
-	params := trafficmanager.Endpoint{
-		Name:               &name,
-		Type:               &fullEndpointType,
-		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
+	params := endpoints.Endpoint{
+		Name:       &name,
+		Type:       &fullEndpointType,
+		Properties: getArmTrafficManagerEndpointProperties(d),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
@@ -300,11 +301,11 @@ func resourceArmTrafficManagerEndpointDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *trafficmanager.EndpointProperties {
+func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoints.EndpointProperties {
 	target := d.Get("target").(string)
 	status := d.Get("endpoint_status").(string)
 
-	endpointProps := trafficmanager.EndpointProperties{
+	endpointProps := endpoints.EndpointProperties{
 		Target:         &target,
 		EndpointStatus: trafficmanager.EndpointStatus(status),
 	}
