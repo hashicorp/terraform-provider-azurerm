@@ -83,6 +83,12 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"partition_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
@@ -135,6 +141,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 				EventHubStreamInputDataSourceProperties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
+			PartitionKey:  utils.String(d.Get("partition_key").(string)),
 		},
 	}
 
@@ -190,6 +197,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		d.Set("eventhub_name", eventHub.EventHubName)
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
+		d.Set("partition_key", v.PartitionKey)
 
 		consumerGroupName := ""
 		if eventHub.ConsumerGroupName != nil {
