@@ -25,13 +25,13 @@ output "id" {
 }
 ```
 
-## Arguments Reference
+## Arguments Referencez
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Linux Function App. Changing this forces a new Linux Function App to be created.
+* `name` - (Required) The name which should be used for this Linux Function App.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist.
 
 ## Attributes Reference
 
