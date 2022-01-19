@@ -1000,7 +1000,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("extended_location"); ok {
 		parameters.ExtendedLocation = &storage.ExtendedLocation{
 			Name: utils.String(v.(string)),
-			Type: storage.EdgeZone,
+			Type: storage.ExtendedLocationTypesEdgeZone,
 		}
 	}
 
