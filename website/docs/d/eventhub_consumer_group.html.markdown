@@ -14,10 +14,10 @@ Use this data source to access information about an existing Event Hubs Consumer
 
 ```hcl
 data "azurerm_eventhub_consumer_group" "test" {
-  name                = "${azurerm_eventhub_consumer_group.test.name}"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_eventhub_consumer_group.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 ```
 

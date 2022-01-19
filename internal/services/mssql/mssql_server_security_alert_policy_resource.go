@@ -113,6 +113,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 
 func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -136,12 +137,12 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceDat
 	if err != nil {
 		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
-
-	if result.ID == nil {
-		return fmt.Errorf("reading mssql server security alert policy id (server %q, resource group %q)", serverName, resourceGroupName)
+	if result.Name == nil {
+		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", serverName, resourceGroupName)
 	}
+	id := parse.NewServerSecurityAlertPolicyID(subscriptionId, resourceGroupName, serverName, *result.Name)
 
-	d.SetId(*result.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }

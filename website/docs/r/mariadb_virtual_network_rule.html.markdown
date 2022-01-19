@@ -100,5 +100,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 MariaDB Virtual Network Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mariadb_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/MariaDB/servers/myserver/virtualNetworkRules/vnetrulename
+terraform import azurerm_mariadb_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforMariaDB/servers/myserver/virtualNetworkRules/vnetrulename
 ```

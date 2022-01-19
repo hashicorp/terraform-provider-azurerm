@@ -21,6 +21,7 @@ This will be in the form of new, more targeted Data Sources and Resources coveri
 * **New Data Source:** `azurerm_source_control_token`
 * **New Data Source:** `azurerm_windows_web_app`
 * **New Resource:** `azurerm_app_service_source_control`
+* **New Resource:** `azurerm_linux_function_app`
 * **New Resource:** `azurerm_linux_web_app`
 * **New Resource:** `azurerm_service_plan`
 * **New Resource:** `azurerm_source_control_token`

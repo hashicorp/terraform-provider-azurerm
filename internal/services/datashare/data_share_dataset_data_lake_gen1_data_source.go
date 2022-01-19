@@ -62,26 +62,25 @@ func dataSourceDataShareDatasetDataLakeGen1Read(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	shareID := d.Get("data_share_id").(string)
-	shareId, err := parse.ShareID(shareID)
+	shareId, err := parse.ShareID(d.Get("data_share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
 
-	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	respModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving DataShare Data Lake Gen1 DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
 	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Data Lake Gen1 DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
-	d.SetId(*respId)
-	d.Set("name", name)
-	d.Set("data_share_id", shareID)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("data_share_id", shareId.ID())
 
 	switch resp := respModel.Value.(type) {
 	case datashare.ADLSGen1FileDataSet:
@@ -104,7 +103,7 @@ func dataSourceDataShareDatasetDataLakeGen1Read(d *pluginsdk.ResourceData, meta 
 		}
 
 	default:
-		return fmt.Errorf("data share dataset %q (Resource Group %q / accountName %q / shareName %q) is not a datalake store gen1 dataset", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("%s is not a datalake store gen1 dataset", id)
 	}
 
 	return nil

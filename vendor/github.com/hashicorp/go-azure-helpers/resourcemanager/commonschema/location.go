@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func LocationSchema() *schema.Schema {
+func Location() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,
@@ -16,7 +16,7 @@ func LocationSchema() *schema.Schema {
 	}
 }
 
-func LocationSchemaOptional() *schema.Schema {
+func LocationOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Optional:         true,
@@ -26,14 +26,14 @@ func LocationSchemaOptional() *schema.Schema {
 	}
 }
 
-func LocationSchemaComputed() *schema.Schema {
+func LocationComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
 	}
 }
 
-func LocationSchemaWithoutForceNew() *schema.Schema {
+func LocationWithoutForceNew() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,

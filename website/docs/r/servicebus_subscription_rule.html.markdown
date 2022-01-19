@@ -76,28 +76,22 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_topic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_servicebus_subscription"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  max_delivery_count  = 1
+  name               = "tfex_servicebus_subscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
-  name                = "tfex_servicebus_rule"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  subscription_name   = azurerm_servicebus_subscription.example.name
-  filter_type         = "CorrelationFilter"
+  name            = "tfex_servicebus_rule"
+  subscription_id = azurerm_servicebus_subscription.example.id
+  filter_type     = "CorrelationFilter"
 
   correlation_filter {
     correlation_id = "high"
@@ -115,13 +109,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription Rule. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace in which the ServiceBus Topic exists. Changing this forces a new resource to be created.
-
-* `topic_name` - (Required) The name of the ServiceBus Topic in which the ServiceBus Subscription exists. Changing this forces a new resource to be created.
-
-* `subscription_name` - (Required) The name of the ServiceBus Subscription in which this Rule should be created. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in the ServiceBus Namespace exists. Changing this forces a new resource to be created.
+* `subscription_id` - (Required) The ID of the ServiceBus Subscription in which this Rule should be created. Changing this forces a new resource to be created.
 
 * `filter_type` - (Required) Type of filter to be applied to a BrokeredMessage. Possible values are `SqlFilter` and `CorrelationFilter`.
 

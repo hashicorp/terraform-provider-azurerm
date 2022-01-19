@@ -28,17 +28,16 @@ resource "azurerm_container_registry" "acr" {
   location            = azurerm_resource_group.rg.location
   sku                 = "Premium"
   admin_enabled       = false
-  georeplications = [
-    {
-      location                = "East US"
-      zone_redundancy_enabled = true
-      tags                    = {}
-    },
-    {
-      location                = "westeurope"
-      zone_redundancy_enabled = true
-      tags                    = {}
-  }]
+  georeplications {
+    location                = "East US"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
+  georeplications {
+    location                = "westeurope"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
 }
 ```
 
@@ -138,6 +137,12 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `encryption` - (Optional) An `encryption` block as documented below.
+
+* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? Defaults to `false`. This is only supported on resources with the `Standard` or `Premium` SKU.
+
+* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? Defaults to `false`. This is only supported on resources with the `Premium` SKU.
+
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 

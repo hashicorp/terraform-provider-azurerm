@@ -2155,6 +2155,8 @@ type TypeBasicDataFlow string
 const (
 	// TypeBasicDataFlowTypeDataFlow ...
 	TypeBasicDataFlowTypeDataFlow TypeBasicDataFlow = "DataFlow"
+	// TypeBasicDataFlowTypeFlowlet ...
+	TypeBasicDataFlowTypeFlowlet TypeBasicDataFlow = "Flowlet"
 	// TypeBasicDataFlowTypeMappingDataFlow ...
 	TypeBasicDataFlowTypeMappingDataFlow TypeBasicDataFlow = "MappingDataFlow"
 	// TypeBasicDataFlowTypeWranglingDataFlow ...
@@ -2163,7 +2165,7 @@ const (
 
 // PossibleTypeBasicDataFlowValues returns an array of possible values for the TypeBasicDataFlow const type.
 func PossibleTypeBasicDataFlowValues() []TypeBasicDataFlow {
-	return []TypeBasicDataFlow{TypeBasicDataFlowTypeDataFlow, TypeBasicDataFlowTypeMappingDataFlow, TypeBasicDataFlowTypeWranglingDataFlow}
+	return []TypeBasicDataFlow{TypeBasicDataFlowTypeDataFlow, TypeBasicDataFlowTypeFlowlet, TypeBasicDataFlowTypeMappingDataFlow, TypeBasicDataFlowTypeWranglingDataFlow}
 }
 
 // TypeBasicDataset enumerates the values for type basic dataset.
@@ -2367,31 +2369,6 @@ const (
 // PossibleTypeBasicDatasetValues returns an array of possible values for the TypeBasicDataset const type.
 func PossibleTypeBasicDatasetValues() []TypeBasicDataset {
 	return []TypeBasicDataset{TypeBasicDatasetTypeAmazonMWSObject, TypeBasicDatasetTypeAmazonRdsForOracleTable, TypeBasicDatasetTypeAmazonRdsForSQLServerTable, TypeBasicDatasetTypeAmazonRedshiftTable, TypeBasicDatasetTypeAmazonS3Object, TypeBasicDatasetTypeAvro, TypeBasicDatasetTypeAzureBlob, TypeBasicDatasetTypeAzureBlobFSFile, TypeBasicDatasetTypeAzureDatabricksDeltaLakeDataset, TypeBasicDatasetTypeAzureDataExplorerTable, TypeBasicDatasetTypeAzureDataLakeStoreFile, TypeBasicDatasetTypeAzureMariaDBTable, TypeBasicDatasetTypeAzureMySQLTable, TypeBasicDatasetTypeAzurePostgreSQLTable, TypeBasicDatasetTypeAzureSearchIndex, TypeBasicDatasetTypeAzureSQLDWTable, TypeBasicDatasetTypeAzureSQLMITable, TypeBasicDatasetTypeAzureSQLTable, TypeBasicDatasetTypeAzureTable, TypeBasicDatasetTypeBinary, TypeBasicDatasetTypeCassandraTable, TypeBasicDatasetTypeCommonDataServiceForAppsEntity, TypeBasicDatasetTypeConcurObject, TypeBasicDatasetTypeCosmosDbMongoDbAPICollection, TypeBasicDatasetTypeCosmosDbSQLAPICollection, TypeBasicDatasetTypeCouchbaseTable, TypeBasicDatasetTypeCustomDataset, TypeBasicDatasetTypeDataset, TypeBasicDatasetTypeDb2Table, TypeBasicDatasetTypeDelimitedText, TypeBasicDatasetTypeDocumentDbCollection, TypeBasicDatasetTypeDrillTable, TypeBasicDatasetTypeDynamicsAXResource, TypeBasicDatasetTypeDynamicsCrmEntity, TypeBasicDatasetTypeDynamicsEntity, TypeBasicDatasetTypeEloquaObject, TypeBasicDatasetTypeExcel, TypeBasicDatasetTypeFileShare, TypeBasicDatasetTypeGoogleAdWordsObject, TypeBasicDatasetTypeGoogleBigQueryObject, TypeBasicDatasetTypeGreenplumTable, TypeBasicDatasetTypeHBaseObject, TypeBasicDatasetTypeHiveObject, TypeBasicDatasetTypeHTTPFile, TypeBasicDatasetTypeHubspotObject, TypeBasicDatasetTypeImpalaObject, TypeBasicDatasetTypeInformixTable, TypeBasicDatasetTypeJiraObject, TypeBasicDatasetTypeJSON, TypeBasicDatasetTypeMagentoObject, TypeBasicDatasetTypeMariaDBTable, TypeBasicDatasetTypeMarketoObject, TypeBasicDatasetTypeMicrosoftAccessTable, TypeBasicDatasetTypeMongoDbAtlasCollection, TypeBasicDatasetTypeMongoDbCollection, TypeBasicDatasetTypeMongoDbV2Collection, TypeBasicDatasetTypeMySQLTable, TypeBasicDatasetTypeNetezzaTable, TypeBasicDatasetTypeODataResource, TypeBasicDatasetTypeOdbcTable, TypeBasicDatasetTypeOffice365Table, TypeBasicDatasetTypeOracleServiceCloudObject, TypeBasicDatasetTypeOracleTable, TypeBasicDatasetTypeOrc, TypeBasicDatasetTypeParquet, TypeBasicDatasetTypePaypalObject, TypeBasicDatasetTypePhoenixObject, TypeBasicDatasetTypePostgreSQLTable, TypeBasicDatasetTypePrestoObject, TypeBasicDatasetTypeQuickBooksObject, TypeBasicDatasetTypeRelationalTable, TypeBasicDatasetTypeResponsysObject, TypeBasicDatasetTypeRestResource, TypeBasicDatasetTypeSalesforceMarketingCloudObject, TypeBasicDatasetTypeSalesforceObject, TypeBasicDatasetTypeSalesforceServiceCloudObject, TypeBasicDatasetTypeSapBwCube, TypeBasicDatasetTypeSapCloudForCustomerResource, TypeBasicDatasetTypeSapEccResource, TypeBasicDatasetTypeSapHanaTable, TypeBasicDatasetTypeSapOpenHubTable, TypeBasicDatasetTypeSapTableResource, TypeBasicDatasetTypeServiceNowObject, TypeBasicDatasetTypeSharePointOnlineListResource, TypeBasicDatasetTypeShopifyObject, TypeBasicDatasetTypeSnowflakeTable, TypeBasicDatasetTypeSparkObject, TypeBasicDatasetTypeSQLServerTable, TypeBasicDatasetTypeSquareObject, TypeBasicDatasetTypeSybaseTable, TypeBasicDatasetTypeTeradataTable, TypeBasicDatasetTypeVerticaTable, TypeBasicDatasetTypeWebTable, TypeBasicDatasetTypeXeroObject, TypeBasicDatasetTypeXML, TypeBasicDatasetTypeZohoObject}
-}
-
-// TypeBasicDatasetCompression enumerates the values for type basic dataset compression.
-type TypeBasicDatasetCompression string
-
-const (
-	// TypeBasicDatasetCompressionTypeBZip2 ...
-	TypeBasicDatasetCompressionTypeBZip2 TypeBasicDatasetCompression = "BZip2"
-	// TypeBasicDatasetCompressionTypeDatasetCompression ...
-	TypeBasicDatasetCompressionTypeDatasetCompression TypeBasicDatasetCompression = "DatasetCompression"
-	// TypeBasicDatasetCompressionTypeDeflate ...
-	TypeBasicDatasetCompressionTypeDeflate TypeBasicDatasetCompression = "Deflate"
-	// TypeBasicDatasetCompressionTypeGZip ...
-	TypeBasicDatasetCompressionTypeGZip TypeBasicDatasetCompression = "GZip"
-	// TypeBasicDatasetCompressionTypeTar ...
-	TypeBasicDatasetCompressionTypeTar TypeBasicDatasetCompression = "Tar"
-	// TypeBasicDatasetCompressionTypeTarGZip ...
-	TypeBasicDatasetCompressionTypeTarGZip TypeBasicDatasetCompression = "TarGZip"
-	// TypeBasicDatasetCompressionTypeZipDeflate ...
-	TypeBasicDatasetCompressionTypeZipDeflate TypeBasicDatasetCompression = "ZipDeflate"
-)
-
-// PossibleTypeBasicDatasetCompressionValues returns an array of possible values for the TypeBasicDatasetCompression const type.
-func PossibleTypeBasicDatasetCompressionValues() []TypeBasicDatasetCompression {
-	return []TypeBasicDatasetCompression{TypeBasicDatasetCompressionTypeBZip2, TypeBasicDatasetCompressionTypeDatasetCompression, TypeBasicDatasetCompressionTypeDeflate, TypeBasicDatasetCompressionTypeGZip, TypeBasicDatasetCompressionTypeTar, TypeBasicDatasetCompressionTypeTarGZip, TypeBasicDatasetCompressionTypeZipDeflate}
 }
 
 // TypeBasicDatasetLocation enumerates the values for type basic dataset location.

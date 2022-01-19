@@ -52,6 +52,36 @@ func TestAccEventGridTopic_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccEventGridTopic_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridTopic_mapping(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 	r := EventGridTopicResource{}
@@ -185,6 +215,26 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, location, data.RandomInteger)
+}
+
+func (EventGridTopicResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "westus2"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  local_auth_enabled  = false
+}
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func (EventGridTopicResource) requiresImport(data acceptance.TestData) string {

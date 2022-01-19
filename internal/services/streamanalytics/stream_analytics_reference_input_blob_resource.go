@@ -111,7 +111,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", id.ID())
 		}
 	}

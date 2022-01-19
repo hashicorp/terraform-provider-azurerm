@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
 
-* `reservation_capcity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
+* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
 
-~> **NOTE:** `reservation_capcity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
+~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

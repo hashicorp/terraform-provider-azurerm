@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = SecurityRuleId{}
+var _ resourceids.Id = SecurityRuleId{}
 
 func TestSecurityRuleIDFormatter(t *testing.T) {
 	actual := NewSecurityRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "acceptanceTestSecurityGroup1", "securityRules1").ID()

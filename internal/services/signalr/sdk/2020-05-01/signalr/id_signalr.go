@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = SignalRId{}
+
+// SignalRId is a struct representing the Resource ID for a Signal R
 type SignalRId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	SignalRName    string
+	SubscriptionId    string
+	ResourceGroupName string
+	ResourceName      string
 }
 
-func NewSignalRID(subscriptionId, resourceGroup, signalRName string) SignalRId {
+// NewSignalRID returns a new SignalRId struct
+func NewSignalRID(subscriptionId string, resourceGroupName string, resourceName string) SignalRId {
 	return SignalRId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		SignalRName:    signalRName,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		ResourceName:      resourceName,
 	}
 }
 
-func (id SignalRId) String() string {
-	segments := []string{
-		fmt.Sprintf("Signal R Name %q", id.SignalRName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Signal R", segmentsStr)
-}
-
-func (id SignalRId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/SignalR/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SignalRName)
-}
-
-// ParseSignalRID parses a SignalR ID into an SignalRId struct
+// ParseSignalRID parses 'input' into a SignalRId
 func ParseSignalRID(input string) (*SignalRId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
+	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parsed, err := parser.Parse(input, false)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	resourceId := SignalRId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+	var ok bool
+	id := SignalRId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
 	}
 
-	if resourceId.SignalRName, err = id.PopSegment("SignalR"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return &id, nil
 }
 
-// ParseSignalRIDInsensitively parses an SignalR ID into an SignalRId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseSignalRID method should be used instead for validation etc.
+// ParseSignalRIDInsensitively parses 'input' case-insensitively into a SignalRId
+// note: this method should only be used for API response data and not user input
 func ParseSignalRIDInsensitively(input string) (*SignalRId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
+	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parsed, err := parser.Parse(input, true)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	resourceId := SignalRId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+	var ok bool
+	id := SignalRId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
 	}
 
-	// find the correct casing for the 'SignalR' segment
-	SignalRKey := "SignalR"
-	for key := range id.Path {
-		if strings.EqualFold(key, SignalRKey) {
-			SignalRKey = key
-			break
-		}
-	}
-	if resourceId.SignalRName, err = id.PopSegment(SignalRKey); err != nil {
-		return nil, err
+	return &id, nil
+}
+
+// ValidateSignalRID checks that 'input' can be parsed as a Signal R ID
+func ValidateSignalRID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
 	}
 
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
+	if _, err := ParseSignalRID(v); err != nil {
+		errors = append(errors, err)
 	}
 
-	return &resourceId, nil
+	return
+}
+
+// ID returns the formatted Signal R ID
+func (id SignalRId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/signalR/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+}
+
+// Segments returns a slice of Resource ID Segments which comprise this Signal R ID
+func (id SignalRId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
+		resourceids.StaticSegment("signalR", "signalR", "signalR"),
+		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+	}
+}
+
+// String returns a human-readable description of this Signal R ID
+func (id SignalRId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+	}
+	return fmt.Sprintf("Signal R (%s)", strings.Join(components, "\n"))
 }

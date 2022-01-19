@@ -45,7 +45,7 @@ type ServicePlanModel struct {
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"`
-	NumberOfWorkers           int               `tfschema:"number_of_workers"`
+	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
 	Tags                      map[string]string `tfschema:"tags"`
 	// TODO properties
@@ -79,10 +79,10 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 				"P1v3", "P2v3", "P3v3",
 				"S1", "S2", "S3",
 				"SHARED",
-				"PC2", "PC3", "PC4", // Consumption Plans - Function Apps
+				"PC2", "PC3", "PC4", "Y1", // Consumption Plans - Function Apps
 				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
+				"WS1", "WS2", "WS3", // Workflow plans - Logic Apps
 			}, false),
-			// TODO - need to look at Isolated as separate property via ExactlyOneOf?
 		},
 
 		"os_type": {
@@ -108,7 +108,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"number_of_workers": {
+		"worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
@@ -199,8 +199,8 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(servicePlan.MaximumElasticWorkerCount))
 			}
 
-			if servicePlan.NumberOfWorkers != 0 {
-				appServicePlan.Sku.Capacity = utils.Int32(int32(servicePlan.NumberOfWorkers))
+			if servicePlan.WorkerCount != 0 {
+				appServicePlan.Sku.Capacity = utils.Int32(int32(servicePlan.WorkerCount))
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerfarmName, appServicePlan)
@@ -249,7 +249,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				if sku.Name != nil {
 					state.Sku = *sku.Name
 					if sku.Capacity != nil {
-						state.NumberOfWorkers = int(*sku.Capacity)
+						state.WorkerCount = int(*sku.Capacity)
 					}
 				}
 			}
@@ -341,8 +341,8 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("number_of_workers") {
-				existing.Sku.Capacity = utils.Int32(int32(state.NumberOfWorkers))
+			if metadata.ResourceData.HasChange("worker_count") {
+				existing.Sku.Capacity = utils.Int32(int32(state.WorkerCount))
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {

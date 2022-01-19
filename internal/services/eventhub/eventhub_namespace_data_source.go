@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -131,8 +130,8 @@ func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -149,12 +148,12 @@ func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	defaultRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
+	defaultRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, eventHubNamespaceDefaultAuthorizationRule)
 	keys, err := authorizationRulesClient.NamespacesListKeys(ctx, defaultRuleId)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for %s: %+v", id, err)

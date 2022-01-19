@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type IotHubDpsId struct {
@@ -39,7 +39,7 @@ func (id IotHubDpsId) ID() string {
 
 // IotHubDpsID parses a IotHubDps ID into an IotHubDpsId struct
 func IotHubDpsID(input string) (*IotHubDpsId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

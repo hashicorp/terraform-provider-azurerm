@@ -268,7 +268,7 @@ func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.
 
 	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

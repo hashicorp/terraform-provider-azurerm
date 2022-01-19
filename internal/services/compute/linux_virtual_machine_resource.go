@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -220,6 +220,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
 					string(compute.LinuxVMGuestPatchModeImageDefault),
 				}, false),
+				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
 			"proximity_placement_group_id": {
@@ -231,6 +232,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"secret": linuxSecretSchema(),
+
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -255,6 +262,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"platform_fault_domain": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -265,6 +278,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
 
 			"zone": {
 				Type:     pluginsdk.TypeString,
@@ -312,19 +331,19 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
@@ -349,7 +368,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
-		computerName = name
+		computerName = id.Name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -385,7 +404,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		Identity: identity,
 		Plan:     plan,
@@ -450,6 +469,28 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if secureBootEnabled, ok := d.GetOk("secure_boot_enabled"); ok && secureBootEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
+	}
+
 	if !provisionVMAgent && allowExtensionOperations {
 		return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 	}
@@ -507,6 +548,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	if v, ok := d.GetOk("user_data"); ok {
+		params.UserData = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("zone"); ok {
 		params.Zones = &[]string{
 			v.(string),
@@ -525,25 +570,16 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
@@ -560,7 +596,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Linux Virtual Machine %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -675,6 +711,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
+			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
+				patchMode = string(patchSettings.PatchMode)
+			}
+			d.Set("patch_mode", patchMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -716,12 +757,30 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	vtpmEnabled := false
+	secureBootEnabled := false
+
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		if secprofile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+		}
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			if uefi.VTpmEnabled != nil {
+				vtpmEnabled = *uefi.VTpmEnabled
+			}
+			if uefi.SecureBootEnabled != nil {
+				secureBootEnabled = *uefi.SecureBootEnabled
+			}
+		}
 	}
+
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
+
+	d.Set("user_data", props.UserData)
 
 	zone := ""
 	if resp.Zones != nil {
@@ -756,7 +815,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
@@ -959,9 +1018,24 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("patch_mode") {
-		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string)),
+		shouldUpdate = true
+		patchSettings := &compute.LinuxPatchSettings{}
+
+		if patchMode, ok := d.GetOk("patch_mode"); ok {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode.(string))
+		} else {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchModeImageDefault
 		}
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
 	}
 
 	if d.HasChange("allow_extension_operations") {
@@ -1002,6 +1076,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("user_data") {
+		shouldUpdate = true
+		update.UserData = utils.String(d.Get("user_data").(string))
 	}
 
 	if instanceView.Statuses != nil {
@@ -1052,7 +1131,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if shouldDeallocate {
 		if !hasEphemeralOSDisk {
 			log.Printf("[DEBUG] Deallocating Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
+			// Upgrade to 2021-07-01 added a hibernate parameter to this call defaulting to false
+			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
 				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
@@ -1101,12 +1181,17 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			diskName := d.Get("os_disk.0.name").(string)
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                *encryptionType,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},

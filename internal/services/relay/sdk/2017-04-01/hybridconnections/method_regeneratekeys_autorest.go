@@ -15,7 +15,7 @@ type RegenerateKeysResponse struct {
 }
 
 // RegenerateKeys ...
-func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id AuthorizationRuleId, input RegenerateAccessKeyParameters) (result RegenerateKeysResponse, err error) {
+func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId, input RegenerateAccessKeyParameters) (result RegenerateKeysResponse, err error) {
 	req, err := c.preparerForRegenerateKeys(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "RegenerateKeys", nil, "Failure preparing request")
@@ -38,7 +38,7 @@ func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id Authoriz
 }
 
 // preparerForRegenerateKeys prepares the RegenerateKeys request.
-func (c HybridConnectionsClient) preparerForRegenerateKeys(ctx context.Context, id AuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
+func (c HybridConnectionsClient) preparerForRegenerateKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

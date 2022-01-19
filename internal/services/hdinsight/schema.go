@@ -372,6 +372,7 @@ func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} 
 			"oozie.service.JPAService.jdbc.username": username,
 			"oozie.service.JPAService.jdbc.password": password,
 			"oozie.db.pluginsdk.name":                "oozie",
+			"oozie.db.schema.name":                   "oozie",
 		},
 		"oozie-env": map[string]interface{}{
 			"oozie_database":                       "Existing MSSQL Server database with SQL authentication",

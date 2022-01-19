@@ -65,9 +65,9 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should Client Affinity be enabled?
 
-* `client_cert_enabled` - (Optional) Should Client Certificates be enabled?
+* `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_cert_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -411,7 +411,7 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
+* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
@@ -427,19 +427,19 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to the Health Check.
 
+* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
-* `local_mysql` - (Optional) Use Local MySQL. Defaults to `false`.
+* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`. 
-
-* `number_of_workers` - (Optional) The number of Workers for this Windows App Service. 
 
 * `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
@@ -456,6 +456,8 @@ A `site_config` block supports the following:
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
 * `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+
+* `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
 ---
 

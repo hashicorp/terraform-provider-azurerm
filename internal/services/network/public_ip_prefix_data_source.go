@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,20 +55,20 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 
 func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	id := parse.NewPublicIpPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.PublicIPPrefixeName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Public IP prefix %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Public IP Prefix %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

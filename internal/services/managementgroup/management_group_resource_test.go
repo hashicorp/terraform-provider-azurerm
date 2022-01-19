@@ -17,7 +17,7 @@ import (
 type ManagementGroupResource struct {
 }
 
-func TestAcc_basic(t *testing.T) {
+func TestAccManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 

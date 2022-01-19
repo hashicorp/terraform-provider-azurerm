@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ContainerRegistryScopeMapId struct {
@@ -42,7 +42,7 @@ func (id ContainerRegistryScopeMapId) ID() string {
 
 // ContainerRegistryScopeMapID parses a ContainerRegistryScopeMap ID into an ContainerRegistryScopeMapId struct
 func ContainerRegistryScopeMapID(input string) (*ContainerRegistryScopeMapId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -121,29 +123,25 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 
 func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Firewall Policy %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(*resp.ID)
-
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if prop := resp.FirewallPolicyPropertiesFormat; prop != nil {

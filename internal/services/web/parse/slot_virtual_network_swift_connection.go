@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SlotVirtualNetworkSwiftConnectionId struct {
@@ -45,7 +45,7 @@ func (id SlotVirtualNetworkSwiftConnectionId) ID() string {
 
 // SlotVirtualNetworkSwiftConnectionID parses a SlotVirtualNetworkSwiftConnection ID into an SlotVirtualNetworkSwiftConnectionId struct
 func SlotVirtualNetworkSwiftConnectionID(input string) (*SlotVirtualNetworkSwiftConnectionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

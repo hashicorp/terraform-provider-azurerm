@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MariaDBFirewallRuleId struct {
@@ -42,7 +42,7 @@ func (id MariaDBFirewallRuleId) ID() string {
 
 // MariaDBFirewallRuleID parses a MariaDBFirewallRule ID into an MariaDBFirewallRuleId struct
 func MariaDBFirewallRuleID(input string) (*MariaDBFirewallRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

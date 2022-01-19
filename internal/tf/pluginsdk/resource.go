@@ -29,8 +29,8 @@ type (
 type (
 	// lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
 	CreateFunc = schema.CreateFunc //nolint:staticcheck
-	DeleteFunc = schema.DeleteFunc
-	ExistsFunc = schema.ExistsFunc
-	ReadFunc   = schema.ReadFunc
-	UpdateFunc = schema.UpdateFunc
+	DeleteFunc = schema.DeleteFunc //nolint:staticcheck
+	ExistsFunc = schema.ExistsFunc //nolint:staticcheck
+	ReadFunc   = schema.ReadFunc   //nolint:staticcheck
+	UpdateFunc = schema.UpdateFunc //nolint:staticcheck
 )

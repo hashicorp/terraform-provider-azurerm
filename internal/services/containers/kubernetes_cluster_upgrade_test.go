@@ -9,22 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesUpgradeTests = map[string]func(t *testing.T){
-	"UpgradeAutoScaleMinCount":                      testAccKubernetesCluster_upgradeAutoScaleMinCount,
-	"upgradeControlPlane":                           testAccKubernetesCluster_upgradeControlPlane,
-	"upgradeControlPlaneAndDefaultNodePoolTogether": testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether,
-	"upgradeControlPlaneAndDefaultNodePoolTwoPhase": testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase,
-	"upgradeNodePoolBeforeControlPlaneFails":        testAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails,
-	"upgradeCustomNodePoolAfterControlPlane":        testAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane,
-	"upgradeCustomNodePoolBeforeControlPlaneFails":  testAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails,
-}
-
 func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeAutoScaleMinCount(t)
-}
-
-func testAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -47,11 +32,6 @@ func testAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeControlPlane(t)
-}
-
-func testAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -80,11 +60,6 @@ func testAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t)
-}
-
-func testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -111,11 +86,6 @@ func testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *t
 }
 
 func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t)
-}
-
-func testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -151,11 +121,6 @@ func testAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *t
 }
 
 func TestAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t)
-}
-
-func testAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -177,11 +142,6 @@ func testAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.
 }
 
 func TestAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t)
-}
-
-func testAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
@@ -224,11 +184,6 @@ func testAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.
 }
 
 func TestAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t)
-}
-
-func testAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"

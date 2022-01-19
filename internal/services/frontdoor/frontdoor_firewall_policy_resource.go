@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -480,7 +481,7 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 			CustomRules:  expandFrontDoorFirewallCustomRules(customRules),
 			ManagedRules: expandFrontDoorFirewallManagedRules(managedRules),
 		},
-		Tags: expandTags(t),
+		Tags: tagsHelper.Expand(t),
 	}
 
 	if redirectUrl != "" {
@@ -521,8 +522,8 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.PolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if location := model.Location; location != nil {
@@ -554,7 +555,7 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 	return nil
 }
@@ -934,7 +935,6 @@ func flattenArmFrontdoorFirewallRules(override *[]webapplicationfirewallpolicies
 
 		if o.EnabledState != nil {
 			output["enabled"] = *o.EnabledState == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
-
 		}
 		if o.Action != nil {
 			output["action"] = string(*o.Action)

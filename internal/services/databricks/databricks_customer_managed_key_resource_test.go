@@ -111,7 +111,7 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 
 	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	// This is the only way we can tell if the CMK has actually been provisioned or not...
@@ -146,7 +146,8 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "premium"
 
-  customer_managed_key_enabled = true
+  customer_managed_key_enabled      = true
+  infrastructure_encryption_enabled = true
 }
 
 %[4]s

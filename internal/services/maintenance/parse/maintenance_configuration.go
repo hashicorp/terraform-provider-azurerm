@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MaintenanceConfigurationId struct {
@@ -39,7 +39,7 @@ func (id MaintenanceConfigurationId) ID() string {
 
 // MaintenanceConfigurationID parses a MaintenanceConfiguration ID into an MaintenanceConfigurationId struct
 func MaintenanceConfigurationID(input string) (*MaintenanceConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func MaintenanceConfigurationID(input string) (*MaintenanceConfigurationId, erro
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func MaintenanceConfigurationIDInsensitively(input string) (*MaintenanceConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

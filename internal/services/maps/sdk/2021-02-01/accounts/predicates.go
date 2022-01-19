@@ -8,6 +8,7 @@ type MapsAccountPredicate struct {
 }
 
 func (p MapsAccountPredicate) Matches(input MapsAccount) bool {
+
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

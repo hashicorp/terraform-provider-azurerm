@@ -98,9 +98,11 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		// if state is not disabled, we should import it.
-		if existing.ID != nil && *existing.ID != "" && existing.ExtendedSQLPoolBlobAuditingPolicyProperties != nil && existing.ExtendedSQLPoolBlobAuditingPolicyProperties.State != synapse.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_synapse_sql_pool_extended_auditing_policy", *existing.ID)
+		// if state is not disabled, we should flag to import it.
+		if !utils.ResponseWasNotFound(existing.Response) {
+			if props := existing.ExtendedSQLPoolBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_synapse_sql_pool_extended_auditing_policy", id.ID())
+			}
 		}
 	}
 
@@ -124,7 +126,6 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 	}
 
 	d.SetId(id.ID())
-
 	return resourceSynapseSqlPoolExtendedAuditingPolicyRead(d, meta)
 }
 
@@ -141,11 +142,11 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyRead(d *pluginsdk.ResourceData,
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	sqlPoolId := parse.NewSqlPoolID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)

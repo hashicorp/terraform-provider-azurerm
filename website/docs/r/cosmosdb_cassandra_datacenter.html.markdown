@@ -58,6 +58,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
   node_count                     = 3
   disk_count                     = 4
   sku_name                       = "Standard_DS14_v2"
+  availability_zones_enabled     = false
 }
 ```
 
@@ -73,13 +74,15 @@ The following arguments are supported:
 
 * `delegated_management_subnet_id` - (Required) The ID of the delegated management subnet for this Cassandra Datacenter. Changing this forces a new Cassandra Datacenter to be created.
 
-* `node_count` - (Required) The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than 3. Defaults to 3.
+* `node_count` - (Required) The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`. Defaults to `3`.
 
 ---
 
 * `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
 
-* `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to 4.
+* `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.
+
+* `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to `true`.
 
 ## Attributes Reference
 

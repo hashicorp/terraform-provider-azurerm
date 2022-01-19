@@ -267,6 +267,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if computeCluster.DisableLocalAuth != nil {
 		d.Set("local_auth_enabled", !*computeCluster.DisableLocalAuth)
 	}
+	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
 		d.Set("vm_priority", props.VMPriority)

@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = AccessPolicyId{}
+var _ resourceids.Id = AccessPolicyId{}
 
 func TestAccessPolicyIDFormatter(t *testing.T) {
 	actual := NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "environment1", "policy1").ID()

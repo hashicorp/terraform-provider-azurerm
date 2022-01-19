@@ -41,8 +41,9 @@ func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
 			},
 
 			"login": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"object_id": {

@@ -171,19 +171,19 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 
 func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewCertificateOrderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -214,7 +214,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 	case "WildCard":
 		properties.ProductType = web.CertificateProductTypeStandardDomainValidatedWildCardSsl
 	default:
-		return fmt.Errorf("setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
+		return fmt.Errorf("`product_type` must be `Standard` or `WildCard`")
 	}
 
 	certificateOrder := web.AppServiceCertificateOrder{
@@ -223,25 +223,16 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 		Tags:                                 tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificateOrder)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificateOrder)
 	if err != nil {
-		return fmt.Errorf("creating/updating App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creating/updating of App Service Certificate Order %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Service Certificate Order %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceCertificateOrderRead(d, meta)
 }

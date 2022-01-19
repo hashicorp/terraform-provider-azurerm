@@ -176,10 +176,10 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	networksClient := meta.(*clients.Client).Network.VnetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
@@ -203,6 +203,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("resource_group_name"); ok {
 		resourceGroup = v.(string)
 	}
+	id := parse.NewAppServiceEnvironmentID(subscriptionId, resourceGroup, d.Get("name").(string))
 
 	vnet, err := networksClient.Get(ctx, subnet.ResourceGroup, subnet.VirtualNetworkName, "")
 	if err != nil {
@@ -217,10 +218,10 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, subnet.ResourceGroup)
 	}
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing App Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
@@ -252,8 +253,8 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// whilst this returns a future go-autorest has a max number of retries
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, envelope); err != nil {
-		return fmt.Errorf("creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	createWait := pluginsdk.StateChangeConf{
@@ -265,20 +266,15 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		MinTimeout: 1 * time.Minute,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-		Refresh:    appServiceEnvironmentRefresh(ctx, client, resourceGroup, name),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 	}
 
 	// as such we'll ignore it and use a custom poller instead
 	if _, err := createWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceEnvironmentRead(d, meta)
 }

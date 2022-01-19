@@ -32,10 +32,9 @@ resource "azurerm_signalr_service" "example" {
     allowed_origins = ["http://www.example.com"]
   }
 
-  features {
-    flag  = "ServiceMode"
-    value = "Default"
-  }
+  connectivity_logs_enabled = "True"
+  messaging_logs_enabled    = "True"
+  service_mode              = "Default"
 
   upstream_endpoint {
     category_pattern = ["connections", "messages"]
@@ -62,6 +61,16 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
+~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
+
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not.
+
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. 
+
+* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not.
+
+* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
+
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -76,7 +85,7 @@ A `cors` block supports the following:
 
 A `features` block supports the following:
 
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
+* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, `EnableLiveTrace` and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
@@ -136,5 +145,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SignalR services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/SignalR/tfex-signalr
+terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/signalR/tfex-signalr
 ```

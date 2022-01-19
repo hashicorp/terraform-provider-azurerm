@@ -27,8 +27,10 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 		Read:   resourceLogAnalyticsSolutionRead,
 		Update: resourceLogAnalyticsSolutionCreateUpdate,
 		Delete: resourceLogAnalyticsSolutionDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := loganalyticsParse.LogAnalyticsSolutionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -99,20 +101,20 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 
 func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
 	// The resource requires both .name and .plan.name are set in the format
 	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
-	name := fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string))
-	resGroup := d.Get("resource_group_name").(string)
+	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string)))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Log Analytics Solution %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -122,13 +124,13 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
-	solutionPlan.Name = &name
+	solutionPlan.Name = &id.SolutionName
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	workspaceID := d.Get("workspace_resource_id").(string)
 
 	parameters := operationsmanagement.Solution{
-		Name:     utils.String(name),
+		Name:     utils.String(id.SolutionName),
 		Location: utils.String(location),
 		Plan:     &solutionPlan,
 		Properties: &operationsmanagement.SolutionProperties{
@@ -137,25 +139,16 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SolutionName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", name, workspaceID, resGroup, err)
+		return fmt.Errorf("creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the create/update of Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", name, workspaceID, resGroup, err)
+		return fmt.Errorf("waiting for the create/update of Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
 	}
 
-	solution, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if solution.ID == nil {
-		return fmt.Errorf("Cannot read Log Analytics Solution %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*solution.ID)
+	d.SetId(id.ID())
 
 	return resourceLogAnalyticsSolutionRead(d, meta)
 }
@@ -164,27 +157,25 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["solutions"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Log Analytics solutions '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	if resp.Plan == nil {
-		return fmt.Errorf("making Read request on AzureRM Log Analytics solutions '%s': Plan was nil", name)
+		return fmt.Errorf("making Read request on %s: Plan was nil", *id)
 	}
 
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -227,21 +218,19 @@ func resourceLogAnalyticsSolutionDelete(d *pluginsdk.ResourceData, meta interfac
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["solutions"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SolutionName)
 	if err != nil {
-		return fmt.Errorf("deleting Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 

@@ -114,6 +114,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_wan":                               resourceVirtualWan(),
 		"azurerm_vpn_gateway":                               resourceVPNGateway(),
 		"azurerm_vpn_gateway_connection":                    resourceVPNGatewayConnection(),
+		"azurerm_vpn_gateway_nat_rule":                      resourceVPNGatewayNatRule(),
 		"azurerm_vpn_server_configuration":                  resourceVPNServerConfiguration(),
 		"azurerm_vpn_site":                                  resourceVpnSite(),
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),

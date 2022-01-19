@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationruleseventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationruleseventhubs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -85,7 +84,7 @@ func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta int
 	eventHubName := d.Get("eventhub_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
-	id := eventhubs.NewAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, eventHubName, name)
+	id := eventhubs.NewEventhubAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, eventHubName, name)
 	resp, err := eventHubsClient.GetAuthorizationRule(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -95,12 +94,12 @@ func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("eventhub_name", id.EventhubName)
+	d.Set("name", id.AuthorizationRuleName)
+	d.Set("eventhub_name", id.EventHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
+	localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.AuthorizationRuleName)
 	keysResp, err := rulesClient.EventHubsListKeys(ctx, localId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)

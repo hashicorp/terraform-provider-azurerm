@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `proxy` - (Optional) One or more `proxy` blocks as defined below.
 
+~> **Note:** This property has been deprecated and will be renamed to `gateway` in version 3.0 of the provider.
+
 * `scm` - (Optional) One or more `scm` blocks as defined below.
 
 ---

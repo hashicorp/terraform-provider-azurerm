@@ -66,7 +66,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
   name                = "acctestSIR%d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -222,7 +222,7 @@ func (t IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, client
 
 	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Integration Runtime Self Hosted (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

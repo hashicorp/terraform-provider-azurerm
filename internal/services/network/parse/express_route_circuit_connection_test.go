@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ExpressRouteCircuitConnectionId{}
+var _ resourceids.Id = ExpressRouteCircuitConnectionId{}
 
 func TestExpressRouteCircuitConnectionIDFormatter(t *testing.T) {
 	actual := NewExpressRouteCircuitConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "circuit1", "peering1", "connection1").ID()

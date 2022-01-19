@@ -208,7 +208,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -306,7 +305,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     }
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 

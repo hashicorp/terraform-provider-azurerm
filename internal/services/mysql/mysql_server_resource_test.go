@@ -420,7 +420,7 @@ resource "azurerm_mysql_server" "test" {
   sku_name            = "%s"
   version             = "5.7"
 
-  storage_mb                   = 4194304
+  storage_mb                   = 16777216
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   ssl_enforcement_enabled      = true

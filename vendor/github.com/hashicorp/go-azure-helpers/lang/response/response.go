@@ -4,10 +4,12 @@ import (
 	"net/http"
 )
 
+// WasConflict returns true if the HttpResponse is non-nil and has a status code of Conflict
 func WasConflict(resp *http.Response) bool {
 	return responseWasStatusCode(resp, http.StatusConflict)
 }
 
+// WasNotFound returns true if the HttpResponse is non-nil and has a status code of NotFound
 func WasNotFound(resp *http.Response) bool {
 	return responseWasStatusCode(resp, http.StatusNotFound)
 }
