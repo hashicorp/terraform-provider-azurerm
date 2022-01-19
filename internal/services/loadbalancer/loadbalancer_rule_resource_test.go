@@ -334,6 +334,7 @@ resource "azurerm_lb_rule" "test" {
   enable_floating_ip      = true
   enable_tcp_reset        = true
   idle_timeout_in_minutes = 10
+  load_distribution       = "SourceIP"
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }

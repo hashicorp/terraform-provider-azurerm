@@ -196,7 +196,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var webApp LinuxWebAppModel
+			var webApp LinuxWebAppDataSourceModel
 			if err := metadata.Decode(&webApp); err != nil {
 				return err
 			}

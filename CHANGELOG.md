@@ -1,8 +1,29 @@
 ## 2.93.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_mysql_flexible_server` [GH-14976]
+* **New Beta Data Source**: `azurerm_windows_function_app` [GH-14964]
+
 ENHANCEMENTS: 
 
+* dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
+* dependencies: updating `containerregistry` to API version `2021-08-01-preview` [GH-14961]
+* Data Source `azurerm_logic_app_workflow` - exporting the `identity` block [GH-14896]
+* `azurerm_bastion_host` - support for `copy_paste_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `file_copy_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `ip_connect_enabled` [GH-14987]
 * `azurerm_bastion_host` - support for `scale_units` [GH-14968]
+* `azurerm_bastion_host` - support for `shareable_link_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `tunneling_enabled` [GH-14987]
+* `azurerm_security_center_automation ` - `event_source` can now be set to `AssessmentsSnapshot`,
+`RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
+* `azurerm_static_site` - support for the `identity` block [GH-14911]
+
+BUG FIXES:
+
+* `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
+* `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config [GH-14844]
 
 ## 2.92.0 (January 14, 2022)
 

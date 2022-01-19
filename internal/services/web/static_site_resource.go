@@ -7,10 +7,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	msiParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -53,20 +56,20 @@ func resourceStaticSite() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Free",
+				Default:  string(web.SkuNameFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					"Free",
-					"Standard",
+					string(web.SkuNameStandard),
+					string(web.SkuNameFree),
 				}, false),
 			},
 
 			"sku_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Free",
+				Default:  string(web.SkuNameFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					"Free",
-					"Standard",
+					string(web.SkuNameStandard),
+					string(web.SkuNameFree),
 				}, false),
 			},
 
@@ -74,6 +77,8 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": commonschema.SystemOrUserAssignedIdentity(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,
@@ -110,6 +115,11 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	loc := location.Normalize(d.Get("location").(string))
 
+	identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
 			Name: utils.String(d.Get("sku_size").(string)),
@@ -117,6 +127,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
+		Identity:   identity,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -150,6 +161,12 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	identity, err := flattenStaticSiteIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -209,4 +226,58 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	return nil
+}
+
+func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+	config, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var identityIds map[string]*web.UserAssignedIdentity
+	if len(config.IdentityIds) != 0 {
+		identityIds = map[string]*web.UserAssignedIdentity{}
+		for id := range config.IdentityIds {
+			identityIds[id] = &web.UserAssignedIdentity{}
+		}
+	}
+
+	return &web.ManagedServiceIdentity{
+		Type:                   web.ManagedServiceIdentityType(config.Type),
+		UserAssignedIdentities: identityIds,
+	}, nil
+}
+
+func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
+	var config *identity.SystemOrUserAssignedMap
+	if input != nil {
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
+
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
+		config = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+			IdentityIds: identityIds,
+		}
+	}
+	return identity.FlattenSystemOrUserAssignedMap(config)
 }
