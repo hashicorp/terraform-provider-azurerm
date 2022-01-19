@@ -65,6 +65,72 @@ func TestAccIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccIotHubEndpointServiceBusQueue_AuthenticationTypeSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
+	r := IotHubEndpointServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationTypeSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubEndpointServiceBusQueue_AuthenticationTypeUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
+	r := IotHubEndpointServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationTypeUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubEndpointServiceBusQueue_AuthenticationTypeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
+	r := IotHubEndpointServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationTypeUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationTypeSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (IotHubEndpointServiceBusQueueResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -230,4 +296,138 @@ func (t IotHubEndpointServiceBusQueueResource) Exists(ctx context.Context, clien
 	}
 
 	return utils.Bool(false), nil
+}
+
+func (r IotHubEndpointServiceBusQueueResource) authenticationTypeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
+}
+`, r.authenticationTemplate(data))
+}
+
+func (r IotHubEndpointServiceBusQueueResource) authenticationTypeSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  authentication_type = "identityBased"
+  endpoint_uri        = "sb://${azurerm_servicebus_namespace.test.name}.servicebus.windows.net"
+  entity_path         = azurerm_servicebus_queue.test.name
+
+  depends_on = [
+    azurerm_role_assignment.test_azure_service_bus_data_sender_system,
+  ]
+}
+`, r.authenticationTemplate(data))
+}
+
+func (r IotHubEndpointServiceBusQueueResource) authenticationTypeUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  authentication_type = "identityBased"
+  identity_id         = azurerm_user_assigned_identity.test.id
+  endpoint_uri        = "sb://${azurerm_servicebus_namespace.test.name}.servicebus.windows.net"
+  entity_path         = azurerm_servicebus_queue.test.name
+}
+`, r.authenticationTemplate(data))
+}
+
+func (r IotHubEndpointServiceBusQueueResource) authenticationTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+
+  enable_partitioning = true
+}
+
+resource "azurerm_servicebus_queue_authorization_rule" "test" {
+  name                = "acctest-%[1]d"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  queue_name          = azurerm_servicebus_queue.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  listen = false
+  send   = true
+  manage = false
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test_azure_service_bus_data_sender_user" {
+  role_definition_name = "Azure Service Bus Data Sender"
+  scope                = azurerm_servicebus_queue.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_azure_service_bus_data_sender_user,
+  ]
+}
+
+resource "azurerm_role_assignment" "test_azure_service_bus_data_sender_system" {
+  role_definition_name = "Azure Service Bus Data Sender"
+  scope                = azurerm_servicebus_queue.test.id
+  principal_id         = azurerm_iothub.test.identity[0].principal_id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
