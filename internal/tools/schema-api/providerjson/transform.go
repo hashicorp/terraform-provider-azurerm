@@ -20,11 +20,20 @@ func resourceFromRaw(input *schema.Resource) (*ResourceJSON, error) {
 	result.Schema = translatedSchema
 
 	if input.Timeouts != nil {
-		timeouts := &ResourceTimeoutJSON{
-			Create: int(input.Timeouts.Create.Minutes()),
-			Read:   int(input.Timeouts.Read.Minutes()),
-			Delete: int(input.Timeouts.Delete.Minutes()),
-			Update: int(input.Timeouts.Update.Minutes()),
+		timeouts := &ResourceTimeoutJSON{}
+		if t := input.Timeouts; t != nil {
+			if t.Create != nil {
+				timeouts.Create = int(t.Create.Minutes())
+			}
+			if t.Read != nil {
+				timeouts.Read = int(t.Read.Minutes())
+			}
+			if t.Delete != nil {
+				timeouts.Delete = int(t.Delete.Minutes())
+			}
+			if t.Update != nil {
+				timeouts.Update = int(t.Update.Minutes())
+			}
 		}
 		result.Timeouts = timeouts
 	}
