@@ -651,6 +651,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"run_command_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1061,6 +1067,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		EnablePrivateCluster:           &enablePrivateCluster,
 		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
 		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
+		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1348,6 +1355,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
 		updateCluster = true
 		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
+	}
+
+	if d.HasChange("run_command_enabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -1714,6 +1726,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			runCommandEnabled := true
+			if accessProfile.DisableRunCommand != nil {
+				runCommandEnabled = !*accessProfile.DisableRunCommand
+			}
+			d.Set("run_command_enabled", runCommandEnabled)
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")
