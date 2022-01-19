@@ -127,7 +127,7 @@ func resourceCosmosDbSQLRoleDefinitionCreateUpdate(d *pluginsdk.ResourceData, me
 			RoleName:         utils.String(d.Get("role_name").(string)),
 			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
-			Type: documentdb.RoleDefinitionType(d.Get("type").(string)),
+			Type:             documentdb.RoleDefinitionType(d.Get("type").(string)),
 		},
 	}
 
