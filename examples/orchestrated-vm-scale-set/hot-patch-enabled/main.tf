@@ -33,31 +33,71 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
-resource "azurerm_windows_virtual_machine" "main" {
-  name                            = "${var.prefix}-vm"
-  resource_group_name             = azurerm_resource_group.main.name
-  location                        = azurerm_resource_group.main.location
-  size                            = "Standard_DS3_v2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
-  custom_data                     = base64encode("Hello World!")
-  network_interface_ids = [
-    azurerm_network_interface.main.id,
-  ]
+resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
+  name                = "${var.prefix}-OVMSS"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
+  sku_name  = "Standard_F2s_v2"
+  instances = 1
+
+  platform_fault_domain_count = 2
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "main"
+      admin_username       = "adminuser"
+      admin_password       = "P@$$w0rd1234!"
+     
+     patch_mode          = "AutomaticByPlatform"
+     hotpatching_enabled = true
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "${var.prefix}-NetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "PrimaryIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.main.id
+
+      public_ip_address {
+        name                    = "${var.prefix}-PublicIpConfiguration"
+        domain_name_label       = "${var.prefix}-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
+  }
 
-    diff_disk_settings {
-      option = "Local"
-    }
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
+    version   = "latest"
+  }
+
+  extension {
+    name                               = "${var.prefix}-HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthWindows"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "Http"
+      "port"        = "80"
+      "requestPath" = "/healthEndpoint"
+    })
   }
 }

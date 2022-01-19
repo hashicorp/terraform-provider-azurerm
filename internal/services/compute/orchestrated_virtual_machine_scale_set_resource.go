@@ -333,32 +333,41 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			// Validate patch mode and hotpatching configuration
+			isHotpatchEnabledImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 			patchMode := winConfig["patch_mode"].(string)
-			HotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
+			hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
 
-			if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) && (!provisionVMAgent || !hasHealthExtension) {
-				if provisionVMAgent && !hasHealthExtension {
-					return fmt.Errorf("%q cannot be set to %q when an application health extension has not been defined", "patch_mode", patchMode)
-				}
-
-				if !provisionVMAgent && hasHealthExtension {
-					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", patchMode, "provision_vm_agent", "false")
-				}
-
-				return fmt.Errorf("%q cannot be set to %q when an application health extension has not been defined and the %q is set to %q", "patch_mode", patchMode, "provision_vm_agent", "false")
-			}
-
-			if HotpatchingEnabled {
+			if isHotpatchEnabledImage {
+				// it is a hotpatching enabled image, validate hotpatching enabled settings
 				if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
-					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform)
 				}
 
-				if !isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId) {
-					if sourceImageId != "" {
-						return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+				if !provisionVMAgent {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "provision_vm_agent", "true")
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always always contain a %q", "extension", "application health extension")
+				}
+
+				if !hotpatchingEnabled {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "hotpatching_enabled", "true")
+				}
+			} else {
+				// not a hotpatching enabled image verify Automatic VM Guest Patching settings
+				if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					if !provisionVMAgent {
+						return fmt.Errorf("when %q is set to %q then %q must be set to %q", "patch_mode", patchMode, "provision_vm_agent", "true")
 					}
 
-					return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+					if !hasHealthExtension {
+						return fmt.Errorf("when %q is set to %q then the %q field must always always contain a %q", "patch_mode", patchMode, "extension", "application health extension")
+					}
+				}
+
+				if hotpatchingEnabled {
+					return fmt.Errorf("%q field is not supported unless you are using one of the following hotpatching enable images, %q or %q", "hotpatching_enabled", "2022-datacenter-azure-edition", "2022-datacenter-azure-edition-core-smalldisk")
 				}
 			}
 		}
@@ -546,6 +555,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	isLegacy := true
 	updateInstances := false
+	isHotpatchEnabledImage := false
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
@@ -622,6 +632,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if len(winConfigRaw) > 0 {
 				winConfig := winConfigRaw[0].(map[string]interface{})
 
+				// If the image allows hotpatching the patch mode can only ever be AutomaticByPlatform.
+				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+				sourceImageId := d.Get("source_image_id").(string)
+				isHotpatchEnabledImage = isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
 				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
 					d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
 					d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
@@ -635,14 +650,28 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
+					if isHotpatchEnabledImage && !winConfig["provision_vm_agent"].(bool) {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "provision_vm_agent", "true")
+					}
 					windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
 				}
 
-				// TODO: Add check here to see if if the the image is a valid hotpatching image and the
-				// patch mode is not AutomaticByPlatform. Currently if the image allows hotpatching the
-				// patch mode can only ever be AutomaticByPlatform.
-				windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(winConfig["hotpatching_enabled"].(bool))
-				windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(winConfig["patch_mode"].(string))
+				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
+					if isHotpatchEnabledImage && (winConfig["patch_mode"].(string) != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)) {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform)
+					}
+					windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(winConfig["patch_mode"].(string))
+				}
+
+				// Disabling hotpatching is not supported in images that support hotpatching
+				// so while the attribute is exposed in VMSS it is hardcoded inside the images that
+				// support hotpatching to always be enabled and cannot be set to false, ever.
+				if d.HasChange("os_profile.0.windows_configuration.0.hotpatching_enabled") {
+					if isHotpatchEnabledImage && !winConfig["hotpatching_enabled"].(bool) {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "hotpatching_enabled", "true")
+					}
+					windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(winConfig["hotpatching_enabled"].(bool))
+				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.secret") {
 					vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
@@ -824,10 +853,15 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		if d.HasChanges("extension", "extensions_time_budget") {
 			updateInstances = true
 
-			extensionProfile, _, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
+			extensionProfile, hasHealthExtension, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
 			if err != nil {
 				return err
 			}
+
+			if isHotpatchEnabledImage && !hasHealthExtension {
+				return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always contain a %q", "extension", "application health extension")
+			}
+
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 		}
