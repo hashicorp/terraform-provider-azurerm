@@ -27,6 +27,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 			AppServiceSourceControlTokenDataSource{},
 			LinuxWebAppDataSource{},
 			ServicePlanDataSource{},
+			WindowsFunctionAppDataSource{},
 			WindowsWebAppDataSource{},
 		}
 	}

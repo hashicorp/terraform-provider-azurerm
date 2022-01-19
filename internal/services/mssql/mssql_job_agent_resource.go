@@ -65,16 +65,16 @@ func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	log.Printf("[INFO] preparing arguments for Job Agent creation.")
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	databaseId := d.Get("database_id").(string)
 	dbId, _ := parse.DatabaseID(databaseId)
+	id := parse.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroup, dbId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Job Agent %q (MsSql Server %q / Resource Group %q): %s", name, dbId.ServerName, dbId.ResourceGroup, err)
+				return fmt.Errorf("failed to check for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -84,7 +84,7 @@ func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	params := sql.JobAgent{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: utils.String(location),
 		JobAgentProperties: &sql.JobAgentProperties{
 			DatabaseID: &databaseId,
@@ -92,21 +92,16 @@ func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating MsSql Job Agent %q (Sql Server %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, name)
-	if err != nil {
-		return fmt.Errorf("reading request for Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlJobAgentRead(d, meta)
 }

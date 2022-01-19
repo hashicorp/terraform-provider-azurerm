@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -94,11 +95,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Client returned an nil ID for Management Group %q", groupName)
-	}
-
-	d.SetId(*resp.ID)
+	id := parse.NewManagementGroupId(groupName)
+	d.SetId(id.ID())
 	d.Set("name", groupName)
 	d.Set("group_id", groupName)
 

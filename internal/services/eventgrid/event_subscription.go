@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -81,11 +81,11 @@ func eventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
 		ForceNew: true,
-		Default:  string(eventgrid.EventGridSchema),
+		Default:  string(eventgrid.EventDeliverySchemaEventGridSchema),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(eventgrid.EventGridSchema),
-			string(eventgrid.CloudEventSchemaV10),
-			string(eventgrid.CustomInputSchema),
+			string(eventgrid.EventDeliverySchemaEventGridSchema),
+			string(eventgrid.EventDeliverySchemaCloudEventSchemaV10),
+			string(eventgrid.EventDeliverySchemaCustomInputSchema),
 		}, false),
 	}
 }
@@ -836,8 +836,8 @@ func eventSubscriptionSchemaIdentity() *schema.Schema {
 					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.SystemAssigned),
-						string(eventgrid.UserAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeSystemAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeUserAssigned),
 					}, false),
 				},
 				"user_assigned_identity": {
@@ -1229,7 +1229,7 @@ func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *plugins
 		resourceID := dest["storage_account_id"].(string)
 		blobName := dest["storage_blob_container_name"].(string)
 		return eventgrid.StorageBlobDeadLetterDestination{
-			EndpointType: eventgrid.EndpointTypeStorageBlob,
+			EndpointType: eventgrid.EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob,
 			StorageBlobDeadLetterDestinationProperties: &eventgrid.StorageBlobDeadLetterDestinationProperties{
 				ResourceID:        &resourceID,
 				BlobContainerName: &blobName,
@@ -1268,7 +1268,7 @@ func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.E
 	}
 
 	userAssignedIdentity := identity["user_assigned_identity"].(string)
-	if identityType == eventgrid.UserAssigned {
+	if identityType == eventgrid.EventSubscriptionIdentityTypeUserAssigned {
 		eventgridIdentity.UserAssignedIdentity = utils.String(userAssignedIdentity)
 	} else if len(userAssignedIdentity) > 0 {
 		return nil, fmt.Errorf("`user_assigned_identity` can only be specified when `type` is `UserAssigned`; but `type` is currently %q", identityType)

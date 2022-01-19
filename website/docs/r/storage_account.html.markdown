@@ -146,6 +146,10 @@ The following arguments are supported:
 
 ~> **NOTE:** For  the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
 
+* `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
+
+-> **NOTE:** This can only be `true` when `account_kind` is `StorageV2`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

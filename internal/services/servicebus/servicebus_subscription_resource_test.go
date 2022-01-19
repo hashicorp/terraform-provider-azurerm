@@ -247,14 +247,14 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_id      = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "_acctestservicebussubscription-%d_"
-  topic_id          = azurerm_servicebus_topic.test.id
-  max_delivery_count  = 10
+  name               = "_acctestservicebussubscription-%d_"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
 	%s
 }
 `
@@ -329,10 +329,14 @@ func (ServiceBusSubscriptionResource) updateForwardTo(data acceptance.TestData) 
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
+
+
 resource "azurerm_servicebus_topic" "forward_to" {
-  name                = "acctestservicebustopic-forward_to-%d"
-  namespace_id      = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-forward_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
+
+
 
 
 `
@@ -344,10 +348,14 @@ func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data a
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
+
+
 resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
-  name                = "acctestservicebustopic-forward_dl_messages_to-%d"
-  namespace_id      = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-forward_dl_messages_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
+
+
 
 
 `

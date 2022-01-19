@@ -56,30 +56,29 @@ func dataSourceDataShareDatasetKustoClusterRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	shareID := d.Get("share_id").(string)
-	shareId, err := parse.ShareID(shareID)
+	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
 
-	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	respModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
 	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
-	d.SetId(*respId)
-	d.Set("name", name)
-	d.Set("share_id", shareID)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("share_id", shareId.ID())
 
 	resp, ok := respModel.Value.AsKustoClusterDataSet()
 	if !ok {
-		return fmt.Errorf("dataShare %q (Resource Group %q / accountName %q / shareName %q) is not kusto cluster dataset", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("%s is not kusto cluster dataset", id)
 	}
 	if props := resp.KustoClusterDataSetProperties; props != nil {
 		d.Set("kusto_cluster_id", props.KustoClusterResourceID)

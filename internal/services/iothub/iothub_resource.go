@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -388,14 +390,14 @@ func resourceIotHub() *pluginsdk.Resource {
 						"source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "DeviceMessages",
+							Default:  string(devices.RoutingSourceDeviceMessages),
 							ValidateFunc: validation.StringInSlice([]string{
-								"DeviceConnectionStateEvents",
-								"DeviceJobLifecycleEvents",
-								"DeviceLifecycleEvents",
-								"DeviceMessages",
-								"Invalid",
-								"TwinChangeEvents",
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
 						"condition": {
@@ -527,6 +529,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"event_hub_events_namespace": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 			"event_hub_operations_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -597,6 +603,14 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
+	} else if features.ThreePointOh() {
+		// TODO update docs for 3.0
+		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
+			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
+			Condition:     utils.String("true"),
+			EndpointNames: &[]string{"events"},
+			IsEnabled:     utils.Bool(true),
+		}
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {
@@ -726,6 +740,14 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if k == "events" {
 				d.Set("event_hub_events_endpoint", v.Endpoint)
+
+				if *v.Endpoint != "" {
+					uri, err := url.Parse(*v.Endpoint)
+					if err == nil {
+						d.Set("event_hub_events_namespace", strings.Split(uri.Hostname(), ".")[0])
+					}
+				}
+
 				d.Set("event_hub_events_path", v.Path)
 				d.Set("event_hub_partition_count", v.PartitionCount)
 				d.Set("event_hub_retention_in_days", v.RetentionTimeInDays)

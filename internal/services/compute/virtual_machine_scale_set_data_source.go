@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,26 +65,26 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, resGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Virtual Machine Scale Set %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resGroup)
+		return fmt.Errorf("reading %s: ID is empty or nil", id)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if profile := resp.VirtualMachineProfile; profile != nil {
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {

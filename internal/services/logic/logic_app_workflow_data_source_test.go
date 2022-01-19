@@ -11,6 +11,22 @@ import (
 type LogicAppWorkflowDataSource struct {
 }
 
+func TestAccLogicAppWorkflowDataSource_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccLogicAppWorkflowDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowDataSource{}
@@ -66,4 +82,33 @@ data "azurerm_logic_app_workflow" "test" {
   resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, LogicAppWorkflowResource{}.tags(data))
+}
+
+func (LogicAppWorkflowDataSource) identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "workflow-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_logic_app_workflow" "test" {
+  name                = azurerm_logic_app_workflow.test.name
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
