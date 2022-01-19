@@ -127,20 +127,17 @@ func resourceCosmosDbSQLRoleDefinitionCreateUpdate(d *pluginsdk.ResourceData, me
 			RoleName:         utils.String(d.Get("role_name").(string)),
 			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
+			Type: documentdb.RoleDefinitionType(d.Get("type").(string)),
 		},
-	}
-
-	if v, ok := d.GetOk("type"); ok {
-		parameters.SQLRoleDefinitionResource.Type = documentdb.RoleDefinitionType(v.(string))
 	}
 
 	future, err := client.CreateUpdateSQLRoleDefinition(ctx, name, resourceGroup, accountName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
