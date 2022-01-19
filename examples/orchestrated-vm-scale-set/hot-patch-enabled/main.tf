@@ -49,8 +49,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
       admin_username       = "adminuser"
       admin_password       = "P@$$w0rd1234!"
      
-     patch_mode          = "AutomaticByPlatform"
-     hotpatching_enabled = true
+     # patch_mode          = "AutomaticByPlatform"
+     # hotpatching_enabled = true
 
       winrm_listener {
         protocol = "Http"
