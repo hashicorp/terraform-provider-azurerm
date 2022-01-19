@@ -94,6 +94,27 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_resources": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"resource_group_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"storage_account_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"event_hub_namespace_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"catalog_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -209,6 +230,10 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 
+	if err := d.Set("managed_resources", flattenPurviewAccountManagedResources(resp.ManagedResources)); err != nil {
+		return fmt.Errorf("flattening `managed_resources`: %+v", err)
+	}
+
 	if props := resp.AccountProperties; props != nil {
 		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
 
@@ -275,6 +300,32 @@ func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {
 			"type":         string(identity.Type),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
+		},
+	}
+}
+
+func flattenPurviewAccountManagedResources(managedResources *purview.AccountPropertiesManagedResources) interface{} {
+	if managedResources == nil {
+		return make([]interface{}, 0)
+	}
+
+	resourceGroup := ""
+	if managedResources.ResourceGroup != nil {
+		resourceGroup = *managedResources.ResourceGroup
+	}
+	storageAccount := ""
+	if managedResources.StorageAccount != nil {
+		storageAccount = *managedResources.StorageAccount
+	}
+	eventHubNamespace := ""
+	if managedResources.EventHubNamespace != nil {
+		eventHubNamespace = *managedResources.EventHubNamespace
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"resource_group_id":      resourceGroup,
+			"storage_account_id":     storageAccount,
+			"event_hub_namespace_id": eventHubNamespace,
 		},
 	}
 }

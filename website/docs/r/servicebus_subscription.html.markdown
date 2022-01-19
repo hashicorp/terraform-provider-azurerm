@@ -30,19 +30,16 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_topic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_servicebus_subscription"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  max_delivery_count  = 1
+  name               = "tfex_servicebus_subscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
 }
 ```
 
@@ -52,11 +49,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create this Subscription in. Changing this forces a new resource to be created.
-
-* `topic_name` - (Required) The name of the ServiceBus Topic to create this Subscription in. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
+* `topic_id` - (Required) The ID of the ServiceBus Topic to create this Subscription in. Changing this forces a new resource to be created.
 
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
@@ -64,7 +57,7 @@ The following arguments are supported:
 
 * `default_message_ttl` - (Optional) The Default message timespan to live as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
-* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or `PT1M`.
+* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or  `P0DT0H1M0S` . The maximum value is `5` minutes or `P0DT0H5M0S` .
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires. Defaults to `false`.
 

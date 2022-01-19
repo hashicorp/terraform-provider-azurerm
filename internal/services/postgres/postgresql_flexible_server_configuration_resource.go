@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -74,6 +75,9 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewFlexibleServerConfigurationID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
 
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
 	props := postgresqlflexibleservers.Configuration{
 		ConfigurationProperties: &postgresqlflexibleservers.ConfigurationProperties{
 			Value:  utils.String(d.Get("value").(string)),
@@ -136,6 +140,9 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
 	if err != nil {

@@ -27,6 +27,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 			AppServiceSourceControlTokenDataSource{},
 			LinuxWebAppDataSource{},
 			ServicePlanDataSource{},
+			WindowsFunctionAppDataSource{},
 			WindowsWebAppDataSource{},
 		}
 	}
@@ -40,8 +41,10 @@ func (r Registration) Resources() []sdk.Resource {
 			AppServiceSourceControlTokenResource{},
 			LinuxFunctionAppResource{},
 			LinuxWebAppResource{},
+			LinuxWebAppSlotResource{},
 			ServicePlanResource{},
 			WindowsWebAppResource{},
+			WindowsFunctionAppResource{},
 		}
 	}
 	return []sdk.Resource{}

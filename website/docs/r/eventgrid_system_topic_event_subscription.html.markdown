@@ -45,7 +45,7 @@ resource "azurerm_eventgrid_system_topic" "example" {
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
   name                = "example-event-subscription"
-  system_topic        = azurerm_system_topic.example.name
+  system_topic        = azurerm_eventgrid_system_topic.example.name
   resource_group_name = azurerm_resource_group.example.name
 
   storage_queue_endpoint {
@@ -239,5 +239,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventGrid System Topic Event Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/systemTopics/topic1/eventSubscriptions/subscription1
+terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/systemTopics/topic1/eventSubscriptions/subscription1
 ```

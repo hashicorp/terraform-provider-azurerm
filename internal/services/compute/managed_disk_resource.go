@@ -112,9 +112,18 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"image_reference_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"gallery_image_reference_id"},
+			},
+
+			"gallery_image_reference_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SharedImageVersionID,
+				ConflictsWith: []string{"image_reference_id"},
 			},
 
 			"os_type": {
@@ -255,8 +264,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_disk", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_disk", id.ID())
 		}
 	}
 
@@ -348,13 +357,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
 	if createOption == compute.DiskCreateOptionFromImage {
-		imageReferenceId := d.Get("image_reference_id").(string)
-		if imageReferenceId == "" {
-			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
-		}
-
-		props.CreationData.ImageReference = &compute.ImageDiskReference{
-			ID: utils.String(imageReferenceId),
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			props.CreationData.ImageReference = &compute.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else if galleryImageReferenceId := d.Get("gallery_image_reference_id").(string); galleryImageReferenceId != "" {
+			props.CreationData.GalleryImageReference = &compute.ImageDiskReference{
+				ID: utils.String(galleryImageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 	}
 
@@ -569,7 +581,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			v := d.Get("disk_mbps_read_only")
 			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
 		}
-
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
@@ -807,11 +818,16 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			galleryImageReferenceId := ""
+			imageReferenceId := ""
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
+				galleryImageReferenceId = *galleryImageReference.ID
+			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.ID != nil {
+				imageReferenceId = *imageReference.ID
 			}
-			d.Set("image_reference_id", imageReferenceID)
+			d.Set("gallery_image_reference_id", galleryImageReferenceId)
+			d.Set("image_reference_id", imageReferenceId)
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)

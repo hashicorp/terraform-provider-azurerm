@@ -935,7 +935,6 @@ func flattenArmFrontdoorFirewallRules(override *[]webapplicationfirewallpolicies
 
 		if o.EnabledState != nil {
 			output["enabled"] = *o.EnabledState == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
-
 		}
 		if o.Action != nil {
 			output["action"] = string(*o.Action)

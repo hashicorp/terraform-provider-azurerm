@@ -44,21 +44,48 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 				ValidateFunc: validate.SubscriptionName(),
 			},
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"topic_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicID,
+				ConflictsWith: []string{"topic_name", "namespace_name", "resource_group_name"},
 			},
 
+			// TODO 3.0 - Remove in favor of topic_id
 			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicName(),
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Remove in favor of topic_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of topic_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
+			},
 
 			"auto_delete_on_idle": {
 				Type:     pluginsdk.TypeString,
@@ -137,7 +164,14 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
-	resourceId := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var resourceId parse.SubscriptionId
+	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
+		topicId, _ := parse.TopicID(topicIdLit)
+		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+	} else {
+		resourceId = parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name)
 		if err != nil {
@@ -213,6 +247,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("topic_name", id.TopicName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if props := resp.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)

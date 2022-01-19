@@ -146,7 +146,8 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "premium"
 
-  customer_managed_key_enabled = true
+  customer_managed_key_enabled      = true
+  infrastructure_encryption_enabled = true
 }
 
 %[4]s

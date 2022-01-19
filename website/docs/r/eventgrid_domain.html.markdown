@@ -50,6 +50,12 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.
+
+* `auto_create_topic_with_first_subscription` - (Optional) Whether to create the domain topic when the first event subscription at the scope of the domain topic is created. Defaults to `true`.
+
+* `auto_delete_topic_with_last_subscription` - (Optional) Whether to delete the domain topic when the last event subscription at the scope of the domain topic is deleted. Defaults to `true`.
+
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

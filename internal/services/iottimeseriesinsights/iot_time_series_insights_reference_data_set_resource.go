@@ -105,20 +105,20 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.Reso
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	environmentID := d.Get("time_series_insights_environment_id").(string)
-	id, err := parse.EnvironmentID(environmentID)
+	envId, err := parse.EnvironmentID(environmentID)
 	if err != nil {
 		return err
 	}
+	id := parse.NewReferenceDataSetID(envId.SubscriptionId, envId.ResourceGroup, envId.Name, d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Reference Data Set %q (Resource Group %q): %s", name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -136,20 +136,11 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.Reso
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, dataset); err != nil {
-		return fmt.Errorf("creating/updating IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.EnvironmentName, id.Name, dataset); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read IoT Time Series Insights Reference Data Set %q (Resource Group %q) ID", name, id.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceIoTTimeSeriesInsightsReferenceDataSetRead(d, meta)
 }

@@ -273,7 +273,6 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *pluginsdk.ResourceData) machinelearningservices.AKS {
-
 	fqdn := aks.PrivateFQDN
 	if fqdn == nil {
 		fqdn = aks.Fqdn

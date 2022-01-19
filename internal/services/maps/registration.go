@@ -29,5 +29,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_maps_account": resourceMapsAccount(),
+		"azurerm_maps_creator": resourceMapsCreator(),
 	}
 }

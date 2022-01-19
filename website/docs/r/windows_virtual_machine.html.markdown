@@ -145,8 +145,6 @@ The following arguments are supported:
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`.
 
--> **NOTE:** This is a preview feature, you can opt-in with the command `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`.
-
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Optional) Specifies the Platform Fault Domain in which this Windows Virtual Machine should be created. Defaults to `-1`, which means this will be automatically assigned to a fault domain that best maintains balance across the available fault domains. Changing this forces a new Windows Virtual Machine to be created.
@@ -172,6 +170,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+
+* `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
 

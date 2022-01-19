@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -160,20 +162,24 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId := d.Get("storage_account_id").(string)
-
-	rid, err := parse.StorageAccountID(storageAccountId)
+	storageAccountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	result, err := client.Get(ctx, rid.ResourceGroup, rid.Name)
+	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagementPolicyName)
 	if err != nil {
-		return err
-	}
-	d.SetId(*result.ID)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("%s was not found", id)
+		}
 
-	if props := result.ManagementPolicyProperties; props != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if props := resp.ManagementPolicyProperties; props != nil {
 		if policy := props.Policy; policy != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
 				return fmt.Errorf("flattening `rule`: %+v", err)

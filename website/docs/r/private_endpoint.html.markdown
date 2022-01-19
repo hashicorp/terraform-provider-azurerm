@@ -176,6 +176,7 @@ A `private_service_connection` supports the following:
 | ----------------------------- | ---------------- | -------------------------- |
 | Data Lake File System Gen2    | dfs              | dfs_secondary              |
 | Sql Database / Data Warehouse | sqlServer        |                            |
+| SQL Managed Instance          | managedInstance  |                            |
 | Storage Account               | blob             | blob_secondary             |
 | Storage Account               | file             | file_secondary             |
 | Storage Account               | queue            | queue_secondary            |
@@ -184,7 +185,7 @@ A `private_service_connection` supports the following:
 | Web App / Function App        | sites            |                            |
 | Web App / Function App Slots  | sites-<slotName> |                            |
 
-See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration) for more information.
+See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
@@ -256,6 +257,7 @@ A `record_sets` block exports:
 
 ## Example HCL Configurations
 
+* How to connect a `Private Endpoint` to a [Application Gateway](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/application-gateway)
 * How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db)
 * How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/postgresql)
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)

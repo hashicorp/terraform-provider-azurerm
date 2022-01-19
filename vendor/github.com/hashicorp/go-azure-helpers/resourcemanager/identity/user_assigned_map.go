@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var _ json.Marshaler = &UserAssignedMap{}
@@ -45,7 +46,7 @@ func ExpandUserAssignedMap(input []interface{}) (*UserAssignedMap, error) {
 			identityType = TypeUserAssigned
 		}
 
-		identityIdsRaw := raw["identity_ids"].([]interface{})
+		identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
 		for _, v := range identityIdsRaw {
 			identityIds[v.(string)] = UserAssignedIdentityDetails{
 				// intentionally empty since the expand shouldn't send these values

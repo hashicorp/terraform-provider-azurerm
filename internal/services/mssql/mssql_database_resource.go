@@ -610,7 +610,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}); err != nil {
 			return nil
 		}
-
 	}
 
 	d.SetId(id.ID())

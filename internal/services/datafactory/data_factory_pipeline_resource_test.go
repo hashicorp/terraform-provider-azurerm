@@ -104,7 +104,7 @@ func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, s
 
 	resp, err := clients.DataFactory.PipelinesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory %s: %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -150,7 +150,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -175,7 +175,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -252,7 +252,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
   }
@@ -294,7 +294,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
   }

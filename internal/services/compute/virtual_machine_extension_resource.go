@@ -102,29 +102,27 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-	virtualMachineName := virtualMachineId.Name
-	resourceGroup := virtualMachineId.ResourceGroup
+	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, virtualMachineId.Name, d.Get("name").(string))
 
-	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
-		return fmt.Errorf("getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting %s: %+v", virtualMachineId, err)
 	}
 
 	location := *virtualMachine.Location
 	if location == "" {
-		return fmt.Errorf("reading location of Virtual Machine %q", virtualMachineName)
+		return fmt.Errorf("reading location of %s", virtualMachineId)
 	}
 
 	if d.IsNewResource() {
-		existing, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
+		existing, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Extension %q (Virtual Machine %q / Resource Group %q): %s", name, virtualMachineName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -168,7 +166,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
-	future, err := vmExtensionClient.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, name, extension)
+	future, err := vmExtensionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, extension)
 	if err != nil {
 		return err
 	}
@@ -177,16 +175,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	read, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read  Virtual Machine Extension %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualMachineExtensionsRead(d, meta)
 }

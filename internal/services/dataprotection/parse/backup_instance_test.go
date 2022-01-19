@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = BackupInstanceId{}
+var _ resourceids.Id = BackupInstanceId{}
 
 func TestBackupInstanceIDFormatter(t *testing.T) {
 	actual := NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "vault1", "backupInstance1").ID()

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -42,6 +43,20 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
+			},
+
+			"source": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(devices.RoutingSourceDeviceConnectionStateEvents),
+					string(devices.RoutingSourceDeviceJobLifecycleEvents),
+					string(devices.RoutingSourceDeviceLifecycleEvents),
+					string(devices.RoutingSourceDeviceMessages),
+					string(devices.RoutingSourceInvalid),
+					string(devices.RoutingSourceTwinChangeEvents),
+				}, false),
+				Default: devices.RoutingSourceDeviceMessages,
 			},
 
 			"condition": {
@@ -101,7 +116,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
-		Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
+		Source:        utils.String(d.Get("source").(string)),
 		Condition:     utils.String(d.Get("condition").(string)),
 		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
 		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
@@ -145,6 +160,7 @@ func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("condition", fallbackRoute.Condition)
 				d.Set("enabled", fallbackRoute.IsEnabled)
 				d.Set("endpoint_names", fallbackRoute.EndpointNames)
+				d.Set("source", fallbackRoute.Source)
 			}
 		}
 	}

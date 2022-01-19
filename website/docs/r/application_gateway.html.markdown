@@ -135,7 +135,11 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
@@ -158,6 +162,8 @@ The following arguments are supported:
 * `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
+* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
@@ -193,7 +199,13 @@ A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (Required) The contents of the Trusted Root Certificate which should be used.
+* `data` - (optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
+
+* `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -264,6 +276,8 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
+* `private_link_configuration_name` - (Optional) The name of the private link configuration to use for this frontend IP configuration.
+
 ---
 
 A `frontend_port` block supports the following:
@@ -315,6 +329,33 @@ A `identity` block supports the following:
 * `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
 
 * `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+
+---
+
+A `private_link_configuration` block supports the following:
+
+* `name` - (Required) The name of the private link configuration.
+
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
+
+-> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+```bash
+az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
+```
+
+---
+
+An `ip_configuration` block supports the following:
+
+* `name` - (Required) The name of the IP configuration.
+
+* `subnet_id` - (Required) The ID of the subnet the private link configuration should connect to.
+
+* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+* `primary` - (Required) Is this the Primary IP Configuration?
+
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
 ---
 
@@ -490,7 +531,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, `3.1`,  and `3.2`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
@@ -638,6 +679,10 @@ The following attributes are exported:
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
+
+* `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
+
 * `probe` - A `probe` block as defined below.
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
@@ -682,6 +727,8 @@ A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
 
+* `private_link_configuration_id` - The ID of the associated private link configuration.
+
 ---
 
 A `frontend_port` block exports the following:
@@ -721,6 +768,20 @@ A `path_rule` block exports the following:
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
 * `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
+---
+
+A `private_endpoint_connection` block exports the following:
+
+* `name` - The name of the private endpoint connection.
+
+* `id` - The ID of the private endpoint connection.
+
+---
+
+A `private_link_configuration` block exports the following:
+
+* `id` - The ID of the private link configuration.
 
 ---
 

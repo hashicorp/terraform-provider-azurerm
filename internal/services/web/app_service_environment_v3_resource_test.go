@@ -216,6 +216,8 @@ resource "azurerm_app_service_environment_v3" "test" {
   subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
 
+  allow_new_private_endpoint_connections = false
+
   cluster_setting {
     name  = "InternalEncryption"
     value = "true"
@@ -234,6 +236,7 @@ resource "azurerm_app_service_environment_v3" "test" {
   tags = {
     accTest = "1"
     env     = "Test"
+    tags    = "Updated"
   }
 }
 `, template, data.RandomInteger)

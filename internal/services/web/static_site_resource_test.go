@@ -33,6 +33,42 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
+	r := StaticSiteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
+	r := StaticSiteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
@@ -100,12 +136,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_static_site" "test" {
-  name                = "acctestSS-%d"
+  name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -113,7 +149,61 @@ resource "azurerm_static_site" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+}
+
+func (r StaticSiteResource) withSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+}
+
+func (r StaticSiteResource) withUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest-%[1]d"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
@@ -123,12 +213,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_static_site" "test" {
-  name                = "acctestSS-%d"
+  name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_size            = "Standard"
@@ -139,7 +229,7 @@ resource "azurerm_static_site" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {

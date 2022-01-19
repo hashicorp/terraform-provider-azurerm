@@ -36,7 +36,7 @@ type AppServiceEnvironmentV3Model struct {
 	DedicatedHostCount                 int                               `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
-	Tags                               map[string]interface{}            `tfschema:"tags"`
+	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
 	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
@@ -136,7 +136,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"tags": tags.ForceNewSchema(),
+		"tags": tags.Schema(),
 	}
 }
 
@@ -284,7 +284,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 					},
 					ZoneRedundant: utils.Bool(model.ZoneRedundant),
 				},
-				Tags: tags.Expand(model.Tags),
+				Tags: tags.FromTypedObject(model.Tags),
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope); err != nil {
@@ -310,15 +310,13 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 			}
 
-			if !model.AllowNewPrivateEndpointConnections {
-				aseNetworkConfig := web.AseV3NetworkingConfiguration{
-					AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
-						AllowNewPrivateEndpointConnections: utils.Bool(model.AllowNewPrivateEndpointConnections),
-					},
-				}
-				if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
-					return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
-				}
+			aseNetworkConfig := web.AseV3NetworkingConfiguration{
+				AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
+					AllowNewPrivateEndpointConnections: utils.Bool(model.AllowNewPrivateEndpointConnections),
+				},
+			}
+			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
+				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -375,7 +373,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
 				model.InternalInboundIPAddresses = *props.InternalInboundIPAddresses
 				model.ExternalInboundIPAddresses = *props.ExternalInboundIPAddresses
-				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
+				model.AllowNewPrivateEndpointConnections = utils.NormaliseNilableBool(props.AllowNewPrivateEndpointConnections)
 			}
 
 			inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
@@ -383,7 +381,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 			model.InboundNetworkDependencies = *inboundNetworkDependencies
-			model.Tags = tags.Flatten(existing.Tags)
+			model.Tags = tags.ToTypedObject(existing.Tags)
 
 			return metadata.Encode(&model)
 		},
@@ -426,6 +424,8 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Web.AppServiceEnvironmentsClient
+
 			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -437,18 +437,31 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s", id)
-			client := metadata.Client.Web.AppServiceEnvironmentsClient
-
-			patch := web.AppServiceEnvironmentPatchResource{
-				AppServiceEnvironment: &web.AppServiceEnvironment{},
+			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
+
+			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
-				patch.AppServiceEnvironment.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
+				existing.AppServiceEnvironment.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
 			}
 
-			if _, err = client.Update(ctx, id.ResourceGroup, id.HostingEnvironmentName, patch); err != nil {
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.FromTypedObject(state.Tags)
+			}
+
+			aseNetworkConfig := web.AseV3NetworkingConfiguration{
+				AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
+					AllowNewPrivateEndpointConnections: utils.Bool(state.AllowNewPrivateEndpointConnections),
+				},
+			}
+			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
+				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

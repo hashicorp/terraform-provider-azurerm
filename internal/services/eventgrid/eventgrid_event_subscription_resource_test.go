@@ -993,9 +993,31 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "contributor" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "sender" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Message Sender"
+  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+}
+
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
-  scope = azurerm_resource_group.test.id
+  scope = azurerm_eventgrid_topic.test.id
 
   delivery_identity {
     type = "SystemAssigned"
@@ -1014,6 +1036,11 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     storage_account_id          = azurerm_storage_account.test.id
     storage_blob_container_name = azurerm_storage_container.test.name
   }
+
+  depends_on = [
+    azurerm_role_assignment.contributor,
+    azurerm_role_assignment.sender
+  ]
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1059,9 +1086,34 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_role_assignment" "contributor" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "sender" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Message Sender"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
-  scope = azurerm_resource_group.test.id
+  scope = azurerm_eventgrid_topic.test.id
 
   delivery_identity {
     type                   = "UserAssigned"
@@ -1082,6 +1134,11 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     storage_account_id          = azurerm_storage_account.test.id
     storage_blob_container_name = azurerm_storage_container.test.name
   }
+
+  depends_on = [
+    azurerm_role_assignment.contributor,
+    azurerm_role_assignment.sender
+  ]
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

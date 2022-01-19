@@ -127,6 +127,7 @@ resource "azurerm_iothub_fallback_route" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
 
+  source         = "DeviceConnectionStateEvents"
   condition      = "true"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
@@ -191,6 +192,7 @@ resource "azurerm_iothub_fallback_route" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
 
+  source         = "DeviceMessages"
   condition      = "true"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = false
