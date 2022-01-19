@@ -90,6 +90,35 @@ func TestAccAutomationVariableString_encrypted(t *testing.T) {
 	})
 }
 
+func TestAccAutomationVariableString_encryptedUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.encrypted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AutomationVariableStringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return testCheckAzureRMAutomationVariableExists(ctx, clients, state, "String")
 }
