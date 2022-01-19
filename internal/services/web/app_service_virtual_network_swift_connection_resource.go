@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-06-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -111,8 +111,8 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(azureNetwork.ProvisioningStateUpdating)},
-		Target:     []string{string(azureNetwork.ProvisioningStateSucceeded)},
+		Pending:    []string{string(azureNetwork.Updating)},
+		Target:     []string{string(azureNetwork.Succeeded)},
 		Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
@@ -123,8 +123,8 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 
 	vnetId := networkParse.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroup, subnetID.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(azureNetwork.ProvisioningStateUpdating)},
-		Target:     []string{string(azureNetwork.ProvisioningStateSucceeded)},
+		Pending:    []string{string(azureNetwork.Updating)},
+		Target:     []string{string(azureNetwork.Succeeded)},
 		Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),

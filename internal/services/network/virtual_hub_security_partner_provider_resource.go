@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-06-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,9 +54,9 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.SecurityProviderNameZScaler),
-					string(network.SecurityProviderNameIBoss),
-					string(network.SecurityProviderNameCheckpoint),
+					string(network.ZScaler),
+					string(network.IBoss),
+					string(network.Checkpoint),
 				}, false),
 			},
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-06-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,11 +69,11 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.LoadBalancerSkuTierRegional),
+				Default:  string(network.Regional),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerSkuTierRegional),
-					string(network.LoadBalancerSkuTierGlobal),
+					string(network.Regional),
+					string(network.Global),
 				}, false),
 			},
 
@@ -125,8 +125,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPVersionIPv4),
-								string(network.IPVersionIPv6),
+								string(network.IPv4),
+								string(network.IPv6),
 							}, false),
 						},
 
@@ -149,8 +149,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPAllocationMethodDynamic),
-								string(network.IPAllocationMethodStatic),
+								string(network.Dynamic),
+								string(network.Static),
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -273,7 +273,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if strings.EqualFold(d.Get("sku_tier").(string), string(network.LoadBalancerSkuTierGlobal)) {
+	if strings.EqualFold(d.Get("sku_tier").(string), string(network.Global)) {
 		if !strings.EqualFold(d.Get("sku").(string), string(network.LoadBalancerSkuNameStandard)) {
 			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers")
 		}
@@ -437,7 +437,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 
 		if v := data["subnet_id"].(string); v != "" {
 			subnetSet = true
-			properties.PrivateIPAddressVersion = network.IPVersionIPv4
+			properties.PrivateIPAddressVersion = network.IPv4
 			if v := data["private_ip_address_version"].(string); v != "" {
 				properties.PrivateIPAddressVersion = network.IPVersion(v)
 			}

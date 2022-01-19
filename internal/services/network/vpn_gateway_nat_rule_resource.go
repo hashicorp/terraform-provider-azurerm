@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-06-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,10 +84,10 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(network.VpnNatRuleModeEgressSnat),
+				Default:  string(network.EgressSnat),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnNatRuleModeEgressSnat),
-					string(network.VpnNatRuleModeIngressSnat),
+					string(network.EgressSnat),
+					string(network.IngressSnat),
 				}, false),
 			},
 

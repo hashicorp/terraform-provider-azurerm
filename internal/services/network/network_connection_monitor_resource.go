@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-06-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -163,12 +163,12 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.CoverageLevelAboveAverage),
-								string(network.CoverageLevelAverage),
-								string(network.CoverageLevelBelowAverage),
-								string(network.CoverageLevelDefault),
-								string(network.CoverageLevelFull),
-								string(network.CoverageLevelLow),
+								string(network.AboveAverage),
+								string(network.Average),
+								string(network.BelowAverage),
+								string(network.Default),
+								string(network.Full),
+								string(network.Low),
 							}, false),
 						},
 
@@ -205,9 +205,9 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 												"type": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Default:  string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
+													Default:  string(network.AgentAddress),
 													ValidateFunc: validation.StringInSlice([]string{
-														string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
+														string(network.AgentAddress),
 													}, false),
 												},
 											},
@@ -217,9 +217,9 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 									"type": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(network.ConnectionMonitorEndpointFilterTypeInclude),
+										Default:  string(network.Include),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.ConnectionMonitorEndpointFilterTypeInclude),
+											string(network.Include),
 										}, false),
 									},
 								},
@@ -255,12 +255,12 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.EndpointTypeAzureSubnet),
-								string(network.EndpointTypeAzureVM),
-								string(network.EndpointTypeAzureVNet),
-								string(network.EndpointTypeExternalAddress),
-								string(network.EndpointTypeMMAWorkspaceMachine),
-								string(network.EndpointTypeMMAWorkspaceNetwork),
+								string(network.AzureSubnet),
+								string(network.AzureVM),
+								string(network.AzureVNet),
+								string(network.ExternalAddress),
+								string(network.MMAWorkspaceMachine),
+								string(network.MMAWorkspaceNetwork),
 							}, false),
 						},
 
@@ -305,10 +305,10 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 									"method": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(network.HTTPConfigurationMethodGet),
+										Default:  string(network.Get),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.HTTPConfigurationMethodGet),
-											string(network.HTTPConfigurationMethodPost),
+											string(network.Get),
+											string(network.Post),
 										}, false),
 									},
 
@@ -430,8 +430,8 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.DestinationPortBehaviorNone),
-											string(network.DestinationPortBehaviorListenIfAvailable),
+											string(network.None),
+											string(network.ListenIfAvailable),
 										}, false),
 									},
 								},
@@ -598,7 +598,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	if resp.ConnectionMonitorType == network.ConnectionMonitorTypeSingleSourceDestination {
+	if resp.ConnectionMonitorType == network.SingleSourceDestination {
 		return fmt.Errorf("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk.")
 	}
 
@@ -907,7 +907,7 @@ func expandNetworkConnectionMonitorOutput(input []interface{}) *[]network.Connec
 
 	for _, item := range input {
 		result := network.ConnectionMonitorOutput{
-			Type: network.OutputTypeWorkspace,
+			Type: network.Workspace,
 			WorkspaceSettings: &network.ConnectionMonitorWorkspaceSettings{
 				WorkspaceResourceID: utils.String(item.(string)),
 			},
