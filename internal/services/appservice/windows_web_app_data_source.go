@@ -181,7 +181,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var webApp WindowsWebAppModel
+			var webApp WindowsWebAppDataSourceModel
 			if err := metadata.Decode(&webApp); err != nil {
 				return err
 			}

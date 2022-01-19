@@ -132,6 +132,10 @@ resource "azurerm_storage_disks_pool" "test" {
   availability_zones  = ["1"]
   sku_name            = "Basic_B1"
   subnet_id           = azurerm_subnet.test.id
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, template, data.RandomString)
 }

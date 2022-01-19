@@ -94,19 +94,19 @@ Since these are deprecated and can no longer be provisioned, version 3.0 of the 
 
 func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
+	subscriptionid := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewControllerID(subscriptionid, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DevSpace Controller %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -120,7 +120,7 @@ func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{
 
 	sku, err := expandControllerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
 	controller := devspaces.Controller{
@@ -133,24 +133,16 @@ func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, controller)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, controller)
 	if err != nil {
-		return fmt.Errorf("creating DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	result, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DevSpace %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if result.ID == nil {
-		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*result.ID)
+	d.SetId(id.ID())
 
 	return resourceDevSpaceControllerRead(d, meta)
 }
@@ -178,7 +170,7 @@ func resourceDevSpaceControllerUpdate(d *pluginsdk.ResourceData, meta interface{
 	if result.ID == nil {
 		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
-	d.SetId(*result.ID)
+	d.SetId(id.ID())
 
 	return resourceDevSpaceControllerRead(d, meta)
 }

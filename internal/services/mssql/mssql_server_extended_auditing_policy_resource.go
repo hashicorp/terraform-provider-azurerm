@@ -87,6 +87,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 
 func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -147,11 +148,12 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("retrieving MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
 	}
 
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("reading MsSql Server %q Extended Auditing Policy (Resource Group %q) ID is empty or nil", serverId.Name, serverId.ResourceGroup)
+	if read.Name == nil || *read.Name == "" {
+		return fmt.Errorf("reading MsSql Server %q Extended Auditing Policy (Resource Group %q) Name is empty or nil", serverId.Name, serverId.ResourceGroup)
 	}
+	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroup, serverId.Name, *read.Name)
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlServerExtendedAuditingPolicyRead(d, meta)
 }

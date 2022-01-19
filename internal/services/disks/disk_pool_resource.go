@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -119,11 +120,17 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 				Sku:  expandDisksPoolSku(m.Sku),
 				Tags: tags.Expand(m.Tags),
 			}
-			if err := client.CreateOrUpdateThenPoll(ctx, id, createParameter); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id, createParameter)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			metadata.SetID(id)
-			return nil
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+				if err := r.retryError(future.Poller.PollUntilDone()); err != nil {
+					return err
+				}
+				metadata.SetID(id)
+				return nil
+			})
 		},
 	}
 }
@@ -165,7 +172,7 @@ func (DiskPoolResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (DiskPoolResource) Delete() sdk.ResourceFunc {
+func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -178,11 +185,14 @@ func (DiskPoolResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			future, err := client.Delete(ctx, *id)
+			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			return nil
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
+				return r.retryError(future.Poller.PollUntilDone())
+			})
 		},
 	}
 }
@@ -191,7 +201,7 @@ func (DiskPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return diskpools.ValidateDiskPoolID
 }
 
-func (DiskPoolResource) Update() sdk.ResourceFunc {
+func (r DiskPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -218,13 +228,33 @@ func (DiskPoolResource) Update() sdk.ResourceFunc {
 				patch.Tags = tags.Expand(m.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, patch); err != nil {
+			future, err := client.Update(ctx, *id, patch)
+			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
-
-			return nil
+			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
+				return r.retryError(future.Poller.PollUntilDone())
+			})
 		},
 	}
+}
+
+func (DiskPoolResource) retryError(err error) *resource.RetryError {
+	if err == nil {
+		return nil
+	}
+	// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-deploying-a-disk-pool the errors below are retryable.
+	retryableErrors := []string{
+		"DeploymentTimeout",
+		"GoalStateApplicationTimeoutError",
+		"OngoingOperationInProgress",
+	}
+	for _, retryableError := range retryableErrors {
+		if strings.Contains(err.Error(), retryableError) {
+			return pluginsdk.RetryableError(err)
+		}
+	}
+	return pluginsdk.NonRetryableError(err)
 }
 
 func expandDisksPoolSku(sku string) diskpools.Sku {

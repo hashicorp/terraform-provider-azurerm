@@ -60,7 +60,8 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		"country_code": {
 			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -82,7 +83,8 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Description:  "The initial display name of the B2C tenant.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -134,6 +136,13 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 			var model AadB2cDirectoryModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if model.CountryCode == "" {
+				return fmt.Errorf("`country_code` is required when creating a new AADB2C directory")
+			}
+			if model.DisplayName == "" {
+				return fmt.Errorf("`display_name` is required when creating a new AADB2C directory")
 			}
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)

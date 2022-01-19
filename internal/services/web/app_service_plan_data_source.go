@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -98,25 +99,25 @@ func dataSourceAppServicePlan() *pluginsdk.Resource {
 
 func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
-		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
-		return fmt.Errorf("Error: App Service Plan %q (Resource Group %q) was not found", name, resourceGroup)
+		return fmt.Errorf("%s was not found", id)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ServerfarmName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {

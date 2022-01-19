@@ -84,11 +84,11 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
+* `content_share_force_disabled` - (Optional) Should Content Share Settings be disabled. Defaults to `false`.
+
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
 * `enabled` - (Optional) Is the Function App enabled?
-
-* `force_disable_content_share` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
@@ -146,13 +146,13 @@ An `app_service_logs` block supports the following:
 
 An `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Web App?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Function App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
 * `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
-* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
+* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Function App.
 
 * `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
@@ -164,17 +164,17 @@ An `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App.
+* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Function App.
 
 ~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
-* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App.
+* `runtime_version` - (Optional) The Runtime Version of the Authentication / Authorization feature in use for the Windows Function App.
 
 * `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
-* `token_store_enabled` - (Optional) Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
+* `token_store_enabled` - (Optional) Should the Windows Function App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -341,7 +341,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Function App is Always On enabled. Defaults to `false`.
 
 * `api_definition_url` - (Optional) The URL of the API definition that describes this Windows Function App.
 
@@ -363,13 +363,13 @@ A `site_config` block supports the following:
 
 * `cors` - (Optional) A `cors` block as defined above.
 
-* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Function App.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this Windows Function App. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
 
-* `health_check_path` - (Optional) The path to be checked for this function app health.
+* `health_check_path` - (Optional) The path to be checked for this Windows Function App health.
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
@@ -381,9 +381,9 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
+* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Windows Function App. Only affects apps on an Elastic Premium plan.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
@@ -393,11 +393,11 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker process. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Windows Function App use a 32-bit worker process. Defaults to `true`.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
