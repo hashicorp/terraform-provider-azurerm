@@ -26,6 +26,9 @@ BUG FIXES:
 
 * `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
 * `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config [GH-14844]
+* `azurerm_storage_share_file` changing `content_md5`  will now trigger recreation and `content_length` of share file  will now be set when updating properties. [GH-15007]
+
+internal/services/storage/storage_share_file_resource.go
 
 ## 2.92.0 (January 14, 2022)
 
