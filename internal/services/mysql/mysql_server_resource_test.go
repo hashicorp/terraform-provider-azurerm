@@ -214,6 +214,8 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
+<<<<<<< HEAD
+=======
 func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
@@ -229,6 +231,7 @@ func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
 	})
 }
 
+>>>>>>> eb64bb77b (uadated infrastructureEncryption)
 func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -291,7 +294,7 @@ resource "azurerm_mysql_server" "test" {
   ssl_minimal_tls_version_enforced  = "TLS1_1"
   storage_mb                        = 51200
   version                           = "%s"
-  infrastructure_encryption_enabled = true
+  infrastructure_encryption_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -318,6 +321,7 @@ resource "azurerm_mysql_server" "test" {
   backup_retention_days             = 7
   create_mode                       = "Default"
   geo_redundant_backup_enabled      = false
+  infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
