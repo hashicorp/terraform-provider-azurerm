@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BackendHttpSettingsCollectionId struct {
@@ -42,7 +42,7 @@ func (id BackendHttpSettingsCollectionId) ID() string {
 
 // BackendHttpSettingsCollectionID parses a BackendHttpSettingsCollection ID into an BackendHttpSettingsCollectionId struct
 func BackendHttpSettingsCollectionID(input string) (*BackendHttpSettingsCollectionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

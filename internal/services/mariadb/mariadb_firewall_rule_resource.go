@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,8 +23,10 @@ func resourceArmMariaDBFirewallRule() *pluginsdk.Resource {
 		Read:   resourceArmMariaDBFirewallRuleRead,
 		Update: resourceArmMariaDBFirewallRuleCreateUpdate,
 		Delete: resourceArmMariaDBFirewallRuleDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MariaDBFirewallRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -66,22 +69,21 @@ func resourceArmMariaDBFirewallRule() *pluginsdk.Resource {
 
 func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.FirewallRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Firewall Rule creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
+	id := parse.NewMariaDBFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
 		}
 
@@ -97,24 +99,16 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName, properties)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting onf create/update future for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting on create/update future for %s: %v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MariaDB Firewall Rule %q (Gesource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmMariaDBFirewallRuleRead(d, meta)
 }
@@ -124,26 +118,23 @@ func resourceArmMariaDBFirewallRuleRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure MariaDB Firewall Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("server_name", serverName)
+	d.Set("name", id.FirewallRuleName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("server_name", id.ServerName)
 	d.Set("start_ip_address", resp.StartIPAddress)
 	d.Set("end_ip_address", resp.EndIPAddress)
 
@@ -155,15 +146,12 @@ func resourceArmMariaDBFirewallRuleDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
 
-	future, err := client.Delete(ctx, resourceGroup, serverName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName)
 	if err != nil {
 		return err
 	}

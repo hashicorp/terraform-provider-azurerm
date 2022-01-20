@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,10 +54,10 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.BuiltIn),
-					string(policy.Custom),
-					string(policy.NotSpecified),
-					string(policy.Static),
+					string(policy.TypeBuiltIn),
+					string(policy.TypeCustom),
+					string(policy.TypeNotSpecified),
+					string(policy.TypeStatic),
 				}, false),
 			},
 
@@ -361,7 +361,12 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
@@ -465,7 +470,12 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", id.Name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err = parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }

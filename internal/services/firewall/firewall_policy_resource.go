@@ -5,8 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
+	logAnalytiscValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -126,7 +128,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.Any(validation.IsIPv4Range, validation.IsIPv4Address),
+								ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
 							},
 							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						},
@@ -247,7 +249,6 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -300,6 +301,44 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"insights": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"default_log_analytics_workspace_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+						},
+						"retention_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+						"log_analytics_workspace": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+									},
+									"firewall_location": location.SchemaWithoutForceNew(),
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"child_policies": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -344,17 +383,17 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 
 func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
@@ -370,6 +409,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
 			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
+			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
 		},
 		Identity: expandFirewallPolicyIdentity(d.Get("identity").([]interface{})),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -392,21 +432,14 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	locks.ByName(name, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(name, azureFirewallPolicyResourceName)
+	locks.ByName(id.Name, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, props); err != nil {
-		return fmt.Errorf("creating Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceFirewallPolicyRead(d, meta)
 }
@@ -483,6 +516,10 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
 			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
+		}
+
+		if err := d.Set("insights", flattenFirewallPolicyInsights(prop.Insights)); err != nil {
+			return fmt.Errorf(`setting "insights": %+v`, err)
 		}
 	}
 
@@ -627,6 +664,45 @@ func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceId
 		TenantID:               utils.String(v["tenant_id"].(string)),
 		UserAssignedIdentities: userAssignedIdentities,
 	}
+}
+
+func expandFirewallPolicyInsights(input []interface{}) *network.FirewallPolicyInsights {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	output := &network.FirewallPolicyInsights{
+		IsEnabled:             utils.Bool(raw["enabled"].(bool)),
+		RetentionDays:         utils.Int32(int32(raw["retention_in_days"].(int))),
+		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
+	}
+
+	return output
+}
+
+func expandFirewallPolicyLogAnalyticsResources(defaultWorkspaceId string, workspaces []interface{}) *network.FirewallPolicyLogAnalyticsResources {
+	output := &network.FirewallPolicyLogAnalyticsResources{
+		DefaultWorkspaceID: &network.SubResource{
+			ID: &defaultWorkspaceId,
+		},
+	}
+
+	var workspaceList []network.FirewallPolicyLogAnalyticsWorkspace
+	for _, workspace := range workspaces {
+		workspace := workspace.(map[string]interface{})
+		workspaceList = append(workspaceList, network.FirewallPolicyLogAnalyticsWorkspace{
+			Region: utils.String(location.Normalize(workspace["firewall_location"].(string))),
+			WorkspaceID: &network.SubResource{
+				ID: utils.String(workspace["id"].(string)),
+			},
+		})
+	}
+	if workspaceList != nil {
+		output.Workspaces = &workspaceList
+	}
+
+	return output
 }
 
 func flattenFirewallPolicyThreatIntelWhitelist(input *network.FirewallPolicyThreatIntelWhitelist) []interface{} {
@@ -794,4 +870,61 @@ func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []i
 			"user_assigned_identity_ids": userAssignedIdentities,
 		},
 	}
+}
+
+func flattenFirewallPolicyInsights(input *network.FirewallPolicyInsights) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var enabled bool
+	if input.IsEnabled != nil {
+		enabled = *input.IsEnabled
+	}
+
+	var retentionInDays int
+	if input.RetentionDays != nil {
+		retentionInDays = int(*input.RetentionDays)
+	}
+
+	defaultLogAnalyticsWorspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":                            enabled,
+			"retention_in_days":                  retentionInDays,
+			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
+			"log_analytics_workspace":            logAnalyticsWorkspaces,
+		},
+	}
+}
+
+func flattenFirewallPolicyLogAnalyticsResources(input *network.FirewallPolicyLogAnalyticsResources) (string, []interface{}) {
+	if input == nil {
+		return "", []interface{}{}
+	}
+
+	var defaultLogAnalyticsWorkspaceId string
+	if input.DefaultWorkspaceID != nil && input.DefaultWorkspaceID.ID != nil {
+		defaultLogAnalyticsWorkspaceId = *input.DefaultWorkspaceID.ID
+	}
+
+	var workspaceList []interface{}
+	if input.Workspaces != nil {
+		for _, workspace := range *input.Workspaces {
+			loc := location.NormalizeNilable(workspace.Region)
+
+			var id string
+			if workspace.WorkspaceID != nil && workspace.WorkspaceID.ID != nil {
+				id = *workspace.WorkspaceID.ID
+			}
+
+			workspaceList = append(workspaceList, map[string]interface{}{
+				"id":                id,
+				"firewall_location": loc,
+			})
+		}
+	}
+
+	return defaultLogAnalyticsWorkspaceId, workspaceList
 }

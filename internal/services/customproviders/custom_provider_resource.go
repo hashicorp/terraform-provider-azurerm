@@ -117,18 +117,18 @@ func resourceCustomProvider() *pluginsdk.Resource {
 
 func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewResourceProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Custom Provider %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -147,25 +147,16 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, provider)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, provider)
 	if err != nil {
-		return fmt.Errorf("creating/updating Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Custom Provider %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceCustomProviderRead(d, meta)
 }
 

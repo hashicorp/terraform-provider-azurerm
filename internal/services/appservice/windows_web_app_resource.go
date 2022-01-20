@@ -30,8 +30,8 @@ type WindowsWebAppModel struct {
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                        `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                      `tfschema:"client_cert_mode"`
+	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	Identity                      []helpers.Identity          `tfschema:"identity"`
@@ -91,13 +91,13 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(web.ClientCertModeRequired),
@@ -269,6 +269,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
 				Tags:     tags.FromTypedObject(webApp.Tags),
+				Identity: helpers.ExpandIdentity(webApp.Identity),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
 					Enabled:               utils.Bool(webApp.Enabled),
@@ -278,10 +279,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
-			}
-
-			if identity := helpers.ExpandIdentity(webApp.Identity); identity != nil {
-				siteEnvelope.Identity = identity
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -437,9 +434,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				Name:          id.SiteName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(webApp.Location),
-				AppSettings:   helpers.FlattenAppSettings(appSettings),
 				Tags:          tags.ToTypedObject(webApp.Tags),
 			}
+
+			var healthCheckCount *int
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
 			webAppProps := webApp.SiteProperties
 			if v := webAppProps.ServerFarmID; v != nil {
@@ -502,7 +501,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack)
+			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -576,10 +575,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
 				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_enabled") {
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_mode") {
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 

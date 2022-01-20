@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -147,13 +147,12 @@ func getNetworkInterface(networkInterfaceId string) interface{} {
 
 func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
 	privateIpAddress := ""
-	id, err := azure.ParseAzureResourceID(networkInterfaceId)
+	id, err := parse.NetworkInterfaceID(networkInterfaceId)
 	if err != nil {
 		return privateIpAddress
 	}
-	name := id.Path["networkInterfaces"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return privateIpAddress
 	}

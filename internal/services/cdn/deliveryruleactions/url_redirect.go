@@ -17,21 +17,21 @@ func URLRedirect() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.Found),
-					string(cdn.Moved),
-					string(cdn.PermanentRedirect),
-					string(cdn.TemporaryRedirect),
+					string(cdn.RedirectTypeFound),
+					string(cdn.RedirectTypeMoved),
+					string(cdn.RedirectTypePermanentRedirect),
+					string(cdn.RedirectTypeTemporaryRedirect),
 				}, false),
 			},
 
 			"protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(cdn.MatchRequest),
+				Default:  string(cdn.DestinationProtocolMatchRequest),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.MatchRequest),
-					string(cdn.HTTP),
-					string(cdn.HTTPS),
+					string(cdn.DestinationProtocolMatchRequest),
+					string(cdn.DestinationProtocolHTTP),
+					string(cdn.DestinationProtocolHTTPS),
 				}, false),
 			},
 
@@ -93,7 +93,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 		}
 
 		output = append(output, cdn.URLRedirectAction{
-			Name:       cdn.NameURLRedirect,
+			Name:       cdn.NameBasicDeliveryRuleActionNameURLRedirect,
 			Parameters: &params,
 		})
 	}

@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub_ip"
 description: |-
-  Manages a Virtual Hub IP.
+  Manages a Virtual Hub IP. This resource is also known as a Route Server.
 ---
 
 # azurerm_virtual_hub_ip
 
-Manages a Virtual Hub IP.
+Manages a Virtual Hub IP. This resource is also known as a Route Server.
 
 ~> **NOTE** Virtual Hub IP only supports Standard Virtual Hub without Virtual Wan.
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed. Defaults to `Dynamic`.
 
-* `public_ip_address_id` - (Optional) The ID of the Public IP Address.
+* `public_ip_address_id` - (Optional) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

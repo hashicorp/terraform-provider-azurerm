@@ -7,7 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +99,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: attestationproviders.AttestationServiceCreationSpecificParams{
 			// AttestationPolicy was deprecated in October of 2019
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
@@ -144,8 +145,8 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AttestationProviderName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ProviderName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(resp.Model.Location))
@@ -154,7 +155,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("attestation_uri", props.AttestUri)
 			d.Set("trust_model", props.TrustModel)
 		}
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil
@@ -172,7 +173,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 
 	updateParams := attestationproviders.AttestationServicePatchParams{}
 	if d.HasChange("tags") {
-		updateParams.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		updateParams.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, updateParams); err != nil {

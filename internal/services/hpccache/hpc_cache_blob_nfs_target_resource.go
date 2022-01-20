@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -221,7 +221,7 @@ func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

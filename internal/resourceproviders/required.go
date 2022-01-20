@@ -71,6 +71,7 @@ func Required() map[string]struct{} {
 		"Microsoft.ServiceFabricMesh":       {},
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
+		"Microsoft.StoragePool":             {},
 		"Microsoft.StreamAnalytics":         {},
 		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},

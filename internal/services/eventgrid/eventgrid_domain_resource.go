@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -140,6 +140,20 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
 
+			"local_auth_enabled": localAuthEnabled(),
+
+			"auto_create_topic_with_first_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"auto_delete_topic_with_last_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
@@ -166,17 +180,17 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -189,10 +203,13 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
-		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
-		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
-		PublicNetworkAccess: expandPublicNetworkAccess(d),
-		InboundIPRules:      expandInboundIPRules(d),
+		InputSchemaMapping:                   expandAzureRmEventgridDomainInputMapping(d),
+		InputSchema:                          eventgrid.InputSchema(d.Get("input_schema").(string)),
+		PublicNetworkAccess:                  expandPublicNetworkAccess(d),
+		InboundIPRules:                       expandInboundIPRules(d),
+		DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
+		AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
 	}
 
 	domain := eventgrid.Domain{
@@ -212,24 +229,16 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Domain creation with Properties: %+v", domain)
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, domain)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, domain)
 	if err != nil {
-		return fmt.Errorf("creating/updating EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for EventGrid Domain %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("reading EventGrid Domain %q (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceEventGridDomainRead(d, meta)
 }
@@ -291,6 +300,27 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+
+		localAuthEnabled := true
+		if props.DisableLocalAuth != nil {
+			localAuthEnabled = !*props.DisableLocalAuth
+		}
+
+		d.Set("local_auth_enabled", localAuthEnabled)
+
+		autoCreateTopicWithFirstSubscription := true
+		if props.AutoCreateTopicWithFirstSubscription != nil {
+			autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
+		}
+
+		d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+		autoDeleteTopicWithLastSubscription := true
+		if props.AutoDeleteTopicWithLastSubscription != nil {
+			autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
+		}
+
+		d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)

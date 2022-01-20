@@ -40,13 +40,6 @@ resource "azurerm_sql_server" "example" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
@@ -73,8 +66,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
-
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -89,7 +80,7 @@ An `identity` block supports the following:
 
 `threat_detection_policy` supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
@@ -113,20 +104,6 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `${azurerm_mssql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity.0.tenant_id}`
-
----
-
-A `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
-
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its primary database audit events to Azure Monitor.
 
 ### Timeouts
 

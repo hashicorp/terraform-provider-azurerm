@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
@@ -40,6 +41,7 @@ import (
 	devspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
+	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -57,8 +59,10 @@ import (
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	loadtest "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
+	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
@@ -90,6 +94,7 @@ import (
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
+	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	serviceFabricMesh "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
@@ -111,6 +116,7 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
+	AadB2c                *aadb2c.Client
 	Advisor               *advisor.Client
 	AnalysisServices      *analysisServices.Client
 	ApiManagement         *apiManagement.Client
@@ -145,6 +151,7 @@ type Client struct {
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
+	Disks                 *disks.Client
 	Dns                   *dns.Client
 	DomainServices        *domainservices.Client
 	EventGrid             *eventgrid.Client
@@ -162,8 +169,10 @@ type Client struct {
 	Kusto                 *kusto.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
+	LoadTest              *loadtest.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
+	Logz                  *logz.Client
 	MachineLearning       *machinelearning.Client
 	Maintenance           *maintenance.Client
 	ManagedApplication    *managedapplication.Client
@@ -196,6 +205,7 @@ type Client struct {
 	ServiceBus            *serviceBus.Client
 	ServiceFabric         *serviceFabric.Client
 	ServiceFabricMesh     *serviceFabricMesh.Client
+	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
 	StreamAnalytics       *streamAnalytics.Client
@@ -218,6 +228,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Features = o.Features
 	client.StopContext = ctx
 
+	client.AadB2c = aadb2c.NewClient(o)
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
@@ -252,6 +263,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
+	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
@@ -270,7 +282,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
+	client.LoadTest = loadtest.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
@@ -302,6 +316,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
+	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	client.ServiceFabricMesh = serviceFabricMesh.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)

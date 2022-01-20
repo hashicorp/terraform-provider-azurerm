@@ -96,6 +96,7 @@ resource "azurerm_stream_analytics_output_table" "test" {
   table                     = "foobar"
   partition_key             = "foo"
   row_key                   = "bar"
+  batch_size                = 100
 }
 `, template, data.RandomInteger)
 }
@@ -129,7 +130,6 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "rowkeyupdated"
   batch_size                = 50
 }
-
 `, template, data.RandomString, data.RandomInteger)
 }
 

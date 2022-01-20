@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApplicationGatewayId struct {
@@ -39,7 +39,7 @@ func (id ApplicationGatewayId) ID() string {
 
 // ApplicationGatewayID parses a ApplicationGateway ID into an ApplicationGatewayId struct
 func ApplicationGatewayID(input string) (*ApplicationGatewayId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

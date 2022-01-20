@@ -180,6 +180,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
     priority = 25
     criteria {
       days_of_week           = ["Thursday"]
+      months_of_year         = ["November"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }

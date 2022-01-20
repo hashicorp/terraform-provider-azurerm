@@ -28,7 +28,7 @@ resource "azurerm_cosmosdb_account" "db" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
+  kind                = "MongoDB"
 
   enable_automatic_failover = true
 
@@ -50,8 +50,8 @@ resource "azurerm_cosmosdb_account" "db" {
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 100000
   }
 
   geo_location {
@@ -80,6 +80,16 @@ The following arguments are supported:
 
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
 
+* `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
+
+* `capacity` - (Optional) A `capacity` block as defined below.
+
+* `create_mode` - (Optional) The creation mode for the CosmosDB Account. Possible values are `Default` and `Restore`. Changing this forces a new resource to be created.
+
+~> **NOTE:** `create_mode` only works when `backup.type` is `Continuous`.
+
+* `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
+
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
 * `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
@@ -87,6 +97,10 @@ The following arguments are supported:
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+
+~> **NOTE:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
+
+~> **NOTE:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
 * `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -96,7 +110,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account.
 
-* `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
+* `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below. Changing this forces a new resource to be created.
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
@@ -126,6 +140,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `restore` - (Optional) A `restore` block as defined below.
+
+~> **NOTE:** `restore` should be set when `create_mode` is `Restore`.
+
 ---
 
 `consistency_policy` Configures the database consistency and supports the following:
@@ -134,7 +152,7 @@ The following arguments are supported:
 * `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
 * `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. Accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
-~> **Note**: `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
+~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
 
 ---
 
@@ -164,13 +182,27 @@ The following arguments are supported:
 
 ---
 
+A `analytical_storage` block supports the following:
+
+* `schema_type` - (Required) The schema type of the Analytical Storage for this Cosmos DB account. Possible values are `FullFidelity` and `WellDefined`.
+
+---
+
+A `capacity` block supports the following:
+
+* `total_throughput_limit` - (Required) The total throughput limit imposed on this Cosmos DB account (RU/s). Possible values are at least `-1`. `-1` means no limit.
+
+---
+
 A `backup` block supports the following:
 
-* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`.
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`. Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
 * `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440.
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
+
+* `storage_redundancy` - (Optional) The storage redundancy which is used to indicate type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
 
 ---
 
@@ -191,6 +223,26 @@ A `cors_rule` block supports the following:
 A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only `SystemAssigned`.
+
+---
+
+A `restore` block supports the following:
+
+* `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
+
+**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+
+* `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
+
+* `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `database` block supports the following:
+
+* `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
+
+* `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

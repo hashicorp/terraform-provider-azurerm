@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -167,7 +166,7 @@ func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.AppConfiguration.ConfigurationStoresClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

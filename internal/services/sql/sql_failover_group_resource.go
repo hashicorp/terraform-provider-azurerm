@@ -25,8 +25,10 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 		Update: resourceSqlFailoverGroupCreateUpdate,
 		Delete: resourceSqlFailoverGroupDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FailoverGroupID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -138,28 +140,25 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 
 func resourceSqlFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-
+	id := parse.NewFailoverGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_failover_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_failover_group", id.ID())
 		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-
 	properties := sql.FailoverGroup{
 		FailoverGroupProperties: &sql.FailoverGroupProperties{
 			ReadOnlyEndpoint:  expandSqlFailoverGroupReadOnlyPolicy(d),
@@ -179,22 +178,16 @@ func resourceSqlFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		properties.Databases = &databases
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting on create/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSqlFailoverGroupRead(d, meta)
 }
 
@@ -214,7 +207,7 @@ func resourceSqlFailoverGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Failover Group %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -259,11 +252,11 @@ func resourceSqlFailoverGroupDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting SQL Failover Group %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of SQL Failover Group %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return err

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
@@ -88,6 +88,10 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				assignment.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
 			}
 
+			if msgs := metadata.ResourceData.Get("non_compliance_message").([]interface{}); len(msgs) > 0 {
+				assignment.NonComplianceMessages = br.expandNonComplianceMessages(msgs)
+			}
+
 			if _, err := client.Create(ctx, id.Scope, id.Name, assignment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -162,9 +166,11 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			if props := resp.AssignmentProperties; props != nil {
 				metadata.ResourceData.Set("description", props.Description)
 				metadata.ResourceData.Set("display_name", props.DisplayName)
-				metadata.ResourceData.Set("enforce", props.EnforcementMode == policy.Default)
+				metadata.ResourceData.Set("enforce", props.EnforcementMode == policy.EnforcementModeDefault)
 				metadata.ResourceData.Set("not_scopes", props.NotScopes)
 				metadata.ResourceData.Set("policy_definition_id", props.PolicyDefinitionID)
+
+				metadata.ResourceData.Set("non_compliance_message", br.flattenNonComplianceMessages(props.NonComplianceMessages))
 
 				flattenedMetaData := flattenJSON(props.Metadata)
 				metadata.ResourceData.Set("metadata", flattenedMetaData)
@@ -254,6 +260,10 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 				update.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(metadata.ResourceData.Get("not_scopes").([]interface{}))
 			}
 
+			if metadata.ResourceData.HasChange("non_compliance_message") {
+				update.AssignmentProperties.NonComplianceMessages = br.expandNonComplianceMessages(metadata.ResourceData.Get("non_compliance_message").([]interface{}))
+			}
+
 			if metadata.ResourceData.HasChange("parameters") {
 				update.AssignmentProperties.Parameters = map[string]*policy.ParameterValuesValue{}
 
@@ -326,6 +336,26 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			},
 		},
 
+		"non_compliance_message": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"content": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"policy_definition_reference_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
 		"parameters": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
@@ -375,4 +405,44 @@ func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []inter
 		}
 	}
 	return policyAssignmentIdentity{}.Flatten(config)
+}
+
+func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policy.NonComplianceMessage) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			output := make(map[string]interface{})
+			output["content"] = v.Message
+			if v.PolicyDefinitionReferenceID != nil {
+				output["policy_definition_reference_id"] = *v.PolicyDefinitionReferenceID
+			}
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]policy.NonComplianceMessage {
+	if len(input) == 0 {
+		return nil
+	}
+
+	output := make([]policy.NonComplianceMessage, 0)
+	for _, v := range input {
+		if m, ok := v.(map[string]interface{}); ok {
+			message := utils.String(m["content"].(string))
+			ncm := policy.NonComplianceMessage{
+				Message: message,
+			}
+			if m["policy_definition_reference_id"].(string) != "" {
+				policydefinitionreferenceid := utils.String(m["policy_definition_reference_id"].(string))
+				ncm.PolicyDefinitionReferenceID = policydefinitionreferenceid
+			}
+			output = append(output, ncm)
+		}
+	}
+
+	return &output
 }

@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,6 +20,7 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -202,6 +204,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
+							ValidateFunc: storageValidate.StorageAccountName,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -335,7 +338,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
 		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
@@ -368,7 +371,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if managedResourceGroupName == "" {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
-		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroup)
+		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
 	}
 
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
@@ -444,7 +447,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if requireNsgRules != "" {
@@ -515,8 +518,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
@@ -598,7 +601,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 			}
 		}
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

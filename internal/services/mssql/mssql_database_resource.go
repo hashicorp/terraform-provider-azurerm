@@ -9,10 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
@@ -27,7 +29,7 @@ import (
 )
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resourceData := &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreateUpdate,
 		Read:   resourceMsSqlDatabaseRead,
 		Update: resourceMsSqlDatabaseCreateUpdate,
@@ -304,7 +306,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
-
 			"tags": tags.Schema(),
 		},
 
@@ -313,8 +314,30 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				// "hyperscale can not change to other sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
-		),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if !features.ThreePointOh() {
+					return nil
+				}
+				sku := d.Get("sku_name").(string)
+				if !strings.HasPrefix(sku, "DW") && !d.Get("transparent_data_encryption_enabled").(bool) {
+					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
+				}
+				return nil
+			}),
 	}
+	if features.ThreePointOh() {
+		// TODO: Update docs with the following text:
+		//
+		// * `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database.
+		// -> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
+
+		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+	return resourceData
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
@@ -361,6 +384,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,15 +494,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:                 utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:                      utils.String(d.Get("collation").(string)),
-			ElasticPoolID:                  utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:                    sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:                    utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:                     sql.SampleName(d.Get("sample_name").(string)),
-			CurrentBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
-			ZoneRedundant:                  utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:                   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:                        utils.String(d.Get("collation").(string)),
+			ElasticPoolID:                    utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:                      sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
+			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
+			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
+			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -556,6 +580,36 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+	}
+
+	if features.ThreePointOh() {
+		statusProperty := sql.TransparentDataEncryptionStatusDisabled
+		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
+		if encryptionStatus {
+			statusProperty = sql.TransparentDataEncryptionStatusEnabled
+		}
+		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, sql.TransparentDataEncryption{
+			TransparentDataEncryptionProperties: &sql.TransparentDataEncryptionProperties{
+				Status: statusProperty,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
+		}
+
+		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			c, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+			}
+			if c.DatabaseProperties.Status == sql.DatabaseStatusScaling {
+				return resource.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+			}
+
+			return nil
+		}); err != nil {
+			return nil
+		}
 	}
 
 	d.SetId(id.ID())
@@ -651,6 +705,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -706,7 +761,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	extendedAuditingPolicy := []interface{}{}
-	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
+	if createMode, ok := d.GetOk("create_mode"); !ok || (createMode.(string) != "Secondary" && createMode.(string) != "OnlineSecondary") {
 		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
@@ -759,6 +814,18 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
 		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
+	}
+
+	if features.ThreePointOh() {
+		tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
+		}
+		tdeStatus := false
+		if tde.TransparentDataEncryptionProperties != nil && tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
+			tdeStatus = true
+		}
+		d.Set("transparent_data_encryption_enabled", tdeStatus)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -900,14 +967,14 @@ func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.Curr
 	}
 }
 
-// TODO - 3.0: change input to sql.CurrentBackupStorageRedundancy enums
-func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.CurrentBackupStorageRedundancy {
+// TODO - 3.0: change input to sql.RequestedBackupStorageRedundancy enums
+func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
 	switch storageAccountType {
 	case "LRS":
-		return sql.CurrentBackupStorageRedundancyLocal
+		return sql.RequestedBackupStorageRedundancyLocal
 	case "ZRS":
-		return sql.CurrentBackupStorageRedundancyZone
+		return sql.RequestedBackupStorageRedundancyZone
 	default:
-		return sql.CurrentBackupStorageRedundancyGeo
+		return sql.RequestedBackupStorageRedundancyGeo
 	}
 }

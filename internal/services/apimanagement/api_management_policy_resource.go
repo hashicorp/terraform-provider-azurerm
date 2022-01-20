@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -84,7 +84,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.RawxmlLink,
+			Format: apimanagement.PolicyContentFormatRawxmlLink,
 			Value:  utils.String(xmlLink),
 		}
 	} else if xmlContent != "" {
@@ -96,7 +96,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.Rawxml,
+			Format: apimanagement.PolicyContentFormatRawxml,
 			Value:  utils.String(xmlContent),
 		}
 	}
@@ -109,14 +109,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating or updating Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.PolicyExportFormatXML)
-	if err != nil {
-		return fmt.Errorf("retrieving Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementPolicyRead(d, meta)
 }

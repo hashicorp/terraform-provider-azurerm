@@ -107,7 +107,9 @@ The following arguments are supported:
 
 * `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version. Defaults to `false`.
 
-* `identity` - (Required) A `identity` block defined below.
+* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey` and `EncryptionAtRestWithPlatformAndCustomerKeys`. Defaults to `EncryptionAtRestWithCustomerKey`.
+
+* `identity` - (Required) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Disk Encryption Set.
 
@@ -125,7 +127,7 @@ The following attributes are exported:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The (Client) ID of the Service Principal.
 

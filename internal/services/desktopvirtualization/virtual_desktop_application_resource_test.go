@@ -184,7 +184,6 @@ resource "azurerm_virtual_desktop_application" "test" {
   icon_path                    = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
   icon_index                   = 1
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 

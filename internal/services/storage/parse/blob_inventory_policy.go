@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BlobInventoryPolicyId struct {
@@ -42,7 +42,7 @@ func (id BlobInventoryPolicyId) ID() string {
 
 // BlobInventoryPolicyID parses a BlobInventoryPolicy ID into an BlobInventoryPolicyId struct
 func BlobInventoryPolicyID(input string) (*BlobInventoryPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

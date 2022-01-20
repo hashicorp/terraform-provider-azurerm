@@ -85,7 +85,6 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 

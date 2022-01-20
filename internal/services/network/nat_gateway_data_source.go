@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -79,26 +80,23 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 
 func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Nat Gateway %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Nat Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}

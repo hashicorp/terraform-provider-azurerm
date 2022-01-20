@@ -15,6 +15,7 @@ import (
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,11 +50,25 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// TODO remove in 3.0
 			"iothub_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: iothubValidate.IoTHubName,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ValidateFunc:  iothubValidate.IoTHubName,
+				Deprecated:    "Deprecated in favour of `iothub_id`",
+				ConflictsWith: []string{"iothub_id"},
+			},
+
+			"iothub_id": {
+				Type: pluginsdk.TypeString,
+				// TODO add Required: true in 3.0
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ValidateFunc:  iothubValidate.IotHubID,
+				ConflictsWith: []string{"iothub_name"},
 			},
 
 			"container_name": {
@@ -63,9 +78,10 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			},
 
 			"file_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  false,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+				ValidateFunc: iothubValidate.FileNameFormat,
 			},
 
 			"batch_frequency_in_seconds": {
@@ -95,8 +111,11 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			},
 
 			"encoding": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(devices.EncodingAvro),
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(devices.EncodingAvro),
 					string(devices.EncodingAvroDeflate),
@@ -114,18 +133,31 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	id := parse.NewEndpointStorageContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
+	endpointRG := d.Get("resource_group_name").(string)
+	iotHubName := d.Get("iothub_name").(string)
+	iotHubRG := endpointRG
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	if iotHubName == "" {
+		id, err := parse.IotHubID(d.Get("iothub_id").(string))
+		if err != nil {
+			return err
+		}
+		iotHubName = id.Name
+		iotHubRG = id.ResourceGroup
+	}
 
-	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
+	id := parse.NewEndpointStorageContainerID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
+
+	locks.ByName(iotHubName, IothubResourceName)
+	defer locks.UnlockByName(iotHubName, IothubResourceName)
+
+	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iotHubName, iotHubRG)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
 	connectionStr := d.Get("connection_string").(string)
@@ -139,7 +171,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		ConnectionString:        &connectionStr,
 		Name:                    &id.EndpointName,
 		SubscriptionID:          &subscriptionID,
-		ResourceGroup:           &id.ResourceGroup,
+		ResourceGroup:           &endpointRG,
 		ContainerName:           &containerName,
 		FileNameFormat:          &fileNameFormat,
 		BatchFrequencyInSeconds: &batchFrequencyInSeconds,
@@ -186,7 +218,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	}
 	routing.Endpoints.StorageContainers = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, iotHubRG, iotHubName, iothub, "")
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -217,7 +249,9 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 
 	d.Set("name", id.EndpointName)
 	d.Set("iothub_name", id.IotHubName)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	d.Set("iothub_id", iotHubId.ID())
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -233,6 +267,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 					d.Set("batch_frequency_in_seconds", endpoint.BatchFrequencyInSeconds)
 					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
 					d.Set("encoding", endpoint.Encoding)
+					d.Set("resource_group_name", endpoint.ResourceGroup)
 				}
 			}
 		}

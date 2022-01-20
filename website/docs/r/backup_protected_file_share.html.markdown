@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `source_storage_account_id` - (Required) Specifies the ID of the storage account of the file share to backup. Changing this forces a new resource to be created.
 
--> **NOTE** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/en-us/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault.
+-> **NOTE** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/en-us/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault. When using the `azurerm_backup_container_storage_account` resource to register, you can use `depends_on` to explicitly declare the dependency. It will make sure that the registration is completed before creating the `azurerm_backup_protected_file_share` resource. 
 
 * `source_file_share_name` - (Required) Specifies the name of the file share to backup. Changing this forces a new resource to be created.
 

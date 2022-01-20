@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -214,7 +214,7 @@ func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Cosmos.MongoDbClient.GetMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Mongo Collection (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

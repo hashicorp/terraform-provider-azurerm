@@ -65,7 +65,7 @@ The following arguments are supported:
 * `zone_resilient` - (Optional) Is zone resiliency enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
 * `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`.
 
-~> **Note**: `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
+~> **Note:** `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 
 `os_disk` supports the following:
 

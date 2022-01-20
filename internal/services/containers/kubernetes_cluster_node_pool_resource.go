@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -39,6 +40,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KubernetesClusterNodePoolV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -174,6 +180,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
+			// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
+			// must be specified/reconciled as required
 			"node_taints": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -264,6 +272,16 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.SpotMaxPrice,
 			},
 
+			"scale_down_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(containerservice.ScaleDownModeDelete),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.ScaleDownModeDeallocate),
+					string(containerservice.ScaleDownModeDelete),
+				}, false),
+			},
+
 			"ultra_ssd_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -279,6 +297,15 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"upgrade_settings": upgradeSettingsSchema(),
+
+			"workload_runtime": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.WorkloadRuntimeOCIContainer),
+					string(containerservice.WorkloadRuntimeWasmWasi),
+				}, false),
+			},
 		},
 	}
 }
@@ -368,6 +395,13 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
 		profile.OsSKU = containerservice.OSSKU(osSku)
+	}
+
+	if scaleDownMode := d.Get("scale_down_mode").(string); scaleDownMode != "" {
+		profile.ScaleDownMode = containerservice.ScaleDownMode(scaleDownMode)
+	}
+	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
+		profile.WorkloadRuntime = containerservice.WorkloadRuntime(workloadRuntime)
 	}
 
 	if priority == string(containerservice.ScaleSetPrioritySpot) {
@@ -493,16 +527,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster Node Pool %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	id := parse.NewNodePoolID(poolsClient.SubscriptionID, resourceGroup, clusterName, name)
+	d.SetId(id.ID())
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
@@ -612,6 +638,13 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
+	if d.HasChange("scale_down_mode") {
+		props.ScaleDownMode = containerservice.ScaleDownMode(d.Get("scale_down_mode").(string))
+	}
+	if d.HasChange("workload_runtime") {
+		props.WorkloadRuntime = containerservice.WorkloadRuntime(d.Get("workload_runtime").(string))
+	}
+
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
 	maxCount := 0
 	if props.MaxCount != nil {
@@ -690,7 +723,9 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.Set("name", id.AgentPoolName)
-	d.Set("kubernetes_cluster_id", cluster.ID)
+
+	clusterId := parse.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
+	d.Set("kubernetes_cluster_id", clusterId.ID())
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {
@@ -703,6 +738,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
+		scaleDownMode := string(containerservice.ScaleDownModeDelete)
+		if v := props.ScaleDownMode; v != "" {
+			scaleDownMode = string(v)
+		}
+		d.Set("scale_down_mode", scaleDownMode)
+		d.Set("workload_runtime", string(props.WorkloadRuntime))
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {

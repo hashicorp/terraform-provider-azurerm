@@ -392,6 +392,7 @@ func AzureTimeZoneString() func(interface{}, string) ([]string, []error) {
 		"Pacific/Tongatapu",
 		"Pacific/Wake",
 		"Pacific/Wallis",
+		"Etc/UTC",
 		"UTC",
 	}
 

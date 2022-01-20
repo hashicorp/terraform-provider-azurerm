@@ -131,6 +131,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
+  local_auth_enabled            = false
 }
 `, template, data.RandomIntOfLength(8))
 }

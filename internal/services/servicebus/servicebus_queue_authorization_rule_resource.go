@@ -43,21 +43,48 @@ func resourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"queue_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.QueueID,
+				ConflictsWith: []string{"queue_name", "namespace_name", "resource_group_name"},
 			},
 
+			// TODO 3.0 - Remove in favor of queue_id
 			"queue_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.QueueName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.QueueName(),
+				Deprecated:    `Deprecated in favor of "queue_id"`,
+				ConflictsWith: []string{"queue_id"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Remove in favor of queue_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "queue_id"`,
+				ConflictsWith: []string{"queue_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of queue_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "queue_id"`,
+				ConflictsWith: []string{"queue_id"},
+			},
 		}),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
@@ -72,7 +99,14 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Queue Authorization Rule creation.")
 
-	resourceId := parse.NewQueueAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("queue_name").(string), d.Get("name").(string))
+	var resourceId parse.QueueAuthorizationRuleId
+	if queueIdLit := d.Get("queue_id").(string); queueIdLit != "" {
+		queueId, _ := parse.QueueID(queueIdLit)
+		resourceId = parse.NewQueueAuthorizationRuleID(queueId.SubscriptionId, queueId.ResourceGroup, queueId.NamespaceName, queueId.Name, d.Get("name").(string))
+	} else {
+		resourceId = parse.NewQueueAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("queue_name").(string), d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.QueueName, resourceId.AuthorizationRuleName)
 		if err != nil {
@@ -81,7 +115,7 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_servicebus_queue_authorization_rule", resourceId.ID())
 		}
 	}
@@ -135,6 +169,7 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("queue_id", parse.NewQueueID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.QueueName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)

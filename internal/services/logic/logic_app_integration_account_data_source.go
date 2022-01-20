@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -43,27 +44,23 @@ func dataSourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 
 func dataSourceLogicAppIntegrationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIntegrationAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Logic App Integration Account Account %q does not exist in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Logic App Integration Account Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Logic App Integration Account Account %q (Resource Group %q): ID is empty or nil", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("sku_name", string(resp.Sku.Name))
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,8 +25,10 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 		Read:   resourcePublicIpPrefixRead,
 		Update: resourcePublicIpPrefixCreateUpdate,
 		Delete: resourcePublicIpPrefixDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.PublicIpPrefixID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -79,7 +82,19 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      28,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(0, 31),
+				ValidateFunc: validation.IntBetween(0, 127),
+			},
+
+			"ip_version": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Default:          string(network.IPVersionIPv4),
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.IPVersionIPv4),
+					string(network.IPVersionIPv6),
+				}, true),
 			},
 
 			"ip_prefix": {
@@ -134,6 +149,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	prefixLength := d.Get("prefix_length").(int)
+	ipVersion := d.Get("ip_version").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	zones := &[]string{"1", "2"}
@@ -162,7 +178,8 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Name: network.PublicIPPrefixSkuName(sku),
 		},
 		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
-			PrefixLength: utils.Int32(int32(prefixLength)),
+			PrefixLength:           utils.Int32(int32(prefixLength)),
+			PublicIPAddressVersion: network.IPVersion(ipVersion),
 		},
 		Tags:  tags.Expand(t),
 		Zones: zones,
@@ -199,7 +216,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.PublicIPPrefixeName)
@@ -229,6 +246,10 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
 		d.Set("prefix_length", props.PrefixLength)
 		d.Set("ip_prefix", props.IPPrefix)
+
+		if version := props.PublicIPAddressVersion; version != "" {
+			d.Set("ip_version", string(props.PublicIPAddressVersion))
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -246,11 +267,11 @@ func resourcePublicIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.PublicIPPrefixeName)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

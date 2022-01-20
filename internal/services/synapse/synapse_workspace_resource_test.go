@@ -77,7 +77,21 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep("sql_administrator_login_password"),
 		{
-			Config: r.withUpdateFields(data),
+			Config: r.withAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.withAadAdmins(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.withSqlAadAdmin(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -221,6 +235,30 @@ func (r SynapseWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+
+resource "azurerm_purview_account" "test" {
+  name                = "acctestacc%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  sku_name            = "Standard_1"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "%s-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "%s-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -232,15 +270,48 @@ resource "azurerm_synapse_workspace" "test" {
   managed_virtual_network_enabled      = true
   managed_resource_group_name          = "acctest-ManagedSynapse-%d"
   sql_identity_control_enabled         = true
+  public_network_access_enabled        = false
+  linking_allowed_for_aad_tenant_ids   = [data.azurerm_client_config.current.tenant_id]
+  purview_id                           = azurerm_purview_account.test.id
+  compute_subnet_id                    = azurerm_subnet.test.id
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceResource) withUpdateFields(data acceptance.TestData) string {
+func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR4!"
+  sql_identity_control_enabled         = true
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -257,7 +328,42 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
 
+  sql_aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR4!"
+  sql_identity_control_enabled         = true
   aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  sql_aad_admin {
     login     = "AzureAD Admin"
     object_id = data.azurerm_client_config.current.object_id
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -289,6 +395,7 @@ resource "azurerm_synapse_workspace" "test" {
     repository_name = "myrepo"
     branch_name     = "dev"
     root_folder     = "/"
+    last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
 }
 `, template, data.RandomInteger)
@@ -340,6 +447,7 @@ resource "azurerm_synapse_workspace" "test" {
     repository_name = "myrepo"
     branch_name     = "dev"
     root_folder     = "/"
+    last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
 }
 `, template, data.RandomInteger)

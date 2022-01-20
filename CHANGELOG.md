@@ -1,127 +1,167 @@
-## 2.83.0 (Unreleased)
+## 2.93.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventgrid_system_topic` [GH-13851]
-* **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
-* **New Resource:** `sentinel_automation_rule` [GH-11502]
-* **New Resource:** `azurerm_stream_analytics_output_table` [GH-13854]
+* **New Data Source**: `azurerm_mysql_flexible_server` [GH-14976]
+* **New Beta Data Source**: `azurerm_windows_function_app` [GH-14964]
 
-IMPROVEMENTS:
+ENHANCEMENTS: 
 
-* upgrading `mysql` to API Version `2021-05-01` [GH-13818]
-* `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
-* `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
-* `azurerm_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
-* `azurerm_servicebus_queue` - support for the `max_message_size_in_kilobytes` property [GH-13762]
-* `azurerm_servicebus_topic` - support for the `max_message_size_in_kilobytes` property [GH-13762]
-* `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property [GH-13853]
-* `azurerm_windows_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
-* `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
-
-BUG FIXES:
-
-* `azurerm_app_configuration_key` - now supports forward slashes in the `key` [GH-13859]
-* `azurerm_data_factory` - can now read global parameter values [GH-13519]
-* `azurerm_firewall_policy` - will now correctly import [GH-13862]
-
-## 2.82.0 (October 21, 2021)
-
-FEATURES: 
-
-* **New Resource:** `azurerm_mysql_flexible_server_configuration` ([#13831](https://github.com/hashicorp/terraform-provider-azurerm/issues/13831))
-* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment_baseline` ([#13744](https://github.com/hashicorp/terraform-provider-azurerm/issues/13744))
-* **New Resource:** `azurerm_virtual_hub_route_table_route` ([#13743](https://github.com/hashicorp/terraform-provider-azurerm/issues/13743))
-
-IMPROVEMENTS:
-
-* dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` ([#13613](https://github.com/hashicorp/terraform-provider-azurerm/issues/13613))
-* upgrading `netapp` to API Version `2021-06-01` ([#13812](https://github.com/hashicorp/terraform-provider-azurerm/issues/13812))
-* upgrading `servicebus` to API Version `2021-06-01-preview` ([#13701](https://github.com/hashicorp/terraform-provider-azurerm/issues/13701))
-* Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property ([#13747](https://github.com/hashicorp/terraform-provider-azurerm/issues/13747))
-* Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs ([#13773](https://github.com/hashicorp/terraform-provider-azurerm/issues/13773))
-* `azurerm_batch_account` - support for the `identity` block ([#13742](https://github.com/hashicorp/terraform-provider-azurerm/issues/13742))
-* `azurerm_batch_pool` - support for the `identity` block ([#13779](https://github.com/hashicorp/terraform-provider-azurerm/issues/13779))
-* `azurerm_container_registry` - supports for the `regiononal_endpoint_enabled` property ([#13767](https://github.com/hashicorp/terraform-provider-azurerm/issues/13767))
-* `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property ([#13731](https://github.com/hashicorp/terraform-provider-azurerm/issues/13731))
-* `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property ([#13747](https://github.com/hashicorp/terraform-provider-azurerm/issues/13747))
-* `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties ([#13783](https://github.com/hashicorp/terraform-provider-azurerm/issues/13783))
-* `azurerm_kubernetes_cluster` - support for the `open_service_mesh` block ([#13462](https://github.com/hashicorp/terraform-provider-azurerm/issues/13462))
-* `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
-* `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
-* `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
-* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties ([#13674](https://github.com/hashicorp/terraform-provider-azurerm/issues/13674))
-* `azurerm_mssql_server` - support for the `azuread_authentication_only` property ([#13754](https://github.com/hashicorp/terraform-provider-azurerm/issues/13754))
-* `azurerm_network_interface` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
-* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties ([#13690](https://github.com/hashicorp/terraform-provider-azurerm/issues/13690))
+* dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
+* dependencies: updating `containerregistry` to API version `2021-08-01-preview` [GH-14961]
+* Data Source `azurerm_logic_app_workflow` - exporting the `identity` block [GH-14896]
+* `azurerm_bastion_host` - support for `copy_paste_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `file_copy_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `ip_connect_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `scale_units` [GH-14968]
+* `azurerm_bastion_host` - support for `shareable_link_enabled` [GH-14987]
+* `azurerm_bastion_host` - support for `tunneling_enabled` [GH-14987]
+* `azurerm_security_center_automation ` - `event_source` can now be set to `AssessmentsSnapshot`,
+`RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
+* `azurerm_static_site` - support for the `identity` block [GH-14911]
 
 BUG FIXES:
 
-* `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. ([#13771](https://github.com/hashicorp/terraform-provider-azurerm/issues/13771))
-* `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. ([#13757](https://github.com/hashicorp/terraform-provider-azurerm/issues/13757))
-* `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation ([#13753](https://github.com/hashicorp/terraform-provider-azurerm/issues/13753))
-* `azurerm_mssql_database` - fix failure by preventing `extended_auditing_policy` from being configured for secondaries ([#13799](https://github.com/hashicorp/terraform-provider-azurerm/issues/13799))
-* `azurerm_postgresql_flexible_server` - changing the `standby_availability_zone` no longer forces a new resource ([#13507](https://github.com/hashicorp/terraform-provider-azurerm/issues/13507))
-* `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore ([#13797](https://github.com/hashicorp/terraform-provider-azurerm/issues/13797))
+* `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
+* `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config [GH-14844]
 
-## 2.81.0 (October 14, 2021)
+## 2.92.0 (January 14, 2022)
 
-FEATURES: 
+FEATURES:
 
-* **New Data Source:** `azurerm_consumption_budget_resource_group` ([#12538](https://github.com/hashicorp/terraform-provider-azurerm/issues/12538))
-* **New Data Source:** `azurerm_consumption_budget_subscription` ([#12540](https://github.com/hashicorp/terraform-provider-azurerm/issues/12540))
-* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` ([#13636](https://github.com/hashicorp/terraform-provider-azurerm/issues/13636))
-* **New Resource:** `azurerm_mysql_flexible_server` ([#13678](https://github.com/hashicorp/terraform-provider-azurerm/issues/13678))
+* **New Resource:** `azurerm_api_management_api_tag` ([#14711](https://github.com/hashicorp/terraform-provider-azurerm/issues/14711))
+* **New Resource:** `azurerm_disk_pool_managed_disk_attachment` ([#14268](https://github.com/hashicorp/terraform-provider-azurerm/issues/14268))
 
-IMPROVEMENTS:
+ENHANCEMENTS:
 
-* upgrading `batch` to API Version `2021-06-01`([#13718](https://github.com/hashicorp/terraform-provider-azurerm/issues/13718))
-* upgrading `mssql` to API Version `v5.0`([#13622](https://github.com/hashicorp/terraform-provider-azurerm/issues/13622))
-* Data Source: `azurerm_key_vault` - exports the `enable_rbac_authorization` attribute ([#13717](https://github.com/hashicorp/terraform-provider-azurerm/issues/13717))
-* `azurerm_app_service` - support for the `key_vault_reference_identity_id` property ([#13720](https://github.com/hashicorp/terraform-provider-azurerm/issues/13720))
-* `azurerm_lb` - support for the `sku_tier` property ([#13680](https://github.com/hashicorp/terraform-provider-azurerm/issues/13680))
-* `azurerm_eventgrid_event_subscription` - support the `delivery_property` block ([#13595](https://github.com/hashicorp/terraform-provider-azurerm/issues/13595))
-* `azurerm_mssql_server` - support for the `user_assigned_identity_ids` and `primary_user_assigned_identity_id` properties ([#13683](https://github.com/hashicorp/terraform-provider-azurerm/issues/13683))
-* `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property ([#13518](https://github.com/hashicorp/terraform-provider-azurerm/issues/13518))
-* `azurerm_security_center_workspace` - now supports the `Free` pricing tier ([#13710](https://github.com/hashicorp/terraform-provider-azurerm/issues/13710))
-* `azurerm_kusto_attached_database_configuration` - support for the `sharing` property ([#13487](https://github.com/hashicorp/terraform-provider-azurerm/issues/13487))
+* dependencies: upgrading `eventgrid` to API version `2021-12-01` ([#14433](https://github.com/hashicorp/terraform-provider-azurerm/issues/14433))
+* `azurerm_api_management_custom_domain` - the `proxy` property has been deprecated in favour of the `gateway` for the 3.0 release ([#14628](https://github.com/hashicorp/terraform-provider-azurerm/issues/14628))
+* `azurerm_databricks_workspace_customer_managed_key` - allow creation of resource when `infrastructure_encryption_enabled` is set to `true` for the databricks workspace ([#14915](https://github.com/hashicorp/terraform-provider-azurerm/issues/14915))
+* `azurerm_eventgrid_domain` - support for the `local_auth_enabled`, `auto_create_topic_with_first_subscription`, and `auto_delete_topic_with_last_subscription` properties ([#14433](https://github.com/hashicorp/terraform-provider-azurerm/issues/14433))
+* `azurerm_monitor_action_group` - support for the `event_hub_receiver` block ([#14771](https://github.com/hashicorp/terraform-provider-azurerm/issues/14771))
+* `azurerm_mssql_server_extended_auditing_policy` - support storing audit data in storage account that is behind a firewall and VNet ([#14656](https://github.com/hashicorp/terraform-provider-azurerm/issues/14656))
+* `azurerm_purview_account` - export the `managed_resources` block ([#14865](https://github.com/hashicorp/terraform-provider-azurerm/issues/14865))
+* `azurerm_recovery_services_vault`- support for customer-managed keys (CMK) with the `encryption` block ([#14718](https://github.com/hashicorp/terraform-provider-azurerm/issues/14718))
+* `azurerm_storage_account` - support for the `infrastructure_encryption_enabled` property ([#14864](https://github.com/hashicorp/terraform-provider-azurerm/issues/14864))
 
 BUG FIXES:
 
-* Data Source: `azurerm_cosmosdb_account`- prevent a panic from an index out of range error ([#13560](https://github.com/hashicorp/terraform-provider-azurerm/issues/13560))
-* `azurerm_function_app_slot` - the `client_affinity` property has been deprecated as it is no longer configurable in the service's API ([#13711](https://github.com/hashicorp/terraform-provider-azurerm/issues/13711))
-* `azurerm_kubernetes_cluster` - the `kube_config` and `kube_admin_config` blocks can now be marked entirely as `Sensitive` via an environment variable ([#13732](https://github.com/hashicorp/terraform-provider-azurerm/issues/13732))
-* `azurerm_logic_app_workflow` - will not check for `nil` and empty access control properties ([#13689](https://github.com/hashicorp/terraform-provider-azurerm/issues/13689))
-* `azurerm_management_group` - will not nil check child management groups when deassociating a subscription from a management group ([#13540](https://github.com/hashicorp/terraform-provider-azurerm/issues/13540))
-* `azurerm_subnet_resource` - will now lock the virtual network and subnet on updates ([#13726](https://github.com/hashicorp/terraform-provider-azurerm/issues/13726))
-* `azurerm_app_configuration_key` - can now mix labeled and unlabeled keys ([#13736](https://github.com/hashicorp/terraform-provider-azurerm/issues/13736))
- 
-## 2.80.0 (October 08, 2021)
+* `azurerm_aadb2c_directory` - fix importing existing resources ([#14879](https://github.com/hashicorp/terraform-provider-azurerm/issues/14879))
+* `azurerm_consumption_budget_subscription` - fix issue in migration logic ([#14898](https://github.com/hashicorp/terraform-provider-azurerm/issues/14898))
+* `azurerm_cosmosdb_account` - only force ForceMongo when kind is set to mongo ([#14924](https://github.com/hashicorp/terraform-provider-azurerm/issues/14924))
+* `azurerm_cosmosdb_mongo_collection` - now validates that "_id" is included as an index key ([#14857](https://github.com/hashicorp/terraform-provider-azurerm/issues/14857))
+* `azurem_hdinsight` - hdinsight resources using oozie metastore can now be created without error ([#14880](https://github.com/hashicorp/terraform-provider-azurerm/issues/14880))
+* `azurerm_log_analytics_datasource_windows_performance_counter` - state migration for case conversion of ID element ([#14916](https://github.com/hashicorp/terraform-provider-azurerm/issues/14916))
+* `azurerm_monitor_aad_diagnostic_setting` - use the correct parser function for event hub rule IDs ([#14944](https://github.com/hashicorp/terraform-provider-azurerm/issues/14944))
+* `azurerm_mysql_server_key` - fix issue when checking for existing resource on create ([#14883](https://github.com/hashicorp/terraform-provider-azurerm/issues/14883))
+* `azurerm_spring_cloud_service` - fix panic when removing git repos ([#14900](https://github.com/hashicorp/terraform-provider-azurerm/issues/14900))
+* `azurerm_log_analytics_workspace` - the `reservation_capcity_in_gb_per_day` has been deprecated and renamed to `reservation_capacity_in_gb_per_day` ([#14910](https://github.com/hashicorp/terraform-provider-azurerm/issues/14910))
+* `azurerm_iothub_dps` - fixed default value of `allocation_weight` to match azure default ([#14943](https://github.com/hashicorp/terraform-provider-azurerm/issues/14943))
+* `azurerm_iothub` - now exports `event_hub_events_namespace` and has a fallback route by default ([#14942](https://github.com/hashicorp/terraform-provider-azurerm/issues/14942))
 
-FEATURES: 
+## 2.91.0 (January 07, 2022)
 
-* **New Data Source:** `backup_policy_file_share` ([#13444](https://github.com/hashicorp/terraform-provider-azurerm/issues/13444))
+FEATURES:
 
-IMPROVEMENTS:
+* **New Data Source:** `azurerm_aadb2c_directory` ([#14671](https://github.com/hashicorp/terraform-provider-azurerm/issues/14671))
+* **New Data Source:** `azurerm_sql_managed_instance` ([#14739](https://github.com/hashicorp/terraform-provider-azurerm/issues/14739))
+* **New Resource:** `azurerm_aadb2c_directory` ([#14671](https://github.com/hashicorp/terraform-provider-azurerm/issues/14671))
+* **New Resource:** `azurerm_app_service_slot_custom_hostname_binding` ([#13097](https://github.com/hashicorp/terraform-provider-azurerm/issues/13097))
+* **New Resource:** `azurerm_data_factory_linked_service_odbc` ([#14787](https://github.com/hashicorp/terraform-provider-azurerm/issues/14787))
+* **New Resource:** `azurerm_disk_pool` ([#14675](https://github.com/hashicorp/terraform-provider-azurerm/issues/14675))
+* **New Resource:** `azurerm_load_test` ([#14724](https://github.com/hashicorp/terraform-provider-azurerm/issues/14724))
+* **New Resource:** `azurerm_virtual_desktop_scaling_plan` ([#14188](https://github.com/hashicorp/terraform-provider-azurerm/issues/14188))
 
-* Data Source `azurerm_public_ips` - deprecate the `attached` property infavour of the `attachment_status` property to improve filtering ([#13500](https://github.com/hashicorp/terraform-provider-azurerm/issues/13500))
-* Data Source `azurerm_public_ips` - return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` ([#13610](https://github.com/hashicorp/terraform-provider-azurerm/issues/13610))
-* `azurerm_kusto_eventhub_data_connection supports` - support for the `identity_id` property ([#13488](https://github.com/hashicorp/terraform-provider-azurerm/issues/13488))
-* `azurerm_managed_disk` - support for the `logical_sector_size` property ([#13637](https://github.com/hashicorp/terraform-provider-azurerm/issues/13637))
-* `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties ([#13399](https://github.com/hashicorp/terraform-provider-azurerm/issues/13399))
-* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property ([#13562](https://github.com/hashicorp/terraform-provider-azurerm/issues/13562))
-* `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property ([#13653](https://github.com/hashicorp/terraform-provider-azurerm/issues/13653))
+ENHANCEMENTS:
+
+* dependencies: upgrading `appplatform` to API version `2021-09-01-preview` ([#14365](https://github.com/hashicorp/terraform-provider-azurerm/issues/14365))
+* dependencies: upgrading `network` to API Version `2021-05-01` ([#14164](https://github.com/hashicorp/terraform-provider-azurerm/issues/14164))
+* dependencies: upgrading to `v60.2.0` of `github.com/Azure/azure-sdk-for-go` ([#14688](https://github.com/hashicorp/terraform-provider-azurerm/issues/14688)] and [[#14667](https://github.com/hashicorp/terraform-provider-azurerm/issues/14667))
+* dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` ([#14666](https://github.com/hashicorp/terraform-provider-azurerm/issues/14666))
+* `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` properties ([#14413](https://github.com/hashicorp/terraform-provider-azurerm/issues/14413))
+* `azurerm_application_gateway` - support the `fips_enagled` property ([#14797](https://github.com/hashicorp/terraform-provider-azurerm/issues/14797))
+* `azurerm_cdn_endpoint_custom_domain` - support for HTTPS ([#13283](https://github.com/hashicorp/terraform-provider-azurerm/issues/13283))
+* `azurerm_hdinsight_hbase_cluster` - support for the `network` property ([#14825](https://github.com/hashicorp/terraform-provider-azurerm/issues/14825))
+* `azurerm_iothub` - support for the `identity` block ([#14354](https://github.com/hashicorp/terraform-provider-azurerm/issues/14354))
+* `azurerm_iothub_endpoint_servicebus_queue_resource` - depracating the `iothub_name` propertyin favour of `iothub_id` property ([#14690](https://github.com/hashicorp/terraform-provider-azurerm/issues/14690))
+* `azurerm_iothub_endpoint_storage_container_resource` - depracating the `iothub_name` property in favour of `iothub_id` property [[#14690](https://github.com/hashicorp/terraform-provider-azurerm/issues/14690)] 
+* `azurerm_iot_fallback_route` - support for the `source` property ([#14836](https://github.com/hashicorp/terraform-provider-azurerm/issues/14836))
+* `azurerm_kubernetes_cluster` - support for the `public_network_access_enabled`, `scale_down_mode`, and `workload_runtime` properties ([#14386](https://github.com/hashicorp/terraform-provider-azurerm/issues/14386))
+* `azurerm_linux_function_app` - (Beta Resource) fix the filtering of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` ([#14815](https://github.com/hashicorp/terraform-provider-azurerm/issues/14815))
+* `azurerm_linux_virtual_machine` - support for the `user_data` property ([#13888](https://github.com/hashicorp/terraform-provider-azurerm/issues/13888))
+* `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property ([#13888](https://github.com/hashicorp/terraform-provider-azurerm/issues/13888))
+* `azurerm_managed_disk` - support for the `gallery_image_reference_id` property ([#14121](https://github.com/hashicorp/terraform-provider-azurerm/issues/14121))
+* `azurerm_mysql_server` - support capacities up to `16TB` for the `storage_mb` property ([#14838](https://github.com/hashicorp/terraform-provider-azurerm/issues/14838))
+* `azurerm_postgresql_flexible_server` - support for the `geo_redundant_backup_enabled` property ([#14661](https://github.com/hashicorp/terraform-provider-azurerm/issues/14661))
+* `azurerm_recovery_services_vault` - support for the `storage_mode_type` property ([#14659](https://github.com/hashicorp/terraform-provider-azurerm/issues/14659))
+* `azurerm_spring_cloud_certificate` - support for the `certificate_content` property ([#14689](https://github.com/hashicorp/terraform-provider-azurerm/issues/14689))
+* `azurerm_servicebus_namespace_authorization_rule` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_namespace_network_rule_set` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_namespace_authorization_rule` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_queue` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_queue_authorization_rule` - the `resource_group_name`, `namespace_name`, and `queue_name` properties have been deprecated in favour of the `queue_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_subscription` - the `resource_group_name`, `namespace_name`, and `topic_name` properties have been deprecated in favour of the `topic_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_subscription_rule` - the `resource_group_name`, `namespace_name`, `topic_name`, and `subscription_name` properties have been deprecated in favour of the `subscription_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_topic` - the `resource_group_name` and `namespace_name` properties have been deprecated in favour of the `namespace_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_servicebus_topic_authorization_rule` - the `resource_group_name`, `namespace_name`, and `topic_name` properties have been deprecated in favour of the `topic_id` property ([#14784](https://github.com/hashicorp/terraform-provider-azurerm/issues/14784))
+* `azurerm_shared_image_version` - images can now be sorted by semver ([#14708](https://github.com/hashicorp/terraform-provider-azurerm/issues/14708))
+* `azurerm_virtual_network_gateway_connection` - support for the `connection_mode` property ([#14738](https://github.com/hashicorp/terraform-provider-azurerm/issues/14738))
+* `azurerm_web_application_firewall_policy` - the `file_upload_limit_in_mb` property within the `policy_settings` block can now be set to `4000` ([#14715](https://github.com/hashicorp/terraform-provider-azurerm/issues/14715))
+* `azurerm_windows_virtual_machine` - support for the `user_data` property ([#13888](https://github.com/hashicorp/terraform-provider-azurerm/issues/13888))
+* `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property ([#13888](https://github.com/hashicorp/terraform-provider-azurerm/issues/13888))
 
 BUG FIXES:
 
-* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 ([#13580](https://github.com/hashicorp/terraform-provider-azurerm/issues/13580))
-* `azurerm_managed_application` - fixed typecasting bug ([#13641](https://github.com/hashicorp/terraform-provider-azurerm/issues/13641))
+* `azurerm_app_service_environment_v3` - fix the default value of the `allow_new_private_endpoint_connections` property ([#14805](https://github.com/hashicorp/terraform-provider-azurerm/issues/14805))
+* `azurerm_consumption_budget_subscription` - added an additional state migration to fix the bug introduced by the first one and to parse the `subscription_id` from the resource's ID ([#14803](https://github.com/hashicorp/terraform-provider-azurerm/issues/14803))
+* `azurerm_network_interface_security_group_association` - checking the ID matches the expected format during import ([#14753](https://github.com/hashicorp/terraform-provider-azurerm/issues/14753))
+* `azurerm_storage_management_policy` - handle the unexpected deletion of the storage account ([#14799](https://github.com/hashicorp/terraform-provider-azurerm/issues/14799))
 
-)
+## 2.90.0 (December 17, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_app_configuration_key` ([#14484](https://github.com/hashicorp/terraform-provider-azurerm/issues/14484))
+* **New Resource:** `azurerm_container_registry_task` ([#14533](https://github.com/hashicorp/terraform-provider-azurerm/issues/14533))
+* **New Resource:** `azurerm_maps_creator` ([#14566](https://github.com/hashicorp/terraform-provider-azurerm/issues/14566))
+* **New Resource:** `azurerm_netapp_snapshot_policy` ([#14230](https://github.com/hashicorp/terraform-provider-azurerm/issues/14230))
+* **New Resource:** `azurerm_synapse_sql_pool_workload_classifier` ([#14412](https://github.com/hashicorp/terraform-provider-azurerm/issues/14412))
+* **New Resource:** `azurerm_synapse_workspace_sql_aad_admin` ([#14341](https://github.com/hashicorp/terraform-provider-azurerm/issues/14341))
+* **New Resource:** `azurerm_vpn_gateway_nat_rule` ([#14527](https://github.com/hashicorp/terraform-provider-azurerm/issues/14527))
+
+ENHANCEMENTS:
+
+* dependencies: updating `apimanagement` to API Version `2021-08-01` ([#14312](https://github.com/hashicorp/terraform-provider-azurerm/issues/14312))
+* dependencies: updating `managementgroups` to API Version `2020-05-01` ([#14635](https://github.com/hashicorp/terraform-provider-azurerm/issues/14635))
+* dependencies: updating `redisenterprise` to use an Embedded SDK ([#14502](https://github.com/hashicorp/terraform-provider-azurerm/issues/14502))
+* dependencies: updating to `v0.19.1` of `github.com/hashicorp/go-azure-helpers` ([#14627](https://github.com/hashicorp/terraform-provider-azurerm/issues/14627))
+* dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` ([#14596](https://github.com/hashicorp/terraform-provider-azurerm/issues/14596))
+* Data Source: `azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` ([#13648](https://github.com/hashicorp/terraform-provider-azurerm/issues/13648))
+* `azurerm_application_gateway ` - support for private link configurations ([#14583](https://github.com/hashicorp/terraform-provider-azurerm/issues/14583))
+* `azurerm_blueprint_assignment` - support for the `lock_exclude_actions` property ([#14648](https://github.com/hashicorp/terraform-provider-azurerm/issues/14648))
+* `azurerm_container_group` - support for `ip_address_type = None` ([#14460](https://github.com/hashicorp/terraform-provider-azurerm/issues/14460))
+* `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block ([#14362](https://github.com/hashicorp/terraform-provider-azurerm/issues/14362))
+* `azurerm_data_factory_dataset_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory dataset resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_trigger_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory trigger resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_iothub` - support for the `cloud_to_device` block ([#14546](https://github.com/hashicorp/terraform-provider-azurerm/issues/14546))
+* `azurerm_iothub_endpoint_eventhub` - the `iothub_name` property has been deprecated in favour of the `iothub_id` property ([#14632](https://github.com/hashicorp/terraform-provider-azurerm/issues/14632))
+* `azurerm_logic_app_workflow` - support for the `open_authentication_policy` block ([#14007](https://github.com/hashicorp/terraform-provider-azurerm/issues/14007))
+* `azurerm_signalr` - support for the `live_trace_enabled` property ([#14646](https://github.com/hashicorp/terraform-provider-azurerm/issues/14646))
+* `azurerm_xyz_policy_assignment` add support for `non_compliance_message` ([#14518](https://github.com/hashicorp/terraform-provider-azurerm/issues/14518))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - will now set a default value for `default_identity_type` when the API return a nil value ([#14643](https://github.com/hashicorp/terraform-provider-azurerm/issues/14643))
+* `azurerm_function_app` - address `app_settings` during creation rather than just updates ([#14638](https://github.com/hashicorp/terraform-provider-azurerm/issues/14638))
+* `azurerm_marketplace_agreement` - fix crash when the import check triggers ([#14614](https://github.com/hashicorp/terraform-provider-azurerm/issues/14614))
+* `azurerm_postgresql_configuration` - now locks during write operations to prevent conflicts ([#14619](https://github.com/hashicorp/terraform-provider-azurerm/issues/14619))
+* `azurerm_postgresql_flexible_server_configuration` - now locks during write operations to prevent conflicts ([#14607](https://github.com/hashicorp/terraform-provider-azurerm/issues/14607))
 
 ---
 
-For information on changes between the v2.69.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/CHANGELOG-v2.md).
+For information on changes between the v2.89.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/CHANGELOG-v2.md).
 
 For information on changes between the v2.00.0 and v1.0.0 releases, please see [the previous v1.x changelog entries](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/CHANGELOG-v1.md).
 

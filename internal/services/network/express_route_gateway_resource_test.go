@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,16 +80,14 @@ func TestAccExpressRouteGateway_update(t *testing.T) {
 }
 
 func (t ExpressRouteGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ExpressRouteGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["expressRouteGateways"]
 
-	resp, err := clients.Network.ExpressRouteGatewaysClient.Get(ctx, resGroup, name)
+	resp, err := clients.Network.ExpressRouteGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Express Route Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

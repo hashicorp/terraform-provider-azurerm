@@ -54,7 +54,7 @@ resource "azurerm_batch_pool" "example" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
     evaluation_interval = "PT15M"
@@ -72,7 +72,7 @@ EOF
   storage_image_reference {
     publisher = "microsoft-azure-batch"
     offer     = "ubuntu-server-container"
-    sku       = "16-04-lts"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -86,11 +86,11 @@ EOF
   }
 
   start_task {
-    command_line         = "echo 'Hello World from $env'"
-    max_task_retry_count = 1
-    wait_for_success     = true
+    command_line       = "echo 'Hello World from $env'"
+    task_retry_maximum = 1
+    wait_for_success   = true
 
-    environment = {
+    common_environment_properties = {
       env = "TEST"
     }
 
@@ -116,8 +116,6 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Batch pool. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch pool. Changing this forces a new resource to be created.
-
-~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
 
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
@@ -204,9 +202,17 @@ A `start_task` block supports the following:
 
 * `max_task_retry_count` - (Optional) The number of retry count. Defaults to `1`.
 
+-> **Note:** This property has been deprecated in favour of the `task_retry_maximum` property and will be removed in version 3.0 of the provider.
+
+* `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
+
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
 
 * `environment` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
+
+-> **Note:** This property has been deprecated in favour of the `common_environment_properties` property and will be removed in version 3.0 of the provider.
+
+* `common_environment_properties` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
 
 * `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
 

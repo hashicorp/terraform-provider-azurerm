@@ -88,7 +88,7 @@ func (t DatasetParquetResource) Exists(ctx context.Context, clients *clients.Cli
 
 	resp, err := clients.DataFactory.DatasetClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Dataset Parquet (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -114,7 +114,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
 }
@@ -122,7 +122,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 resource "azurerm_data_factory_dataset_parquet" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
@@ -154,7 +154,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
 }
@@ -162,7 +162,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 resource "azurerm_data_factory_dataset_parquet" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
@@ -217,7 +217,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
 }
@@ -225,7 +225,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 resource "azurerm_data_factory_dataset_parquet" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
@@ -303,7 +303,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = azurerm_storage_account.test.primary_connection_string
 }
 

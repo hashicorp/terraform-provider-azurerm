@@ -209,6 +209,24 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = true
 }
 
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-kv-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
+}
+
 resource "azurerm_machine_learning_workspace" "test" {
   name                          = "acctest-MLW-%[2]d"
   location                      = azurerm_resource_group.test.location
@@ -227,6 +245,12 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  encryption {
+    key_vault_id = azurerm_key_vault.test.id
+    key_id       = azurerm_key_vault_key.test.id
+  }
+
 
   tags = {
     ENV = "Test"
@@ -248,6 +272,24 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = true
 }
 
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-kv-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
+}
+
 resource "azurerm_machine_learning_workspace" "test" {
   name                          = "acctest-MLW-%[2]d"
   location                      = azurerm_resource_group.test.location
@@ -265,6 +307,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault_id = azurerm_key_vault.test.id
+    key_id       = azurerm_key_vault_key.test.id
   }
 
   tags = {
@@ -298,7 +345,11 @@ resource "azurerm_machine_learning_workspace" "import" {
 func (r WorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -324,6 +375,19 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 
   purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+    "Delete",
+    "Purge",
+  ]
 }
 
 resource "azurerm_storage_account" "test" {

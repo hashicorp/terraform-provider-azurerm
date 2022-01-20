@@ -10,10 +10,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -88,7 +89,6 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							ForceNew:     true,
 							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey)=[^;]+")
@@ -102,17 +102,22 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							StateFunc:    azure.NormalizeLocation,
-							ForceNew:     true,
 						},
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  features.ThreePointOh(),
 						},
+						// TODO update docs with new default for 3.0
 						"allocation_weight": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      0,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Default: func() interface{} {
+								if features.ThreePointOh() {
+									return 1
+								}
+								return 0
+							}(),
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {
@@ -176,7 +181,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	iotdps := iothub.ProvisioningServiceDescription{
-		Location: utils.String(d.Get("location").(string)),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
@@ -317,7 +322,7 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription
 			ConnectionString:      utils.String(linkedHubConfig["connection_string"].(string)),
 			AllocationWeight:      utils.Int32(int32(linkedHubConfig["allocation_weight"].(int))),
 			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
-			Location:              utils.String(linkedHubConfig["location"].(string)),
+			Location:              utils.String(azure.NormalizeLocation(linkedHubConfig["location"].(string))),
 		}
 
 		linkedHubs = append(linkedHubs, linkedHub)
@@ -359,7 +364,7 @@ func flattenIoTHubDPSLinkedHub(input *[]iothub.DefinitionDescription) []interfac
 			linkedHub["connection_string"] = *attr.ConnectionString
 		}
 		if attr.Location != nil {
-			linkedHub["location"] = *attr.Location
+			linkedHub["location"] = azure.NormalizeLocation(*attr.Location)
 		}
 
 		linkedHubs = append(linkedHubs, linkedHub)

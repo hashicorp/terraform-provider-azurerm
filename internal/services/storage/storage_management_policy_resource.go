@@ -2,12 +2,14 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +23,10 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 		Read:   resourceStorageManagementPolicyRead,
 		Update: resourceStorageManagementPolicyCreateOrUpdate,
 		Delete: resourceStorageManagementPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.StorageAccountManagementPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -225,24 +229,21 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId := d.Get("storage_account_id").(string)
-
-	rid, err := azure.ParseAzureResourceID(storageAccountId)
+	rid, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
 
-	name := "default" // The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
+	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroup, rid.Name, "default")
 
 	parameters := storage.ManagementPolicy{
-		Name: &name,
+		Name: &mgmtPolicyId.ManagementPolicyName,
 	}
 
 	armRules, err := expandStorageManagementPolicyRules(d)
 	if err != nil {
-		return fmt.Errorf("expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
+		return fmt.Errorf("expanding %s: %+v", mgmtPolicyId, err)
 	}
 
 	parameters.ManagementPolicyProperties = &storage.ManagementPolicyProperties{
@@ -251,17 +252,11 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	result, err := client.CreateOrUpdate(ctx, resourceGroupName, storageAccountName, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Azure Storage Management Policy %q: %+v", storageAccountId, err)
+	if _, err := client.CreateOrUpdate(ctx, rid.ResourceGroup, rid.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", mgmtPolicyId, err)
 	}
 
-	result, err = client.Get(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return fmt.Errorf("getting created Azure Storage Management Policy %q: %+v", storageAccountId, err)
-	}
-
-	d.SetId(*result.ID)
+	d.SetId(mgmtPolicyId.ID())
 
 	return resourceStorageManagementPolicyRead(d, meta)
 }
@@ -271,23 +266,24 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
-
-	rid, err := azure.ParseAzureResourceID(id)
-	if err != nil {
-		return err
-	}
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
-
-	result, err := client.Get(ctx, resourceGroupName, storageAccountName)
+	rid, err := parse.StorageAccountManagementPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// TODO: switch this to look up the account and use that, rather than building this up
-	storageAccountID := "/subscriptions/" + rid.SubscriptionID + "/resourceGroups/" + rid.ResourceGroup + "/providers/" + rid.Provider + "/storageAccounts/" + storageAccountName
-	d.Set("storage_account_id", storageAccountID)
+	result, err := client.Get(ctx, rid.ResourceGroup, rid.StorageAccountName)
+	if err != nil {
+		if utils.ResponseWasNotFound(result.Response) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", rid)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", rid, err)
+	}
+
+	storageAccountID := parse.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
+	d.Set("storage_account_id", storageAccountID.ID())
 
 	if policy := result.Policy; policy != nil {
 		policy := result.Policy
@@ -306,17 +302,13 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
-
-	rid, err := azure.ParseAzureResourceID(id)
+	rid, err := parse.StorageAccountManagementPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
 
-	if _, err = client.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
-		return err
+	if _, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
 }

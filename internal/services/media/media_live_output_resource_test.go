@@ -115,7 +115,6 @@ resource "azurerm_media_live_event_output" "test" {
   archive_window_duration = "PT5M"
   asset_name              = azurerm_media_asset.test.name
 }
-
 `, r.template(data))
 }
 
@@ -129,7 +128,6 @@ resource "azurerm_media_live_event_output" "import" {
   archive_window_duration = "PT5M"
   asset_name              = azurerm_media_asset.test.name
 }
-
 `, r.basic(data))
 }
 
@@ -147,7 +145,6 @@ resource "azurerm_media_live_event_output" "test" {
   output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
 }
-
 `, r.template(data))
 }
 
@@ -203,6 +200,5 @@ resource "azurerm_media_live_event" "test" {
     }
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

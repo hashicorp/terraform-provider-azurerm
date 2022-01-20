@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualMachineScaleSetId struct {
@@ -39,7 +39,7 @@ func (id VirtualMachineScaleSetId) ID() string {
 
 // VirtualMachineScaleSetID parses a VirtualMachineScaleSet ID into an VirtualMachineScaleSetId struct
 func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -123,19 +123,14 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 }
 
 func (ApiManagementApiOperationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApiOperationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
-
-	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagementApi Operation (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -284,7 +279,9 @@ resource "azurerm_api_management_api_operation" "test" {
     representation {
       content_type = "application/xml"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -295,6 +292,7 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
   }
 }
@@ -331,7 +329,9 @@ resource "azurerm_api_management_api_operation" "test" {
     representation {
       content_type = "application/xml"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -342,6 +342,7 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
   }
 }
@@ -378,7 +379,9 @@ resource "azurerm_api_management_api_operation" "test" {
     representation {
       content_type = "application/xml"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -389,12 +392,15 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
 
     representation {
       content_type = "application/json"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 {
   "user": {
     "groups": [
@@ -411,6 +417,7 @@ SAMPLE
 }
 SAMPLE
 
+      }
     }
   }
 }
