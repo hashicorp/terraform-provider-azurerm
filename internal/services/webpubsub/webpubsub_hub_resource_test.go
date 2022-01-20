@@ -147,12 +147,9 @@ resource "azurerm_web_pubsub_hub" "test" {
   web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
-
-    setting {
-      url_template       = "https://test.com/api/{hub}/{event}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
-    }
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -170,14 +167,12 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    setting {
-      url_template       = "https://test.com/api/{hub}/{event}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
 
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test.id
-      }
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test.id
     }
   }
   anonymous_connections_enabled = true
@@ -198,12 +193,9 @@ resource "azurerm_web_pubsub_hub" "import" {
   web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
-
-    setting {
-      url_template       = "https://test.com/api/{hub}/{event}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
-    }
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
   }
 }
 `, r.basic(data))
@@ -227,21 +219,19 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    setting {
-      url_template       = "https://test.com/api/{hub1}/{event2}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test1.id
-      }
+    url_template       = "https://test.com/api/{hub1}/{event2}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test1.id
     }
-    setting {
-      url_template       = "https://test.com/api/{hub2}/{event1}"
-      user_event_pattern = "event1, event2"
-      system_events      = ["connected"]
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test2.id
-      }
+  }
+  event_handler {
+    url_template       = "https://test.com/api/{hub2}/{event1}"
+    user_event_pattern = "event1, event2"
+    system_events      = ["connected"]
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test2.id
     }
   }
 }
@@ -262,18 +252,16 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    setting {
-      url_template       = "https://test.com/api/{hub1}/{event2}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
-    }
-    setting {
-      url_template       = "https://test.com/api/{hub2}/{event1}"
-      user_event_pattern = "event1, event2"
-      system_events      = ["connected"]
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test1.id
-      }
+    url_template       = "https://test.com/api/{hub1}/{event2}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
+  }
+  event_handler {
+    url_template       = "https://test.com/api/{hub2}/{event1}"
+    user_event_pattern = "event1, event2"
+    system_events      = ["connected"]
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test1.id
     }
   }
 }
@@ -294,13 +282,11 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    setting {
-      url_template       = "https://test.com/api/{testhub}/{testevent1}"
-      user_event_pattern = "event1, event2"
-      system_events      = ["disconnected", "connect", "connected"]
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test1.id
-      }
+    url_template       = "https://test.com/api/{testhub}/{testevent1}"
+    user_event_pattern = "event1, event2"
+    system_events      = ["disconnected", "connect", "connected"]
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test1.id
     }
   }
 }

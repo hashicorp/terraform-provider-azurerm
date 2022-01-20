@@ -2,12 +2,12 @@ package webpubsub
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
@@ -53,55 +53,46 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 			},
 
 			"event_handler": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"setting": {
+						"url_template": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"user_event_pattern": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"system_events": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"connect",
+									"connected",
+									"disconnected",
+								}, false),
+							},
+						},
+
+						"auth": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							MinItems: 1,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"url_template": {
+									"managed_identity_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"user_event_pattern": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"system_events": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"connect",
-												"connected",
-												"disconnected",
-											}, false),
-										},
-									},
-
-									"auth": {
-										Type:     pluginsdk.TypeList,
-										MaxItems: 1,
-										MinItems: 1,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"managed_identity_id": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: identityValidate.UserAssignedIdentityID,
-												},
-											},
-										},
+										ValidateFunc: identityValidate.UserAssignedIdentityID,
 									},
 								},
 							},
@@ -150,7 +141,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	parameters := webpubsub.Hub{
 		Properties: &webpubsub.HubProperties{
-			EventHandlers:          expandEventHandler(d.Get("event_handler").([]interface{})),
+			EventHandlers:          expandEventHandler(d.Get("event_handler").(*pluginsdk.Set).List()),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
@@ -222,27 +213,32 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 	}
 
 	results := make([]webpubsub.EventHandler, 0)
-	block := input[0].(map[string]interface{})
 
-	setting := block["setting"].(*pluginsdk.Set).List()
-	for _, r := range setting {
-		rblock := r.(map[string]interface{})
-		systemEvents := make([]string, 0)
-
-		urlTemplate := rblock["url_template"].(string)
-		userEventPattern := rblock["user_event_pattern"].(string)
-		systemEventsRaw := rblock["system_events"].(*pluginsdk.Set).List()
-		for _, item := range systemEventsRaw {
-			systemEvents = append(systemEvents, item.(string))
+	for _, eventHandlerItem := range input {
+		block := eventHandlerItem.(map[string]interface{})
+		eventHandlerSettings := webpubsub.EventHandler{
+			URLTemplate: utils.String(block["url_template"].(string)),
 		}
-		authRaws := rblock["auth"].([]interface{})
 
-		results = append(results, webpubsub.EventHandler{
-			URLTemplate:      &urlTemplate,
-			SystemEvents:     &systemEvents,
-			UserEventPattern: &userEventPattern,
-			Auth:             expandAuth(authRaws),
-		})
+		if v, ok := block["user_event_pattern"]; ok {
+			eventHandlerSettings.UserEventPattern = utils.String(v.(string))
+		}
+
+		if v, ok := block["system_events"]; ok {
+			systemEvents := make([]string, 0)
+			for _, item := range v.(*pluginsdk.Set).List() {
+				systemEvents = append(systemEvents, item.(string))
+			}
+			eventHandlerSettings.SystemEvents = &systemEvents
+		}
+
+		if v, ok := block["auth"].([]interface{}); ok {
+			if len(v) > 0 {
+				eventHandlerSettings.Auth = expandAuth(v)
+			}
+		}
+
+		results = append(results, eventHandlerSettings)
 	}
 	return &results
 }
@@ -253,31 +249,34 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 		return eventHandlerBlock
 	}
 
-	setting := make([]interface{}, 0)
 	for _, item := range *input {
-		settingBlock := make(map[string]interface{})
-
 		urlTemplate := ""
 		if item.URLTemplate != nil {
 			urlTemplate = *item.URLTemplate
 		}
-		settingBlock["url_template"] = urlTemplate
 
-		if userEventPatten := item.UserEventPattern; userEventPatten != nil {
-			settingBlock["user_event_pattern"] = userEventPatten
+		userEventPatten := ""
+		if item.UserEventPattern != nil {
+			userEventPatten = *item.UserEventPattern
 		}
 
-		settingBlock["system_events"] = utils.FlattenStringSlice(item.SystemEvents)
-
-		if auth := item.Auth; auth != nil {
-			settingBlock["auth"] = flattenAuth(auth)
+		sysEvents := make([]interface{}, 0)
+		if item.SystemEvents != nil {
+			sysEvents = utils.FlattenStringSlice(item.SystemEvents)
 		}
 
-		setting = append(setting, settingBlock)
+		authBlock := make([]interface{}, 0)
+		if item.Auth != nil {
+			authBlock = flattenAuth(item.Auth)
+		}
+
+		eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
+			"url_template":       urlTemplate,
+			"user_event_pattern": userEventPatten,
+			"system_events":      sysEvents,
+			"auth":               authBlock,
+		})
 	}
-	eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
-		"setting": setting,
-	})
 	return eventHandlerBlock
 }
 
