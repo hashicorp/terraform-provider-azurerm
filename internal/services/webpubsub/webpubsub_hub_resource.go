@@ -2,12 +2,12 @@ package webpubsub
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
