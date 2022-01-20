@@ -220,7 +220,7 @@ func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "5.7"),
+			Config: r.infrastructureEncryption(data, "5.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -265,6 +265,33 @@ resource "azurerm_mysql_server" "test" {
   ssl_minimal_tls_version_enforced = "TLS1_1"
   storage_mb                       = 51200
   version                          = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+}
+
+func (MySQLServerResource) infrastructureEncryption(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                              = "acctestmysqlsvr-%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = "GP_Gen5_2"
+  administrator_login               = "acctestun"
+  administrator_login_password      = "H@Sh1CoR3!"
+  ssl_enforcement_enabled           = true
+  ssl_minimal_tls_version_enforced  = "TLS1_1"
+  storage_mb                        = 51200
+  version                           = "%s"
+  infrastructure_encryption_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
