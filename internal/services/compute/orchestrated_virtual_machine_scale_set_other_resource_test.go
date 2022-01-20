@@ -64,7 +64,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatchingUpda
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.linuxVMGuestPatching(data, "ImageDefalut"),
+			Config: r.linuxVMGuestPatching(data, "ImageDefault"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +78,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatchingUpda
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.linuxVMGuestPatching(data, "ImageDefalut"),
+			Config: r.linuxVMGuestPatching(data, "ImageDefault"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -175,7 +175,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
+      computer_name_prefix = "testvm"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
@@ -287,7 +287,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version_enabled = true
 
     settings = jsonencode({
-      "protocol"    = "Http"
+      "protocol"    = "http"
       "port"        = "80"
       "requestPath" = "/healthEndpoint"
     })
@@ -367,7 +367,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version_enabled = true
 
     settings = jsonencode({
-      "protocol"    = "Http"
+      "protocol"    = "http"
       "port"        = "80"
       "requestPath" = "/healthEndpoint"
     })
@@ -395,19 +395,22 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_D1_v2"
+  sku_name  = "Standard_F2"
   instances = 1
 
   platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
+      computer_name_prefix = "testvm"
       admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
 
-      patch_mode                      = "%[3]s"
-      disable_password_authentication = false
+      admin_ssh_key {
+        username   = "myadmin"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
+      }
+
+      patch_mode = "%[3]s"
     }
   }
 
@@ -441,15 +444,15 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   extension {
-    name                               = "myHealthExtension"
+    name                               = "HealthExtension"
     publisher                          = "Microsoft.ManagedServices"
     type                               = "ApplicationHealthLinux"
     type_handler_version               = "1.0"
     auto_upgrade_minor_version_enabled = true
 
     settings = jsonencode({
-      "protocol"    = "Http"
-      "port"        = "80"
+      "protocol"    = "http"
+      "port"        = 80
       "requestPath" = "/healthEndpoint"
     })
   }
@@ -483,7 +486,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
+      computer_name_prefix = "testvm"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
