@@ -78,7 +78,7 @@ func (client OperationsResultsClient) GetPreparer(ctx context.Context, location 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

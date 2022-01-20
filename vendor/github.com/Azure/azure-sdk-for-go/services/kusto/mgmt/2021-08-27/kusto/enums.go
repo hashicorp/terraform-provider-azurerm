@@ -114,6 +114,21 @@ func PossibleBlobStorageEventTypeValues() []BlobStorageEventType {
 	return []BlobStorageEventType{BlobStorageEventTypeMicrosoftStorageBlobCreated, BlobStorageEventTypeMicrosoftStorageBlobRenamed}
 }
 
+// ClusterNetworkAccessFlag enumerates the values for cluster network access flag.
+type ClusterNetworkAccessFlag string
+
+const (
+	// ClusterNetworkAccessFlagDisabled ...
+	ClusterNetworkAccessFlagDisabled ClusterNetworkAccessFlag = "Disabled"
+	// ClusterNetworkAccessFlagEnabled ...
+	ClusterNetworkAccessFlagEnabled ClusterNetworkAccessFlag = "Enabled"
+)
+
+// PossibleClusterNetworkAccessFlagValues returns an array of possible values for the ClusterNetworkAccessFlag const type.
+func PossibleClusterNetworkAccessFlagValues() []ClusterNetworkAccessFlag {
+	return []ClusterNetworkAccessFlag{ClusterNetworkAccessFlagDisabled, ClusterNetworkAccessFlagEnabled}
+}
+
 // ClusterPrincipalRole enumerates the values for cluster principal role.
 type ClusterPrincipalRole string
 
@@ -489,6 +504,21 @@ const (
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateMoving, ProvisioningStateRunning, ProvisioningStateSucceeded}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // Reason enumerates the values for reason.

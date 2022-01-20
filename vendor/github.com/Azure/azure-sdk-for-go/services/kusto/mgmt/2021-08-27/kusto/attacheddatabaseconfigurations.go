@@ -34,6 +34,93 @@ func NewAttachedDatabaseConfigurationsClientWithBaseURI(baseURI string, subscrip
 	return AttachedDatabaseConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// CheckNameAvailability checks that the attached database configuration resource name is valid and is not already in
+// use.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+// resourceName - the name of the resource.
+func (client AttachedDatabaseConfigurationsClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, clusterName string, resourceName AttachedDatabaseConfigurationsCheckNameRequest) (result CheckNameResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AttachedDatabaseConfigurationsClient.CheckNameAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName.Name", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "resourceName.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("kusto.AttachedDatabaseConfigurationsClient", "CheckNameAvailability", err.Error())
+	}
+
+	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, clusterName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CheckNameAvailability", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckNameAvailabilitySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CheckNameAvailability", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckNameAvailabilityResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
+func (client AttachedDatabaseConfigurationsClient) CheckNameAvailabilityPreparer(ctx context.Context, resourceGroupName string, clusterName string, resourceName AttachedDatabaseConfigurationsCheckNameRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-08-27"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/attachedDatabaseConfigurationCheckNameAvailability", pathParameters),
+		autorest.WithJSON(resourceName),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
+// http.Response Body if it receives an error.
+func (client AttachedDatabaseConfigurationsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
+// closes the http.Response Body.
+func (client AttachedDatabaseConfigurationsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // CreateOrUpdate creates or updates an attached database configuration.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
@@ -84,7 +171,7 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdatePreparer(ctx co
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +254,7 @@ func (client AttachedDatabaseConfigurationsClient) DeletePreparer(ctx context.Co
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -254,7 +341,7 @@ func (client AttachedDatabaseConfigurationsClient) GetPreparer(ctx context.Conte
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -330,7 +417,7 @@ func (client AttachedDatabaseConfigurationsClient) ListByClusterPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

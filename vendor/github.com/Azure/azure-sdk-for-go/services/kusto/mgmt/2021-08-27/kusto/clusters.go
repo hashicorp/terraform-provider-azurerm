@@ -72,7 +72,7 @@ func (client ClustersClient) AddLanguageExtensionsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client ClustersClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -233,10 +233,6 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.EnginePublicIPID", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.DataManagementPublicIPID", Name: validation.Null, Rule: true, Chain: nil},
 							}},
-						{Target: "parameters.ClusterProperties.KeyVaultProperties", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyVaultURI", Name: validation.Null, Rule: true, Chain: nil},
-							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("kusto.ClustersClient", "CreateOrUpdate", err.Error())
 	}
@@ -264,11 +260,12 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	parameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
@@ -354,7 +351,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -440,7 +437,7 @@ func (client ClustersClient) DetachFollowerDatabasesPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -522,7 +519,7 @@ func (client ClustersClient) DiagnoseVirtualNetworkPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -608,7 +605,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -679,7 +676,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -753,7 +750,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -830,7 +827,7 @@ func (client ClustersClient) ListFollowerDatabasesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -906,7 +903,7 @@ func (client ClustersClient) ListLanguageExtensionsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -934,6 +931,124 @@ func (client ClustersClient) ListLanguageExtensionsResponder(resp *http.Response
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpoints gets the network endpoints of all outbound dependencies of a Kusto cluster
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+func (client ClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, resourceGroupName string, clusterName string) (result OutboundNetworkDependenciesEndpointListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.ListOutboundNetworkDependenciesEndpoints")
+		defer func() {
+			sc := -1
+			if result.ondelr.Response.Response != nil {
+				sc = result.ondelr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listOutboundNetworkDependenciesEndpointsNextResults
+	req, err := client.ListOutboundNetworkDependenciesEndpointsPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListOutboundNetworkDependenciesEndpoints", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOutboundNetworkDependenciesEndpointsSender(req)
+	if err != nil {
+		result.ondelr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure sending request")
+		return
+	}
+
+	result.ondelr, err = client.ListOutboundNetworkDependenciesEndpointsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure responding to request")
+		return
+	}
+	if result.ondelr.hasNextLink() && result.ondelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpointsPreparer prepares the ListOutboundNetworkDependenciesEndpoints request.
+func (client ClustersClient) ListOutboundNetworkDependenciesEndpointsPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-08-27"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/outboundNetworkDependenciesEndpoints", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOutboundNetworkDependenciesEndpointsSender sends the ListOutboundNetworkDependenciesEndpoints request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) ListOutboundNetworkDependenciesEndpointsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOutboundNetworkDependenciesEndpointsResponder handles the response to the ListOutboundNetworkDependenciesEndpoints request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) ListOutboundNetworkDependenciesEndpointsResponder(resp *http.Response) (result OutboundNetworkDependenciesEndpointListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listOutboundNetworkDependenciesEndpointsNextResults retrieves the next set of results, if any.
+func (client ClustersClient) listOutboundNetworkDependenciesEndpointsNextResults(ctx context.Context, lastResults OutboundNetworkDependenciesEndpointListResult) (result OutboundNetworkDependenciesEndpointListResult, err error) {
+	req, err := lastResults.outboundNetworkDependenciesEndpointListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "kusto.ClustersClient", "listOutboundNetworkDependenciesEndpointsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListOutboundNetworkDependenciesEndpointsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "kusto.ClustersClient", "listOutboundNetworkDependenciesEndpointsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListOutboundNetworkDependenciesEndpointsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "listOutboundNetworkDependenciesEndpointsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpointsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ClustersClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, resourceGroupName string, clusterName string) (result OutboundNetworkDependenciesEndpointListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.ListOutboundNetworkDependenciesEndpoints")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListOutboundNetworkDependenciesEndpoints(ctx, resourceGroupName, clusterName)
 	return
 }
 
@@ -977,7 +1092,7 @@ func (client ClustersClient) ListSkusPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1053,7 +1168,7 @@ func (client ClustersClient) ListSkusByResourcePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1123,7 +1238,7 @@ func (client ClustersClient) RemoveLanguageExtensionsPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1203,7 +1318,7 @@ func (client ClustersClient) StartPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1281,7 +1396,7 @@ func (client ClustersClient) StopPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1362,7 +1477,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-08-27"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
