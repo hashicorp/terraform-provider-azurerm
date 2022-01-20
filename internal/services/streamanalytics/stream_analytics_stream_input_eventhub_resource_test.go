@@ -76,6 +76,75 @@ func TestAccStreamAnalyticsStreamInputEventHub_partitionKey(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsStreamInputEventHub_partitionKeyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partitionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
+			),
+		},
+		{
+			Config: r.partitionKeyUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").HasValue("updatedPartitionKey"),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_partitionKeyRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partitionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
+			),
+		},
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_partitionKeySet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
+			),
+		},
+		{
+			Config: r.partitionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 	r := StreamAnalyticsStreamInputEventHubResource{}
@@ -211,6 +280,30 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
   shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
   shared_access_policy_name    = "RootManageSharedAccessKey"
   partition_key                = "partitionKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsStreamInputEventHubResource) partitionKeyUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                         = "acctestinput-%d"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  eventhub_name                = azurerm_eventhub.test.name
+  servicebus_namespace         = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
+  shared_access_policy_name    = "RootManageSharedAccessKey"
+  partition_key                = "updatedPartitionKey"
 
   serialization {
     type     = "Json"

@@ -197,7 +197,6 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		d.Set("eventhub_name", eventHub.EventHubName)
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
-		d.Set("partition_key", v.PartitionKey)
 
 		consumerGroupName := ""
 		if eventHub.ConsumerGroupName != nil {
@@ -205,6 +204,13 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		}
 
 		d.Set("eventhub_consumer_group_name", consumerGroupName)
+
+		partitionKey := ""
+		if v.PartitionKey != nil {
+			partitionKey = *v.PartitionKey
+		}
+
+		d.Set("partition_key", partitionKey)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
