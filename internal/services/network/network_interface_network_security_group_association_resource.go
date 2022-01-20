@@ -25,6 +25,9 @@ func resourceNetworkInterfaceSecurityGroupAssociation() *pluginsdk.Resource {
 		Delete: resourceNetworkInterfaceSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			splitId := strings.Split(id, "|")
+			if len(splitId) != 2 {
+				return fmt.Errorf("expect ID to be the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", id)
+			}
 			if _, err := parse.NetworkInterfaceID(splitId[0]); err != nil {
 				return err
 			}

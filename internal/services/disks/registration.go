@@ -1,6 +1,9 @@
 package disks
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
@@ -15,12 +18,21 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	resources := []sdk.Resource{
+		DiskPoolResource{},
+		DiskPoolManagedDiskAttachmentResource{},
+	}
+
+	if !features.ThreePointOh() {
+		resources = append(resources, StorageDisksPoolResource{})
+	}
+
+	return resources
 }
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		// TODO: introduce "Disks"
+		"Disks",
 		"Storage",
 	}
 }

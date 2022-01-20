@@ -38,6 +38,7 @@ output "action_group_id" {
 * `azure_app_push_receiver` - One or more `azure_app_push_receiver` blocks as defined below.
 * `azure_function_receiver` - One or more `azure_function_receiver` blocks as defined below.
 * `email_receiver` - One or more `email_receiver` blocks as defined below.
+* `event_hub_receiver` - One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - One or more `itsm_receiver` blocks as defined below.
 * `logic_app_receiver` - One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - One or more `sms_receiver` blocks as defined below.
@@ -87,6 +88,15 @@ output "action_group_id" {
 
 * `name` - The name of the email receiver.
 * `email_address` - The email address of this receiver.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
+
+---
+
+`event_hub_receiver` supports the following:
+
+* `name` - The name of the EventHub Receiver, must be unique within action group.
+* `event_hub_id` - The resource ID of the respective Event Hub.
+* `tenant_id` - The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.
 
 ---

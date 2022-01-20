@@ -68,20 +68,28 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the Storage Container has been created. Changing this forces a new resource to be created.
 
+* `container_name` - (Required) The name of storage container in the storage account.
+
 * `iothub_name` - (Optional) The IoTHub name for the endpoint.
 
 ~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
 
 * `iothub_id` - (Optional) The IoTHub ID for the endpoint.
 
-* `connection_string` - (Required) The connection string for the endpoint.
+* `authentication_type` - (Optional) Type used to authenticate against the storage endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) ID of the User Managed Identity used to authenticate against the storage endpoint.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
+
+* `endpoint_uri` - (Optional) URI of the Storage Container endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+
+* `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
 * `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds.
 
 * `max_chunk_size_in_bytes` - (Optional) Maximum number of bytes for each blob written to storage. Value should be between 10485760(10MB) and 524288000(500MB). Default value is 314572800(300MB).
 
-* `container_name` - (Required) The name of storage container in the storage account.
-*
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are `Avro`, `AvroDeflate` and `JSON`. Default value is `Avro`. Changing this forces a new resource to be created.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered.

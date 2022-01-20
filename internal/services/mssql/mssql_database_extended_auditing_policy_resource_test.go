@@ -374,11 +374,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
+  name                                           = "acctestsubnet%[1]d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefix                                 = "10.0.2.0/24"
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.Sql"]
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_storage_account" "test" {
@@ -392,14 +393,31 @@ resource "azurerm_storage_account" "test" {
     default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
+    bypass                     = ["AzureServices"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+
   }
 }
 
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_mssql_server.test.identity.0.principal_id
+resource "azurerm_sql_virtual_network_rule" "sqlvnetrule" {
+  name                = "sql-vnet-rule"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  subnet_id           = azurerm_subnet.test.id
+
 }
+
+resource "azurerm_sql_firewall_rule" "test" {
+  name                = "FirewallRule1"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id      = azurerm_mssql_database.test.id
@@ -409,7 +427,32 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_mssql_server.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+  storage_endpoint       = azurerm_storage_account.test.primary_blob_endpoint
+  server_id              = azurerm_mssql_server.test.id
+  retention_in_days      = 6
+  log_monitoring_enabled = false
+
+  storage_account_subscription_id = "%s"
+
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_account.test,
+  ]
+}
+
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Client().SubscriptionID)
 }
 
 func (r MsSqlDatabaseExtendedAuditingPolicyResource) monitorTemplate(data acceptance.TestData) string {

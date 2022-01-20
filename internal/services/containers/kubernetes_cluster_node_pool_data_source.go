@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -163,40 +164,35 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	nodePoolName := d.Get("name").(string)
-	clusterName := d.Get("kubernetes_cluster_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNodePoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string), d.Get("name").(string))
 
 	// if the parent cluster doesn't exist then the node pool won't
-	cluster, err := clustersClient.Get(ctx, resourceGroup, clusterName)
+	cluster, err := clustersClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(cluster.Response) {
-			return fmt.Errorf("Kubernetes Cluster %q was not found in Resource Group %q", clusterName, resourceGroup)
+			return fmt.Errorf("kubernetes Cluster %q was not found in Resource Group %q", id.ManagedClusterName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
-	resp, err := poolsClient.Get(ctx, resourceGroup, clusterName, nodePoolName)
+	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q", nodePoolName, clusterName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", nodePoolName, clusterName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `id` was nil", nodePoolName, clusterName, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-	d.Set("name", nodePoolName)
-	d.Set("kubernetes_cluster_name", clusterName)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.AgentPoolName)
+	d.Set("kubernetes_cluster_name", id.ManagedClusterName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {

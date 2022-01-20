@@ -173,18 +173,17 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 
 func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	slot := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	appServiceName := d.Get("app_service_name").(string)
+	id := parse.NewAppServiceSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
+		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -202,7 +201,7 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for %s: %s", id, err)
 	}
 	siteEnvelope := web.Site{
 		Location: &location,
@@ -226,26 +225,17 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdateSlot(ctx, resourceGroup, appServiceName, siteEnvelope, slot)
+	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("creating Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("waiting for creation of Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %s", id, err)
 	}
 
-	read, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
-	if err != nil {
-		return fmt.Errorf("retrieving Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Slot %q (App Service %q / Resource Group %q) ID", slot, appServiceName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceSlotUpdate(d, meta)
 }

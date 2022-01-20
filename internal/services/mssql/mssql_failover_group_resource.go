@@ -192,7 +192,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if existing.ID != nil && *existing.ID != "" {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
