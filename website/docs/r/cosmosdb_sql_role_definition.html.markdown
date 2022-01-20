@@ -13,6 +13,8 @@ Manages a SQL Role Definition.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -40,7 +42,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_cosmosdb_account.example.name
   role_name           = "acctestsqlrole"
-  assignable_scopes   = [azurerm_cosmosdb_account.example.id]
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}/dbs/sales"]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
@@ -56,13 +58,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Cosmos DB SQL Role Definition is created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the Cosmos DB Account to create the table within. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the Cosmos DB Account. Changing this forces a new resource to be created.
 
-* `assignable_scopes` - (Required) A list of assignable scopes for the Cosmos DB SQL Role Definition.
+* `assignable_scopes` - (Required) A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition. It will allow application of this Cosmos DB SQL Role Definition on the entire Database Account or any underlying Database/Collection. Scopes higher than Database Account are not enforceable as assignable scopes.
+
+~> **NOTE:** The resources referenced in assignable scopes need not exist.
 
 * `permissions` - (Required) A `permissions` block as defined below.
 
-* `role_name` - (Required) An user-friendly name for the Cosmos DB SQL Role Definition.
+* `role_name` - (Required) An user-friendly name for the Cosmos DB SQL Role Definition which must be unique for the Database Account.
 
 * `type` - (Optional) The type of the Cosmos DB SQL Role Definition. Possible values are `BuiltInRole` and `CustomRole`. Defaults to `CustomRole`. Changing this forces a new resource to be created.
 
