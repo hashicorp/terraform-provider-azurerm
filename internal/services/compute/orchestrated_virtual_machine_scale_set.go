@@ -968,6 +968,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	linConfig := compute.LinuxConfiguration{}
+	patchSettings := compute.LinuxPatchSettings{}
 
 	if len(input) > 0 {
 		osProfile.CustomData = utils.String(customData)
@@ -994,6 +995,10 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 
 		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
 		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+
+		// Automatic VM Guest Patching
+		patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(input["patch_mode"].(string))
+		linConfig.PatchSettings = &patchSettings
 	}
 
 	osProfile.LinuxConfiguration = &linConfig
@@ -1754,6 +1759,10 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 
 	if v := linConfig.DisablePasswordAuthentication; v != nil {
 		output["disable_password_authentication"] = *v
+	}
+
+	if v := linConfig.PatchSettings; v != nil {
+		output["patch_mode"] = v.PatchMode
 	}
 
 	if v := linConfig.ProvisionVMAgent; v != nil {

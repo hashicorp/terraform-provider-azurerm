@@ -49,7 +49,36 @@ func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatching(t *
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.linuxVMGuestPatching(data),
+			Config: r.linuxVMGuestPatching(data, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatchingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxVMGuestPatching(data, "ImageDefalut"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.linuxVMGuestPatching(data, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.linuxVMGuestPatching(data, "ImageDefalut"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -347,7 +376,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) linuxVMGuestPatching(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) linuxVMGuestPatching(data acceptance.TestData, patchMode string) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -359,7 +388,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[3]s
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[1]d"
@@ -377,6 +406,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
+      patch_mode                      = "%[3]s"
       disable_password_authentication = false
     }
   }
@@ -409,8 +439,22 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  extension {
+    name                               = "myHealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "Http"
+      "port"        = "80"
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) nonStandardCasing(data acceptance.TestData) string {

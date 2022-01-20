@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -384,7 +385,22 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
+
 				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+			}
+
+			// Validate Automatic VM Guest Patching Settings
+			provisionVmAgent := *vmssOsProfile.LinuxConfiguration.ProvisionVMAgent
+			patchMode := vmssOsProfile.LinuxConfiguration.PatchSettings.PatchMode
+
+			if patchMode == compute.LinuxVMGuestPatchModeAutomaticByPlatform {
+				if !provisionVmAgent {
+					return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVmAgent))
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", patchMode, "extension", "application health extension", "0")
+				}
 			}
 		}
 
@@ -547,6 +563,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	isLegacy := true
 	updateInstances := false
 	isHotpatchEnabledImage := false
+	linuxAutomaticVMGuestPatchingEnabled := false
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
@@ -641,27 +658,30 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
-					if isHotpatchEnabledImage && !winConfig["provision_vm_agent"].(bool) {
-						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "provision_vm_agent", "true")
+					provisionVMAgent := winConfig["provision_vm_agent"].(bool)
+					if isHotpatchEnabledImage && !provisionVMAgent {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
 					}
-					windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
+					windowsConfig.ProvisionVMAgent = utils.Bool(provisionVMAgent)
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
-					if isHotpatchEnabledImage && (winConfig["patch_mode"].(string) != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)) {
-						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform)
+					patchMode := winConfig["patch_mode"].(string)
+					if isHotpatchEnabledImage && (patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)) {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
 					}
-					windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(winConfig["patch_mode"].(string))
+					windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(patchMode)
 				}
 
 				// Disabling hotpatching is not supported in images that support hotpatching
 				// so while the attribute is exposed in VMSS it is hardcoded inside the images that
 				// support hotpatching to always be enabled and cannot be set to false, ever.
 				if d.HasChange("os_profile.0.windows_configuration.0.hotpatching_enabled") {
-					if isHotpatchEnabledImage && !winConfig["hotpatching_enabled"].(bool) {
-						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "hotpatching_enabled", "true")
+					hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
+					if isHotpatchEnabledImage && !hotpatchingEnabled {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "hotpatching_enabled", "true", strconv.FormatBool(hotpatchingEnabled))
 					}
-					windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(winConfig["hotpatching_enabled"].(bool))
+					windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(hotpatchingEnabled)
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.secret") {
@@ -683,6 +703,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if len(linConfigRaw) > 0 {
 				osType = compute.OperatingSystemTypesLinux
 				linConfig := linConfigRaw[0].(map[string]interface{})
+				provisionVMAgent := linConfig["provision_vm_agent"].(bool)
+				patchMode := linConfig["patch_mode"].(string)
 
 				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
 					d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
@@ -691,7 +713,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") {
-					linuxConfig.ProvisionVMAgent = utils.Bool(linConfig["provision_vm_agent"].(bool))
+					linuxConfig.ProvisionVMAgent = utils.Bool(provisionVMAgent)
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") {
@@ -704,6 +726,21 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 						linuxConfig.SSH = &compute.SSHConfiguration{}
 					}
 					linuxConfig.SSH.PublicKeys = &sshPublicKeys
+				}
+
+				if d.HasChange("os_profile.0.linux_configuration.0.patch_mode") {
+					if patchMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) {
+						if !provisionVMAgent {
+							return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
+						}
+
+						linuxAutomaticVMGuestPatchingEnabled = true
+					}
+
+					if linuxConfig.PatchSettings == nil {
+						linuxConfig.PatchSettings = &compute.LinuxPatchSettings{}
+					}
+					linuxConfig.PatchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode)
 				}
 
 				vmssOsProfile.LinuxConfiguration = &linuxConfig
@@ -851,6 +888,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 			if isHotpatchEnabledImage && !hasHealthExtension {
 				return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always contain a %q", "extension", "application health extension")
+			}
+
+			if linuxAutomaticVMGuestPatchingEnabled && !hasHealthExtension {
+				return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "extension", "application health extension", "0")
 			}
 
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
