@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SqlRoleAssignmentId struct {
@@ -42,7 +42,7 @@ func (id SqlRoleAssignmentId) ID() string {
 
 // SqlRoleAssignmentID parses a SqlRoleAssignment ID into an SqlRoleAssignmentId struct
 func SqlRoleAssignmentID(input string) (*SqlRoleAssignmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
