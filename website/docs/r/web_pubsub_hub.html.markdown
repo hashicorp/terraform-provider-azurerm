@@ -34,14 +34,14 @@ resource "azurerm_web_pubsub" "example" {
 }
 
 resource "azurerm_web_pubsub_hub" "test" {
-  name                          = "tfex-wpsh"
-  web_pubsub_id                 = azurerm_web_pubsub.exmaple.id
+  name          = "tfex-wpsh"
+  web_pubsub_id = azurerm_web_pubsub.exmaple.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
     system_events      = ["connect", "connected"]
   }
-  
+
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "event1, event2"
