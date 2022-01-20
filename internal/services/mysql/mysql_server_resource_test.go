@@ -214,6 +214,21 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
+func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "5.7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+	})
+}
+
 func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
