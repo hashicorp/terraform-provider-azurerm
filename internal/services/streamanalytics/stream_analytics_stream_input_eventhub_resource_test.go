@@ -145,6 +145,101 @@ func TestAccStreamAnalyticsStreamInputEventHub_partitionKeySet(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsStreamInputEventHub_consumerGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_consumerGroupUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+			),
+		},
+		{
+			Config: r.consumerGroupUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
+					check.That("azurerm_eventhub_consumer_group.updated").Key("name"),
+				),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_consumerGroupRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+			),
+		},
+		{
+			Config: r.noConsumerGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_consumerGroupSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noConsumerGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
+			),
+		},
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 	r := StreamAnalyticsStreamInputEventHubResource{}
@@ -304,6 +399,58 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
   shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
   shared_access_policy_name    = "RootManageSharedAccessKey"
   partition_key                = "updatedPartitionKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsStreamInputEventHubResource) consumerGroupUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_eventhub_consumer_group" "updated" {
+  name                = "acctesteventhubcgupdated2-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                         = "acctestinput-%d"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.updated.name
+  eventhub_name                = azurerm_eventhub.test.name
+  servicebus_namespace         = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
+  shared_access_policy_name    = "RootManageSharedAccessKey"
+  partition_key                = "updatedPartitionKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r StreamAnalyticsStreamInputEventHubResource) noConsumerGroup(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_name             = azurerm_eventhub.test.name
+  servicebus_namespace      = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {
     type     = "Json"

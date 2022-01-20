@@ -126,10 +126,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
 		SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-	}
-
-	if v, ok := d.GetOk("eventhub_consumer_group_name"); ok {
-		eventHubDataSourceProps.ConsumerGroupName = utils.String(v.(string))
+		ConsumerGroupName:      utils.String(d.Get("eventhub_consumer_group_name").(string)),
 	}
 
 	props := streamanalytics.Input{
