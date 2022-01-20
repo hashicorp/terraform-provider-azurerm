@@ -46,6 +46,22 @@ func TestAccCosmosDbSQLRoleDefinition_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSQLRoleDefinition_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_definition", "test")
+	r := CosmosDbSQLRoleDefinitionResource{}
+	roleDefinitionId := uuid.New().String()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, roleDefinitionId),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbSQLRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_definition", "test")
 	r := CosmosDbSQLRoleDefinitionResource{}
@@ -98,6 +114,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
   location = "%s"
@@ -132,7 +150,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
   role_name           = "acctestsqlrole%s"
-  assignable_scopes   = [azurerm_cosmosdb_account.test.id]
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
@@ -152,7 +170,10 @@ resource "azurerm_cosmosdb_sql_role_definition" "import" {
   account_name        = azurerm_cosmosdb_sql_role_definition.test.account_name
   role_name           = azurerm_cosmosdb_sql_role_definition.test.role_name
   assignable_scopes   = azurerm_cosmosdb_sql_role_definition.test.assignable_scopes
-  permissions         = azurerm_cosmosdb_sql_role_definition.test.permissions
+
+  permissions {
+    data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
+  }
 }
 `, config)
 }
@@ -168,7 +189,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   role_name           = "acctestsqlrole%s"
   type                = "BuiltInRole"
-  assignable_scopes   = [azurerm_cosmosdb_account.test.id]
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
@@ -182,34 +203,17 @@ func (r CosmosDbSQLRoleDefinitionResource) update(data acceptance.TestData, role
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cosmosdb_account" "test2" {
-  name                = "acctest-cosmos2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
-
-  consistency_policy {
-    consistency_level = "Strong"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-}
-
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
   name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
   role_name           = "acctestsqlrole2%s"
-  type                = "CustomRole"
-  assignable_scopes   = [azurerm_cosmosdb_account.test2.id]
+  type                = "BuiltInRole"
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/purchases"]
 
   permissions {
-    data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/write"]
+    data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"]
   }
 }
-`, template, data.RandomInteger, roleDefinitionId, data.RandomString)
+`, template, roleDefinitionId, data.RandomString)
 }

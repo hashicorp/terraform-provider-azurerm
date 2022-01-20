@@ -88,6 +88,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(documentdb.RoleDefinitionTypeCustomRole),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.RoleDefinitionTypeBuiltInRole),
@@ -168,11 +169,11 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
-	d.Set("type", resp.Type)
 
 	if props := resp.SQLRoleDefinitionResource; props != nil {
 		d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
 		d.Set("role_name", props.RoleName)
+		d.Set("type", props.Type)
 
 		if err := d.Set("permissions", flattenSqlRoleDefinitionPermissions(props.Permissions)); err != nil {
 			return fmt.Errorf("setting `permissions`: %+v", err)

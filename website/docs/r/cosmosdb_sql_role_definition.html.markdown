@@ -3,12 +3,12 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_role_definition"
 description: |-
-  Manages an SQL Role Definition.
+  Manages a SQL Role Definition.
 ---
 
 # azurerm_cosmosdb_sql_role_definition
 
-Manages an SQL Role Definition.
+Manages a SQL Role Definition.
 
 ## Example Usage
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `role_name` - (Required) An user-friendly name for the Cosmos DB SQL Role Definition.
 
-* `type` - (Optional) The type of the Cosmos DB SQL Role Definition. Possible values are `BuiltInRole` and `CustomRole`. Defaults to `CustomRole`.
+* `type` - (Optional) The type of the Cosmos DB SQL Role Definition. Possible values are `BuiltInRole` and `CustomRole`. Defaults to `CustomRole`. Changing this forces a new resource to be created.
 
 ---
 
