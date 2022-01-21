@@ -81,7 +81,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 			"endpoint_status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(endpoints.EndpointStatusEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(endpoints.EndpointStatusDisabled),
 					string(endpoints.EndpointStatusEnabled),
