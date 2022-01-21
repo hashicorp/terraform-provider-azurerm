@@ -15,7 +15,7 @@ import (
 
 type WebPubsubHubResource struct{}
 
-func TestAccWebPubsubHub_basic(t *testing.T) {
+func TestAccWebpubsubHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -29,7 +29,7 @@ func TestAccWebPubsubHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_requiresImport(t *testing.T) {
+func TestAccWebpubsubHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -44,7 +44,7 @@ func TestAccWebPubsubHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_complete(t *testing.T) {
+func TestAccWebpubsubHub_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -58,7 +58,7 @@ func TestAccWebPubsubHub_complete(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
+func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -80,7 +80,7 @@ func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
+func TestAccWebpubsubHub_withPropertyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -102,7 +102,7 @@ func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
+func TestAccWebpubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
