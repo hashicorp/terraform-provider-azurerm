@@ -1,3 +1,13 @@
+## 2.94.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
+* `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
+
 ## 2.93.0 (January 21, 2022)
 
 FEATURES:
