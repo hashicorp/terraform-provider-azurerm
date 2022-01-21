@@ -51,7 +51,7 @@ The following arguments are supported:
 * `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
 * `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
-  Free: 1, Standard: 1, 2, 5, 10, 20, 50, 100.
+  Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

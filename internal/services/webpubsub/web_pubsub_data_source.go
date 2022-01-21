@@ -131,7 +131,7 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web Pubsub %s does not exists - removing from state", d.Id())
+			log.Printf("[INFO] Web Pubsub %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}

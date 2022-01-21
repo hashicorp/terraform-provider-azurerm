@@ -69,7 +69,7 @@ The following arguments are supported:
 * `event_handler` - (Required) An `event_handler` block as defined below.
 
 * `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`.
-  Possible value are `true`, `false`
+  Possible value are `true`, `false`.
 
 ---
 
@@ -107,8 +107,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to
-specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Resource.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.
