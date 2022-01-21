@@ -6,14 +6,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -205,18 +202,18 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *pluginsdk.ResourceData, me
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := endpoints.NewEndpointTypeID(subscriptionId, resourceGroup, profileName, endpoints.EndpointType(endpointType), name)
+	id := endpoints.NewEndpointTypeID(subscriptionId, resourceGroup, profileName, endpoints.EndpointType(endpointType), name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", id.ID())
 		}
 	}
 
@@ -226,11 +223,11 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: getArmTrafficManagerEndpointProperties(d),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
-		return fmt.Errorf("creating/updating %s Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", resourceId.EndpointType(), resourceId.Name, resourceId.TrafficManagerProfileName, resourceId.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceArmTrafficManagerEndpointRead(d, meta)
 }
 
@@ -239,45 +236,52 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.TrafficManagerProfileName, id.EndpointType(), id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", id.Name, id.TrafficManagerProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("type", id.EndpointType())
-	d.Set("profile_name", id.TrafficManagerProfileName)
+	d.Set("name", id.EndpointName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("type", id.EndpointType)
+	d.Set("profile_name", id.ProfileName)
+	if model := resp.Model; model != nil {
 
-	if props := resp.EndpointProperties; props != nil {
-		d.Set("endpoint_status", string(props.EndpointStatus))
-		d.Set("target_resource_id", props.TargetResourceID)
-		d.Set("target", props.Target)
-		d.Set("weight", props.Weight)
-		d.Set("priority", props.Priority)
-		d.Set("endpoint_location", props.EndpointLocation)
-		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
+		if props := model.Properties; props != nil {
+			endpointStatus := ""
+			if props.EndpointStatus != nil {
+				endpointStatus = string(*props.EndpointStatus)
+			}
+			d.Set("endpoint_status", endpointStatus)
+			d.Set("target_resource_id", props.TargetResourceId)
+			d.Set("target", props.Target)
+			d.Set("weight", props.Weight)
+			d.Set("priority", props.Priority)
+			d.Set("endpoint_location", props.EndpointLocation)
+			d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 
-		d.Set("min_child_endpoints", props.MinChildEndpoints)
-		d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
-		d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
-		d.Set("geo_mappings", props.GeoMapping)
-		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
-			return fmt.Errorf("setting `subnet`: %s", err)
-		}
-		if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
-			return fmt.Errorf("setting `custom_header`: %s", err)
+			d.Set("min_child_endpoints", props.MinChildEndpoints)
+			d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
+			d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
+			d.Set("geo_mappings", props.GeoMapping)
+			if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+				return fmt.Errorf("setting `subnet`: %s", err)
+			}
+			if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+				return fmt.Errorf("setting `custom_header`: %s", err)
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -286,15 +290,15 @@ func resourceArmTrafficManagerEndpointDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.TrafficManagerProfileName, id.EndpointType(), id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", id.Name, id.TrafficManagerProfileName, id.ResourceGroup, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
@@ -303,15 +307,15 @@ func resourceArmTrafficManagerEndpointDelete(d *pluginsdk.ResourceData, meta int
 
 func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoints.EndpointProperties {
 	target := d.Get("target").(string)
-	status := d.Get("endpoint_status").(string)
+	status := endpoints.EndpointStatus(d.Get("endpoint_status").(string))
 
 	endpointProps := endpoints.EndpointProperties{
 		Target:         &target,
-		EndpointStatus: trafficmanager.EndpointStatus(status),
+		EndpointStatus: &status,
 	}
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
-		endpointProps.TargetResourceID = utils.String(resourceId)
+		endpointProps.TargetResourceId = utils.String(resourceId)
 		// NOTE: Workaround for upstream behaviour: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
@@ -354,18 +358,18 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoint
 		endpointProps.MinChildEndpointsIPv6 = utils.Int64(int64(minChildEndpointsIPv6))
 	}
 
-	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	subnetSlice := make([]endpoints.EndpointPropertiesSubnetsInlined, 0)
 	for _, subnet := range d.Get("subnet").([]interface{}) {
 		subnetBlock := subnet.(map[string]interface{})
 		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
-			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
 				First: utils.String(subnetBlock["first"].(string)),
 				Last:  utils.String(subnetBlock["last"].(string)),
 			})
 		} else {
-			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
 				First: utils.String(subnetBlock["first"].(string)),
-				Scope: utils.Int32(int32(subnetBlock["scope"].(int))),
+				Scope: utils.Int64(int64(subnetBlock["scope"].(int))),
 			})
 		}
 	}
@@ -373,10 +377,10 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoint
 		endpointProps.Subnets = &subnetSlice
 	}
 
-	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	headerSlice := make([]endpoints.EndpointPropertiesCustomHeadersInlined, 0)
 	for _, header := range d.Get("custom_header").([]interface{}) {
 		headerBlock := header.(map[string]interface{})
-		headerSlice = append(headerSlice, trafficmanager.EndpointPropertiesCustomHeadersItem{
+		headerSlice = append(headerSlice, endpoints.EndpointPropertiesCustomHeadersInlined{
 			Name:  utils.String(headerBlock["name"].(string)),
 			Value: utils.String(headerBlock["value"].(string)),
 		})
@@ -388,7 +392,7 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoint
 	return &endpointProps
 }
 
-func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -409,7 +413,7 @@ func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.En
 	return result
 }
 
-func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
+func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
