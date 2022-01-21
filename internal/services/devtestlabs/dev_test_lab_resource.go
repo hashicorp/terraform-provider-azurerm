@@ -187,15 +187,15 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)
 		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
 
-		// TODO: remove the following workaround until the issue(https://github.com/Azure/azure-rest-api-specs/issues/17422) is fixed.
-		// The lowercase "resourcegroups" and "microsoft.keyvault" in key value id are returned by Labs_Get API.
-		// This will cause the azurerm_dev_test_lab resource which referencing the key vault id to be re-created after running terraform apply command even though nothing has changed.
-		// Hence, re-build the key vault id as a workaround in terraform.
-		id, err := keyvaultParse.VaultID(*props.VaultName)
-		if err != nil {
-			return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
+		kvId := ""
+		if props.VaultName != nil {
+			id, err := keyvaultParse.VaultID(*props.VaultName)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
+			}
+			kvId = id.ID()
 		}
-		d.Set("key_vault_id", id.ID())
+		d.Set("key_vault_id", kvId)
 		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
