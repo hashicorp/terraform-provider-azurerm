@@ -586,7 +586,7 @@ func TestAccApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	})
 }
 
-func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testing.T) {
+func TestAccApplicationGateway_sslCertificateManualChangeIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
