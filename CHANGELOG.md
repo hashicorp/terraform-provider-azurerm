@@ -2,6 +2,8 @@
 
 FEATURES:
 
+**New Data Source:** `azurerm_linux_function_app` [GH-15009]
+
 ENHANCEMENTS:
 
 BUG FIXES:
