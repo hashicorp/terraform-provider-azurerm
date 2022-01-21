@@ -232,7 +232,9 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
-
+			if resp.ETag == nil {
+				return fmt.Errorf("add %s: etag was nil", *id)
+			}
 			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id, resp.ETag); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
