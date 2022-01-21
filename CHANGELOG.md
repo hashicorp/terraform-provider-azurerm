@@ -10,23 +10,19 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v61.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-14828]
 * dependencies: updating `containerregistry` to API version `2021-08-01-preview` [GH-14961]
 * Data Source `azurerm_logic_app_workflow` - exporting the `identity` block [GH-14896]
-* `azurerm_bastion_host` - support for `copy_paste_enabled` [GH-14987]
-* `azurerm_bastion_host` - support for `file_copy_enabled` [GH-14987]
-* `azurerm_bastion_host` - support for `ip_connect_enabled` [GH-14987]
-* `azurerm_bastion_host` - support for `scale_units` [GH-14968]
-* `azurerm_bastion_host` - support for `shareable_link_enabled` [GH-14987]
-* `azurerm_bastion_host` - support for `tunneling_enabled` [GH-14987]
-* `azurerm_security_center_automation ` - `event_source` can now be set to `AssessmentsSnapshot`,
-`RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot` and `SubAssessmentsSnapshot` [GH-14996]
+* `azurerm_bastion_host` - support for the `copy_paste_enabled`, `file_copy_enabled`, `ip_connect_enabled`, `shareable_link_enabled`, and `tunneling_enabled` properties [GH-14987]
+* `azurerm_bastion_host` - support for the `scale_units` property [GH-14968]
+* `azurerm_security_center_automation ` - the `event_source` property can now be set to `AssessmentsSnapshot`,
+`RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControlsSnapshot`, `SecureScoresSnapshot`, and `SubAssessmentsSnapshot` [GH-14996]
 * `azurerm_static_site` - support for the `identity` block [GH-14911]
-* `azurerm_iothub` - Support for Identity-Based Endpoint [GH-14705]
-* `azurerm_servicebus_namespace_network_rule_set` -  support for `public_network_access_enabled` [GH-14967]
+* `azurerm_iothub` - Support for Identity-Based Endpoints [GH-14705]
+* `azurerm_servicebus_namespace_network_rule_set` -  support for the `public_network_access_enabled` property [GH-14967]
 
 BUG FIXES:
 
 * `azurerm_machine_learning_compute_instance` - add validation for `tenant_id` and `object_id` properties to prevent null values and subsequent panic [GH-14982]
 * `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config [GH-14844]
-* `azurerm_storage_share_file` changing `content_md5`  will now trigger recreation and `content_length` of share file  will now be set when updating properties. [GH-15007]
+* `azurerm_storage_share_file` changing the `content_md5` property will now trigger recreation and the `content_length` property of share file will now be set when updating properties. [GH-15007]
 
 internal/services/storage/storage_share_file_resource.go
 
