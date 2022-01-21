@@ -24,8 +24,6 @@ BUG FIXES:
 * `azurerm_linux_function_app` - (beta) fix potential panic in `application_stack` when that block is not in config ([#14844](https://github.com/hashicorp/terraform-provider-azurerm/issues/14844))
 * `azurerm_storage_share_file` changing the `content_md5` property will now trigger recreation and the `content_length` property of share file will now be set when updating properties. ([#15007](https://github.com/hashicorp/terraform-provider-azurerm/issues/15007))
 
-internal/services/storage/storage_share_file_resource.go
-
 ## 2.92.0 (January 14, 2022)
 
 FEATURES:
