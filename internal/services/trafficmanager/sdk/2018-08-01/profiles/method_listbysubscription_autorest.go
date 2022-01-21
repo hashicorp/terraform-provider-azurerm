@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 type ListBySubscriptionResponse struct {
@@ -15,7 +16,7 @@ type ListBySubscriptionResponse struct {
 }
 
 // ListBySubscription ...
-func (c ProfilesClient) ListBySubscription(ctx context.Context, id SubscriptionId) (result ListBySubscriptionResponse, err error) {
+func (c ProfilesClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionResponse, err error) {
 	req, err := c.preparerForListBySubscription(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "profiles.ProfilesClient", "ListBySubscription", nil, "Failure preparing request")
@@ -38,7 +39,7 @@ func (c ProfilesClient) ListBySubscription(ctx context.Context, id SubscriptionI
 }
 
 // preparerForListBySubscription prepares the ListBySubscription request.
-func (c ProfilesClient) preparerForListBySubscription(ctx context.Context, id SubscriptionId) (*http.Request, error) {
+func (c ProfilesClient) preparerForListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

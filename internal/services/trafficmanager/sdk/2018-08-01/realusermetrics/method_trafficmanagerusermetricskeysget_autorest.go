@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 type TrafficManagerUserMetricsKeysGetResponse struct {
@@ -15,7 +16,7 @@ type TrafficManagerUserMetricsKeysGetResponse struct {
 }
 
 // TrafficManagerUserMetricsKeysGet ...
-func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysGet(ctx context.Context, id SubscriptionId) (result TrafficManagerUserMetricsKeysGetResponse, err error) {
+func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysGet(ctx context.Context, id commonids.SubscriptionId) (result TrafficManagerUserMetricsKeysGetResponse, err error) {
 	req, err := c.preparerForTrafficManagerUserMetricsKeysGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "realusermetrics.RealUserMetricsClient", "TrafficManagerUserMetricsKeysGet", nil, "Failure preparing request")
@@ -38,7 +39,7 @@ func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysGet(ctx context.Cont
 }
 
 // preparerForTrafficManagerUserMetricsKeysGet prepares the TrafficManagerUserMetricsKeysGet request.
-func (c RealUserMetricsClient) preparerForTrafficManagerUserMetricsKeysGet(ctx context.Context, id SubscriptionId) (*http.Request, error) {
+func (c RealUserMetricsClient) preparerForTrafficManagerUserMetricsKeysGet(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

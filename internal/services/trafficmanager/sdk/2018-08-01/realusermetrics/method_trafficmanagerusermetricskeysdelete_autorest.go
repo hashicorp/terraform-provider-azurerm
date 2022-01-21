@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 type TrafficManagerUserMetricsKeysDeleteResponse struct {
@@ -15,7 +16,7 @@ type TrafficManagerUserMetricsKeysDeleteResponse struct {
 }
 
 // TrafficManagerUserMetricsKeysDelete ...
-func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysDelete(ctx context.Context, id SubscriptionId) (result TrafficManagerUserMetricsKeysDeleteResponse, err error) {
+func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysDelete(ctx context.Context, id commonids.SubscriptionId) (result TrafficManagerUserMetricsKeysDeleteResponse, err error) {
 	req, err := c.preparerForTrafficManagerUserMetricsKeysDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "realusermetrics.RealUserMetricsClient", "TrafficManagerUserMetricsKeysDelete", nil, "Failure preparing request")
@@ -38,7 +39,7 @@ func (c RealUserMetricsClient) TrafficManagerUserMetricsKeysDelete(ctx context.C
 }
 
 // preparerForTrafficManagerUserMetricsKeysDelete prepares the TrafficManagerUserMetricsKeysDelete request.
-func (c RealUserMetricsClient) preparerForTrafficManagerUserMetricsKeysDelete(ctx context.Context, id SubscriptionId) (*http.Request, error) {
+func (c RealUserMetricsClient) preparerForTrafficManagerUserMetricsKeysDelete(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

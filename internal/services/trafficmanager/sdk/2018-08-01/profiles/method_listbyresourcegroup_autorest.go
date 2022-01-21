@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 type ListByResourceGroupResponse struct {
@@ -15,7 +16,7 @@ type ListByResourceGroupResponse struct {
 }
 
 // ListByResourceGroup ...
-func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id ResourceGroupId) (result ListByResourceGroupResponse, err error) {
+func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupResponse, err error) {
 	req, err := c.preparerForListByResourceGroup(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "profiles.ProfilesClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -38,7 +39,7 @@ func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id ResourceGrou
 }
 
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
-func (c ProfilesClient) preparerForListByResourceGroup(ctx context.Context, id ResourceGroupId) (*http.Request, error) {
+func (c ProfilesClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
