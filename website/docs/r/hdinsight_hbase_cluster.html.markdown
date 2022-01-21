@@ -192,8 +192,6 @@ A `storage_account` block supports the following:
 
 * `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
--> **NOTE:** The `storage_resource_id` takes format like "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Storage/storageAccounts/$ACCOUNT_NAME".
-
 ---
 
 A `storage_account_gen2` block supports the following:
