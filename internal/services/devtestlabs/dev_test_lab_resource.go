@@ -3,8 +3,9 @@ package devtestlabs
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -186,12 +187,15 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)
 		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
 
-		// TODO: remove the replacement until the issue(https://github.com/Azure/azure-rest-api-specs/issues/17422) is fixed.
+		// TODO: remove the following workaround until the issue(https://github.com/Azure/azure-rest-api-specs/issues/17422) is fixed.
 		// The lowercase "resourcegroups" and "microsoft.keyvault" in key value id are returned by Labs_Get API.
-		// This will cause the resource which referencing the key vault id to be re-created after running terraform apply command even though nothing has changed.
-		// Hence replace them as a workaround in terraform.
-		vaultId := strings.Replace(*props.VaultName, "resourcegroups", "resourceGroups", 1)
-		d.Set("key_vault_id", strings.Replace(vaultId, "microsoft.keyvault", "Microsoft.KeyVault", 1))
+		// This will cause the azurerm_dev_test_lab resource which referencing the key vault id to be re-created after running terraform apply command even though nothing has changed.
+		// Hence, re-build the key vault id as a workaround in terraform.
+		id, err := keyvaultParse.VaultID(*props.VaultName)
+		if err != nil {
+			return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
+		}
+		d.Set("key_vault_id", id.ID())
 		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
