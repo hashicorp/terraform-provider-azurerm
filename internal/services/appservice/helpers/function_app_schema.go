@@ -334,6 +334,184 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 	}
 }
 
+func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"api_management_api_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"api_definition_url": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_command_line": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_scale_limit": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"application_insights_key": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"application_insights_connection_string": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"application_stack": linuxFunctionAppStackSchemaComputed(),
+
+				"app_service_logs": FunctionAppAppServiceLogsSchemaComputed(),
+
+				"container_registry_use_managed_identity": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"container_registry_managed_identity_client_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"default_documents": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"elastic_instance_minimum": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": IpRestrictionSchemaComputed(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": IpRestrictionSchemaComputed(),
+
+				"load_balancing_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"managed_pipeline_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"pre_warmed_instance_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"remote_debugging_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"remote_debugging_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"websockets_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_eviction_time_in_min": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"worker_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"cors": CorsSettingsSchemaComputed(),
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"detailed_error_logging_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type SiteConfigWindowsFunctionApp struct {
 	AlwaysOn                      bool                                 `tfschema:"always_on"`
 	AppCommandLine                string                               `tfschema:"app_command_line"`
@@ -995,6 +1173,79 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
+				},
+			},
+		},
+	}
+}
+
+func linuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"dotnet_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"python_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"node_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"powershell_core_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*schema.Schema{
+							"registry_url": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"registry_username": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"registry_password": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"image_name": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"image_tag": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"use_custom_runtime": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
 				},
 			},
 		},

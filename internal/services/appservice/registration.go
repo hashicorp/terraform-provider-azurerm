@@ -25,6 +25,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	if features.ThreePointOhBetaResources() {
 		return []sdk.DataSource{
 			AppServiceSourceControlTokenDataSource{},
+			LinuxFunctionAppDataSource{},
 			LinuxWebAppDataSource{},
 			ServicePlanDataSource{},
 			WindowsFunctionAppDataSource{},
