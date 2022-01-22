@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
@@ -228,6 +229,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
+			},
+
+			"defender_enabled_with_log_analytics_workspace_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Computed:     true, // Computed seems reasonable here as this is often enabled by auto provisioning
+				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"enable_pod_security_policy": {
@@ -1130,7 +1138,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
 	if d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
 	}
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
@@ -1167,6 +1175,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
+
+			// Creation of cluster with Defender for Containers doesn't work
+			// Issue:
+			// SecurityProfile:        expandKubernetesClusterSecurityProfile(d.Get("defender_enabled_with_log_analytics_workspace_id").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1243,6 +1255,26 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 		if _, err := client.CreateOrUpdate(ctx, resGroup, name, "default", parameters); err != nil {
 			return fmt.Errorf("creating/updating maintenance config for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		}
+	}
+
+	// Creation of cluster with Defender for Containers doesn't work
+	// Isue:
+	if v := d.Get("defender_enabled_with_log_analytics_workspace_id").(string); v != "" {
+		newManagedCluster := containerservice.ManagedCluster{
+			Location: &location,
+			ManagedClusterProperties: &containerservice.ManagedClusterProperties{
+				SecurityProfile: expandKubernetesClusterSecurityProfile(v),
+			},
+		}
+
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, newManagedCluster)
+		if err != nil {
+			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", resGroup, name, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", resGroup, name, err)
 		}
 	}
 
@@ -1549,6 +1581,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
 	}
 
+	if d.HasChange("defender_enabled_with_log_analytics_workspace_id") {
+		updateCluster = true
+		securityProfile := expandKubernetesClusterSecurityProfile(d.Get("defender_enabled_with_log_analytics_workspace_id").(string))
+		existing.ManagedClusterProperties.SecurityProfile = securityProfile
+	}
+
 	if d.HasChange("http_proxy_config") {
 		updateCluster = true
 		httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
@@ -1769,6 +1807,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
 		if err := d.Set("windows_profile", windowsProfile); err != nil {
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
+
+		defenderLogAnalyticsWorkspaceId := flattenKubernetesClusterSecurityProfile(props.SecurityProfile)
+		if err := d.Set("defender_enabled_with_log_analytics_workspace_id", defenderLogAnalyticsWorkspaceId); err != nil {
+			return fmt.Errorf("setting `defender_enabled_with_log_analytics_workspace_id`: %+v", err)
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
@@ -2818,6 +2861,31 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]contai
 		})
 	}
 	return results
+}
+
+func expandKubernetesClusterSecurityProfile(logAnalyticsWorkspaceId string) *containerservice.ManagedClusterSecurityProfile {
+	if logAnalyticsWorkspaceId == "" {
+		return &containerservice.ManagedClusterSecurityProfile{
+			AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
+				Enabled: utils.Bool(false),
+			},
+		}
+	}
+
+	return &containerservice.ManagedClusterSecurityProfile{
+		AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
+			Enabled:                         utils.Bool(true),
+			LogAnalyticsWorkspaceResourceID: &logAnalyticsWorkspaceId,
+		},
+	}
+}
+
+func flattenKubernetesClusterSecurityProfile(input *containerservice.ManagedClusterSecurityProfile) string {
+	if input == nil || input.AzureDefender == nil || input.AzureDefender.LogAnalyticsWorkspaceResourceID == nil {
+		return ""
+	}
+
+	return *input.AzureDefender.LogAnalyticsWorkspaceResourceID
 }
 
 func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservice.ManagedClusterHTTPProxyConfig {

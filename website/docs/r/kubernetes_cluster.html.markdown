@@ -94,6 +94,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
+* `defender_enabled_with_log_analytics_workspace_id` - (Optional) The Log Analytics Workspace used to enable Microsoft Defender for Containers. When this option is set, Microsoft Defender for Containers is enabled.
+
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
 * `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
