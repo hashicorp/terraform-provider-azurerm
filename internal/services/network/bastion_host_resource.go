@@ -252,11 +252,16 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
 		d.Set("dns_name", props.DNSName)
 		d.Set("scale_units", props.ScaleUnits)
-		d.Set("copy_paste_enabled", !*props.DisableCopyPaste)
 		d.Set("file_copy_enabled", props.EnableFileCopy)
 		d.Set("ip_connect_enabled", props.EnableIPConnect)
 		d.Set("shareable_link_enabled", props.EnableShareableLink)
 		d.Set("tunneling_enabled", props.EnableTunneling)
+
+		copyPasteEnabled := true
+		if props.DisableCopyPaste != nil {
+			copyPasteEnabled = !*props.DisableCopyPaste
+		}
+		d.Set("copy_paste_enabled", copyPasteEnabled)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
