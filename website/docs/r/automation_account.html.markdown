@@ -47,11 +47,20 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 ----
 
 A `sku` block supports the following:
 
 * `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
+
+----
+
+An `identity` block supports the following:
+
+* `type` - The type of identity used for the automation account. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
 ----
 

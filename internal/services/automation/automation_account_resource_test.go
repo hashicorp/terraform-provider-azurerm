@@ -35,6 +35,25 @@ func TestAccAutomationAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAutomationAccount_basicWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAutomationAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}
@@ -101,6 +120,31 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AutomationAccountResource) basicWithIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

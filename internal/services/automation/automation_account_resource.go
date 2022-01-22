@@ -5,12 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,8 +54,8 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.Basic),
-					string(automation.Free),
+					string(automation.SkuNameEnumBasic),
+					string(automation.SkuNameEnumFree),
 				}, false),
 			},
 
@@ -71,8 +73,102 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(automation.ResourceIdentityTypeSystemAssigned),
+								string(automation.ResourceIdentityTypeUserAssigned),
+							}, false),
+						},
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							Optional:     true,
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
+}
+
+func expandAutomationAccountIdentity(input []interface{}) *automation.Identity {
+	if len(input) == 0 || input[0] == nil {
+		return &automation.Identity{
+			Type: automation.ResourceIdentityTypeNone,
+		}
+	}
+
+	values := input[0].(map[string]interface{})
+
+	if automation.ResourceIdentityType(values["type"].(string)) == automation.ResourceIdentityTypeUserAssigned {
+		userAssignedIdentities := map[string]*automation.IdentityUserAssignedIdentitiesValue{
+			values["user_assigned_identity_id"].(string): {},
+		}
+
+		return &automation.Identity{
+			Type:                   automation.ResourceIdentityType(values["type"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}
+	}
+
+	return &automation.Identity{
+		Type: automation.ResourceIdentityType(values["type"].(string)),
+	}
+}
+
+func flattenAutomationAccountIdentity(input *automation.Identity) ([]interface{}, error) {
+	// if it's none, omit the block
+	if input == nil || input.Type == automation.ResourceIdentityTypeNone {
+		return []interface{}{}, nil
+	}
+
+	identity := make(map[string]interface{})
+
+	identity["principal_id"] = ""
+	if input.PrincipalID != nil {
+		identity["principal_id"] = *input.PrincipalID
+	}
+
+	identity["tenant_id"] = ""
+	if input.TenantID != nil {
+		identity["tenant_id"] = *input.TenantID
+	}
+
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
+		}
+	}
+
+	identity["type"] = string(input.Type)
+
+	return []interface{}{identity}, nil
 }
 
 func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -110,6 +206,13 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+	}
+
+	automationAccountIdentityRaw := d.Get("identity").([]interface{})
+	if len(automationAccountIdentityRaw) > 0 {
+		parameters.Identity = expandAutomationAccountIdentity(automationAccountIdentityRaw)
+	} else {
+		parameters.Identity = nil
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
@@ -172,6 +275,15 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if keys := keysResp.Keys; keys != nil {
 		d.Set("dsc_primary_access_key", keys.Primary)
 		d.Set("dsc_secondary_access_key", keys.Secondary)
+	}
+
+	identity, err := flattenAutomationAccountIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if t := resp.Tags; t != nil {
