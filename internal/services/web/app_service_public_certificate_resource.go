@@ -94,8 +94,8 @@ func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
 		}
 	}
 

@@ -222,8 +222,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
 	}
 
 	kafkaRestProperty, err := expandKafkaRestProxyProperty(ctx, groupClient, d.Get("rest_proxy").([]interface{}))
