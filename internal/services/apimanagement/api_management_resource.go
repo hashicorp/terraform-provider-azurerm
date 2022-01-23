@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 
@@ -88,12 +90,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
-			},
-
-			"remove_samples_on_create": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
 			},
 
 			"identity": {
@@ -751,9 +747,9 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	d.SetId(id.ID())
 
 	// Remove sample products and APIs after creating
-	if d.IsNewResource() && d.Get("remove_samples_on_create").(bool) {
-		d.Set("remove_samples_on_create", true)
-
+	// TODO: v3.0 Features.ApiManagement.RemoveSamplesOnCreate should default to true
+	removeSamples := (features.ThreePointOh() && !meta.(*clients.Client).Features.ApiManagement.RemoveSamplesOnCreate) || meta.(*clients.Client).Features.ApiManagement.RemoveSamplesOnCreate
+	if d.IsNewResource() && removeSamples {
 		apis := make([]apimanagement.APIContract, 0)
 
 		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
@@ -769,15 +765,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		for _, api := range apis {
-			if api.ID != nil {
-				apiId, err := parse.ApiID(*api.ID)
-				if err != nil {
-					return fmt.Errorf("parsing API ID: %+v", err)
-				}
-				log.Printf("[DEBUG] Deleting %s", apiId)
-				if resp, err := apiClient.Delete(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting %s: %+v", apiId, err)
-				}
+			if api.ID == nil {
+				continue
+			}
+			apiId, err := parse.ApiID(*api.ID)
+			if err != nil {
+				return fmt.Errorf("parsing API ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", apiId)
+			if resp, err := apiClient.Delete(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", apiId, err)
 			}
 		}
 
@@ -796,15 +793,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		for _, product := range products {
-			if product.ID != nil {
-				productId, err := parse.ProductID(*product.ID)
-				if err != nil {
-					return fmt.Errorf("parsing product ID: %+v", err)
-				}
-				log.Printf("[DEBUG] Deleting %s", productId)
-				if resp, err := productsClient.Delete(ctx, productId.ResourceGroup, productId.ServiceName, productId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting %s: %+v", productId, err)
-				}
+			if product.ID == nil {
+				continue
+			}
+			productId, err := parse.ProductID(*product.ID)
+			if err != nil {
+				return fmt.Errorf("parsing product ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", productId)
+			if resp, err := productsClient.Delete(ctx, productId.ResourceGroup, productId.ServiceName, productId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", productId, err)
 			}
 		}
 
@@ -1011,12 +1009,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `tenant_access`: %+v", err)
 		}
 	}
-
-	removeSamplesOnCreate := false
-	if v, ok := d.GetOk("remove_samples_on_create"); ok && v.(bool) {
-		removeSamplesOnCreate = true
-	}
-	d.Set("remove_samples_on_create", removeSamplesOnCreate)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

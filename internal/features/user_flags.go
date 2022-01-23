@@ -57,4 +57,5 @@ type ResourceGroupFeatures struct {
 
 type ApiManagementFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
+	RemoveSamplesOnCreate    bool
 }

@@ -21,6 +21,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+					// TODO: v3.0 `remove_samples_on_create` should default to true
+					"remove_samples_on_create": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -250,6 +255,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			apimRaw := items[0].(map[string]interface{})
 			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+			if v, ok := apimRaw["remove_samples_on_create"]; ok {
+				featuresMap.ApiManagement.RemoveSamplesOnCreate = v.(bool)
 			}
 		}
 	}

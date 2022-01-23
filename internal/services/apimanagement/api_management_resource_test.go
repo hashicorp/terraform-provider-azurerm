@@ -2127,7 +2127,11 @@ resource "azurerm_resource_group" "test" {
 func (ApiManagementResource) removeSamples(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    api_management {
+      remove_samples_on_create = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2142,8 +2146,6 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
-
-  remove_samples_on_create = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
