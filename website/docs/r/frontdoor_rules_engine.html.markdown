@@ -92,7 +92,7 @@ The `action` block supports the following:
 
 * `response_header` - (Optional) A `response_header` block as defined below.
 
-* `routing_configuration` - (Optional) A `routing_configuration` block as defined below, must be unique per action.
+* `routing_rule_override` - (Optional) A `routing_rule_override` block as defined below, must be unique per action.
 
 ---
 
@@ -116,7 +116,7 @@ The `response_header` block supports the following:
 
 ---
 
-The `routing_configuration` block supports the following:
+The `routing_rule_override` block supports the following:
 
 * `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
 

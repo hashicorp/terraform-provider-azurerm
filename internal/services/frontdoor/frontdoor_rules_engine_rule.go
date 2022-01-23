@@ -3,6 +3,7 @@ package frontdoor
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -236,9 +237,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										},
 									},
 
-									"routing_configuration": {
+									"routing_rule_override": {
 										Type:     pluginsdk.TypeList,
-										MaxItems: 100,
+										MaxItems: 1,
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
@@ -359,6 +360,23 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			// Computed values
+			"explicit_resource_order": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"engine_rule_ids": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -403,8 +421,8 @@ func expandFrontDoorRulesEngineAction(frontDoorId frontdoors.FrontDoorId, input 
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
 	var routingConfiguration frontdoors.RouteConfiguration
-	if rco := ruleAction["routing_configuration"].([]interface{}); len(rco) != 0 {
-		routeConfigurationOverride := ruleAction["routing_configuration"].([]interface{})[0].(map[string]interface{})
+	if rco := ruleAction["routing_rule_override"].([]interface{}); len(rco) != 0 {
+		routeConfigurationOverride := ruleAction["routing_rule_override"].([]interface{})[0].(map[string]interface{})
 		if rc := routeConfigurationOverride["redirect_configuration"].([]interface{}); len(rc) != 0 {
 			routingConfiguration = expandFrontDoorRedirectConfiguration(rc)
 		} else if fc := routeConfigurationOverride["forwarding_configuration"].([]interface{}); len(fc) != 0 {
@@ -542,7 +560,136 @@ func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	d.Set("name", id.RulesEngineName)
+	d.Set("frontdoor_name", id.FrontDoorName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
+
+			var flattenedRoutingRules *[]interface{}
+			// Force the returned flattenedRoutingRules into the order defined in the explicit_resource_order mapping table
+
+			flattenedRoutingRules, err = flattenFrontDoorRulesEngineRule(props.Rules, d.Get("routing_rule_override"), *id, explicitResourceOrder)
+			if err != nil {
+				return fmt.Errorf("flattening `routing_rule_override`: %+v", err)
+			}
+			if err := d.Set("routing_rule_override", flattenedRoutingRules); err != nil {
+				return fmt.Errorf("setting `routing_rule_override`: %+v", err)
+			}
+		}
+	}
+
 	return nil
+}
+
+func flattenFrontDoorRulesEngineRule(input *[]frontdoors.RulesEngineRule, oldBlocks interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId, explicitOrder []interface{}) (*[]interface{}, error) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	output := make([]interface{}, 0)
+
+	if len(explicitOrder) > 0 {
+		orderedRule := explicitOrder[0].(map[string]interface{})
+		orderedRulesEngineRuleIds := orderedRule["engine_rule_ids"].([]interface{})
+		combinedRulesEngineRule, err := combineRulesEngineRule(*input, oldBlocks, orderedRulesEngineRuleIds, frontDoorRulesEngineId)
+		if err != nil {
+			return nil, err
+		}
+		output = combinedRulesEngineRule
+	} else {
+		for _, v := range *input {
+			rulesEngineRule, err := flattenSingleFrontDoorRulesEngineRule(v, oldBlocks, frontDoorRulesEngineId)
+			if err == nil {
+				output = append(output, rulesEngineRule)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return &output, nil
+}
+
+func flattenSingleFrontDoorRulesEngineRule(input frontdoors.RulesEngineRule, oldBlocks interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId) (map[string]interface{}, error) {
+
+	id := ""
+	name := ""
+	if input.Name != "" {
+		// rewrite the ID to ensure it's consistent
+		id = parse.NewRulesEngineID(frontDoorRulesEngineId.SubscriptionId, frontDoorRulesEngineId.ResourceGroupName, frontDoorRulesEngineId.FrontDoorName, input.Name).ID()
+		name = input.Name
+	}
+
+	forwardingConfiguration := make([]interface{}, 0)
+	redirectConfiguration := make([]interface{}, 0)
+
+	forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(input.Action.RouteConfigurationOverride, oldBlocks)
+	if err != nil {
+		return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
+	}
+	forwardingConfiguration = *forwardConfiguration
+	redirectConfiguration = flattenRoutingRuleRedirectConfiguration(input.Action.RouteConfigurationOverride)
+
+	output := map[string]interface{}{
+		"name":           name,
+		"priority":       input.Priority,
+		"engine_rule_id": id,
+		"routing_rule_override": map[string]interface{}{
+			"forwarding_configuration": forwardingConfiguration,
+			"redirect_configuration":   redirectConfiguration,
+		},
+	}
+
+	return output, nil
+}
+
+func combineRulesEngineRule(allRulesEngineRule []frontdoors.RulesEngineRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	found := false
+
+	// first find all of the ones in the ordered mapping list and add them in the correct order
+	for _, v := range orderedIds {
+		for _, ruleEngineRule := range allRulesEngineRule {
+
+			//TO LOWER Each in
+
+			if strings.Contains(strings.ToLower(v.(string)), strings.ToLower(*&ruleEngineRule.Name)) {
+				orderedRoutingRule, err := flattenSingleFrontDoorRulesEngineRule(ruleEngineRule, oldBlocks, frontDoorRulesEngineId)
+				if err == nil {
+					output = append(output, orderedRoutingRule)
+					break
+				} else {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	// Now check to see if items were added to the resource via the portal and add them to the state file
+	for _, ruleEngineRule := range allRulesEngineRule {
+		found = false
+		for _, orderedId := range orderedIds {
+			if strings.Contains(strings.ToLower(orderedId.(string)), strings.ToLower(ruleEngineRule.Name)) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			newRuleEngineRule, err := flattenSingleFrontDoorRulesEngineRule(ruleEngineRule, oldBlocks, frontDoorRulesEngineId)
+			if err == nil {
+				output = append(output, newRuleEngineRule)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return output, nil
 }
 
 func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
