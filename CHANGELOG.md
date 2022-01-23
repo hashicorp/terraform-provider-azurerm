@@ -1,3 +1,16 @@
+## 2.94.0 (Unreleased)
+
+FEATURES:
+
+**New Data Source:** `azurerm_linux_function_app` [GH-15009]
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
+* `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
+* `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
+
 ## 2.93.0 (January 21, 2022)
 
 FEATURES:
