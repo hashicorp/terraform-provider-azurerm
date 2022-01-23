@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -184,7 +186,16 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)
 		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
-		d.Set("key_vault_id", props.VaultName)
+
+		kvId := ""
+		if props.VaultName != nil {
+			id, err := keyvaultParse.VaultID(*props.VaultName)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
+			}
+			kvId = id.ID()
+		}
+		d.Set("key_vault_id", kvId)
 		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
