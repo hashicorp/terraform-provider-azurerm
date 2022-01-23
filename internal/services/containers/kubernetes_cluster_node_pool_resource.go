@@ -415,7 +415,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
 	if orchestratorVersion != "" {
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, id, orchestratorVersion); err != nil {
 			return err
 		}
 
@@ -615,7 +615,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		orchestratorVersion := d.Get("orchestrator_version").(string)
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, *id, orchestratorVersion); err != nil {
 			return err
 		}
 
