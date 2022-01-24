@@ -1325,7 +1325,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
-			return fmt.Errorf("updating %s: RBAC Enabled was nil")
+			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
 		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
 		tenantId := meta.(*clients.Client).Account.TenantId
