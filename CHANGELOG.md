@@ -1,3 +1,9 @@
+## 2.93.1 (January 24, 2022)
+
+BUG FIXES:
+
+* `azurerm_app_service` - fix name availability check request [GH-15062]
+
 ## 2.93.0 (January 21, 2022)
 
 FEATURES:
