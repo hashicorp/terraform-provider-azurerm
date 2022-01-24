@@ -198,12 +198,17 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
+	future, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("deleting %q: %+v", id, err)
+		return fmt.Errorf("deleting %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deleting %q: %+v", id, err)
 		}
 	}
+
 	return nil
 }
 
