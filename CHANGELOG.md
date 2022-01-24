@@ -1,8 +1,8 @@
-## 2.93.1 (Unreleased)
+## 2.93.1 (January 24, 2022)
 
 BUG FIXES:
 
-* `azurerm_app_service` - fix name availability check request [GH-15062]
+* `azurerm_app_service` - fix name availability check request ([#15062](https://github.com/hashicorp/terraform-provider-azurerm/issues/15062))
 
 ## 2.93.0 (January 21, 2022)
 
