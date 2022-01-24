@@ -13,6 +13,7 @@ BUG FIXES:
 
 * `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
 * `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
+* `azurerm_template_deployment` - fixing a bug during deletion of the template deployment [GH-15085]
 
 ## 2.93.0 (January 21, 2022)
 
