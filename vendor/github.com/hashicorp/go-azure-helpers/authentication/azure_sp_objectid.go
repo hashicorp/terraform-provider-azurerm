@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 	"github.com/manicminer/hamilton/msgraph"
@@ -19,11 +20,92 @@ import (
 func buildServicePrincipalObjectIDFunc(c *Config) func(ctx context.Context) (*string, error) {
 	return func(ctx context.Context) (*string, error) {
 		if c.UseMicrosoftGraph {
-			return objectIdFromMsGraph(ctx, c)
+			objectId, err := objectIdFromMSALTokenClaims(ctx, c)
+			if err != nil {
+				log.Printf("could not parse objectId from claims, retrying via Microsoft Graph: %v", err)
+				return objectIdFromMsGraph(ctx, c)
+			}
+
+			return objectId, err
 		} else {
-			return objectIdFromAadGraph(ctx, c)
+			objectId, err := objectIdFromADALTokenClaims(ctx, c)
+			if err != nil {
+				log.Printf("could not parse objectId from claims, retrying via Azure Active Directory Graph: %v", err)
+				return objectIdFromAadGraph(ctx, c)
+			}
+
+			return objectId, err
 		}
 	}
+}
+
+func claimsFromAutorestAuthorizer(authorizer autorest.Authorizer) (*auth.Claims, error) {
+	wrapper, err := auth.NewAutorestAuthorizerWrapper(authorizer)
+	if err != nil {
+		return nil, fmt.Errorf("wrapping autorest.Authorizer: %v", err)
+	}
+
+	token, err := wrapper.Token()
+	if err != nil {
+		return nil, fmt.Errorf("acquiring access token: %v", err)
+	}
+
+	claims, err := auth.ParseClaims(token)
+	if err != nil {
+		return nil, fmt.Errorf("parsing claims from access token: %v", err)
+	}
+
+	return &claims, nil
+}
+
+func objectIdFromADALTokenClaims(ctx context.Context, c *Config) (*string, error) {
+	env, err := AzureEnvironmentByNameFromEndpoint(ctx, c.MetadataHost, c.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("determining environment: %v", err)
+	}
+
+	s := sender.BuildSender("GoAzureHelpers")
+
+	oauthConfig, err := c.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("building oauthConfig: %v", err)
+	}
+
+	authorizer, err := c.GetADALToken(ctx, s, oauthConfig, env.GraphEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("configuring Authorizer: %v", err)
+	}
+
+	claims, err := claimsFromAutorestAuthorizer(authorizer)
+	if err != nil {
+		return nil, err
+	}
+
+	return &claims.ObjectId, nil
+}
+
+func objectIdFromMSALTokenClaims(ctx context.Context, c *Config) (*string, error) {
+	env, err := environments.EnvironmentFromString(c.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("determining environment: %v", err)
+	}
+
+	oauthConfig, err := c.BuildOAuthConfig(string(env.AzureADEndpoint))
+	if err != nil {
+		return nil, fmt.Errorf("building oauthConfig: %v", err)
+	}
+
+	authorizer, err := c.GetMSALToken(ctx, env.MsGraph, sender.BuildSender("GoAzureHelpers"), oauthConfig, string(env.MsGraph.Endpoint))
+	if err != nil {
+		return nil, fmt.Errorf("configuring Authorizer: %v", err)
+	}
+
+	claims, err := claimsFromAutorestAuthorizer(authorizer)
+	if err != nil {
+		return nil, err
+	}
+
+	return &claims.ObjectId, nil
 }
 
 func objectIdFromAadGraph(ctx context.Context, c *Config) (*string, error) {
