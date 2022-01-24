@@ -271,7 +271,7 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.SubscriptionId); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.DeploymentName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
