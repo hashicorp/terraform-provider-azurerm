@@ -219,7 +219,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	dailyQuotaGb, ok := d.GetOk("daily_quota_gb")
-	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
+	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) && dailyQuotaGb != -1 {
 		return fmt.Errorf("`Free` tier SKU quota is not configurable and is hard set to 0.5GB")
 	} else if !strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		parameters.WorkspaceProperties.WorkspaceCapping = &operationalinsights.WorkspaceCapping{
