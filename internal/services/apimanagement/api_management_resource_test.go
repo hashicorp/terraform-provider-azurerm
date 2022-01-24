@@ -994,7 +994,8 @@ resource "azurerm_api_management" "test" {
   publisher_name            = "pub1"
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
-  sku_name                  = "Premium_2"
+
+  sku_name = "Premium_2"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1114,7 +1115,8 @@ resource "azurerm_api_management" "test" {
   publisher_name            = "pub1"
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
-sku_name = "Premium_2"
+
+  sku_name = "Premium_2"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1193,8 +1195,6 @@ sku_name = "Premium_2"
       certificate_password = "terraform"
     }
   }
-
-  sku_name = "Premium_2"
 
   tags = {
     "Acceptance" = "Test"
@@ -1436,7 +1436,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Premium_1"
+
+  sku_name = "Premium_1"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1504,17 +1505,21 @@ func (ApiManagementResource) identitySystemAssigned(data acceptance.TestData) st
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
@@ -1688,7 +1693,9 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
@@ -1706,10 +1713,13 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
+
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
@@ -1732,10 +1742,13 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
+
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
@@ -1856,7 +1869,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
 
   hostname_configuration {
     proxy {
@@ -1874,6 +1888,7 @@ resource "azurerm_api_management" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
+
   depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
