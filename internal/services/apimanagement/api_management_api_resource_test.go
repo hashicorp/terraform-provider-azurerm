@@ -690,10 +690,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
+  sku_name = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

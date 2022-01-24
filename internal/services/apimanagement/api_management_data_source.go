@@ -64,27 +64,8 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "Deprecated in favour of `sku`",
-			},
-
-			"sku": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"capacity": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"identity": {
@@ -305,9 +286,6 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku))
-	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
-	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

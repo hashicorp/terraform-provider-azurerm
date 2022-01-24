@@ -294,7 +294,6 @@ func TestAccApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T)
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("additional_location.0.private_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("additional_location.0.public_ip_address_id").Exists(),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("additional_location.0.capacity").HasValue("1"),
 			),
 		},
@@ -773,10 +772,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -799,10 +795,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Standard"
-    capacity = 1
-  }
+  sku_name = "Standard_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -825,10 +818,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_content = <<XML
@@ -863,10 +853,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
@@ -893,10 +880,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy = []
 }
@@ -914,10 +898,7 @@ resource "azurerm_api_management" "import" {
   publisher_name      = azurerm_api_management.test.publisher_name
   publisher_email     = azurerm_api_management.test.publisher_email
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 `, r.basic(data))
 }
@@ -940,10 +921,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   security {
     enable_frontend_tls10      = true
@@ -971,10 +949,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   sign_in {
     enabled = true
@@ -1019,6 +994,7 @@ resource "azurerm_api_management" "test" {
   publisher_name            = "pub1"
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
+  sku_name                  = "Premium_2"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1102,11 +1078,6 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku {
-    name     = "Premium"
-    capacity = 2
-  }
-
   tags = {
     "Acceptance" = "Test"
   }
@@ -1143,6 +1114,7 @@ resource "azurerm_api_management" "test" {
   publisher_name            = "pub1"
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
+sku_name = "Premium_2"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1222,10 +1194,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku {
-    name     = "Premium"
-    capacity = 2
-  }
+  sku_name = "Premium_2"
 
   tags = {
     "Acceptance" = "Test"
@@ -1342,10 +1311,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   virtual_network_type = "Internal"
   virtual_network_configuration {
@@ -1470,12 +1436,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Premium"
-    capacity = 2
-  }
-  zones = [1, 2]
+  sku_name            = "Premium_1"
 
   additional_location {
     location = azurerm_resource_group.test2.location
@@ -1526,10 +1487,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   identity {
     type = "UserAssigned"
@@ -1556,12 +1514,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
+  sku_name            = "Developer_1"
   identity {
     type = "SystemAssigned"
   }
@@ -1593,10 +1546,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   identity {
     type = "SystemAssigned, UserAssigned"
@@ -1626,10 +1576,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1741,12 +1688,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
+  sku_name            = "Developer_1"
   identity {
     type = "SystemAssigned"
   }
@@ -1764,16 +1706,10 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
+  sku_name            = "Developer_1"
   identity {
     type = "SystemAssigned"
   }
-
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
@@ -1796,16 +1732,10 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
+  sku_name            = "Developer_1"
   identity {
     type = "SystemAssigned"
   }
-
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
@@ -1926,11 +1856,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 
   hostname_configuration {
     proxy {
@@ -1970,11 +1896,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
+  sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1996,12 +1918,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   publisher_name             = "pub1"
   publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
   client_certificate_enabled = true
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2023,12 +1941,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   publisher_name             = "pub1"
   publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
   client_certificate_enabled = false
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2050,12 +1964,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Premium"
-    capacity = 1
-  }
-
+  sku_name            = "Premium_1"
   additional_location {
     location = "%s"
   }
@@ -2080,13 +1989,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
   gateway_disabled    = true
-
-  sku {
-    name     = "Premium"
-    capacity = 1
-  }
-
   additional_location {
     location = "%s"
   }
@@ -2111,12 +2015,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
   min_api_version     = "2019-12-01"
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2138,12 +2038,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
   min_api_version     = "2020-12-01"
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2165,11 +2061,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Consumption"
-    capacity = 0
-  }
+  sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2209,10 +2101,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   tenant_access {
     enabled = true
