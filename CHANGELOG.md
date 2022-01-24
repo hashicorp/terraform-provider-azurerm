@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v61.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15080]
+* dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
 
 BUG FIXES:
 
