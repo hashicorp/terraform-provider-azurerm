@@ -172,14 +172,11 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
-	partitionCount := int64(d.Get("partition_count").(int))
-	messageRetention := int64(d.Get("message_retention").(int))
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
-
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         &partitionCount,
-			MessageRetentionInDays: &messageRetention,
+			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			Status:                 &eventhubStatus,
 		},
 	}
@@ -221,14 +218,11 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	partitionCount := int64(d.Get("partition_count").(int))
-	messageRetention := int64(d.Get("message_retention").(int))
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
-
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			MessageRetentionInDays: &messageRetention,
-			PartitionCount:         &partitionCount,
+			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			Status:                 &eventhubStatus,
 		},
 	}
