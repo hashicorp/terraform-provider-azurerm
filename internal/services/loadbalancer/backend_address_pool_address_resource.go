@@ -22,10 +22,40 @@ var _ sdk.ResourceWithUpdate = BackendAddressPoolAddressResource{}
 type BackendAddressPoolAddressResource struct{}
 
 type BackendAddressPoolAddressModel struct {
-	Name                 string `tfschema:"name"`
-	BackendAddressPoolId string `tfschema:"backend_address_pool_id"`
-	VirtualNetworkId     string `tfschema:"virtual_network_id"`
-	IPAddress            string `tfschema:"ip_address"`
+	Name                 string                      `tfschema:"name"`
+	BackendAddressPoolId string                      `tfschema:"backend_address_pool_id"`
+	VirtualNetworkId     string                      `tfschema:"virtual_network_id"`
+	IPAddress            string                      `tfschema:"ip_address"`
+	PortMapping          []inboundNATRulePortMapping `tfschema:"inbound_nat_rule_port_mapping"`
+}
+
+type inboundNATRulePortMapping struct {
+	Name         string `tfschema:"inbound_nat_rule_name"`
+	FrontendPort int32  `tfschema:"frontendPort"`
+	BackendPort  int32  `tfschema:"backendPort"`
+}
+
+func portMapping() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"inbound_nat_rule_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"frontend_port": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"backend_port": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
 }
 
 func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Schema {
@@ -59,7 +89,9 @@ func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Sch
 }
 
 func (r BackendAddressPoolAddressResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"inbound_nat_rule_port_mapping": portMapping(),
+	}
 }
 
 func (r BackendAddressPoolAddressResource) ModelObject() interface{} {
@@ -204,6 +236,25 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			var inboundNATRulePortMappingList []inboundNATRulePortMapping
+			if rules := backendAddress.LoadBalancerBackendAddressPropertiesFormat.InboundNatRulesPortMapping; rules != nil {
+				for _, rule := range *rules {
+					rulePortMapping := inboundNATRulePortMapping{}
+
+					if rule.InboundNatRuleName != nil {
+						rulePortMapping.Name = *rule.InboundNatRuleName
+					}
+					if rule.FrontendPort != nil {
+						rulePortMapping.FrontendPort = *rule.FrontendPort
+					}
+
+					if rule.BackendPort != nil {
+						rulePortMapping.BackendPort = *rule.BackendPort
+					}
+					inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
+				}
+				model.PortMapping = inboundNATRulePortMappingList
+			}
 			return metadata.Encode(&model)
 		},
 		Timeout: 5 * time.Minute,

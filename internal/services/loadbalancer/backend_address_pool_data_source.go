@@ -53,6 +53,27 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"inbound_nat_rule_port_mapping": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"inbound_nat_rule_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"frontend_port": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+									"backend_port": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -79,6 +100,14 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 			},
 
 			"outbound_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"inbound_nat_rules": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -155,6 +184,19 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, 
 		if err := d.Set("outbound_rules", outboundRules); err != nil {
 			return fmt.Errorf("setting `outbound_rules`: %v", err)
 		}
+
+		var inboundNATRules []string
+		if rules := props.InboundNatRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.ID == nil {
+					continue
+				}
+				inboundNATRules = append(inboundNATRules, *rule.ID)
+			}
+		}
+		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
+			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
+		}
 	}
 
 	return nil
@@ -177,6 +219,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackend
 			ipAddress string
 			vnetId    string
 		)
+		var inboundNATRulePortMappingList []interface{}
 		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
 			if prop.IPAddress != nil {
 				ipAddress = *prop.IPAddress
@@ -184,12 +227,31 @@ func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackend
 			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
 				vnetId = *prop.VirtualNetwork.ID
 			}
+			if prop.InboundNatRulesPortMapping != nil {
+				rules := prop.InboundNatRulesPortMapping
+				for _, rule := range *rules {
+					rulePortMapping := make(map[string]interface{})
+
+					if rule.InboundNatRuleName != nil {
+						rulePortMapping["inbound_nat_rule_name"] = *rule.InboundNatRuleName
+					}
+					if rule.FrontendPort != nil {
+						rulePortMapping["frontendPort"] = *rule.FrontendPort
+					}
+
+					if rule.BackendPort != nil {
+						rulePortMapping["backendPort"] = *rule.BackendPort
+					}
+					inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
+				}
+			}
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"virtual_network_id": vnetId,
-			"ip_address":         ipAddress,
+			"name":                          name,
+			"virtual_network_id":            vnetId,
+			"ip_address":                    ipAddress,
+			"inbound_nat_rule_port_mapping": inboundNATRulePortMappingList,
 		}
 		output = append(output, v)
 	}
