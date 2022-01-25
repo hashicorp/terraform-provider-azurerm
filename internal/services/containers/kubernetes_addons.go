@@ -1422,5 +1422,3 @@ func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string)
 
 	return nil
 }
-
-
