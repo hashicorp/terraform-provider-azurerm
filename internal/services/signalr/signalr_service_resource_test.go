@@ -393,13 +393,13 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	})
 }
 
-func TestAccSignalRService_complete(t *testing.T) {
+func TestAccSignalRService_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.withTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -685,7 +685,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SignalRServiceResource) complete(data acceptance.TestData) string {
+func (r SignalRServiceResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
