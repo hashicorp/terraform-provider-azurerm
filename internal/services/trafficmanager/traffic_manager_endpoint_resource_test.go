@@ -307,7 +307,7 @@ func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clie
 }
 
 func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := endpoints.ParseEndpointTypeID(state.ID)
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
