@@ -1,6 +1,7 @@
 package schemaz
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -176,9 +177,9 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 	return &outputs, nil
 }
 
-func FlattenApiManagementOperationRepresentation(input *[]apimanagement.RepresentationContract) []interface{} {
+func FlattenApiManagementOperationRepresentation(input *[]apimanagement.RepresentationContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -193,8 +194,12 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 		output["form_parameter"] = FlattenApiManagementOperationParameterContract(v.FormParameters)
 
 		if v.Examples != nil {
-			output["example"] = FlattenApiManagementOperationParameterExampleContract(v.Examples)
+			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
+			if err != nil {
+				return []interface{}{}, err
+			}
 
+			output["example"] = example
 			// TODO 3.0 - Remove setting of property
 			if v.Examples["default"] != nil && v.Examples["default"].Value != nil {
 				output["sample"] = v.Examples["default"].Value.(string)
@@ -212,7 +217,7 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
@@ -352,8 +357,9 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
 
 				"external_value": {
@@ -389,7 +395,14 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 		}
 
 		if vs["value"] != nil {
-			outputs[name].Value = utils.String(vs["value"].(string))
+			valueStr := vs["value"].(string)
+			valueMap := make(map[string]interface{})
+			err := json.Unmarshal([]byte(valueStr), &valueMap)
+			if err != nil {
+				outputs[name].Value = utils.String(valueStr)
+			} else {
+				outputs[name].Value = valueMap
+			}
 		}
 
 		if vs["external_value"] != nil {
@@ -400,9 +413,9 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 	return outputs
 }
 
-func FlattenApiManagementOperationParameterExampleContract(input map[string]*apimanagement.ParameterExampleContract) []interface{} {
+func FlattenApiManagementOperationParameterExampleContract(input map[string]*apimanagement.ParameterExampleContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -419,8 +432,18 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 			output["description"] = *v.Description
 		}
 
-		if v.Value != nil {
-			output["value"] = v.Value.(string)
+		value := v.Value
+		if value != nil {
+			switch value.(type) {
+			case map[string]interface{}:
+				valueBytes, err := json.Marshal(value)
+				if err != nil {
+					return []interface{}{}, fmt.Errorf("unable to serialize `request.representation.example.value` %+v", err)
+				}
+				output["value"] = string(valueBytes)
+			case string:
+				output["value"] = value.(string)
+			}
 		}
 
 		if v.ExternalValue != nil {
@@ -430,7 +453,7 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 // CopyCertificateAndPassword copies any certificate and password attributes
