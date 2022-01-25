@@ -135,7 +135,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
-			// Required
 			//lintignore:S016,S023
 			"backend_address_pool": {
 				Type: func() pluginsdk.ValueType {
