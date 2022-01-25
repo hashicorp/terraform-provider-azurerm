@@ -9,14 +9,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,9 +49,9 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"tier": {
 				Type:             pluginsdk.TypeString,
@@ -122,7 +121,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentity(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -172,7 +171,7 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
 		Location: location,
-		Tags:     tagsHelper.Expand(t),
+		Tags:     tags.Expand(t),
 		Identity: identity,
 		Properties: &accounts.CreateDataLakeStoreAccountProperties{
 			NewTier:               &tier,
@@ -215,7 +214,7 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 			FirewallState:         &firewallState,
 			FirewallAllowAzureIps: &firewallAllowAzureIPs,
 		},
-		Tags: tagsHelper.Expand(t),
+		Tags: tags.Expand(t),
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
@@ -290,7 +289,7 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("endpoint", properties.Endpoint)
 		}
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }

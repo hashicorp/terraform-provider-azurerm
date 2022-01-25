@@ -110,7 +110,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// Key Vault Endpoints
-	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(ctx, sender, oauthConfig)
+	keyVaultAuth := builder.AuthConfig.ADALBearerAuthorizerCallback(ctx, sender, oauthConfig)
 
 	// Batch Management Endpoints
 	batchManagementAuth, err := builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.BatchManagementEndpoint)

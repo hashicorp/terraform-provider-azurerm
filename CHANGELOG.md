@@ -6,10 +6,21 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v61.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15080]
+* dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
+
 BUG FIXES:
 
-* `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
+* `azurerm_bastion_host` - Fix crash by adding nil check for `copy_paste_enabled` [GH-15074]
 * `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
+* `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
+* `azurerm_template_deployment` - fixing a bug during deletion of the template deployment [GH-15085]
+
+## 2.93.1 (January 24, 2022)
+
+BUG FIXES:
+
+* `azurerm_app_service` - fix name availability check request [GH-15062]
 
 ## 2.93.0 (January 21, 2022)
 
