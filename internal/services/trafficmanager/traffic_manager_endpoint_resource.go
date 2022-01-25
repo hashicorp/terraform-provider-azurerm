@@ -236,7 +236,7 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func resourceArmTrafficManagerEndpointDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
