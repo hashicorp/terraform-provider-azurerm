@@ -320,7 +320,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func getCosmosDbResIdInPrivateServiceConnections(p *network.PrivateEndpointProperties) []string {
 	var ids []string
-	exists := make(map[string]struct{}, 0)
+	exists := make(map[string]struct{})
 
 	for _, l := range *p.PrivateLinkServiceConnections {
 		id := *l.PrivateLinkServiceID
