@@ -68,6 +68,8 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 
 			"site_config": schemaAppServiceSiteConfig(),
 
+			"storage_account": schemaAppServiceStorageAccounts(),
+
 			"auth_settings": schemaAppServiceAuthSettings(),
 
 			"key_vault_reference_identity_id": {
@@ -346,6 +348,18 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("storage_account") {
+		storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
+		storageAccounts := expandAppServiceStorageAccounts(storageAccountsRaw)
+		properties := web.AzureStoragePropertyDictionaryResource{
+			Properties: storageAccounts,
+		}
+
+		if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, properties, id.SlotName); err != nil {
+			return fmt.Errorf("updating Storage Accounts for App Service Slot %q/%q: %+v", id.SiteName, id.SlotName, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandAppServiceConnectionStrings(d)
@@ -427,6 +441,11 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("reading App Settings for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
+	storageAccountsResp, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	if err != nil {
+		return fmt.Errorf("listing Storage Accounts for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+	}
+
 	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("listing Connection Strings for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
@@ -474,6 +493,10 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if err := d.Set("app_settings", appSettings); err != nil {
 		return fmt.Errorf("setting `app_settings`: %s", err)
+	}
+
+	if err := d.Set("storage_account", flattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
+		return fmt.Errorf("setting `storage_account`: %s", err)
 	}
 
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
