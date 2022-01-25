@@ -645,11 +645,14 @@ func flattenSingleFrontDooRulesEngineRuleAction(input frontdoors.RulesEngineActi
 	redirectConfiguration = flattenRoutingRuleRedirectConfiguration(input.RouteConfigurationOverride)
 
 	output := make([]interface{}, 0)
+	overrides := make([]interface{}, 0)
+	override := map[string]interface{}{
+		"forwarding_configuration": forwardingConfiguration,
+		"redirect_configuration":   redirectConfiguration,
+	}
+	overrides = append(overrides, override)
 	block := map[string]interface{}{
-		"routing_rule_override": map[string]interface{}{
-			"forwarding_configuration": forwardingConfiguration,
-			"redirect_configuration":   redirectConfiguration,
-		},
+		"routing_rule_override": overrides,
 	}
 	output = append(output, block)
 	return output, nil
