@@ -136,8 +136,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			// Required
+			//lintignore:S016
 			"backend_address_pool": {
-				//lintignore:S016
 				Type: func() pluginsdk.ValueType {
 					if features.ThreePointOh() {
 						return pluginsdk.TypeSet
