@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v61.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15080]
 * dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
+* dependencies: updating `kusto` to API Version `2021-08-27` [GH-15040]
 * `azurerm_app_service_slot`- Add `storage_account` block support [GH-15084]
 
 BUG FIXES:
