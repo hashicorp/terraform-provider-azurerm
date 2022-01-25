@@ -361,11 +361,13 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 		properties.BackendAddressPool = &network.SubResource{
 			ID: utils.String(d.Get("backend_address_pool_id").(string)),
 		}
-	} else if frontendPort && !backendAddressPoolSet {
-		properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
 	} else {
-		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
-		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+		if frontendPort {
+			properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
+		} else {
+			properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
+			properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+		}
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {
