@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,7 +20,7 @@ import (
 
 type DisksPoolIscsiTargetResource struct{}
 
-var _ sdk.ResourceWithUpdate = DisksPoolIscsiTargetResource{}
+var _ sdk.Resource = DisksPoolIscsiTargetResource{}
 
 type DiskPoolIscsiTargetModel struct {
 	ACLMode     string   `tfschema:"acl_mode"`
@@ -46,6 +45,7 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 				),
 			),
 		},
+
 		"acl_mode": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -55,39 +55,14 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 				false,
 			),
 		},
+
 		"disks_pool_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: iscsitargets.ValidateDiskPoolID,
 		},
-		"lun": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.All(
-							validation.StringMatch(
-								regexp.MustCompile(`^[\dA-Za-z-_.]+[\dA-Za-z]$`),
-								"supported characters include [0-9A-Za-z-_.]; name should end with an alphanumeric character"),
-							validation.StringLenBetween(1, 90),
-						),
-					},
-					"managed_disk_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: computeValidate.ManagedDiskID,
-					},
-					"number": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-				},
-			},
-		},
+
 		"target_iqn": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -130,6 +105,7 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			poolId, err := iscsitargets.ParseDiskPoolID(m.DisksPoolId)
 			if err != nil {
 				return err
@@ -137,6 +113,7 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 			if poolId.SubscriptionId != metadata.Client.Account.SubscriptionId {
 				return fmt.Errorf("Disk Pool subscription id %q is different from provider's subscription", poolId.SubscriptionId)
 			}
+
 			id := iscsitargets.NewIscsiTargetID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.DiskPoolName, m.Name)
 			client := metadata.Client.Disks.DisksPoolIscsiTargetClient
 			locks.ByID(poolId.ID())
@@ -233,41 +210,6 @@ func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 
 func (d DisksPoolIscsiTargetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return iscsitargets.ValidateIscsiTargetID
-}
-
-func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r := metadata.ResourceData
-			id, err := iscsitargets.ParseIscsiTargetID(r.Id())
-			if err != nil {
-				return err
-			}
-
-			locks.ByID(id.ID())
-			defer locks.UnlockByID(id.ID())
-
-			client := metadata.Client.Disks.DisksPoolIscsiTargetClient
-			m := DiskPoolIscsiTargetModel{}
-			err = metadata.Decode(&m)
-			if err != nil {
-				return err
-			}
-
-			patch := iscsitargets.IscsiTargetUpdate{
-				Properties: iscsitargets.IscsiTargetUpdateProperties{},
-			}
-
-			future, err := client.Update(ctx, *id, patch)
-			if err != nil {
-				return fmt.Errorf("updating DiskPool iscsi taraget %q : %+v", id.ID(), err)
-			}
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
-				return d.retryError("waiting for update of DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone())
-			})
-		},
-	}
 }
 
 func (DisksPoolIscsiTargetResource) retryError(action string, id string, err error) *resource.RetryError {

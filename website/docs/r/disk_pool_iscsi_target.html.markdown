@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the iSCSI Target. The name can only contain lowercase letters, numbers, periods, or hyphens, and length should between [5-223]. Changing this forces a new iSCSI Target to be created.
 
-* `target_iqn` - (Optional) ISCSI Target IQN (iSCSI Qualified Name); example: "iqn.2005-03.org.iscsi:server". IQN should follow the format `iqn.yyyy-mm.<abc>.<pqr>[:xyz]`; supported characters include [0-9a-z-.:], and the length should between [4-223]. Changing this forces a new iSCSI Target to be created.
+* `target_iqn` - (Optional) ISCSI Target IQN (iSCSI Qualified Name); example: `iqn.2005-03.org.iscsi:server`. IQN should follow the format `iqn.yyyy-mm.<abc>.<pqr>[:xyz]`; supported characters include alphanumeric characters in lower case, hyphen, dot and colon, and the length should between `4` and `223`. Changing this forces a new iSCSI Target to be created.
 
 ## Attributes Reference
 
