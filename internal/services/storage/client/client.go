@@ -17,11 +17,11 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables"
 )
 
 type Client struct {
@@ -256,7 +256,11 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 }
 
 func (client Client) TableEntityClient(ctx context.Context, account accountDetails) (*entities.Client, error) {
-	// NOTE: Table Entity does not support AzureAD Authentication
+	if client.storageAdAuth != nil {
+		entitiesClient := entities.NewWithEnvironment(client.Environment)
+		entitiesClient.Client.Authorizer = *client.storageAdAuth
+		return &entitiesClient, nil
+	}
 
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
@@ -274,7 +278,12 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
-	// NOTE: Tables do not support AzureAD Authentication
+	if client.storageAdAuth != nil {
+		tablesClient := tables.NewWithEnvironment(client.Environment)
+		tablesClient.Client.Authorizer = *client.storageAdAuth
+		shim := shim.NewDataPlaneStorageTableWrapper(&tablesClient)
+		return shim, nil
+	}
 
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
