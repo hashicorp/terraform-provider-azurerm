@@ -76,6 +76,8 @@ The following attributes are exported:
 
 * `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.
 
+* `inbound_nat_rules` - An array of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool.
+
 * `outbound_rules` - An array of the Load Balancing Outbound Rules associated with this Backend Address Pool.
 
 ## Timeouts

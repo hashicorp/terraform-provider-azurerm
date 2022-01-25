@@ -75,9 +75,10 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 
 			"frontend_port": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validate.PortNumber,
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumber,
+				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
 			},
 
 			"backend_port": {
@@ -104,21 +105,27 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 
 			"backend_address_pool_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"frontend_port"},
+				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
 			},
 
 			"frontend_port_start": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validate.PortNumber,
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumber,
+				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_end"},
+				ConflictsWith: []string{"frontend_port"},
 			},
 
 			"frontend_port_end": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validate.PortNumber,
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumber,
+				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_start"},
+				ConflictsWith: []string{"frontend_port"},
 			},
 
 			"idle_timeout_in_minutes": {
@@ -261,11 +268,22 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
+		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
+			d.Set("backend_address_pool_id", *props.BackendAddressPool.ID)
+		}
+
 		frontendPort := 0
 		if props.FrontendPort != nil {
 			frontendPort = int(*props.FrontendPort)
+			d.Set("frontend_port", frontendPort)
 		}
-		d.Set("frontend_port", frontendPort)
+
+		if props.FrontendPortRangeStart != nil {
+			d.Set("frontend_port_start", int(*props.FrontendPortRangeStart))
+		}
+		if props.FrontendPortRangeEnd != nil {
+			d.Set("frontend_port_end", int(*props.FrontendPortRangeEnd))
+		}
 
 		idleTimeoutInMinutes := 0
 		if props.IdleTimeoutInMinutes != nil {
@@ -329,41 +347,25 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
 	}
 
-	backendAddressPoolSet, frontendPort, frontendPortStart, frontendPortEnd := false, false, false, false
-	if _, ok := d.GetOk("frontend_port_start"); ok {
-		frontendPortStart = true
-	}
-
-	if _, ok := d.GetOk("frontend_port_end"); ok {
-		frontendPortEnd = true
-	}
-
+	backendAddressPoolSet, frontendPort := false, false
 	if _, ok := d.GetOk("frontend_port"); ok {
 		frontendPort = true
 	}
-
 	if _, ok := d.GetOk("backend_address_pool_id"); ok {
 		backendAddressPoolSet = true
 	}
 
 	if backendAddressPoolSet {
-		if !frontendPort && frontendPortStart && frontendPortEnd {
-			properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
-			properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
-			properties.BackendAddressPool = &network.SubResource{
-				ID: utils.String(d.Get("backend_address_pool_id").(string)),
-			}
-		} else {
-			return nil, fmt.Errorf("[ERROR]Property `frontend_port_start` and `frontend_port_end` must be specified if backend address pool is specified and cannot be set together with `frontend_port`")
-		}
-	}
-	if !backendAddressPoolSet && frontendPort && !(frontendPortStart || frontendPortEnd) {
-		properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
-	} else if !backendAddressPoolSet && !frontendPort && frontendPortStart && frontendPortEnd {
 		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
 		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+		properties.BackendAddressPool = &network.SubResource{
+			ID: utils.String(d.Get("backend_address_pool_id").(string)),
+		}
+	} else if frontendPort && !backendAddressPoolSet {
+		properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
 	} else {
-		return nil, fmt.Errorf("[ERROR]Property `frontend_port_start` and `frontend_port_end` and `frontendPort` cannot be set at the same time")
+		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
+		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {

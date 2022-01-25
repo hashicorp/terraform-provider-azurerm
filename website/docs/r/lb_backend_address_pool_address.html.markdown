@@ -58,6 +58,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Backend Address Pool Address.
 
+* `inbound_nat_rule_port_mapping` - A list of `inbound_nat_rule_port_mapping` block as defined below.
+
+---
+
+A `inbound_nat_rule_port_mapping` block exports the following:
+
+* `inbound_nat_rule_name` - The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+
+* `frontend_port` - The Frontend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+
+* `backend_port` - The Backend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

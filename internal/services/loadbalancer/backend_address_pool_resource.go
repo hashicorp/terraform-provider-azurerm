@@ -166,7 +166,6 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 								Required:     true,
 								ValidateFunc: validation.IsIPAddress,
 							},
-
 						},
 					},
 				}

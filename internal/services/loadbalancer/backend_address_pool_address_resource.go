@@ -31,8 +31,8 @@ type BackendAddressPoolAddressModel struct {
 
 type inboundNATRulePortMapping struct {
 	Name         string `tfschema:"inbound_nat_rule_name"`
-	FrontendPort int32  `tfschema:"frontendPort"`
-	BackendPort  int32  `tfschema:"backendPort"`
+	FrontendPort int32  `tfschema:"frontend_port"`
+	BackendPort  int32  `tfschema:"backend_port"`
 }
 
 func portMapping() *pluginsdk.Schema {
