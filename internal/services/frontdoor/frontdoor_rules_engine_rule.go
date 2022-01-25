@@ -570,15 +570,12 @@ func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{
 			explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 
 			var flattenedRoutingRules *[]interface{}
-			// Force the returned flattenedRoutingRules into the order defined in the explicit_resource_order mapping table
 
 			flattenedRoutingRules, err = flattenFrontDoorRulesEngineRule(props.Rules, d.Get("routing_rule_override"), *id, explicitResourceOrder)
 			if err != nil {
 				return fmt.Errorf("flattening `routing_rule_override`: %+v", err)
 			}
-			if err := d.Set("routing_rule_override", flattenedRoutingRules); err != nil {
-				return fmt.Errorf("setting `routing_rule_override`: %+v", err)
-			}
+			d.Set("rule", flattenedRoutingRules)
 		}
 	}
 
@@ -616,34 +613,48 @@ func flattenFrontDoorRulesEngineRule(input *[]frontdoors.RulesEngineRule, oldBlo
 
 func flattenSingleFrontDoorRulesEngineRule(input frontdoors.RulesEngineRule, oldBlocks interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId) (map[string]interface{}, error) {
 
-	id := ""
 	name := ""
 	if input.Name != "" {
 		// rewrite the ID to ensure it's consistent
-		id = parse.NewRulesEngineID(frontDoorRulesEngineId.SubscriptionId, frontDoorRulesEngineId.ResourceGroupName, frontDoorRulesEngineId.FrontDoorName, input.Name).ID()
 		name = input.Name
 	}
 
+	action, err := flattenSingleFrontDooRulesEngineRuleAction(input.Action, oldBlocks)
+	if err != nil {
+		return nil, fmt.Errorf("flattening `action`: %+v", err)
+	}
+
+	output := map[string]interface{}{
+		"name":     name,
+		"priority": input.Priority,
+		"action":   action,
+	}
+
+	return output, nil
+}
+
+func flattenSingleFrontDooRulesEngineRuleAction(input frontdoors.RulesEngineAction, oldBlocks interface{}) ([]interface{}, error) {
 	forwardingConfiguration := make([]interface{}, 0)
 	redirectConfiguration := make([]interface{}, 0)
 
-	forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(input.Action.RouteConfigurationOverride, oldBlocks)
+	forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(input.RouteConfigurationOverride, oldBlocks)
 	if err != nil {
 		return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
 	}
 	forwardingConfiguration = *forwardConfiguration
-	redirectConfiguration = flattenRoutingRuleRedirectConfiguration(input.Action.RouteConfigurationOverride)
+	redirectConfiguration = flattenRoutingRuleRedirectConfiguration(input.RouteConfigurationOverride)
 
-	output := map[string]interface{}{
-		"name":           name,
-		"priority":       input.Priority,
-		"engine_rule_id": id,
-		"routing_rule_override": map[string]interface{}{
-			"forwarding_configuration": forwardingConfiguration,
-			"redirect_configuration":   redirectConfiguration,
-		},
+	output := make([]interface{}, 0)
+	overrides := make([]interface{}, 0)
+	override := map[string]interface{}{
+		"forwarding_configuration": forwardingConfiguration,
+		"redirect_configuration":   redirectConfiguration,
 	}
-
+	overrides = append(overrides, override)
+	block := map[string]interface{}{
+		"routing_rule_override": overrides,
+	}
+	output = append(output, block)
 	return output, nil
 }
 
@@ -655,7 +666,7 @@ func combineRulesEngineRule(allRulesEngineRule []frontdoors.RulesEngineRule, old
 	for _, v := range orderedIds {
 		for _, ruleEngineRule := range allRulesEngineRule {
 
-			//TO LOWER Each in
+			// TO LOWER Each in
 
 			if strings.Contains(strings.ToLower(v.(string)), strings.ToLower(*&ruleEngineRule.Name)) {
 				orderedRoutingRule, err := flattenSingleFrontDoorRulesEngineRule(ruleEngineRule, oldBlocks, frontDoorRulesEngineId)
