@@ -354,7 +354,7 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 					Type:       pluginsdk.TypeList,
 					MaxItems:   1,
 					Optional:   true,
-					Deprecated: "`http_application_routing_enabled` has been deprecated in favour of `http_application_routing_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
+					Deprecated: "`http_application_routing` has been deprecated in favour of `http_application_routing_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
@@ -473,7 +473,7 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 					Type:       pluginsdk.TypeList,
 					MaxItems:   1,
 					Optional:   true,
-					Deprecated: "`open_service_mesh_enabled` has been deprecated in favour of `open_service_mesh_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
+					Deprecated: "`open_service_mesh` has been deprecated in favour of `open_service_mesh_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
