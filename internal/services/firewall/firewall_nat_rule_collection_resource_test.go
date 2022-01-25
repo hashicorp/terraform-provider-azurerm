@@ -578,7 +578,6 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "1.1.1.1",
       azurerm_public_ip.test.ip_address,
     ]
 
@@ -605,7 +604,6 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "1.1.1.1",
       azurerm_public_ip.test.ip_address,
     ]
 
