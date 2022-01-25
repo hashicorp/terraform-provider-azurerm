@@ -199,6 +199,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 							},
 						},
 
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(0, 12),
+						},
+
 						"zones": azure.SchemaZones(),
 
 						"gateway_regional_url": {
@@ -1289,6 +1296,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		config := v.(map[string]interface{})
 		location := azure.NormalizeLocation(config["location"].(string))
 
+		if config["capacity"].(int) > 0 {
+			sku.Capacity = utils.Int32(int32(config["capacity"].(int)))
+		}
+
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
 			Sku:      sku,
@@ -1347,6 +1358,10 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 
 		if prop.PrivateIPAddresses != nil {
 			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+		}
+
+		if prop.Sku.Capacity != nil {
+			output["capacity"] = *prop.Sku.Capacity
 		}
 
 		if prop.Zones != nil {
