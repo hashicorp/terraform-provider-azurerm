@@ -27,7 +27,7 @@ func (ApiManagementApiPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		client := meta.(*clients.Client).ApiManagement.PolicyClient
 		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.PolicyExportFormatXML)
 		if err != nil {
-			return nil, fmt.Errorf("making Read request for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", id.ResourceGroup, id.ServiceName, id.Name, err)
+			return nil, fmt.Errorf("making Read request for API Management Policy (Resource Group %q / API Management Service %q / API %q): %+v", id.ResourceGroup, id.ServiceName, id.Name, err)
 		}
 
 		if properties := resp.PolicyContractProperties; properties != nil {
