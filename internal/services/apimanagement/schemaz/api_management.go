@@ -432,17 +432,16 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 			output["description"] = *v.Description
 		}
 
-		value := v.Value
-		if value != nil {
-			switch value.(type) {
+		if v.Value != nil {
+			switch v := v.Value.(type) {
 			case map[string]interface{}:
-				valueBytes, err := json.Marshal(value)
+				valueBytes, err := json.Marshal(v)
 				if err != nil {
 					return []interface{}{}, fmt.Errorf("unable to serialize `request.representation.example.value` %+v", err)
 				}
 				output["value"] = string(valueBytes)
 			case string:
-				output["value"] = value.(string)
+				output["value"] = v
 			}
 		}
 
