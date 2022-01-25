@@ -887,7 +887,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
-func expandKubernetesAddOn(d *pluginsdk.ResourceData, input map[string]interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 	disabled := containerservice.ManagedClusterAddonProfile{
 		Enabled: utils.Bool(false),
 	}
@@ -989,10 +989,7 @@ func expandKubernetesAddOn(d *pluginsdk.ResourceData, input map[string]interface
 		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
 		config := make(map[string]*string)
 
-		enableSecretRotation := "false"
-		if value["secret_rotation_enabled"].(bool) {
-			enableSecretRotation = "true"
-		}
+		enableSecretRotation := fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
 		config["enableSecretRotation"] = utils.String(enableSecretRotation)
 		config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
 
@@ -1222,7 +1219,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 }
 
-func flattenKubernetesAddOn(profile map[string]*containerservice.ManagedClusterAddonProfile) map[string]interface{} {
+func flattenKubernetesAddOns(profile map[string]*containerservice.ManagedClusterAddonProfile) map[string]interface{} {
 	aciConnectors := make([]interface{}, 0)
 	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
 		if enabled := aciConnector.Enabled; enabled != nil && *enabled {
@@ -1389,6 +1386,18 @@ func flattenKubernetesClusterAddOnIdentityProfile(profile *containerservice.Mana
 	return identity
 }
 
+func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
+	return map[string]interface{}{
+		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
+		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
+		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
+		"oms_agent":                        d.Get("oms_agent").([]interface{}),
+		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
+		"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
+		"azure_keyvault_secrets_provider":  d.Get("azure_keyvault_secrets_provider").([]interface{}),
+	}
+}
+
 // when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
 // meaning what's submitted could be different to what's returned..
 func kubernetesAddonProfileLocate(profile map[string]*containerservice.ManagedClusterAddonProfile, key string) *containerservice.ManagedClusterAddonProfile {
@@ -1413,3 +1422,5 @@ func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string)
 
 	return nil
 }
+
+

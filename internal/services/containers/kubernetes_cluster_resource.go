@@ -1005,7 +1005,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 	if features.ThreePointOh() {
 		schemaKubernetesAddOns(resource)
-		// Overwrite old schema with version containing the deprecation messages
+		// Overwrite old schema with version containing the deprecation messages for beta,
+		// TODO 3.0 - Remove this
 		resource.Schema["addon_profile"] = schemaKubernetesAddOnProfilesDeprecated()
 	}
 
@@ -1133,7 +1134,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
-	// TODO clean this up
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
 	addonProfiles, err = expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
@@ -1142,16 +1142,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if features.ThreePointOh() {
-		addOns := map[string]interface{}{
-			"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
-			"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
-			"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
-			"oms_agent":                        d.Get("oms_agent").([]interface{}),
-			"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
-			"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
-			"azure_keyvault_secrets_provider":  d.Get("azure_keyvault_secrets_provider").([]interface{}),
-		}
-		addonProfiles, err = expandKubernetesAddOn(d, addOns, env)
+		addOns := collectKubernetesAddons(d)
+		addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
 		if err != nil {
 			return err
 		}
@@ -1449,16 +1441,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if features.ThreePointOh() {
 		if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("azure_keyvault_secrets_provider") {
 			updateCluster = true
-			addOns := map[string]interface{}{
-				"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
-				"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
-				"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
-				"oms_agent":                        d.Get("oms_agent").([]interface{}),
-				"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
-				"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
-				"azure_keyvault_secrets_provider":  d.Get("azure_keyvault_secrets_provider").([]interface{}),
-			}
-			addonProfiles, err := expandKubernetesAddOn(d, addOns, env)
+			addOns := collectKubernetesAddons(d)
+			addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
 			if err != nil {
 				return err
 			}
@@ -1850,7 +1834,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if features.ThreePointOh() {
-			addOns := flattenKubernetesAddOn(props.AddonProfiles)
+			addOns := flattenKubernetesAddOns(props.AddonProfiles)
 			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
 			d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
 			d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))

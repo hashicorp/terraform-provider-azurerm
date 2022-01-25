@@ -73,7 +73,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	})
 }
 
-// TODO 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
+// TODO 3.0 - Remove this test since Kube Dashboard isn't supported with Kubernetes versions >= 1.19
 func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
