@@ -49,7 +49,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 
-* `partition_count` - (Required) Specifies the current number of shards on the Event Hub. Changing this forces a new resource to be created.
+* `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
+
+~> **Note:** `partition_count` cannot be changed unless Eventhub Namespace sku is `Premium`.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 

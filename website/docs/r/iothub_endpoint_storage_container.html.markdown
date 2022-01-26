@@ -82,7 +82,7 @@ The following arguments are supported:
 
 -> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
 
-* `endpoint_uri` - (Optional) URI of the Storage Container endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+* `endpoint_uri` - (Optional) URI of the Storage Container endpoint. This corresponds to the `primary_blob_endpoint` of the parent storage account. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
 
 * `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
