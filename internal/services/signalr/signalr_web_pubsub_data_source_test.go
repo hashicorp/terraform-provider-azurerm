@@ -1,4 +1,4 @@
-package webpubsub_test
+package signalr_test
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type WebPubsubDataSource struct{}
+type SignalrWebPubsubDataSource struct{}
 
-func TestAccDataSourceWebPubsub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_web_pubsub", "test")
-	r := WebPubsubDataSource{}
+func TestAccDataSourceSignalrWebPubsub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_signalr_web_pubsub", "test")
+	r := SignalrWebPubsubDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccDataSourceWebPubsub_basic(t *testing.T) {
 	})
 }
 
-func (r WebPubsubDataSource) basic(data acceptance.TestData) string {
+func (r SignalrWebPubsubDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -48,7 +48,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_web_pubsub" "test" {
+resource "azurerm_signalr_web_pubsub" "test" {
   name                = "acctestWebPubsub-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -68,8 +68,8 @@ resource "azurerm_web_pubsub" "test" {
 
 }
 
-data "azurerm_web_pubsub" "test" {
-  name                = azurerm_web_pubsub.test.name
+data "azurerm_signalr_web_pubsub" "test" {
+  name                = azurerm_signalr_web_pubsub.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)

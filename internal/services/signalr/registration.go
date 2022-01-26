@@ -21,7 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_signalr_service": dataSourceArmSignalRService(),
+		"azurerm_signalr_service":    dataSourceArmSignalRService(),
+		"azurerm_signalr_web_pubsub": dataSourceSignalrWebPubsub(),
 	}
 }
 
@@ -30,5 +31,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_signalr_service":             resourceArmSignalRService(),
 		"azurerm_signalr_service_network_acl": resourceArmSignalRServiceNetworkACL(),
+		"azurerm_signalr_web_pubsub":          resourceSignalrWebPubSub(),
+		"azurerm_signalr_web_pubsub_hub":      resourceSignalrWebPubsubHub(),
 	}
 }

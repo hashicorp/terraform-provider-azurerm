@@ -1,19 +1,30 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 )
 
 type Client struct {
-	Client *signalr.SignalRClient
+	SignalRClient       *signalr.SignalRClient
+	WebPubsubClient     *webpubsub.Client
+	WebPubsubHubsClient *webpubsub.HubsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	client := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
+	signalRClient := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&signalRClient.Client, o.ResourceManagerAuthorizer)
+
+	webpubsubClient := webpubsub.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webpubsubClient.Client, o.ResourceManagerAuthorizer)
+
+	webpubsubHubsClient := webpubsub.NewHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webpubsubHubsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		Client: &client,
+		SignalRClient:       &signalRClient,
+		WebPubsubClient:     &webpubsubClient,
+		WebPubsubHubsClient: &webpubsubHubsClient,
 	}
 }

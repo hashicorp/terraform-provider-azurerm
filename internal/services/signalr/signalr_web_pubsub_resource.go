@@ -1,4 +1,4 @@
-package webpubsub
+package signalr
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceWebPubSub() *pluginsdk.Resource {
+func resourceSignalrWebPubSub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubSubCreateUpdate,
-		Read:   resourceWebPubSubRead,
-		Update: resourceWebPubSubCreateUpdate,
-		Delete: resourceWebPubSubDelete,
+		Create: resourceSignalrWebPubSubCreateUpdate,
+		Read:   resourceSignalrWebPubSubRead,
+		Update: resourceSignalrWebPubSubCreateUpdate,
+		Delete: resourceSignalrWebPubSubDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -179,8 +179,8 @@ func resourceWebPubSub() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+func resourceSignalrWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
+			return tf.ImportAsExistsError("azurerm_signalr_web_pubsub", id.ID())
 		}
 	}
 
@@ -236,11 +236,11 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
-	return resourceWebPubSubRead(d, meta)
+	return resourceSignalrWebPubSubRead(d, meta)
 }
 
-func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+func resourceSignalrWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,8 +309,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+func resourceSignalrWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
