@@ -902,14 +902,10 @@ func (r LinuxWebAppSlotResource) requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_linux_web_app_slot" "import" {
-  name                = azurerm_linux_web_app_slot.test.name
-  app_service_name    = azurerm_linux_web_app_slot.test.app_service_name
-  location            = azurerm_linux_web_app_slot.test.location
-  resource_group_name = azurerm_linux_web_app_slot.test.resource_group_name
-  service_plan_id     = azurerm_linux_web_app_slot.test.service_plan_id
+  name           = azurerm_linux_web_app_slot.test.name
+  app_service_id = azurerm_linux_web_app_slot.test.app_service_id
 
   site_config {}
-
 }
 `, r.basic(data))
 }
