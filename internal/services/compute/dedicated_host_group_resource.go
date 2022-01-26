@@ -76,17 +76,17 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 
 func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id := parse.NewHostGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -113,18 +113,11 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 		parameters.DedicatedHostGroupProperties.SupportAutomaticPlacement = utils.Bool(v.(bool))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
-		return fmt.Errorf("creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Dedicated Host Group %q (Resource Group %q) ID", name, resourceGroupName)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDedicatedHostGroupRead(d, meta)
 }

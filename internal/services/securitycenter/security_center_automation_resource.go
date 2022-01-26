@@ -132,8 +132,12 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(security.EventSourceAlerts),
 								string(security.EventSourceAssessments),
+								string(security.EventSourceRegulatoryComplianceAssessment),
+								string(security.EventSourceRegulatoryComplianceAssessmentSnapshot),
 								string(security.EventSourceSecureScoreControls),
+								string(security.EventSourceSecureScoreControlsSnapshot),
 								string(security.EventSourceSecureScores),
+								string(security.EventSourceSecureScoresSnapshot),
 								string(security.EventSourceSubAssessments),
 							}, false),
 						},

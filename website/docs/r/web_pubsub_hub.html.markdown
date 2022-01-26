@@ -37,20 +37,17 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "tfex-wpsh"
   web_pubsub_id = azurerm_web_pubsub.exmaple.id
   event_handler {
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
+  }
 
-    setting {
-      url_template       = "https://test.com/api/{hub}/{event}"
-      user_event_pattern = "*"
-      system_events      = ["connect", "connected"]
-    }
-
-    setting {
-      url_template       = "https://test.com/api/{hub}/{event}"
-      user_event_pattern = "event1, event2"
-      system_events      = ["connected"]
-      auth {
-        managed_identity_id = azurerm_user_assigned_identity.test.id
-      }
+  event_handler {
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "event1, event2"
+    system_events      = ["connected"]
+    auth {
+      managed_identity_id = azurerm_user_assigned_identity.test.id
     }
   }
   anonymous_connections_enabled = true
@@ -71,24 +68,24 @@ The following arguments are supported:
 
 * `event_handler` - (Required) An `event_handler` block as defined below.
 
-* `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`. Possible value are `true`, `false`
+* `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`.
+  Possible value are `true`, `false`.
 
 ---
 
 An `event_handler` block supports the following:
 
-* `setting` - (Required) An `setting` block as defined below.
-
----
-
-* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request comes in. Example: `http://example.com/api/{hub}/{event}`.
+* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are
+  available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request
+  comes in. Example: `http://example.com/api/{hub}/{event}`.
 
 * `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported:
-  - `*` matches any event name
-  - `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
-  - The single event name, for example `event1`, it matches `event1`.
+    - `*` matches any event name
+    - `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
+    - The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected`
+  and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 

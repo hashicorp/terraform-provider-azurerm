@@ -87,18 +87,17 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
+	id := parse.NewLogAnalyticsDataExportID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -116,20 +115,11 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.WorkspaceName)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceOperationalinsightsDataExportRead(d, meta)
 }
 

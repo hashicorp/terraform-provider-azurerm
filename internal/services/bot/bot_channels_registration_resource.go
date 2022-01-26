@@ -169,7 +169,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("checking for presence of existing Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID())
 		}
 	}

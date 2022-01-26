@@ -91,8 +91,8 @@ func resourceSqlManagedInstanceActiveDirectoryAdministratorCreateUpdate(d *plugi
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_managed_instance_active_directory_administrator", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_managed_instance_active_directory_administrator", id.ID())
 		}
 	}
 

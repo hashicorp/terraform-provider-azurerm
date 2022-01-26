@@ -82,13 +82,15 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 
 						"object_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -287,7 +289,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinelearningservices.PersonalComputeInstanceSettings {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})

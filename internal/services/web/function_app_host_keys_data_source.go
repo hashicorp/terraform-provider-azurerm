@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,33 +70,30 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 
 func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	functionSettings, err := client.Get(ctx, resourceGroup, name)
+	functionSettings, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(functionSettings.Response) {
-			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	if functionSettings.ID == nil {
-		return fmt.Errorf("cannot read ID for AzureRM Function App %q (Resource Group %q)", name, resourceGroup)
-	}
-	d.SetId(*functionSettings.ID)
+	d.SetId(id.ID())
 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		res, err := client.ListHostKeys(ctx, resourceGroup, name)
+		res, err := client.ListHostKeys(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
-				return pluginsdk.NonRetryableError(fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup))
+				return pluginsdk.NonRetryableError(fmt.Errorf("%s was not found", id))
 			}
 
-			return pluginsdk.RetryableError(fmt.Errorf("making Read request on AzureRM Function App Hostkeys %q: %+v", name, err))
+			return pluginsdk.RetryableError(fmt.Errorf("making Read request on %s: %+v", id, err))
 		}
 
 		d.Set("master_key", res.MasterKey)

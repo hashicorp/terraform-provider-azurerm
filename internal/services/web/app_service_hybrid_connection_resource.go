@@ -109,24 +109,22 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 
 func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("app_service_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_id").(string)
 	relayId, err := relayParse.HybridConnectionID(relayArmURI)
 	if err != nil {
 		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
-	namespaceName := relayId.NamespaceName
-	relayName := relayId.HybridConnectionName
+	id := parse.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), relayId.NamespaceName, relayId.HybridConnectionName)
 
 	if d.IsNewResource() {
-		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+		existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -147,15 +145,12 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	hybridConnection, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope)
+	_, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, connectionEnvelope)
 	if err != nil {
-		return fmt.Errorf("failed creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("failed creating %s: %s", id, err)
 	}
 
-	if hybridConnection.ID == nil && *hybridConnection.ID == "" {
-		return fmt.Errorf("failed to read ID for Hybrid Connection %q", name)
-	}
-	d.SetId(*hybridConnection.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceHybridConnectionRead(d, meta)
 }

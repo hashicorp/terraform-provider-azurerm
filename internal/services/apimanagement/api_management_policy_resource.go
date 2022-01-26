@@ -109,14 +109,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating or updating Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.PolicyExportFormatXML)
-	if err != nil {
-		return fmt.Errorf("retrieving Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementPolicyRead(d, meta)
 }

@@ -89,20 +89,19 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 
 func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network peering creation.")
 
-	name := d.Get("name").(string)
-	vnetName := d.Get("virtual_network_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, vnetName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Peering %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -112,26 +111,18 @@ func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	peer := network.VirtualNetworkPeering{
-		Name:                                  &name,
+		Name:                                  &id.Name,
 		VirtualNetworkPeeringPropertiesFormat: getVirtualNetworkPeeringProperties(d),
 	}
 
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	if err := pluginsdk.Retry(300*time.Second, retryVnetPeeringsClientCreateUpdate(d, resGroup, vnetName, name, peer, meta)); err != nil {
+	if err := pluginsdk.Retry(300*time.Second, retryVnetPeeringsClientCreateUpdate(d, id.ResourceGroup, id.VirtualNetworkName, id.Name, peer, meta)); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, vnetName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Virtual Network Peering %q (resource group %q)", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }

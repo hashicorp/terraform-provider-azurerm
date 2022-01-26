@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -101,7 +101,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 				Deprecated: "Due to the service's API changing 'location' must now always be set to 'Global' for new resources, however if the Front Door service was created prior 2020/03/10 it may continue to exist in a specific current location",
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.Location(),
 
 			"routing_rule": {
 				Type:     pluginsdk.TypeList,
@@ -543,7 +543,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(frontDoorCustomizeDiff),
@@ -618,7 +618,7 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id),
 			EnabledState:          &enabledState,
 		},
-		Tags: tagsHelper.Expand(t),
+		Tags: tags.Expand(t),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
@@ -711,7 +711,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChanges("tags") {
-		existingModel.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
+		existingModel.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
@@ -905,7 +905,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil

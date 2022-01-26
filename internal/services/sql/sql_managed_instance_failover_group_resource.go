@@ -130,8 +130,8 @@ func resourceSqlInstanceFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, met
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_failover_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_failover_group", id.ID())
 		}
 	}
 

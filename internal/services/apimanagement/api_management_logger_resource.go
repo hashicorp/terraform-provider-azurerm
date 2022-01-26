@@ -128,8 +128,8 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_logger", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_logger", id.ID())
 		}
 	}
 

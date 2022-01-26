@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -52,6 +53,41 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"encryption": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				RequiredWith: []string{"identity"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+						},
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						// We must use system assigned identity for now since recovery vault only support system assigned for now.
+						// We can remove this property, but in that way when we enable user assigned identity in the future
+						// , many users might be surprised at update in place. So we use an anonymous function to restrict this value to `true`
+						"use_system_assigned_identity": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ValidateFunc: func(i interface{}, s string) ([]string, []error) {
+								use := i.(bool)
+								if !use {
+									return nil, []error{fmt.Errorf(" at this time `use_system_assigned_identity` only support `true`")}
+								}
+								return nil, nil
+							},
+							Default: true,
+						},
+					},
+				},
+			},
+
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -62,7 +98,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(recoveryservices.SystemAssigned),
+								string(recoveryservices.ResourceIdentityTypeSystemAssigned),
 							}, false),
 						},
 
@@ -86,8 +122,8 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(recoveryservices.RS0),
-					string(recoveryservices.Standard),
+					string(recoveryservices.SkuNameRS0),
+					string(recoveryservices.SkuNameStandard),
 				}, true),
 			},
 
@@ -125,6 +161,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service %s", id.String())
 
+	encryption := expandEncryption(d)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -132,9 +169,21 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 			}
 		}
-
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_recovery_services_vault", *existing.ID)
+		}
+	} else {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
+		}
+		if existing.Properties != nil && existing.Properties.Encryption != nil {
+			if encryption == nil {
+				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
+			}
+			if encryption.InfrastructureEncryption != existing.Properties.Encryption.InfrastructureEncryption {
+				return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
+			}
 		}
 	}
 
@@ -202,6 +251,21 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err)
 	}
 
+	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
+	if _, ok := d.GetOk("encryption"); ok {
+		updateFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, recoveryservices.PatchVault{
+			Properties: &recoveryservices.VaultProperties{
+				Encryption: encryption,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
+		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update encryption of %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
+	}
+
 	d.SetId(id.ID())
 	return resourceRecoveryServicesVaultRead(d, meta)
 }
@@ -263,6 +327,11 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
+	encryption := flattenVaultEncryption(resp)
+	if encryption != nil {
+		d.Set("encryption", []interface{}{encryption})
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -321,4 +390,51 @@ func flattenVaultIdentity(input *recoveryservices.IdentityData) []interface{} {
 			"tenant_id":    tenantID,
 		},
 	}
+}
+
+func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultPropertiesEncryption {
+	encryptionRaw := d.Get("encryption")
+	if encryptionRaw == nil {
+		return nil
+	}
+	settings := encryptionRaw.([]interface{})
+	if len(settings) == 0 {
+		return nil
+	}
+	encryptionMap := settings[0].(map[string]interface{})
+	keyUri := encryptionMap["key_id"].(string)
+	enabledInfraEncryption := encryptionMap["infrastructure_encryption_enabled"].(bool)
+	infraEncryptionState := recoveryservices.InfrastructureEncryptionStateEnabled
+	if !enabledInfraEncryption {
+		infraEncryptionState = recoveryservices.InfrastructureEncryptionStateDisabled
+	}
+	encryption := &recoveryservices.VaultPropertiesEncryption{
+		KeyVaultProperties: &recoveryservices.CmkKeyVaultProperties{
+			KeyURI: utils.String(keyUri),
+		},
+		KekIdentity: &recoveryservices.CmkKekIdentity{
+			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
+		},
+		InfrastructureEncryption: infraEncryptionState,
+	}
+	return encryption
+}
+
+func flattenVaultEncryption(resp recoveryservices.Vault) interface{} {
+	if resp.Properties == nil || resp.Properties.Encryption == nil {
+		return nil
+	}
+	encryption := resp.Properties.Encryption
+	if encryption.KeyVaultProperties == nil || encryption.KeyVaultProperties.KeyURI == nil {
+		return nil
+	}
+	if encryption.KekIdentity == nil || encryption.KekIdentity.UseSystemAssignedIdentity == nil {
+		return nil
+	}
+	encryptionMap := make(map[string]interface{})
+
+	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyURI
+	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
+	encryptionMap["infrastructure_encryption_enabled"] = encryption.InfrastructureEncryption == recoveryservices.InfrastructureEncryptionStateEnabled
+	return encryptionMap
 }
