@@ -73,7 +73,7 @@ A `backend_address` block exports the following:
 
 A `inbound_nat_rule_port_mapping` block exports the following:
 
-* `inbound_nat_rule_name` - The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+* `name` - The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
 
 * `frontend_port` - The Frontend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
 

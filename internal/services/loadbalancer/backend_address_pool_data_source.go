@@ -59,7 +59,7 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"inbound_nat_rule_name": {
+									"name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
@@ -191,7 +191,11 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, 
 				if rule.ID == nil {
 					continue
 				}
-				inboundNATRules = append(inboundNATRules, *rule.ID)
+				natRuleID, err := parse.LoadBalancerInboundNatRuleID(*rule.ID)
+				if err != nil {
+					return fmt.Errorf("parsing Inbound NAT Rule ID error: %+v", err)
+				}
+				inboundNATRules = append(inboundNATRules, natRuleID.ID())
 			}
 		}
 		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
@@ -233,7 +237,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackend
 					rulePortMapping := make(map[string]interface{})
 
 					if rule.InboundNatRuleName != nil {
-						rulePortMapping["inbound_nat_rule_name"] = *rule.InboundNatRuleName
+						rulePortMapping["name"] = *rule.InboundNatRuleName
 					}
 					if rule.FrontendPort != nil {
 						rulePortMapping["frontendPort"] = *rule.FrontendPort

@@ -382,7 +382,11 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 				if rule.ID == nil {
 					continue
 				}
-				inboundNATRules = append(inboundNATRules, *rule.ID)
+				natRuleID, err := parse.LoadBalancerInboundNatRuleID(*rule.ID)
+				if err != nil {
+					return fmt.Errorf("parsing Inbound NAT Rule ID error: %+v", err)
+				}
+				inboundNATRules = append(inboundNATRules, natRuleID.ID())
 			}
 		}
 		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {

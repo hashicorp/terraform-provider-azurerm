@@ -47,36 +47,6 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.mapToBackendAddressPool(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAzureRMLoadBalancerNatRule_multipleRuleMapToBackendAddressPool(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.multipleRuleMapToBackendAddressPool(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
@@ -159,6 +129,59 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("frontend_port").HasValue("3391"),
 				check.That(data2.ResourceName).Key("backend_port").HasValue("3391"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_multipleRuleMapToBackendAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRuleMapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// todo: currently, the nat rule cannot be reverted backed from V2 to V1, service team is fixing it now.
+func TestAccAzureRMLoadBalancerNatRule_updateBackendAddressPoolMapping(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),

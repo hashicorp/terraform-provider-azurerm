@@ -78,7 +78,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				ValidateFunc:  validate.PortNumber,
-				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
+				ConflictsWith: []string{"frontend_port_start", "frontend_port_end"},
 			},
 
 			"backend_port": {
@@ -107,7 +107,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"backend_address_pool_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
+				ValidateFunc:  loadBalancerValidate.LoadBalancerBackendAddressPoolID,
 				ConflictsWith: []string{"frontend_port"},
 				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
 			},
@@ -116,7 +116,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				ValidateFunc:  validate.PortNumber,
-				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_end"},
+				RequiredWith:  []string{"frontend_port_end"},
 				ConflictsWith: []string{"frontend_port"},
 			},
 
@@ -124,7 +124,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				ValidateFunc:  validate.PortNumber,
-				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_start"},
+				RequiredWith:  []string{"frontend_port_start"},
 				ConflictsWith: []string{"frontend_port"},
 			},
 
@@ -178,7 +178,6 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	if err != nil {
 		return fmt.Errorf("expanding NAT Rule: %+v", err)
 	}
-
 	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
 
 	existingNatRule, existingNatRuleIndex, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
@@ -194,7 +193,6 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-
 	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
 		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
@@ -269,7 +267,11 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
 		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			d.Set("backend_address_pool_id", *props.BackendAddressPool.ID)
+			backendAddressPoolID, err := parse.LoadBalancerBackendAddressPoolID(*props.BackendAddressPool.ID)
+			if err != nil {
+				return fmt.Errorf("parsing Backend Address Pool ID error: %+v", err)
+			}
+			d.Set("backend_address_pool_id", backendAddressPoolID.ID())
 		}
 
 		frontendPort := 0
@@ -347,14 +349,13 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
 	}
 
-	backendAddressPoolSet, frontendPort := false, false
-	if _, ok := d.GetOk("frontend_port"); ok {
-		frontendPort = true
-	}
-	if _, ok := d.GetOk("backend_address_pool_id"); ok {
-		backendAddressPoolSet = true
-	}
+	_, frontendPort := d.GetOk("frontend_port")
+	_, frontendPortStart := d.GetOk("frontend_port_start")
+	_, backendAddressPoolSet := d.GetOk("backend_address_pool_id")
 
+	if !frontendPortStart && !frontendPort {
+		return nil, fmt.Errorf("Either Frontendport or Frontendport Range must be set")
+	}
 	if backendAddressPoolSet {
 		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
 		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
@@ -363,6 +364,7 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 		}
 	} else {
 		if frontendPort {
+			properties.BackendAddressPool = nil
 			properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
 		} else {
 			properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
@@ -393,6 +395,5 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 		Name:                           utils.String(d.Get("name").(string)),
 		InboundNatRulePropertiesFormat: &properties,
 	}
-
 	return &natRule, nil
 }

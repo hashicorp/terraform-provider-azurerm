@@ -30,7 +30,7 @@ type BackendAddressPoolAddressModel struct {
 }
 
 type inboundNATRulePortMapping struct {
-	Name         string `tfschema:"inbound_nat_rule_name"`
+	Name         string `tfschema:"name"`
 	FrontendPort int32  `tfschema:"frontend_port"`
 	BackendPort  int32  `tfschema:"backend_port"`
 }
@@ -41,7 +41,7 @@ func portMapping() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"inbound_nat_rule_name": {
+				"name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -234,27 +234,28 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 				if props.VirtualNetwork != nil && props.VirtualNetwork.ID != nil {
 					model.VirtualNetworkId = *props.VirtualNetwork.ID
 				}
-			}
 
-			var inboundNATRulePortMappingList []inboundNATRulePortMapping
-			if rules := backendAddress.LoadBalancerBackendAddressPropertiesFormat.InboundNatRulesPortMapping; rules != nil {
-				for _, rule := range *rules {
-					rulePortMapping := inboundNATRulePortMapping{}
+				var inboundNATRulePortMappingList []inboundNATRulePortMapping
+				if rules := props.InboundNatRulesPortMapping; rules != nil {
+					for _, rule := range *rules {
+						rulePortMapping := inboundNATRulePortMapping{}
 
-					if rule.InboundNatRuleName != nil {
-						rulePortMapping.Name = *rule.InboundNatRuleName
-					}
-					if rule.FrontendPort != nil {
-						rulePortMapping.FrontendPort = *rule.FrontendPort
-					}
+						if rule.InboundNatRuleName != nil {
+							rulePortMapping.Name = *rule.InboundNatRuleName
+						}
+						if rule.FrontendPort != nil {
+							rulePortMapping.FrontendPort = *rule.FrontendPort
+						}
 
-					if rule.BackendPort != nil {
-						rulePortMapping.BackendPort = *rule.BackendPort
+						if rule.BackendPort != nil {
+							rulePortMapping.BackendPort = *rule.BackendPort
+						}
+						inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
 					}
-					inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
+					model.PortMapping = inboundNATRulePortMappingList
 				}
-				model.PortMapping = inboundNATRulePortMappingList
 			}
+
 			return metadata.Encode(&model)
 		},
 		Timeout: 5 * time.Minute,
