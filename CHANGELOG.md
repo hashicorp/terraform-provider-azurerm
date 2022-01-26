@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
 * dependencies: updating `kusto` to API Version `2021-08-27` [GH-15040]
 * `azurerm_app_service_slot`- Add `storage_account` block support [GH-15084]
+* `azurerm_stream_analytics_stream_input_eventhub` - Support for `partition_key` [GH-15019]
 
 BUG FIXES:
 
