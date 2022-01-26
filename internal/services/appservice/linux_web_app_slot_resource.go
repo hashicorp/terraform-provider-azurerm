@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -25,10 +23,7 @@ type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
 	Name                          string                              `tfschema:"name"`
-	AppServiceName                string                              `tfschema:"app_service_name"`
-	ResourceGroup                 string                              `tfschema:"resource_group_name"`
-	Location                      string                              `tfschema:"location"`
-	ServicePlanId                 string                              `tfschema:"service_plan_id"`
+	AppServiceId                  string                              `tfschema:"app_service_id"`
 	AppSettings                   map[string]string                   `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings              `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup                    `tfschema:"backup"`
@@ -78,20 +73,10 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"app_service_name": {
+		"app_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.WebAppName,
-		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"location": location.Schema(),
-
-		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: validate.WebAppID,
 		},
 
 		// Optional
@@ -229,9 +214,24 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			appId, err := parse.WebAppID(webAppSlot.AppServiceId)
+			if err != nil {
+				return err
+			}
 
-			id := parse.NewWebAppSlotID(subscriptionId, webAppSlot.ResourceGroup, webAppSlot.AppServiceName, webAppSlot.Name)
+			id := parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, webAppSlot.Name)
+
+			webApp, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Linux Web App for %s: %+v", id, err)
+			}
+			if webApp.Location == nil {
+				return fmt.Errorf("could not determine location for %s: %+v", id, err)
+			}
+			siteProps := webApp.SiteProperties
+			if siteProps == nil || siteProps.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -247,12 +247,14 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+
 			siteEnvelope := web.Site{
-				Location: utils.String(webAppSlot.Location),
+				Location: webApp.Location,
 				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webAppSlot.ServicePlanId),
+					ServerFarmID:          siteProps.ServerFarmID,
 					Enabled:               utils.Bool(webAppSlot.Enabled),
 					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
 					SiteConfig:            siteConfig,
@@ -407,10 +409,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state := LinuxWebAppSlotModel{
 				Name:                        id.SlotName,
-				AppServiceName:              id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				Location:                    location.NormalizeNilable(webApp.Location),
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
@@ -504,9 +503,6 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-			}
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}

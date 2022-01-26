@@ -888,11 +888,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 }
@@ -926,11 +923,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -951,11 +945,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -988,11 +979,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -1030,11 +1018,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_swap_slot_name = "production"
@@ -1052,11 +1037,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 }
@@ -1072,11 +1054,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   app_settings = {
     foo = "bar"
@@ -1239,11 +1218,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1263,11 +1239,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     load_balancing_mode = "%s"
@@ -1285,11 +1258,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1325,11 +1295,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1402,11 +1369,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1431,11 +1395,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1457,11 +1418,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1489,11 +1447,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     ip_restriction {
@@ -1522,11 +1477,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     ip_restriction {
@@ -1555,11 +1507,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1594,11 +1543,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1636,11 +1582,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1661,11 +1604,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1686,11 +1626,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1711,11 +1648,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1736,11 +1670,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1763,11 +1694,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1790,11 +1718,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   app_settings = {
     "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
