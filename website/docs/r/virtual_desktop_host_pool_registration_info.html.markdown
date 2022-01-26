@@ -34,7 +34,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
 
 resource "azurerm_virtual_desktop_host_pool_registration_info" "example" {
   hostpool_id     = azurerm_virtual_desktop_host_pool.example.id
-  expiration_date = timeadd(timestamp(), "48h")
+  expiration_date = "2022-01-01T23:40:52Z"
 }
 ```
 
