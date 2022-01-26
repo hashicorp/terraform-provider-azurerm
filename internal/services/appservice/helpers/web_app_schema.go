@@ -209,6 +209,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
