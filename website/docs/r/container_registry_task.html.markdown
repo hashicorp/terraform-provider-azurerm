@@ -10,6 +10,8 @@ description: |-
 
 Manages a Container Registry Task.
 
+~>**Note** The Container Registry Task can be scheduled to run right after create/update, if the `run_task_on_apply` is set to `true` in the `container` feature block. See [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for details.
+
 ## Example Usage
 
 ```hcl

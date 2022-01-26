@@ -3,6 +3,7 @@ package features
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
 	CognitiveAccount       CognitiveAccountFeatures
+	Container              ContainerFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
@@ -14,6 +15,10 @@ type UserFeatures struct {
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
+}
+
+type ContainerFeatures struct {
+	RunTaskOnApply bool
 }
 
 type VirtualMachineFeatures struct {

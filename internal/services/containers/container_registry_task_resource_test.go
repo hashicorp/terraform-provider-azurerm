@@ -78,6 +78,29 @@ func TestAccContainerRegistryTask_dockerStep(t *testing.T) {
 	})
 }
 
+func TestAccContainerRegistryTask_dockerStepRun(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
+
+	preCheckGithubRepo(t)
+
+	r := ContainerRegistryTaskResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dockerStepRun(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("docker_step.0.context_access_token"),
+	})
+}
+
 func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
 
@@ -115,6 +138,29 @@ func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 	})
 }
 
+func TestAccContainerRegistryTask_fileTaskRun(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
+
+	preCheckGithubRepo(t)
+
+	r := ContainerRegistryTaskResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fileTaskStepRun(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("file_step.0.context_access_token"),
+	})
+}
+
 func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
 
@@ -144,6 +190,29 @@ func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 		data.ImportStep("encoded_step.0.context_access_token", "encoded_step.0.secret_values"),
 		{
 			Config: r.encodedTaskStepBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("encoded_step.0.context_access_token"),
+	})
+}
+
+func TestAccContainerRegistryTask_encodedTaskRun(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
+
+	preCheckGithubRepo(t)
+
+	r := ContainerRegistryTaskResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.encodedTaskStepRun(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -441,7 +510,28 @@ func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clie
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBasic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  docker_step {
+    dockerfile_path      = "Dockerfile"
+    context_path         = "%s"
+    context_access_token = "%s"
+    image_names          = ["helloworld:{{.Run.ID}}"]
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+}
+
+func (r ContainerRegistryTaskResource) dockerStepRun(data acceptance.TestData) string {
+	template := r.template(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -462,7 +552,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -500,7 +590,27 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepBasic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  file_step {
+    task_file_path       = "taskmulti.yaml"
+    context_path         = "%s"
+    context_access_token = "%s"
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+}
+
+func (r ContainerRegistryTaskResource) fileTaskStepRun(data acceptance.TestData) string {
+	template := r.template(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -520,7 +630,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -546,7 +656,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) encodedTaskStepBasic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -558,12 +668,53 @@ resource "azurerm_container_registry_task" "test" {
   }
   encoded_step {
     task_content         = <<EOF
-FROM node:15-alpine
+version: v1.0.0
+steps:
+# Build target image
+- build: -t {{.Run.Registry}}/hello-world:{{.Run.ID}} -f Dockerfile .
+# Run image 
+- cmd: -t {{.Run.Registry}}/hello-world:{{.Run.ID}}
+  id: test
+  detach: true
+  ports: ["8080:80"]
+- cmd: docker stop test
+# Push image
+- push:
+  - {{.Run.Registry}}/hello-world:{{.Run.ID}}
+EOF
+    context_path         = "%s"
+    context_access_token = "%s"
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+}
 
-COPY . /src
-RUN cd /src && npm install
-EXPOSE 80
-CMD ["node", "/src/server.js"]
+func (r ContainerRegistryTaskResource) encodedTaskStepRun(data acceptance.TestData) string {
+	template := r.template(data, true)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  encoded_step {
+    task_content         = <<EOF
+version: v1.0.0
+steps:
+# Build target image
+- build: -t {{.Run.Registry}}/hello-world:{{.Run.ID}} -f Dockerfile .
+# Run image 
+- cmd: -t {{.Run.Registry}}/hello-world:{{.Run.ID}}
+  id: test
+  detach: true
+  ports: ["8080:80"]
+- cmd: docker stop test
+# Push image
+- push:
+  - {{.Run.Registry}}/hello-world:{{.Run.ID}}
 EOF
     context_path         = "%s"
     context_access_token = "%s"
@@ -573,7 +724,7 @@ EOF
 }
 
 func (r ContainerRegistryTaskResource) encodedTaskStepUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -585,13 +736,19 @@ resource "azurerm_container_registry_task" "test" {
   }
   encoded_step {
     task_content         = <<EOF
-ARG REGISTRY_NAME
-FROM $${REGISTRY_NAME}/baseimages/node:15-alpine
-
-COPY . /src
-RUN cd /src && npm install
-EXPOSE 80
-CMD ["node", "/src/server.js"]
+version: v1.0.0
+steps:
+# Build target image
+- build: -t {{.Run.Registry}}/hello-world:{{.Run.ID}} -f Dockerfile .
+# Run image 
+- cmd: -t {{.Run.Registry}}/hello-world:{{.Run.ID}}
+  id: test
+  detach: true
+  ports: ["8080:80"]
+- cmd: docker stop test
+# Push image
+- push:
+  - {{.Run.Registry}}/hello-world:{{.Run.ID}}
 EOF
     context_path         = "%s"
     context_access_token = "%s"
@@ -607,7 +764,7 @@ EOF
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBaseImageTrigger(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -632,7 +789,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBaseImageTriggerUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -660,7 +817,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSourceTrigger(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -692,7 +849,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -725,7 +882,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepTimerTrigger(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -750,7 +907,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepTimerTriggerUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -776,7 +933,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSystemIdentity(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -800,7 +957,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepUserAssignedIdentity(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -833,7 +990,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSystemUserAssignedIdentity(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -866,7 +1023,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredential(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -903,7 +1060,7 @@ resource "azurerm_container_registry_task" "test" {
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, false)
 	return fmt.Sprintf(`
 %s
 
@@ -936,10 +1093,14 @@ resource "azurerm_container_registry_task" "import" {
 `, template, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) template(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) template(data acceptance.TestData, runTask bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    container {
+      run_task_on_apply = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -953,5 +1114,5 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, runTask, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

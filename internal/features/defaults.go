@@ -9,6 +9,9 @@ func Default() UserFeatures {
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
+		Container: ContainerFeatures{
+			RunTaskOnApply: false,
+		},
 		KeyVault: KeyVaultFeatures{
 			PurgeSoftDeleteOnDestroy:         true,
 			PurgeSoftDeletedKeysOnDestroy:    true,
