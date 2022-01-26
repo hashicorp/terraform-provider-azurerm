@@ -111,7 +111,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	policyResp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, parameters, "")
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, parameters, "")
 	if err != nil {
 		return fmt.Errorf("creating or updating Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
 	}
