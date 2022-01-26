@@ -122,7 +122,7 @@ A `delivery_rule` block supports the following:
 
 * `name` - (Required) The Name which should be used for this Delivery Rule.
 
-* `order` - (Required) The order used for this rule, which must be larger than 1.
+* `order` - (Required) The order used for this rule. The order values should be sequential and begin at `1`.
 
 * `cache_expiration_action` - (Optional) A `cache_expiration_action` block as defined above.
 
