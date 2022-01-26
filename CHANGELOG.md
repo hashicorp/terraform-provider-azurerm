@@ -1,5 +1,9 @@
 ## 2.94.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_api_management_policy` - resources that were created with v2.92.0 will be marked as tainted due to a [bug](https://github.com/hashicorp/terraform-provider-azurerm/issues/15042). This version addresses the underlying issue, but the actual resource needs to either be untainted (via `terraform untaint`) or allow Terraform to delete the resource and create it again.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_linux_function_app` [GH-15009]
@@ -16,6 +20,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_policy` - fixing the Resource ID for `api_management_policy` when this was provisioned using version `2.92.0` of the Azure Provider [GH-15060]
 * `azurerm_bastion_host` - Fix crash by adding nil check for `copy_paste_enabled` [GH-15074]
 * `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
 * `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
