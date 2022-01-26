@@ -267,8 +267,12 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("weight", props.Weight)
 			d.Set("priority", props.Priority)
 			d.Set("endpoint_location", props.EndpointLocation)
-			d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 
+			endPointMonitorStatus := ""
+			if props.EndpointMonitorStatus != nil {
+				endPointMonitorStatus = string(*props.EndpointMonitorStatus)
+			}
+			d.Set("endpoint_monitor_status", endPointMonitorStatus)
 			d.Set("min_child_endpoints", props.MinChildEndpoints)
 			d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
 			d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)

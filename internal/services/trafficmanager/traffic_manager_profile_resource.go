@@ -281,8 +281,16 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if profile := model.Properties; profile != nil {
-			d.Set("profile_status", profile.ProfileStatus)
-			d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+			profileStatus := ""
+			if profile.ProfileStatus != nil {
+				profileStatus = string(*profile.ProfileStatus)
+			}
+			d.Set("profile_status", profileStatus)
+			trafficRoutingMethod := ""
+			if profile.TrafficRoutingMethod != nil {
+				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
+			}
+			d.Set("traffic_routing_method", trafficRoutingMethod)
 			d.Set("max_return", profile.MaxReturn)
 
 			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
