@@ -20,6 +20,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `data.image_source` - Fix regression around id [GH-15119]
 * `azurerm_api_management_policy` - fixing the Resource ID for `api_management_policy` when this was provisioned using version `2.92.0` of the Azure Provider [GH-15060]
 * `azurerm_bastion_host` - Fix crash by adding nil check for `copy_paste_enabled` [GH-15074]
 * `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
