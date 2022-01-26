@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_linux_function_app` [GH-15009]
 * **New Data Source/ Resource:** `azurerm_web_pubsub` resource and data source, and `azurerm_web_pubsub_hub` resource [GH-14731]
+* **New resource:** `azurerm_virtual_desktop_host_pool_registration_info` [GH-14134]
 
 ENHANCEMENTS:
 
