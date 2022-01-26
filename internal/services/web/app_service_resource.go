@@ -242,7 +242,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(id.String()),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 

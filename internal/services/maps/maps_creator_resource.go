@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/creators"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +51,7 @@ func resourceMapsCreator() *pluginsdk.Resource {
 				ValidateFunc: accounts.ValidateAccountID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"storage_units": {
 				Type:         pluginsdk.TypeInt,
@@ -59,7 +59,7 @@ func resourceMapsCreator() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -95,7 +95,7 @@ func resourceMapsCreatorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: creators.CreatorProperties{
 			StorageUnits: int64(d.Get("storage_units").(int)),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -131,7 +131,7 @@ func resourceMapsCreatorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 		d.Set("storage_units", props.StorageUnits)
-		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -153,7 +153,7 @@ func resourceMapsCreatorUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &creators.CreatorProperties{
 			StorageUnits: int64(d.Get("storage_units").(int)),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Update(ctx, *id, props); err != nil {
