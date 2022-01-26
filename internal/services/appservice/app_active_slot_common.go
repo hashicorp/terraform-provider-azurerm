@@ -3,25 +3,24 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ActiveSlotResource struct{}
 
 type ActiveSlotModel struct {
-	AppID        string `tfschema:"app_id"`
-	SlotName     string `tfschema:"slot_name"`
-	PreserveVnet bool   `tfschema:"preserve_vnet"`
-	LastSwap     string `tfschema:"last_successful_swap"`
+	SlotID              string `tfschema:"slot_id"`
+	OverwriteNetworking bool   `tfschema:"overwrite_network_config"` // Note: This setting controls the ambiguously named `PreserveVnet`
+	LastSwap            string `tfschema:"last_successful_swap"`
 }
 
 func (r ActiveSlotResource) ModelObject() interface{} {
@@ -40,31 +39,23 @@ func (r ActiveSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r ActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"app_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+		"slot_id": {
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The ID of the Slot to swap with `Production`.",
 			ValidateFunc: validation.Any(
-				validate.WebAppID,
-				validate.FunctionAppID,
+				validate.WebAppSlotID,
+				// validate.FunctionAppSlotID, // Uncomment when #14940 is merged
 			),
 		},
 
-		"slot_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				validate.WebAppName,
-				//validate.FunctionAppSlotID, // Uncomment after #14940 is merged
-			),
-		},
-
-		"preserve_vnet": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+		"overwrite_network_config": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot. Defaults to `true`.",
+			ForceNew:    true,
 		},
 	}
 }
@@ -89,48 +80,37 @@ func (r ActiveSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			appId, err := parse.WebAppID(activeSlot.AppID)
+			slotID, err := parse.WebAppSlotID(activeSlot.SlotID)
 			if err != nil {
 				return fmt.Errorf("parsing App ID: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+			app, err := client.Get(ctx, slotID.ResourceGroup, slotID.SiteName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return fmt.Errorf("%s was not found", appId)
+				if utils.ResponseWasNotFound(app.Response) {
+					return fmt.Errorf("%s was not found", slotID)
 				}
-				return fmt.Errorf("reading  %s: %+v", appId, err)
-			}
-
-			slotId, err := parse.WebAppSlotID(activeSlot.AppID)
-			if err != nil {
-				return fmt.Errorf("parsing Slot ID: %+v", err)
-			}
-
-			if _, err = client.GetSlot(ctx, slotId.ResourceGroup, slotId.SiteName, slotId.SlotName); err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return fmt.Errorf("%s was not found", slotId)
-				}
-				return fmt.Errorf("reading %s: %+v", slotId, err)
+				return fmt.Errorf("reading  %s: %+v", slotID, err)
 			}
 
 			csmSlotEntity := web.CsmSlotEntity{
-				TargetSlot:   &slotId.SlotName,
-				PreserveVnet: &activeSlot.PreserveVnet,
+				TargetSlot:   &slotID.SlotName,
+				PreserveVnet: &activeSlot.OverwriteNetworking,
 			}
-			locks.ByID(appId.ID())
-			defer locks.UnlockByID(appId.ID())
 
-			future, err := client.SwapSlotWithProduction(ctx, appId.ResourceGroup, appId.SiteName, csmSlotEntity)
+			locks.ByID(slotID.ID())
+			defer locks.UnlockByID(slotID.ID())
+
+			future, err := client.SwapSlotWithProduction(ctx, slotID.ResourceGroup, slotID.SiteName, csmSlotEntity)
 			if err != nil {
-				return fmt.Errorf("making %s the active slot: %+v", slotId.SlotName, err)
+				return fmt.Errorf("making %s the active slot: %+v", slotID, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for slot swap to complete: %+v", err)
 			}
 
-			metadata.SetID(appId)
+			metadata.SetID(slotID)
 
 			return nil
 		},
@@ -143,7 +123,7 @@ func (r ActiveSlotResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -158,11 +138,26 @@ func (r ActiveSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			activeSlot := ActiveSlotModel{
-				AppID:        utils.NormalizeNilableString(app.ID),
-				SlotName:     utils.NormalizeNilableString(app.SiteProperties.SlotSwapStatus.SourceSlotName),
-				PreserveVnet: metadata.ResourceData.Get("preserve_vnet").(bool), // This cannot be read, so we'll grab it from state
-				LastSwap:     app.SiteProperties.SlotSwapStatus.TimestampUtc.String(),
+				LastSwap: app.SiteProperties.SlotSwapStatus.TimestampUtc.String(),
 			}
+
+			// decode the slot ID from the last successful swap data
+			if app.ID != nil {
+				if appId, err := parse.WebAppID(*app.ID); err != nil {
+					return err
+				} else {
+					if slotName := app.SiteProperties.SlotSwapStatus.SourceSlotName; slotName != nil {
+						activeSlot.SlotID = parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, *slotName).ID()
+					}
+				}
+			}
+
+			// Default value here for imports as this cannot be read from service as it's part of the swap request only and not stored
+			overwriteNetworking := true
+			if p, ok := metadata.ResourceData.GetOk("overwrite_network_config"); ok {
+				overwriteNetworking = p.(bool)
+			}
+			activeSlot.OverwriteNetworking = overwriteNetworking
 
 			return metadata.Encode(&activeSlot)
 		},
