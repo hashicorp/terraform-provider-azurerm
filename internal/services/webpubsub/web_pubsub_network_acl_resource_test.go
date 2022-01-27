@@ -167,7 +167,7 @@ func (r WebPubsubNetworkACLResource) complete(data acceptance.TestData) string {
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "east us"
+  location            = "%s"
   address_space       = ["10.5.0.0/16"]
 }
 resource "azurerm_subnet" "test" {
@@ -205,7 +205,7 @@ resource "azurerm_web_pubsub_network_acl" "test" {
 
   depends_on = [azurerm_web_pubsub.test]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r WebPubsubNetworkACLResource) complete_withoutPrivateEndpoint(data acceptance.TestData) string {
