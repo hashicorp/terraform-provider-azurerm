@@ -1,14 +1,14 @@
 ---
 subcategory: "Web Publishing Subscription"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_signalr_web_pubsub_hub"
+page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
-  Manages the hub settings for a Signalr Web Pubsub service.
+  Manages the hub settings for a Web Pubsub service.
 ---
 
-# azurerm_signalr_web_pubsub_hub
+# azurerm_web_pubsub_hub
 
-Manages the hub settings for a Signalr Web Pubsub.
+Manages the hub settings for a Web Pubsub.
 
 ## Example Usage
 
@@ -24,7 +24,7 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_signalr_web_pubsub" "example" {
+resource "azurerm_web_pubsub" "example" {
   name                = "tfex-webpubsub"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -33,9 +33,9 @@ resource "azurerm_signalr_web_pubsub" "example" {
   capacity = 1
 }
 
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "tfex-wpsh"
-  web_pubsub_id = azurerm_signalr_web_pubsub.example.id
+  web_pubsub_id = azurerm_web_pubsub.exmaple.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
@@ -53,7 +53,7 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
   anonymous_connections_enabled = true
 
   depends_on = [
-    azurerm_signalr_web_pubsub.test
+    azurerm_web_pubsub.test
   ]
 }
 ```
@@ -62,9 +62,9 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Signalr Web Pubsub hub service. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Web Pubsub hub service. Changing this forces a new resource to be created.
 
-* `web_pubsub_id` - (Required) Specify the id of the Signalr Web Pubsub. Changing this forces a new resource to be created.
+* `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
 * `event_handler` - (Required) An `event_handler` block as defined below.
 
@@ -101,23 +101,23 @@ An `auth` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Signalr Web Pubsub Hub resource.
+* `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - The name of the Signalr Web Pubsub Hub resource
+* `name` - The name of the Web Pubsub Hub resource
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Signalr Web Pubsub Resource.
-* `update` - (Defaults to 30 minutes) Used when updating the Signalr Web Pubsub Resource.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Signalr Web Pubsub Resource.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Signalr Web Pubsub Resource.
+* `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Resource.
 
 ## Import
 
-Signalr Web Pubsub Hub can be imported using the `resource id`, e.g.
+Web Pubsub Hub can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/hubs/webpubsubhub1
+terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/hubs/webpubsubhub1
 ```

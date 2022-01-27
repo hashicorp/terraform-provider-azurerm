@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SignalrWebPubsubHubResource struct{}
+type WebPubsubHubResource struct{}
 
-func TestAccSignalrWebPubsubHub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,9 +29,9 @@ func TestAccSignalrWebPubsubHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccSignalrWebPubsubHub_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,9 +44,9 @@ func TestAccSignalrWebPubsubHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSignalrWebPubsubHub_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,9 +58,9 @@ func TestAccSignalrWebPubsubHub_complete(t *testing.T) {
 	})
 }
 
-func TestAccSignalrWebPubsubHub_withAuthUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,9 +80,9 @@ func TestAccSignalrWebPubsubHub_withAuthUpdate(t *testing.T) {
 	})
 }
 
-func TestAccSignalrWebPubsubHub_withPropertyUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,9 +102,9 @@ func TestAccSignalrWebPubsubHub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccSignalrWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub_hub", "test")
-	r := SignalrWebPubsubHubResource{}
+func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccSignalrWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testin
 	})
 }
 
-func (r SignalrWebPubsubHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebPubsubHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebPubsubHubID(state.ID)
 	if err != nil {
 		return nil, err
@@ -138,13 +138,13 @@ func (r SignalrWebPubsubHubResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(true), nil
 }
 
-func (r SignalrWebPubsubHubResource) basic(data acceptance.TestData) string {
+func (r WebPubsubHubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
@@ -155,7 +155,7 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SignalrWebPubsubHubResource) complete(data acceptance.TestData) string {
+func (r WebPubsubHubResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_user_assigned_identity" "test" {
@@ -163,9 +163,9 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
@@ -178,19 +178,19 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
   anonymous_connections_enabled = true
 
   depends_on = [
-    azurerm_signalr_web_pubsub.test
+    azurerm_web_pubsub.test
   ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r SignalrWebPubsubHubResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubHubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub_hub" "import" {
-  name          = azurerm_signalr_web_pubsub_hub.test.name
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+resource "azurerm_web_pubsub_hub" "import" {
+  name          = azurerm_web_pubsub_hub.test.name
+  web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
@@ -201,7 +201,7 @@ resource "azurerm_signalr_web_pubsub_hub" "import" {
 `, r.basic(data))
 }
 
-func (r SignalrWebPubsubHubResource) withMultipleEventhandlerSettings(data acceptance.TestData) string {
+func (r WebPubsubHubResource) withMultipleEventhandlerSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -215,9 +215,9 @@ resource "azurerm_user_assigned_identity" "test2" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{hub1}/{event2}"
     user_event_pattern = "*"
@@ -238,7 +238,7 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SignalrWebPubsubHubResource) withMultipleEventhandlerSettingsAndNoAuth(data acceptance.TestData) string {
+func (r WebPubsubHubResource) withMultipleEventhandlerSettingsAndNoAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,9 +248,9 @@ resource "azurerm_user_assigned_identity" "test1" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{hub1}/{event2}"
     user_event_pattern = "*"
@@ -268,7 +268,7 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r SignalrWebPubsubHubResource) withPropertyUpdate(data acceptance.TestData) string {
+func (r WebPubsubHubResource) withPropertyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,9 +278,9 @@ resource "azurerm_user_assigned_identity" "test1" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_signalr_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
-  web_pubsub_id = azurerm_signalr_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{testhub}/{testevent1}"
     user_event_pattern = "event1, event2"
@@ -293,7 +293,7 @@ resource "azurerm_signalr_web_pubsub_hub" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r SignalrWebPubsubHubResource) template(data acceptance.TestData) string {
+func (r WebPubsubHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -304,7 +304,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_signalr_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "test" {
   name                = "acctest-webpubsub-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

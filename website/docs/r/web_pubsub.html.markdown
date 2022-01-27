@@ -1,14 +1,14 @@
 ---
 subcategory: "Web Publishing Subscription"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_signalr_web_pubsub"
+page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
-  Manages an Azure Signalr Web Pubsub service.
+  Manages an Azure Web Pubsub service.
 ---
 
-# azurerm_signalr_web_pubsub
+# azurerm_web_pubsub
 
-Manages an Azure Signalr Web Pubsub Service.
+Manages an Azure Web Pubsub Service.
 
 ## Example Usage
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "east us"
 }
 
-resource "azurerm_signalr_web_pubsub" "example" {
+resource "azurerm_web_pubsub" "example" {
   name                = "tfex-webpubsub"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -40,17 +40,17 @@ resource "azurerm_signalr_web_pubsub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Signalr Web Pubsub service. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Web Pubsub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Signalr Web Pubsub service. Changing
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web Pubsub service. Changing
   this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Signalr Web Pubsub service exists. Changing this
+* `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this
   forces a new resource to be created.
 
 * `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Signalr Web Pubsub resource. Valid values are:
+* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
   Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -80,21 +80,21 @@ A `live_trace` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Signalr Web Pubsub service.
+* `id` - The ID of the Web Pubsub service.
 
-* `hostname` - The FQDN of the Signalr Web Pubsub service.
+* `hostname` - The FQDN of the Web Pubsub service.
 
-* `ip_address` - The publicly accessible IP of the Signalr Web Pubsub service.
+* `ip_address` - The publicly accessible IP of the Web Pubsub service.
 
-* `public_port` - The publicly accessible port of the Signalr Web Pubsub service which is designed for browser/client use.
+* `public_port` - The publicly accessible port of the Web Pubsub service which is designed for browser/client use.
 
-* `server_port` - The publicly accessible port of the Signalr Web Pubsub service which is designed for customer server side use.
+* `server_port` - The publicly accessible port of the Web Pubsub service which is designed for customer server side use.
 
-* `primary_access_key` - The primary access key for the Signalr Web Pubsub service.
+* `primary_access_key` - The primary access key for the Web Pubsub service.
 
-* `primary_connection_string` - The primary connection string for the Signalr Web Pubsub service.
+* `primary_connection_string` - The primary connection string for the Web Pubsub service.
 
-* `secondary_access_key` - The secondary access key for the Signalr Web Pubsub service.
+* `secondary_access_key` - The secondary access key for the Web Pubsub service.
 
 * `secondary_connection_string` - The secondary connection string for the Web Pubsub service.
 
@@ -103,16 +103,16 @@ The following attributes are exported:
 The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Signalr Web Pubsub Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Signalr Web Pubsub Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Signalr Web Pubsub Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Signalr Web Pubsub Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Service.
 
 ## Import
 
 Web Pubsub services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1
+terraform import azurerm_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1
 ```
 

@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceSignalrWebPubsubHub() *pluginsdk.Resource {
+func resourceWebPubsubHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSignalrWebPubsubHubCreateUpdate,
-		Read:   resourceSignalrWebPubSubHubRead,
-		Update: resourceSignalrWebPubsubHubCreateUpdate,
-		Delete: resourceSignalrWebPubsubHubDelete,
+		Create: resourceWebPubsubHubCreateUpdate,
+		Read:   resourceWebPubSubHubRead,
+		Update: resourceWebPubsubHubCreateUpdate,
+		Delete: resourceWebPubsubHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WebPubsubHubID(id)
@@ -110,7 +110,7 @@ func resourceSignalrWebPubsubHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceSignalrWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +130,7 @@ func resourceSignalrWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_signalr_web_pubsub_hub", id.ID())
+			return tf.ImportAsExistsError("azurerm_web_pubsub_hub", id.ID())
 		}
 	}
 
@@ -152,10 +152,10 @@ func resourceSignalrWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.SetId(id.ID())
 
-	return resourceSignalrWebPubSubHubRead(d, meta)
+	return resourceWebPubSubHubRead(d, meta)
 }
 
-func resourceSignalrWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceSignalrWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceSignalrWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

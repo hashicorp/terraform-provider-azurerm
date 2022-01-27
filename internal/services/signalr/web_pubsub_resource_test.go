@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SignalrWebpubsubResource struct{}
+type WebPubsubResource struct{}
 
-func TestAccWebpubsub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +37,9 @@ func TestAccWebpubsub_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,9 +59,9 @@ func TestAccWebpubsub_complete(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,9 +74,9 @@ func TestAccWebpubsub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_standard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_standard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,9 +110,9 @@ func TestAccWebpubsub_standard(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_skuUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_skuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,9 +166,9 @@ func TestAccWebpubsub_skuUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_withPropertyUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_web_pubsub", "test")
-	r := SignalrWebpubsubResource{}
+func TestAccWebPubsub_withPropertyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -202,7 +202,7 @@ func TestAccWebpubsub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func (r SignalrWebpubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebPubsubID(state.ID)
 	if err != nil {
 		return nil, err
@@ -217,11 +217,11 @@ func (r SignalrWebpubsubResource) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(true), nil
 }
 
-func (r SignalrWebpubsubResource) basic(data acceptance.TestData) string {
+func (r WebPubsubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -231,11 +231,11 @@ resource "azurerm_signalr_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SignalrWebpubsubResource) complete(data acceptance.TestData) string {
+func (r WebPubsubResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -259,14 +259,14 @@ resource "azurerm_signalr_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SignalrWebpubsubResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub" "import" {
-  name                = azurerm_signalr_web_pubsub.test.name
-  location            = azurerm_signalr_web_pubsub.test.location
-  resource_group_name = azurerm_signalr_web_pubsub.test.resource_group_name
+resource "azurerm_web_pubsub" "import" {
+  name                = azurerm_web_pubsub.test.name
+  location            = azurerm_web_pubsub.test.location
+  resource_group_name = azurerm_web_pubsub.test.resource_group_name
 
   sku      = "Standard_S1"
   capacity = 1
@@ -274,11 +274,11 @@ resource "azurerm_signalr_web_pubsub" "import" {
 `, r.basic(data))
 }
 
-func (r SignalrWebpubsubResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
+func (r WebPubsubResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -289,11 +289,11 @@ resource "azurerm_signalr_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger, capacity)
 }
 
-func (r SignalrWebpubsubResource) propertyUpdate(data acceptance.TestData) string {
+func (r WebPubsubResource) propertyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -316,7 +316,7 @@ resource "azurerm_signalr_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SignalrWebpubsubResource) template(data acceptance.TestData) string {
+func (r WebPubsubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

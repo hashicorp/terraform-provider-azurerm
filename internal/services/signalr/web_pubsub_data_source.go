@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func dataSourceSignalrWebPubsub() *pluginsdk.Resource {
+func dataSourceWebPubsub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSignalrWebPubsubRead,
+		Read: dataSourceWebPubsubRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -121,7 +121,7 @@ func dataSourceSignalrWebPubsub() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSignalrWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
