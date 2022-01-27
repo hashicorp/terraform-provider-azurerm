@@ -15,6 +15,7 @@ func (r Registration) Name() string {
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Messaging",
+		"Web PubSub",
 	}
 }
 
