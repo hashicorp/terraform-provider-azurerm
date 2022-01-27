@@ -232,8 +232,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"use_msal": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
+				Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph? Defaults to false, unless the 3.0 beta is enabled in which case defaults to true",
+				DefaultFunc: func() schema.SchemaDefaultFunc {
+					defaultVal := false
+					if features.ThreePointOh() {
+						defaultVal = true
+					}
+					return schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, defaultVal)
+				}(), // TODO: default to true in v3.0
 			},
 		},
 
