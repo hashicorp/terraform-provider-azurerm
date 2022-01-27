@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
@@ -37,16 +36,14 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"monitor_name": {
+			"monitor_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticMonitorName,
+				ValidateFunc: validate.ElasticMonitorID,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"rule_set_name": {
+			"name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -56,6 +53,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 			"log_rules": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"send_aad_logs": {
@@ -79,12 +77,14 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"value": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"action": {
 										Type:     pluginsdk.TypeString,
@@ -110,14 +110,16 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("monitor_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	ruleSetName := d.Get("rule_set_name").(string)
+	monitorId, err := parse.ElasticMonitorID(d.Get("monitor_id").(string))
+	if err != nil {
+		return err
+	}
+	ruleSetName := d.Get("name").(string)
 
-	id := parse.NewElasticTagRuleID(subscriptionId, resourceGroup, name, ruleSetName)
+	id := parse.NewElasticTagRuleID(subscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, ruleSetName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, ruleSetName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -133,7 +135,7 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 			LogRules: expandLogRules(d.Get("log_rules").([]interface{})),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, ruleSetName, &body); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -158,11 +160,11 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("monitor_name", id.MonitorName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("rule_set_name", id.TagRuleName)
+	d.Set("monitor_id", parse.NewElasticMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("name", id.TagRuleName)
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
@@ -224,7 +226,6 @@ func expandLogRules(input []interface{}) *elastic.LogRules {
 }
 
 func expandFilteringTag(input []interface{}) *[]elastic.FilteringTag {
-
 	filteringTags := make([]elastic.FilteringTag, 0)
 
 	for _, v := range input {

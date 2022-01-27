@@ -71,12 +71,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the elastic Monitor.
 
-* `elastic_properties` - The properties of Monitor. An `elastic_properties` is defined below.
-
----
-
-An `elastic_properties` block exports the following:
-
 * `elastic_cloud_user` - The properties of user associated with the elastic monitor. An `elastic_cloud_user` is defined below.
 
 * `elastic_cloud_deployment` - The properties of elastic cloud deployment. An `elastic_cloud_deployment` is defined below.

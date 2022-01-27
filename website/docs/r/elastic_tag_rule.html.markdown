@@ -32,8 +32,7 @@ resource "azurerm_elastic_monitor" "test" {
   }
 }
 resource "azurerm_elastic_tag_rule" "test" {
-  monitor_name        = azurerm_elastic_monitor.test.name
-  resource_group_name = azurerm_elastic_monitor.test.resource_group_name
+  monitor_id        = azurerm_elastic_monitor.test.id
   log_rules {
     send_subscription_logs = true
     send_activity_logs     = true
@@ -50,11 +49,9 @@ resource "azurerm_elastic_tag_rule" "test" {
 
 The following arguments are supported:
 
-* `monitor_name` - (Required) The name of the Elastic Monitor. Changing this forces a new elastic Tag Rule to be created.
+* `monitor_id` - (Required) The id of the Elastic Monitor. Changing this forces a new elastic Tag Rule to be created.
 
-* `resource_group_name` - (Required) The resource group of of the Elastic Monitor associated with the rule. Changing this forces a new elastic Tag Rule to be created.
-
-* `rule_set_name` - (Optional)Default value is `default`. The name of the rule. Changing this forces a new elastic Tag Rule to be created.
+* `name` - (Optional)Default value is `default`. The name of the rule. Changing this forces a new elastic Tag Rule to be created.
 
 ---
 

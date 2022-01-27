@@ -49,75 +49,6 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"elastic_properties": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"elastic_cloud_user": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"email_address": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"elastic_cloud_sso_default_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"elastic_cloud_deployment": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"deployment_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"azure_subscription_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"elasticsearch_region": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"elasticsearch_service_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"kibana_service_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"kibana_sso_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
 			"sku": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -158,17 +89,69 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"liftr_resource_category": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"liftr_resource_preference": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
+
+			"elastic_cloud_user": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"email_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"elastic_cloud_sso_default_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"elastic_cloud_deployment": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"deployment_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"azure_subscription_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"elasticsearch_region": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"elasticsearch_service_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"kibana_service_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"kibana_sso_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -210,7 +193,7 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, &body)
 	if err != nil {
-		return fmt.Errorf("creating Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -238,20 +221,21 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("elastic_properties", flattenElasticProperties(props.ElasticProperties)); err != nil {
-			return fmt.Errorf("setting `elastic_properties`: %+v", err)
+		if err := d.Set("elastic_cloud_user", flattenElasticCloudUser(props.ElasticProperties)); err != nil {
+			return fmt.Errorf("setting `elastic_cloud_user`: %+v", err)
+		}
+		if err := d.Set("elastic_cloud_deployment", flattenElasticCloudDeployment(props.ElasticProperties)); err != nil {
+			return fmt.Errorf("setting `elastic_cloud_deployment`: %+v", err)
 		}
 		d.Set("user_info", flattenUserInfo(props.ElasticProperties))
 		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
-		d.Set("liftr_resource_category", props.LiftrResourceCategory)
-		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
 	}
 	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
@@ -340,7 +324,8 @@ func flattenUserInfo(input *elastic.Properties) []interface{} {
 		},
 	}
 }
-func flattenElasticProperties(input *elastic.Properties) []interface{} {
+
+func flattenElasticCloudUser(input *elastic.Properties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -370,6 +355,14 @@ func flattenElasticProperties(input *elastic.Properties) []interface{} {
 
 	} else {
 		elastic_cloud_user = make([]interface{}, 0)
+	}
+
+	return elastic_cloud_user
+}
+
+func flattenElasticCloudDeployment(input *elastic.Properties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
 	}
 
 	var elastic_cloud_deployment []interface{}
@@ -419,12 +412,7 @@ func flattenElasticProperties(input *elastic.Properties) []interface{} {
 		elastic_cloud_deployment = make([]interface{}, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"elastic_cloud_user":       elastic_cloud_user,
-			"elastic_cloud_deployment": elastic_cloud_deployment,
-		},
-	}
+	return elastic_cloud_deployment
 }
 
 func flattenMonitorResourceSku(input *elastic.ResourceSku) []interface{} {
