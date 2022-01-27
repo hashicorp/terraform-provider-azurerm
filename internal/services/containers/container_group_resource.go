@@ -236,7 +236,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 
-						// lintignore:XS003
+						//lintignore:XS003
 						"gpu": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

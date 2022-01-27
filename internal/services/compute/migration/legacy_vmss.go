@@ -238,7 +238,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"os_profile_windows_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -299,7 +299,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"os_profile_linux_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -485,7 +485,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"storage_profile_os_disk": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
@@ -572,7 +572,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"storage_profile_image_reference": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -609,7 +609,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"plan": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,

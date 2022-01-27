@@ -36,7 +36,7 @@ func (s SystemAssigned) Flatten(input *ExpandedConfig) []interface{} {
 }
 
 func (s SystemAssigned) Schema() *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
