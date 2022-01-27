@@ -42,7 +42,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"network_security_group_name": {
 				Type:     pluginsdk.TypeString,

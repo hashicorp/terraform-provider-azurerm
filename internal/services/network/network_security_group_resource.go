@@ -50,7 +50,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"security_rule": {
 				Type:       pluginsdk.TypeSet,
