@@ -1,4 +1,4 @@
-package webpubsub
+package signalr
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -180,7 +180,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 }
 
 func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +252,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web Pubsub %s does not exists - removing from state", d.Id())
+			log.Printf("[INFO] Web Pubsub %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -310,7 +310,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubsubClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

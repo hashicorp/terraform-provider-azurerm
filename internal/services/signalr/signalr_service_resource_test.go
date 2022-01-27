@@ -413,7 +413,7 @@ func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.SignalR.Client.Get(ctx, *id)
+	resp, err := client.SignalR.SignalRClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

@@ -107,7 +107,6 @@ import (
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
-	webPubsub "github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/client"
 )
 
 type Client struct {
@@ -217,7 +216,6 @@ type Client struct {
 	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
 	Web                   *web.Client
-	Webpubsub             *webPubsub.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -330,7 +328,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
-	client.Webpubsub = webPubsub.NewClient(o)
 
 	return nil
 }
