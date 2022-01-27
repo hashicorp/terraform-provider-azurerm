@@ -124,7 +124,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/17525
 	if skuName == string(web.SkuNameFree) && identity != nil {
-		return fmt.Errorf("a Managed Identity cannot be used when tier is set to `Free`")`
+		return fmt.Errorf("a Managed Identity cannot be used when tier is set to `Free`")
 	}
 
 	siteEnvelope := web.StaticSiteARMResource{
