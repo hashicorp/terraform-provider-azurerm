@@ -1053,6 +1053,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%[1]d"
   location = "%[2]s"
 }
+
 resource "azurerm_storage_account" "test" {
   name                     = "acct%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
