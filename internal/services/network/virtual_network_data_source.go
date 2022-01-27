@@ -164,7 +164,7 @@ func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]inte
 }
 
 func flattenVnetPeeringsdAddressList(input *[]network.VirtualNetworkPeering) []string {
-	output := make([]string, 50)
+	var output []string
 	if peerings := input; peerings != nil {
 		for _, vnetpeering := range *peerings {
 			for _, addresses := range *vnetpeering.RemoteVirtualNetworkAddressSpace.AddressPrefixes {
