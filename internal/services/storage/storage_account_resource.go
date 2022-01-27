@@ -3041,9 +3041,9 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 		host = u.Host
 	}
 
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

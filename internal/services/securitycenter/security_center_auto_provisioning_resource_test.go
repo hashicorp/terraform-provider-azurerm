@@ -19,7 +19,7 @@ func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_auto_provisioning", "test")
 	r := SecurityCenterAutoProvisionResource{}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.setting("On"),

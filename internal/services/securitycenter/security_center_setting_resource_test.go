@@ -20,7 +20,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
