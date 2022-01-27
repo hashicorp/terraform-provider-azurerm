@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
@@ -132,7 +133,7 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -143,30 +144,46 @@ func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := profiles.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Traffic Manager Profile %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
-	if profile := resp.ProfileProperties; profile != nil {
-		d.Set("profile_status", profile.ProfileStatus)
-		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+	if model := resp.Model; model != nil {
+		if profile := model.Properties; profile != nil {
+			profileStatus := ""
+			if profile.ProfileStatus != nil {
+				profileStatus = string(*profile.ProfileStatus)
+			}
+			d.Set("profile_status", profileStatus)
+			trafficRoutingMethod := ""
+			if profile.TrafficRoutingMethod != nil {
+				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
+			}
+			d.Set("traffic_routing_method", trafficRoutingMethod)
 
-		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
-		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
-		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
+			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
+			d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
 
-		// fqdn is actually inside DNSConfig, inlined for simpler reference
-		if dns := profile.DNSConfig; dns != nil {
-			d.Set("fqdn", dns.Fqdn)
+			trafficViewEnabled := false
+			if profile.TrafficViewEnrollmentStatus != nil {
+				trafficViewEnabled = *profile.TrafficViewEnrollmentStatus == profiles.TrafficViewEnrollmentStatusEnabled
+			}
+			d.Set("traffic_view_enabled", trafficViewEnabled)
+
+			// fqdn is actually inside DNSConfig, inlined for simpler reference
+			if dns := profile.DnsConfig; dns != nil {
+				d.Set("fqdn", dns.Fqdn)
+			}
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

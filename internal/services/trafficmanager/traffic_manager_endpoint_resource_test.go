@@ -3,12 +3,13 @@ package trafficmanager_test
 import (
 	"context"
 	"fmt"
-	"path"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -290,29 +291,29 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 }
 
 func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	endpointType := state.Attributes["type"]
-	profileName := state.Attributes["profile_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, err
+	}
+
+	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	endpointType := state.Attributes["type"]
-	profileName := state.Attributes["profile_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
-		return nil, fmt.Errorf("deleting Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
