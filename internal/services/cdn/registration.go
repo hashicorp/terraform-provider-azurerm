@@ -28,8 +28,12 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
-		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
-		"azurerm_cdn_profile":                resourceCdnProfile(),
+		"azurerm_frontdoor_profile_origin_group":  resourceFrontdoorProfileOriginGroup(),
+		"azurerm_frontdoor_profile_custom_domain": resourceFrontdoorProfileCustomDomain(),
+		"azurerm_frontdoor_profile_origin":        resourceFrontdoorProfileOrigin(),
+		"azurerm_frontdoor_profile_endpoint":      resourceFrontdoorProfileEndpoint(),
+		"azurerm_cdn_endpoint":                    resourceCdnEndpoint(),
+		"azurerm_cdn_endpoint_custom_domain":      resourceArmCdnEndpointCustomDomain(),
+		"azurerm_cdn_profile":                     resourceCdnProfile(),
 	}
 }
