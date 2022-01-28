@@ -27,7 +27,7 @@ type OutputFunctionResourceModel struct {
 	ResourceGroup      string `tfschema:"resource_group_name"`
 	FunctionApp        string `tfschema:"function_app"`
 	FunctionName       string `tfschema:"function_name"`
-	//ApiKey string `tfschema:"api_key"`
+	ApiKey             string `tfschema:"api_key"`
 	BatchMaxInBytes    int    `tfschema:"batch_max_in_bytes"`
 	BatchMaxCount      int    `tfschema:"batch_max_count"`
 }
@@ -62,21 +62,23 @@ func (r OutputFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		//"api_key": {
-		//	Type:         pluginsdk.TypeString,
-		//	Required:     true,
-		//	Sensitive: true,
-		//	ValidateFunc: validation.StringIsNotEmpty,
-		//},
+		"api_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"batch_max_in_bytes": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
+			Default:  262144, // 256kB
 		},
 
 		"batch_max_count": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
+			Default:  100,
 		},
 	}
 }
@@ -123,7 +125,7 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 			functionOutputProps := &streamanalytics.AzureFunctionOutputDataSourceProperties{
 				FunctionAppName: utils.String(model.FunctionApp),
 				FunctionName:    utils.String(model.FunctionName),
-				APIKey: nil,
+				APIKey:          utils.String(model.ApiKey),
 				MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
 				MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
 			}
@@ -183,7 +185,7 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 					StreamAnalyticsJob: id.StreamingjobName,
 					FunctionApp:        *v.FunctionAppName,
 					FunctionName:       *v.FunctionName,
-					//ApiKey: metadata.ResourceData.Get("api_key").(string),
+					ApiKey:             metadata.ResourceData.Get("api_key").(string),
 					BatchMaxInBytes:    int(*v.MaxBatchSize),
 					BatchMaxCount:      int(*v.MaxBatchCount),
 				}
@@ -217,7 +219,7 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(state.FunctionApp),
 							FunctionName:    utils.String(state.FunctionName),
-							APIKey: nil,
+							APIKey:          utils.String(state.ApiKey),
 							MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
 							MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
 						},

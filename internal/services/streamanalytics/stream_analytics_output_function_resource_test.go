@@ -26,7 +26,22 @@ func TestAccStreamAnalyticsOutputFunction_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("api_key"),
+	})
+}
+
+func TestAccStreamAnalyticsOutputFunction_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_function", "test")
+	r := StreamAnalyticsOutputFunctionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("api_key"),
 	})
 }
 
@@ -41,13 +56,14 @@ func TestAccStreamAnalyticsOutputFunction_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("api_key"),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("api_key"),
 	})
 }
 
@@ -91,9 +107,27 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app = azurerm_function_app.test.name
-  function_name = "test"
-  batch_max_in_bytes = 128
+  function_app              = azurerm_function_app.test.name
+  function_name             = "somefunctionname"
+  api_key                   = "test"
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputFunctionResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_function" "test" {
+  name                      = "acctestoutput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  function_app              = azurerm_function_app.test.name
+  function_name             = "somefunctionname"
+  api_key                   = "test"
+  batch_max_in_bytes        = 128
+  batch_max_count           = 200
 }
 `, template, data.RandomInteger)
 }
@@ -103,31 +137,16 @@ func (r StreamAnalyticsOutputFunctionResource) updated(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_account" "updated" {
-  name                     = "acctestaccu%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_table" "updated" {
-  name                 = "accteststu%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
 resource "azurerm_stream_analytics_output_function" "test" {
-  name                      = "acctestoutput-%[3]d"
+  name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key       = azurerm_storage_account.updated.primary_access_key
-  table                     = "updated"
-  partition_key             = "partitionkeyupdated"
-  row_key                   = "rowkeyupdated"
-  batch_size                = 50
+  function_app              = azurerm_function_app.test.name
+  function_name             = "adifferentfunctionname"
+  api_key                   = "withanewkey!"
+  batch_max_in_bytes        = 128
 }
-`, template, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) requiresImport(data acceptance.TestData) string {
@@ -139,12 +158,9 @@ resource "azurerm_stream_analytics_output_function" "import" {
   name                      = azurerm_stream_analytics_output_function.test.name
   stream_analytics_job_name = azurerm_stream_analytics_output_function.test.stream_analytics_job_name
   resource_group_name       = azurerm_stream_analytics_output_function.test.resource_group_name
-  storage_account_name      = azurerm_stream_analytics_output_function.test.storage_account_name
-  storage_account_key       = azurerm_stream_analytics_output_function.test.storage_account_key
-  table                     = azurerm_stream_analytics_output_function.test.table
-  partition_key             = azurerm_stream_analytics_output_function.test.partition_key
-  row_key                   = azurerm_stream_analytics_output_function.test.row_key
-  batch_size                = azurerm_stream_analytics_output_function.test.batch_size
+  function_app              = azurerm_stream_analytics_output_function.test.function_app
+  function_name             = azurerm_stream_analytics_output_function.test.function_name
+  api_key                   = azurerm_stream_analytics_output_function.test.api_key
 }
 `, template)
 }
@@ -172,7 +188,7 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestplan-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "Linux"
+  kind                = "FunctionApp"
   reserved            = true
 
   sku {
