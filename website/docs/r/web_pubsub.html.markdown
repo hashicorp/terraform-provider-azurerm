@@ -24,7 +24,7 @@ resource "azurerm_web_pubsub" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   sku      = "Standard_S1"
-  capactiy = 1
+  capacity = 1
 
   public_network_access_enabled = false
 
