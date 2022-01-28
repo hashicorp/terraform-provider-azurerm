@@ -232,7 +232,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 		{
 			Config: r.complete2(data, "9.6"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -246,7 +246,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 	})
 }
 
@@ -267,7 +267,7 @@ func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 	})
 }
 
@@ -710,9 +710,7 @@ resource "azurerm_postgresql_server" "test" {
   public_network_access_enabled     = false
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
-  tags = {
-    "ENV" = "test"
-  }
+
   threat_detection_policy {
     enabled                    = true
     disabled_alerts            = ["Sql_Injection", "Data_Exfiltration"]
@@ -720,6 +718,9 @@ resource "azurerm_postgresql_server" "test" {
     email_addresses            = ["kt@example.com", "admin@example.com"]
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
     retention_days             = 7
+  }
+  tags = {
+    "ENV" = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
