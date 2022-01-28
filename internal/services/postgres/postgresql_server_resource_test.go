@@ -183,7 +183,7 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 	})
 }
 
@@ -463,20 +463,6 @@ func TestMinTlsVersionOnServerUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPostgreSQLServer_withStorage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	r := PostgreSQLServerResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withStorage(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
-	})
-}
-
 func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -692,6 +678,18 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acct%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -712,14 +710,16 @@ resource "azurerm_postgresql_server" "test" {
   public_network_access_enabled     = false
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
-
+  tags = {
+    "ENV" = "test"
+  }
   threat_detection_policy {
-    enabled              = true
-    disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
-    email_account_admins = true
-    email_addresses      = ["kt@example.com", "admin@example.com"]
-
-    retention_days = 7
+    enabled                    = true
+    disabled_alerts            = ["Sql_Injection", "Data_Exfiltration"]
+    email_account_admins       = true
+    email_addresses            = ["kt@example.com", "admin@example.com"]
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    retention_days             = 7
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1041,62 +1041,4 @@ resource "azurerm_postgresql_server" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
-}
-
-func (PostgreSQLServerResource) withStorage(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!updated"
-
-  sku_name   = "GP_Gen5_4"
-  version    = "9.6"
-  storage_mb = 640000
-
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = true
-  auto_grow_enabled            = true
-
-  infrastructure_encryption_enabled = true
-  public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
-  tags = {
-    "ENV" = "test"
-  }
-  threat_detection_policy {
-    enabled                    = true
-    disabled_alerts            = ["Sql_Injection", "Data_Exfiltration"]
-    email_account_admins       = true
-    email_addresses            = ["kt@example.com", "admin@example.com"]
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
-    retention_days             = 7
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
