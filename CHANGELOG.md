@@ -9,8 +9,11 @@ UPGRADE NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_linux_function_app` [GH-15009]
-* **New Data Source/ Resource:** `azurerm_web_pubsub` resource and data source, and `azurerm_web_pubsub_hub` resource [GH-14731]
-* **New resource:** `azurerm_virtual_desktop_host_pool_registration_info` [GH-14134]
+* **New Data Source* `azurerm_web_pubsub` [GH-14731]
+* **New Data Source* `azurerm_web_pubsub_hub` [GH-14731]
+* **New Resource:** `azurerm_web_pubsub` [GH-14731]
+* **New Resource:** `azurerm_web_pubsub_hub` [GH-14731]
+* **New Resource:** `azurerm_virtual_desktop_host_pool_registration_info` [GH-14134]
 
 ENHANCEMENTS:
 
@@ -18,19 +21,19 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
 * dependencies: updating `kusto` to API Version `2021-08-27` [GH-15040]
 * provider: opt-in support for v2 authentication tokens via the `use_msal` provider property [GH-14403]
-* `azurerm_app_service_slot`- Add `storage_account` block support [GH-15084]
-* `azurerm_stream_analytics_stream_input_eventhub` - Support for `partition_key` [GH-15019]
+* `azurerm_app_service_slot`- support for the `storage_account` block [GH-15084]
+* `azurerm_stream_analytics_stream_input_eventhub` - support for the `partition_key` property [GH-15019]
 
 BUG FIXES:
 
-* `data.image_source` - Fix regression around id [GH-15119]
-* `azurerm_api_management_backend` Fix crash around `backend_credentials` [GH-15123]
-* `azurerm_api_management_policy` - fixing the Resource ID for `api_management_policy` when this was provisioned using version `2.92.0` of the Azure Provider [GH-15060]
-* `azurerm_bastion_host` - Fix crash by adding nil check for `copy_paste_enabled` [GH-15074]
-* `azurerm_dev_test_lab` - fix the unexpected diff on `key_vault_id` [GH-15054]
-* `azurerm_subscription_cost_management_export` - fix the update method by sending the ETag when updating a cost management export [GH-15017]
-* `azurerm_template_deployment` - fixing a bug during deletion of the template deployment [GH-15085]
-* `azurerm_eventhub` - `partition_count` can now be changed when using Premium `sku` [GH-15088]
+* `data.image_source` - fix a regression around `id` [GH-15119]
+* `azurerm_api_management_backend` fix a crash caused by `backend_credentials` [GH-15123]
+* `azurerm_api_management_policy` - fixing the Resource ID for the `api_management_policy` block when this was provisioned using version `2.92.0` of the Azure Provider [GH-15060]
+* `azurerm_bastion_host` - fix a crash by adding nil check for the `copy_paste_enabled` property [GH-15074]
+* `azurerm_dev_test_lab` - fix an unexpected diff on with the `key_vault_id` property [GH-15054]
+* `azurerm_subscription_cost_management_export` - now sents the `ETag` when updating a cost management export [GH-15017]
+* `azurerm_template_deployment` - fixes a potential bug occuring during the deletion of a template deployment [GH-15085]
+* `azurerm_eventhub` - the `partition_count` property can now be changed when using Premium `sku` [GH-15088]
 
 ## 2.93.1 (January 24, 2022)
 
