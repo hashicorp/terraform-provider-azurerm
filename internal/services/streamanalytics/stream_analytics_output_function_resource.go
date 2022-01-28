@@ -122,20 +122,18 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			functionOutputProps := &streamanalytics.AzureFunctionOutputDataSourceProperties{
-				FunctionAppName: utils.String(model.FunctionApp),
-				FunctionName:    utils.String(model.FunctionName),
-				APIKey:          utils.String(model.ApiKey),
-				MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
-				MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
-			}
-
 			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
 						Type:                                    streamanalytics.TypeMicrosoftAzureFunction,
-						AzureFunctionOutputDataSourceProperties: functionOutputProps,
+						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
+							FunctionAppName: utils.String(model.FunctionApp),
+							FunctionName:    utils.String(model.FunctionName),
+							APIKey:          utils.String(model.ApiKey),
+							MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
+							MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
+						},
 					},
 				},
 			}
