@@ -2,7 +2,9 @@
 
 UPGRADE NOTES:
 
+* provider: support for the Azure German cloud has been removed in this release as this environment is no longer operational [GH-14403]
 * `azurerm_api_management_policy` - resources that were created with v2.92.0 will be marked as tainted due to a [bug](https://github.com/hashicorp/terraform-provider-azurerm/issues/15042). This version addresses the underlying issue, but the actual resource needs to either be untainted (via `terraform untaint`) or allow Terraform to delete the resource and create it again.
+* `azurerm_hdinsight_kafka_cluster` - the `security_group_name` property in the `rest_proxy` block is conditionally required when the `use_msal` provider property is enabled [GH-14403]
 
 FEATURES:
 
@@ -15,6 +17,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v61.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15080]
 * dependencies: updating to `v0.21.0` of `github.com/hashicorp/go-azure-helpers` [GH-15043]
 * dependencies: updating `kusto` to API Version `2021-08-27` [GH-15040]
+* provider: opt-in support for v2 authentication tokens via the `use_msal` provider property [GH-14403]
 * `azurerm_app_service_slot`- Add `storage_account` block support [GH-15084]
 * `azurerm_stream_analytics_stream_input_eventhub` - Support for `partition_key` [GH-15019]
 
