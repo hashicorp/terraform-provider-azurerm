@@ -344,7 +344,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			stopCtx = ctx
 		}
 
-		client, err := clients.Build(stopCtx, clientBuilder)
+		client, err := clients.Build(stopCtx, clientBuilder, builder.ClientSecret)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}

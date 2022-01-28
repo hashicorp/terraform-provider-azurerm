@@ -28,7 +28,7 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 		// this test intentionally checks all the RP's are registered - so this is intentional
 		SkipProviderRegistration: true,
 	}
-	armClient, err := clients.Build(context.Background(), builder)
+	armClient, err := clients.Build(context.Background(), builder, "")
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}

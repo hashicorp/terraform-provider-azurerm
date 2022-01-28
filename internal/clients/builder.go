@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	keyvaultAuthHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helper"
 )
 
 type ClientBuilder struct {
@@ -40,7 +41,7 @@ Terraform instead offers a separate "azurestack" provider which supports the fun
 and APIs available in Azure Stack via Azure Stack Profiles.
 `
 
-func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
+func Build(ctx context.Context, builder ClientBuilder, clientSecret string) (*Client, error) {
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
 	if strings.EqualFold(builder.AuthConfig.Environment, "AZURESTACKCLOUD") {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
@@ -157,6 +158,9 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		}
 
 		keyVaultAuth = builder.AuthConfig.ADALBearerAuthorizerCallback(ctx, sender, oauthConfig)
+		if len(builder.AuthConfig.AuxiliaryTenantIDs) > 0 {
+			keyVaultAuth = keyvaultAuthHelper.CustomMultiTenantBearerAuthorizer(ctx, sender, oauthConfig, builder.AuthConfig.ClientID, clientSecret)
+		}
 
 		// Helper for obtaining endpoint-specific tokens
 		tokenFunc = func(endpoint string) (autorest.Authorizer, error) {

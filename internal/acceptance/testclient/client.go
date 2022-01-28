@@ -49,7 +49,7 @@ func Build() (*clients.Client, error) {
 			Features:                 features.Default(),
 			StorageUseAzureAD:        false,
 		}
-		client, err := clients.Build(context.TODO(), clientBuilder)
+		client, err := clients.Build(context.TODO(), clientBuilder, builder.ClientSecret)
 		if err != nil {
 			return nil, err
 		}
