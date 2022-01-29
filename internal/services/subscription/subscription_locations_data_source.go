@@ -98,10 +98,8 @@ func flattenSubscriptionLocations(input *[]subscriptions.Location) []interface{}
 			if item.Metadata != nil && item.Metadata.HomeLocation != nil {
 				location = *item.Metadata.HomeLocation
 			}
-		} else {
-			if v := item.Name; v != nil {
-				location = *v
-			}
+		} else if v := item.Name; v != nil {
+			location = *v
 		}
 
 		results = append(results, map[string]interface{}{
