@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -30,6 +32,8 @@ func resourceArmTrafficManagerNestedEndpoint() *pluginsdk.Resource {
 			_, err := endpoints.ParseEndpointTypeID(id)
 			return err
 		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favor of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint'."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

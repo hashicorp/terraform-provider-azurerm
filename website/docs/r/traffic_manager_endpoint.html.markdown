@@ -10,6 +10,8 @@ description: |-
 
 Manages a Traffic Manager Endpoint.
 
+~> **NOTE:** This resource is being **deprecated** and split out into `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint`, or `azurerm_traffic_manager_nested_endpoint`.
+
 ## Example Usage
 
 ```hcl
