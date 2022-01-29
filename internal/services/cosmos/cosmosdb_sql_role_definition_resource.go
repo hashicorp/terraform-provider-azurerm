@@ -2,11 +2,11 @@ package cosmos
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

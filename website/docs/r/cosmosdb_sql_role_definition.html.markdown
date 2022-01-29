@@ -38,10 +38,10 @@ resource "azurerm_cosmosdb_account" "example" {
 }
 
 resource "azurerm_cosmosdb_sql_role_definition" "example" {
-  name                = "84cf3a8b-4122-4448-bce2-fa423cfe0a15"
+  role_definition_id  = "84cf3a8b-4122-4448-bce2-fa423cfe0a15"
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_cosmosdb_account.example.name
-  role_name           = "acctestsqlrole"
+  name                = "acctestsqlrole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}/dbs/sales"]
 
   permissions {
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `permissions` - (Required) A `permissions` block as defined below.
 
-* `role_definition_id` - (Optional) The unique UUID/GUID which identifies this Cosmos DB SQL Role Definition - one will be generated if not specified. Changing this forces a new resource to be created.
+* `role_definition_id` - (Optional) The GUID as the name of the Cosmos DB SQL Role Definition - one will be generated if not specified. Changing this forces a new resource to be created.
 
 * `type` - (Optional) The type of the Cosmos DB SQL Role Definition. Possible values are `BuiltInRole` and `CustomRole`. Defaults to `CustomRole`. Changing this forces a new resource to be created.
 
@@ -83,8 +83,6 @@ A `permissions` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Cosmos DB SQL Role Definition.
-
-* `role_definition_id` - The unique UUID/GUID which identifies this Cosmos DB SQL Role Definition.
 
 ## Timeouts
 
