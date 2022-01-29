@@ -64,8 +64,6 @@ resource "azurerm_cosmosdb_sql_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The GUID as the name of the Cosmos DB SQL Role Assignment. Changing this forces a new resource to be created.
-
 * `resource_group_name` - (Required) The name of the Resource Group in which the Cosmos DB SQL Role Assignment is created. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Cosmos DB Account. Changing this forces a new resource to be created.
@@ -75,6 +73,8 @@ The following arguments are supported:
 * `role_definition_id` - (Required) The resource ID of the Cosmos DB SQL Role Definition.
 
 * `scope` - (Required) The data plane resource path for which access is being granted through this Cosmos DB SQL Role Assignment. Changing this forces a new resource to be created.
+
+* `name` - (Optional) The GUID as the name of the Cosmos DB SQL Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

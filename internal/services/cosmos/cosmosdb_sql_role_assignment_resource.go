@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,9 +20,9 @@ import (
 
 func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleAssignmentCreateUpdate,
+		Create: resourceCosmosDbSQLRoleAssignmentCreate,
 		Read:   resourceCosmosDbSQLRoleAssignmentRead,
-		Update: resourceCosmosDbSQLRoleAssignmentCreateUpdate,
+		Update: resourceCosmosDbSQLRoleAssignmentUpdate,
 		Delete: resourceCosmosDbSQLRoleAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -39,7 +40,8 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -60,44 +62,51 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"role_definition_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				// Add validation to validate the resource id of sql role definition
-			},
-
 			"scope": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"role_definition_id": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// Add validation to validate the resource id of sql role definition
+			},
 		},
 	}
 }
 
-func resourceCosmosDbSQLRoleAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cosmos.SqlResourceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
+	if name == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("generating UUID for Cosmos DB SQL Role Assignment: %+v", err)
+		}
+
+		name = uuid
+	}
+
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
 	id := parse.NewSqlRoleAssignmentID(subscriptionId, resourceGroup, accountName, name)
 
-	if d.IsNewResource() {
-		existing, err := client.GetSQLRoleAssignment(ctx, name, resourceGroup, accountName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.GetSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_role_assignment", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_role_assignment", id.ID())
 	}
 
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
@@ -108,7 +117,7 @@ func resourceCosmosDbSQLRoleAssignmentCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	future, err := client.CreateUpdateSQLRoleAssignment(ctx, name, resourceGroup, accountName, parameters)
+	future, err := client.CreateUpdateSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -153,6 +162,37 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cosmos.SqlResourceClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SqlRoleAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
+		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
+			PrincipalID:      utils.String(d.Get("principal_id").(string)),
+			RoleDefinitionID: utils.String(d.Get("role_definition_id").(string)),
+			Scope:            utils.String(d.Get("scope").(string)),
+		},
+	}
+
+	future, err := client.CreateUpdateSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName, parameters)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the completion of the updating of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceCosmosDbSQLRoleAssignmentRead(d, meta)
 }
 
 func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {

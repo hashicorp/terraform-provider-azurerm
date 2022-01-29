@@ -19,11 +19,10 @@ type CosmosDbSQLRoleAssignmentResource struct{}
 func TestAccCosmosDbSQLRoleAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_assignment", "test")
 	r := CosmosDbSQLRoleAssignmentResource{}
-	roleAssignmentId := uuid.New().String()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, roleAssignmentId),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -35,19 +34,15 @@ func TestAccCosmosDbSQLRoleAssignment_basic(t *testing.T) {
 func TestAccCosmosDbSQLRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_assignment", "test")
 	r := CosmosDbSQLRoleAssignmentResource{}
-	roleAssignmentId := uuid.New().String()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, roleAssignmentId),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data, roleAssignmentId),
-			ExpectError: acceptance.RequiresImportError("azurerm_cosmosdb_sql_role_assignment"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -58,7 +53,7 @@ func TestAccCosmosDbSQLRoleAssignment_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, roleAssignmentId),
+			Config: r.complete(data, roleAssignmentId),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -72,7 +67,7 @@ func TestAccCosmosDbSQLRoleAssignment_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, roleAssignmentId),
+			Config: r.complete(data, roleAssignmentId),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -142,7 +137,36 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, uuid.New().String(), data.RandomString)
 }
 
-func (r CosmosDbSQLRoleAssignmentResource) basic(data acceptance.TestData, roleAssignmentId string) string {
+func (r CosmosDbSQLRoleAssignmentResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_sql_role_assignment" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_cosmosdb_account.test.name
+  role_definition_id  = azurerm_cosmosdb_sql_role_definition.test.id
+  principal_id        = data.azurerm_client_config.current.object_id
+  scope               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"
+}
+`, r.template(data))
+}
+
+func (r CosmosDbSQLRoleAssignmentResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_sql_role_assignment" "import" {
+  name                = azurerm_cosmosdb_sql_role_assignment.test.name
+  resource_group_name = azurerm_cosmosdb_sql_role_assignment.test.resource_group_name
+  account_name        = azurerm_cosmosdb_sql_role_assignment.test.account_name
+  role_definition_id  = azurerm_cosmosdb_sql_role_assignment.test.role_definition_id
+  principal_id        = azurerm_cosmosdb_sql_role_assignment.test.principal_id
+  scope               = azurerm_cosmosdb_sql_role_assignment.test.scope
+}
+`, r.basic(data))
+}
+
+func (r CosmosDbSQLRoleAssignmentResource) complete(data acceptance.TestData, roleAssignmentId string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,21 +179,6 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test" {
   scope               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"
 }
 `, r.template(data), roleAssignmentId)
-}
-
-func (r CosmosDbSQLRoleAssignmentResource) requiresImport(data acceptance.TestData, roleAssignmentId string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cosmosdb_sql_role_assignment" "import" {
-  name                = azurerm_cosmosdb_sql_role_assignment.test.name
-  resource_group_name = azurerm_cosmosdb_sql_role_assignment.test.resource_group_name
-  account_name        = azurerm_cosmosdb_sql_role_assignment.test.account_name
-  role_definition_id  = azurerm_cosmosdb_sql_role_assignment.test.role_definition_id
-  principal_id        = azurerm_cosmosdb_sql_role_assignment.test.principal_id
-  scope               = azurerm_cosmosdb_sql_role_assignment.test.scope
-}
-`, r.basic(data, roleAssignmentId))
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) update(data acceptance.TestData, roleAssignmentId string) string {
