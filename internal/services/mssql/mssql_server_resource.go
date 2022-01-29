@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,6 +66,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					"2.0",
 					"12.0",
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"administrator_login": {

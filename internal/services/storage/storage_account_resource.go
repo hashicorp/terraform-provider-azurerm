@@ -100,7 +100,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
 				}, true),
-				Default: string(storage.KindStorageV2),
+				DiffSuppressFunc: suppress.CaseDifference,
+				Default:          string(storage.KindStorageV2),
 			},
 
 			"account_tier": {
@@ -137,6 +138,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.AccessTierCool),
 					string(storage.AccessTierHot),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"azure_files_authentication": {
@@ -291,6 +293,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									string(storage.BypassMetrics),
 									string(storage.BypassNone),
 								}, true),
+								DiffSuppressFunc: suppress.CaseDifference,
 							},
 							Set: pluginsdk.HashString,
 						},

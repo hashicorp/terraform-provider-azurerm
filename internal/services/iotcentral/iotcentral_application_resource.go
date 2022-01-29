@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -78,7 +79,8 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 					string(iotcentral.ST1),
 					string(iotcentral.ST2),
 				}, true),
-				Default: iotcentral.ST1,
+				Default:          iotcentral.ST1,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,

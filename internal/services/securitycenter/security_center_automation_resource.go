@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -95,6 +96,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogAnalytics,
 								typeEventHub,
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"resource_id": {
@@ -174,6 +176,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.NotEquals),
 														string(security.StartsWith),
 													}, true),
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"property_type": {
 													Type:     pluginsdk.TypeString,
@@ -184,6 +187,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.Boolean),
 														string(security.Number),
 													}, true),
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 											},
 										},

@@ -181,6 +181,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 					// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
 					string(Enterprise),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"discovery_url": {

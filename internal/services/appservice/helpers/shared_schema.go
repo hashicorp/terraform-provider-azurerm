@@ -10,6 +10,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -276,6 +277,7 @@ func IdentitySchema() *pluginsdk.Schema {
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"principal_id": {

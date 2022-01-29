@@ -221,6 +221,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(compute.VirtualMachinePriorityTypesLow),
 					string(compute.VirtualMachinePriorityTypesRegular),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"eviction_policy": {
@@ -587,6 +588,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"caching": {
@@ -646,6 +648,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},

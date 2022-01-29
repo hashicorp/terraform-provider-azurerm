@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -54,6 +55,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 					string(policy.TypeNotSpecified),
 					string(policy.TypeStatic),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"mode": {

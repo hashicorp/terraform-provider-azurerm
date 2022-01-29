@@ -60,6 +60,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 					"2.0",
 					"12.0",
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"administrator_login": {

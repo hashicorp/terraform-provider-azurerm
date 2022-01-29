@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -93,6 +94,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 					string(sql.SecurityAlertPolicyStateEnabled),
 					string(sql.SecurityAlertPolicyStateNew),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_account_access_key": {

@@ -112,6 +112,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 					string(media.StorageAuthenticationSystem),
 					string(media.StorageAuthenticationManagedIdentity),
 				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"key_delivery_access_control": {
@@ -128,6 +129,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 								string(media.DefaultActionDeny),
 								string(media.DefaultActionAllow),
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"ip_allow_list": {

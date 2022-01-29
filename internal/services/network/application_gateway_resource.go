@@ -618,6 +618,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 											string(network.IPAllocationMethodDynamic),
 											string(network.IPAllocationMethodStatic),
 										}, true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
 									"primary": {

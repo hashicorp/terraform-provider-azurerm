@@ -275,6 +275,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"image_uri": {
@@ -349,6 +350,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardSSDLRS),
 								string(compute.StorageAccountTypesUltraSSDLRS),
 							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"create_option": {
