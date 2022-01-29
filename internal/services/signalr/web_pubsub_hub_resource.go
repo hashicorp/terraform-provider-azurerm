@@ -1,4 +1,4 @@
-package webpubsub
+package signalr
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -111,7 +111,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 }
 
 func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubHubsClient
+	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubHubsClient
+	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -189,7 +189,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Webpubsub.WebPubsubHubsClient
+	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

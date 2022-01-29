@@ -1,4 +1,4 @@
-package webpubsub_test
+package signalr_test
 
 import (
 	"context"
@@ -8,16 +8,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WebpubsubResource struct{}
+type WebPubsubResource struct{}
 
-func TestAccWebpubsub_basic(t *testing.T) {
+func TestAccWebPubsub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +37,9 @@ func TestAccWebpubsub_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_complete(t *testing.T) {
+func TestAccWebPubsub_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,9 +59,9 @@ func TestAccWebpubsub_complete(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_requiresImport(t *testing.T) {
+func TestAccWebPubsub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,9 +74,9 @@ func TestAccWebpubsub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_standard(t *testing.T) {
+func TestAccWebPubsub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,9 +110,9 @@ func TestAccWebpubsub_standard(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_skuUpdate(t *testing.T) {
+func TestAccWebPubsub_skuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,9 +166,9 @@ func TestAccWebpubsub_skuUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_withPropertyUpdate(t *testing.T) {
+func TestAccWebPubsub_withPropertyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
-	r := WebpubsubResource{}
+	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -202,12 +202,12 @@ func TestAccWebpubsub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func (r WebpubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebPubsubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Webpubsub.WebPubsubClient.Get(ctx, id.ResourceGroup, id.WebPubSubName)
+	resp, err := client.SignalR.WebPubsubClient.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -217,7 +217,7 @@ func (r WebpubsubResource) Exists(ctx context.Context, client *clients.Client, s
 	return utils.Bool(true), nil
 }
 
-func (r WebpubsubResource) basic(data acceptance.TestData) string {
+func (r WebPubsubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -231,7 +231,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WebpubsubResource) complete(data acceptance.TestData) string {
+func (r WebPubsubResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -259,7 +259,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WebpubsubResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -274,7 +274,7 @@ resource "azurerm_web_pubsub" "import" {
 `, r.basic(data))
 }
 
-func (r WebpubsubResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
+func (r WebPubsubResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -289,7 +289,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger, capacity)
 }
 
-func (r WebpubsubResource) propertyUpdate(data acceptance.TestData) string {
+func (r WebPubsubResource) propertyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -316,7 +316,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WebpubsubResource) template(data acceptance.TestData) string {
+func (r WebPubsubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

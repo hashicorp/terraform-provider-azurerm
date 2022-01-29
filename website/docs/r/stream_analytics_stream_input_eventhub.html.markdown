@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `partition_key` - (Optional) The property the input Event Hub has been partitioned by.
+
 * `eventhub_consumer_group_name` - (Optional) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub. If not set the input will use the Event Hub's default consumer group. 
 
 ---

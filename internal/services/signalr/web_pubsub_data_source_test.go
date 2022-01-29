@@ -1,4 +1,4 @@
-package webpubsub_test
+package signalr_test
 
 import (
 	"fmt"

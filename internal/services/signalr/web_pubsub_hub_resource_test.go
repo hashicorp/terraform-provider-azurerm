@@ -1,4 +1,4 @@
-package webpubsub_test
+package signalr_test
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebPubsubHubResource struct{}
 
-func TestAccWebpubsubHub_basic(t *testing.T) {
+func TestAccWebPubsubHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -29,7 +29,7 @@ func TestAccWebpubsubHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_requiresImport(t *testing.T) {
+func TestAccWebPubsubHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -44,7 +44,7 @@ func TestAccWebpubsubHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_complete(t *testing.T) {
+func TestAccWebPubsubHub_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -58,7 +58,7 @@ func TestAccWebpubsubHub_complete(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -80,7 +80,7 @@ func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_withPropertyUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -102,7 +102,7 @@ func TestAccWebpubsubHub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -128,7 +128,7 @@ func (r WebPubsubHubResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Webpubsub.WebPubsubHubsClient.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
+	resp, err := clients.SignalR.WebPubsubHubsClient.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

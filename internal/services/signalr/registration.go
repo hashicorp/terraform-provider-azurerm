@@ -15,6 +15,7 @@ func (r Registration) Name() string {
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Messaging",
+		"Web PubSub",
 	}
 }
 
@@ -22,6 +23,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_signalr_service": dataSourceArmSignalRService(),
+		"azurerm_web_pubsub":      dataSourceWebPubsub(),
 	}
 }
 
@@ -30,5 +32,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_signalr_service":             resourceArmSignalRService(),
 		"azurerm_signalr_service_network_acl": resourceArmSignalRServiceNetworkACL(),
+		"azurerm_web_pubsub":                  resourceWebPubSub(),
+		"azurerm_web_pubsub_hub":              resourceWebPubsubHub(),
 	}
 }

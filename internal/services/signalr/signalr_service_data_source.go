@@ -85,7 +85,7 @@ func dataSourceArmSignalRService() *pluginsdk.Resource {
 }
 
 func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
