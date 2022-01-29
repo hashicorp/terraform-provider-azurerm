@@ -16,7 +16,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
 
 // CheckResourceNameResult resource Name valid if not a reserved word, does not contain a reserved word and
 // does not start with a reserved word
@@ -26,22 +26,48 @@ type CheckResourceNameResult struct {
 	Name *string `json:"name,omitempty"`
 	// Type - Type of Resource
 	Type *string `json:"type,omitempty"`
-	// Status - Is the resource name Allowed or Reserved. Possible values include: 'Allowed', 'Reserved'
+	// Status - Is the resource name Allowed or Reserved. Possible values include: 'ResourceNameStatusAllowed', 'ResourceNameStatusReserved'
 	Status ResourceNameStatus `json:"status,omitempty"`
 }
 
-// ErrorDefinition error description and code explaining why resource name is invalid.
-type ErrorDefinition struct {
-	// Message - Description of the error.
-	Message *string `json:"message,omitempty"`
-	// Code - Code of the error.
-	Code *string `json:"code,omitempty"`
+// CloudError an error response for a resource management request.
+type CloudError struct {
+	Error *ErrorResponse `json:"error,omitempty"`
 }
 
-// ErrorResponse error response.
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.)
 type ErrorResponse struct {
-	// Error - The error details.
-	Error *ErrorDefinition `json:"error,omitempty"`
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorResponse `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ListResult subscription list operation response.
@@ -211,6 +237,8 @@ type Location struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 	// Name - READ-ONLY; The location name.
 	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The location type. Possible values include: 'LocationTypeRegion', 'LocationTypeEdgeZone'
+	Type LocationType `json:"type,omitempty"`
 	// DisplayName - READ-ONLY; The display name of the location.
 	DisplayName *string `json:"displayName,omitempty"`
 	// RegionalDisplayName - READ-ONLY; The display name of the location and its region.
@@ -237,9 +265,9 @@ type LocationListResult struct {
 
 // LocationMetadata location metadata information
 type LocationMetadata struct {
-	// RegionType - READ-ONLY; The type of the region. Possible values include: 'Physical', 'Logical'
+	// RegionType - READ-ONLY; The type of the region. Possible values include: 'RegionTypePhysical', 'RegionTypeLogical'
 	RegionType RegionType `json:"regionType,omitempty"`
-	// RegionCategory - READ-ONLY; The category of the region. Possible values include: 'Recommended', 'Other'
+	// RegionCategory - READ-ONLY; The category of the region. Possible values include: 'RegionCategoryRecommended', 'RegionCategoryExtended', 'RegionCategoryOther'
 	RegionCategory RegionCategory `json:"regionCategory,omitempty"`
 	// GeographyGroup - READ-ONLY; The geography group of the location.
 	GeographyGroup *string `json:"geographyGroup,omitempty"`
@@ -251,6 +279,8 @@ type LocationMetadata struct {
 	PhysicalLocation *string `json:"physicalLocation,omitempty"`
 	// PairedRegion - The regions paired to this region.
 	PairedRegion *[]PairedRegion `json:"pairedRegion,omitempty"`
+	// HomeLocation - READ-ONLY; The home location of an edge zone.
+	HomeLocation *string `json:"homeLocation,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for LocationMetadata.
@@ -476,7 +506,7 @@ type Policies struct {
 	LocationPlacementID *string `json:"locationPlacementId,omitempty"`
 	// QuotaID - READ-ONLY; The subscription quota ID.
 	QuotaID *string `json:"quotaId,omitempty"`
-	// SpendingLimit - READ-ONLY; The subscription spending limit. Possible values include: 'On', 'Off', 'CurrentPeriodOff'
+	// SpendingLimit - READ-ONLY; The subscription spending limit. Possible values include: 'SpendingLimitOn', 'SpendingLimitOff', 'SpendingLimitCurrentPeriodOff'
 	SpendingLimit SpendingLimit `json:"spendingLimit,omitempty"`
 }
 
@@ -505,7 +535,7 @@ type Subscription struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// TenantID - READ-ONLY; The subscription tenant ID.
 	TenantID *string `json:"tenantId,omitempty"`
-	// State - READ-ONLY; The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted. Possible values include: 'Enabled', 'Warned', 'PastDue', 'Disabled', 'Deleted'
+	// State - READ-ONLY; The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted. Possible values include: 'StateEnabled', 'StateWarned', 'StatePastDue', 'StateDisabled', 'StateDeleted'
 	State State `json:"state,omitempty"`
 	// SubscriptionPolicies - The subscription policies.
 	SubscriptionPolicies *Policies `json:"subscriptionPolicies,omitempty"`
@@ -541,7 +571,7 @@ type TenantIDDescription struct {
 	ID *string `json:"id,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID. For example, 00000000-0000-0000-0000-000000000000.
 	TenantID *string `json:"tenantId,omitempty"`
-	// TenantCategory - READ-ONLY; Category of the tenant. Possible values include: 'Home', 'ProjectedBy', 'ManagedBy'
+	// TenantCategory - READ-ONLY; Category of the tenant. Possible values include: 'TenantCategoryHome', 'TenantCategoryProjectedBy', 'TenantCategoryManagedBy'
 	TenantCategory TenantCategory `json:"tenantCategory,omitempty"`
 	// Country - READ-ONLY; Country/region name of the address for the tenant.
 	Country *string `json:"country,omitempty"`
@@ -551,6 +581,12 @@ type TenantIDDescription struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// Domains - READ-ONLY; The list of domains for the tenant.
 	Domains *[]string `json:"domains,omitempty"`
+	// DefaultDomain - READ-ONLY; The default domain for the tenant.
+	DefaultDomain *string `json:"defaultDomain,omitempty"`
+	// TenantType - READ-ONLY; The tenant type. Only available for 'Home' tenant category.
+	TenantType *string `json:"tenantType,omitempty"`
+	// TenantBrandingLogoURL - READ-ONLY; The tenant's branding logo URL. Only available for 'Home' tenant category.
+	TenantBrandingLogoURL *string `json:"tenantBrandingLogoUrl,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TenantIDDescription.
