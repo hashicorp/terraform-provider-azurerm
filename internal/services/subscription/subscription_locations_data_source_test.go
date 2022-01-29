@@ -34,7 +34,7 @@ data "azurerm_subscription_locations" "test" {
 }
 
 output "extended_location" {
-    value = tolist([for location in data.azurerm_subscription_locations.test.locations : location if location.type == "EdgeZone"])[0].extended_location
+  value = tolist([for location in data.azurerm_subscription_locations.test.locations : location if location.type == "EdgeZone"])[0].extended_location
 }
 `
 }
