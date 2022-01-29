@@ -141,53 +141,49 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
-  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_name           = "acctestsqlrole%s"
+  name                = "acctestsqlrole%s"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
   }
 }
-`, template, uuid.New().String(), data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_sql_role_definition" "import" {
-  name                = azurerm_cosmosdb_sql_role_definition.test.name
+  role_definition_id  = azurerm_cosmosdb_sql_role_definition.test.role_definition_id
   resource_group_name = azurerm_cosmosdb_sql_role_definition.test.resource_group_name
   account_name        = azurerm_cosmosdb_sql_role_definition.test.account_name
-  role_name           = azurerm_cosmosdb_sql_role_definition.test.role_name
+  name                = azurerm_cosmosdb_sql_role_definition.test.name
   assignable_scopes   = azurerm_cosmosdb_sql_role_definition.test.assignable_scopes
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
   }
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) complete(data acceptance.TestData, roleDefinitionId string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
-  name                = "%s"
+  role_definition_id  = "%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_name           = "acctestsqlrole%s"
+  name                = "acctestsqlrole%s"
   type                = "BuiltInRole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
 
@@ -195,19 +191,18 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
   }
 }
-`, template, roleDefinitionId, data.RandomString)
+`, r.template(data), roleDefinitionId, data.RandomString)
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) update(data acceptance.TestData, roleDefinitionId string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
-  name                = "%s"
+  role_definition_id  = "%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_name           = "acctestsqlrole2%s"
+  name                = "acctestsqlrole2%s"
   type                = "BuiltInRole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/purchases"]
 
@@ -215,5 +210,5 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"]
   }
 }
-`, template, roleDefinitionId, data.RandomString)
+`, r.template(data), roleDefinitionId, data.RandomString)
 }
