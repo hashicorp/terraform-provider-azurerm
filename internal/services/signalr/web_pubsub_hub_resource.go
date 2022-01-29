@@ -2,6 +2,7 @@ package signalr
 
 import (
 	"fmt"
+	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"strings"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,9 +90,12 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"managed_identity_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: identityValidate.UserAssignedIdentityID,
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.Any(
+											validation.IsUUID,
+											identityValidate.UserAssignedIdentityID,
+										),
 									},
 								},
 							},

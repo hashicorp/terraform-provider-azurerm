@@ -53,6 +53,8 @@ The following arguments are supported:
 * `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
   Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
