@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -498,6 +499,10 @@ func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
 }
 
 func TestAccApiManagement_removeSamples(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -2127,11 +2132,7 @@ resource "azurerm_resource_group" "test" {
 func (ApiManagementResource) removeSamples(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    api_management {
-      remove_samples_on_create = true
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

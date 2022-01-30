@@ -195,8 +195,6 @@ The `api_management` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
-* `remove_samples_on_create` - (Optional) Should the sample Products and APIs that are automatically created by Azure for new `azurerm_api_management` resources, be removed? This setting has no effect when updating an `azurerm_api_management` resource. Defaults to `false`.
-
 ---
 
 The `cognitive_account` block supports the following:
