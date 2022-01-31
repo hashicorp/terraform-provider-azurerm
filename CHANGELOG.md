@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
+* `azurerm_static_site` - fixing the creation of a Free tier Static Site [GH-15141]
 
 ## 2.94.0 (January 28, 2022)
 
