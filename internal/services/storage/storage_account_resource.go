@@ -233,7 +233,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(storage.MinimumTLSVersionTLS12)
 					}
 					return string(storage.MinimumTLSVersionTLS10)
