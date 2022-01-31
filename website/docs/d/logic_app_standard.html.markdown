@@ -14,8 +14,8 @@ Use this data source to access information about an existing Logic App Standard 
 
 ```hcl
 data "azurerm_logic_app_standard" "example" {
-  name = "existing"
-  resource_group_name = "existing"
+  name                = "logicappstd"
+  resource_group_name = "example-rg"
 }
 
 output "id" {
