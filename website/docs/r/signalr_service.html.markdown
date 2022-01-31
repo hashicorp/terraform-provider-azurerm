@@ -32,8 +32,8 @@ resource "azurerm_signalr_service" "example" {
     allowed_origins = ["http://www.example.com"]
   }
 
-  connectivity_logs_enabled = "True"
-  messaging_logs_enabled    = "True"
+  connectivity_logs_enabled = true
+  messaging_logs_enabled    = true
   service_mode              = "Default"
 
   upstream_endpoint {
