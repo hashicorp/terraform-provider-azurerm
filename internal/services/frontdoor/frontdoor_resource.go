@@ -101,7 +101,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 				Deprecated: "Due to the service's API changing 'location' must now always be set to 'Global' for new resources, however if the Front Door service was created prior 2020/03/10 it may continue to exist in a specific current location",
 			},
 
-			"resource_group_name": commonschema.Location(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"routing_rule": {
 				Type:     pluginsdk.TypeList,
