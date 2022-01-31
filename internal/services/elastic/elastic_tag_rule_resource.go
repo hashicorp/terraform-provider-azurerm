@@ -181,13 +181,13 @@ func resourceElasticTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err1 := parse.ElasticTagRuleID(d.Id())
-	if err1 != nil {
-		return err1
+	id, err := parse.ElasticTagRuleID(d.Id())
+	if err != nil {
+		return err
 	}
 
-	resp, err2 := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
-	if err2 != nil {
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Elastic %q does not exist - removing from state", d.Id())
 			d.SetId("")
@@ -204,7 +204,7 @@ func resourceElasticTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
-		return fmt.Errorf("removing Tag Rules configuration from Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("removing Tag Rules configuration from %q: %+v", id, err)
 	}
 
 	return nil

@@ -89,8 +89,6 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tags.Schema(),
-
 			"elastic_cloud_user": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -152,6 +150,8 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
