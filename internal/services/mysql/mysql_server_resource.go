@@ -220,7 +220,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(mysql.TLS12)
 					}
 					return string(mysql.TLSEnforcementDisabled)
