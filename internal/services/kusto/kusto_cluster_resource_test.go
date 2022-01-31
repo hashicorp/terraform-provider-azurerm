@@ -300,7 +300,7 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is enabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -339,7 +339,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")

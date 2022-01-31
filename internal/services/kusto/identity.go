@@ -143,7 +143,7 @@ func flattenTrustedExternalTenants(input *[]kusto.TrustedExternalTenant) []inter
 
 	output := make([]interface{}, 0)
 
-	if !features.ThreePointOh() && len(*input) == 0 {
+	if !features.ThreePointOhBeta() && len(*input) == 0 {
 		return append(output, "MyTenantOnly")
 	}
 
