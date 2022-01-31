@@ -23,7 +23,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DiskPoolManagedDiskAttachmentResource{},
 	}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		resources = append(resources, StorageDisksPoolResource{})
 	}
 
