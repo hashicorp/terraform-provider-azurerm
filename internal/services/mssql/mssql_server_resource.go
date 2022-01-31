@@ -177,7 +177,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return "1.2"
 					}
 					return nil
