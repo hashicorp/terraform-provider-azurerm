@@ -1,7 +1,7 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_container_group"
+page_title: "Azure Resource Manager: azurerm_container_group"
 description: |-
   Gets information about an existing Container Group instance.
 ---
