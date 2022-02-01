@@ -304,7 +304,7 @@ func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties)
 	var systemAssigned *identity.SystemAssigned
 	if input != nil {
 		systemAssigned = &identity.SystemAssigned{
-			Type: string(input.Type),
+			Type: identity.Type(string(input.Type)),
 		}
 		if input.PrincipalID != nil {
 			systemAssigned.PrincipalId = *input.PrincipalID

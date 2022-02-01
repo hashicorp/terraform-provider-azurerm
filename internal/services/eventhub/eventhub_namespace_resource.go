@@ -600,7 +600,7 @@ func expandEventHubIdentity(input []interface{}) (*legacyIdentity.SystemUserAssi
 	}
 
 	result := legacyIdentity.SystemUserAssignedIdentityMap{
-		Type:        expanded.Type,
+		Type:        legacyIdentity.Type(string(expanded.Type)),
 		PrincipalId: &expanded.PrincipalId,
 		TenantId:    &expanded.TenantId,
 	}
@@ -614,7 +614,7 @@ func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap
 
 	legacyConfig := input.ToExpandedConfig()
 	return identity.FlattenSystemAssigned(&identity.SystemAssigned{
-		Type:        legacyConfig.Type,
+		Type:        identity.Type(string(legacyConfig.Type)),
 		PrincipalId: legacyConfig.PrincipalId,
 		TenantId:    legacyConfig.TenantId,
 	})
