@@ -353,9 +353,11 @@ func (r PostgreSQLHyperScaleServerGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			state := PostgreSQLHyperScaleServerGroupResourceModel{
-				Name:          id.ServerGroupName,
-				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
-				ResourceGroup: id.ResourceGroupName,
+				Name:                  id.ServerGroupName,
+				Location:              location.NormalizeNilable(utils.String(resp.Model.Location)),
+				ResourceGroup:         id.ResourceGroupName,
+				CreateMode:            metadata.ResourceData.Get("create_mode").(string),
+				AdministratorPassword: metadata.ResourceData.Get("administrator_login_password").(string),
 			}
 
 			if model := resp.Model; model != nil {
