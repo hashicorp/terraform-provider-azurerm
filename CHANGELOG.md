@@ -1,5 +1,9 @@
 ## 2.95.0 (Unreleased)
 
+FEATURES: 
+
+* **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
+
 BUG FIXES:
 
 * `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
