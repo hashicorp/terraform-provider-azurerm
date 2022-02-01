@@ -824,6 +824,50 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherGuestPatchEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherGuestPatchDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -847,6 +891,20 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
 			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -862,6 +920,36 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 		data.ImportStep("admin_password"),
 		{
 			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherGracefulShutdown(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherGracefulShutdown(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1002,36 +1090,6 @@ resource "azurerm_windows_virtual_machine" "test" {
   patch_mode = "AutomaticByPlatform"
 }
 `, r.template(data))
-}
-
-func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherGracefulShutdown(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherGracefulShutdown(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
 }
 
 func (r WindowsVirtualMachineResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
