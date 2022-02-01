@@ -883,27 +883,11 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T
 	})
 }
 
-// I feel this is a bug in the API since to disable this we have
-// to incrementally change that values over multiple runs
 func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
 		{
 			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -919,7 +903,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
+			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

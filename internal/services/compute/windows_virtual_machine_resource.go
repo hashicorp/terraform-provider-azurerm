@@ -481,9 +481,15 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
 	}
 
+	isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
 	// Validate VM Guest Patch Mode configuration
 	if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
 		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+	}
+
+	if isHotpatchImage && patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+		return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
 	}
 
 	// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
@@ -498,7 +504,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
 		}
 
-		if !isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId) {
+		if !isHotpatchImage {
 			if sourceImageId != "" {
 				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
 			}
