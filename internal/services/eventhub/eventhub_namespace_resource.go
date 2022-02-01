@@ -36,8 +36,6 @@ var (
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
 
-type eventhubNamespaceIdentityType = legacyIdentity.SystemAssigned
-
 func resourceEventHubNamespace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceCreateUpdate,
