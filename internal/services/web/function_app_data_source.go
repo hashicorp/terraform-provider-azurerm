@@ -272,6 +272,7 @@ func flattenFunctionAppDataSourceIdentity(input *web.ManagedServiceIdentity) (*[
 		for k := range input.UserAssignedIdentities {
 			userAssignedIdentityIds = append(userAssignedIdentityIds, k)
 		}
+		config.IdentityIds = userAssignedIdentityIds
 	}
 
 	return identity.FlattenSystemAndUserAssignedList(config)
