@@ -23,6 +23,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 		"azurerm_logic_app_integration_account": dataSourceLogicAppIntegrationAccount(),
+		"azurerm_logic_app_standard":            dataSourceLogicAppStandard(),
 	}
 }
 
