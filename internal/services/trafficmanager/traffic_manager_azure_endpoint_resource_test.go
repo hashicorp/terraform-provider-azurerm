@@ -193,7 +193,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = false
   priority            = 4
-  
+
   geo_mappings = ["WORLD"]
 
   custom_header {
@@ -246,7 +246,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
   weight              = 5
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
-  
+
   subnet {
     first = "1.2.3.0"
     scope = "24"

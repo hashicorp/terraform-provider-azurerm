@@ -234,7 +234,7 @@ resource "azurerm_traffic_manager_profile" "child" {
 resource "azurerm_traffic_manager_nested_endpoint" "test" {
   name                    = "acctestend-parent%d"
   target_resource_id      = azurerm_traffic_manager_profile.child.id
-  profile_name            = azurerm_traffic_manager_profile.parent.name
+  profile_name            = azurerm_traffic_manager_profile.test.name
   resource_group_name     = azurerm_resource_group.test.name
   minimum_child_endpoints = 5
   weight                  = 3
