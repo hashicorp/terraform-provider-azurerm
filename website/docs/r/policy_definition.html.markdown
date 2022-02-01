@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_name` - (Optional / **Deprecated in favour of `management_group_name`**) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+* `management_group_name` - (Optional / **Deprecated in favour of `management_group_id`**) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
 * `management_group_id` -  (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
