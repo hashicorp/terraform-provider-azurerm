@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdcustomdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -45,23 +49,13 @@ func resourceFrontdoorProfileCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: profiles.ValidateProfileID,
+				ValidateFunc: validate.ProfileID,
 			},
 
-			"azure_dns_zone": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
-				},
+			"azure_dns_zone_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"deployment_status": {
@@ -81,19 +75,9 @@ func resourceFrontdoorProfileCustomDomain() *pluginsdk.Resource {
 			},
 
 			"pre_validated_custom_domain_resource_id": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
-				},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"profile_name": {
@@ -117,27 +101,27 @@ func resourceFrontdoorProfileCustomDomain() *pluginsdk.Resource {
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
+							Default:  string(cdn.AfdCertificateTypeCustomerCertificate),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.AfdCertificateTypeCustomerCertificate),
+								string(cdn.AfdCertificateTypeManagedCertificate),
+							}, false),
 						},
 
 						"minimum_tls_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.AfdMinimumTLSVersionTLS10),
+								string(cdn.AfdMinimumTLSVersionTLS12),
+							}, false),
 						},
 
-						"secret": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
+						"secret_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -196,9 +180,9 @@ func resourceFrontdoorProfileCustomDomainCreate(d *pluginsdk.ResourceData, meta 
 
 	props := afdcustomdomains.AFDDomain{
 		Properties: &afdcustomdomains.AFDDomainProperties{
-			AzureDnsZone:                       expandCustomDomainResourceReference(d.Get("azure_dns_zone").([]interface{})),
+			AzureDnsZone:                       expandCustomDomainResourceReference(d.Get("azure_dns_zone").(string)),
 			HostName:                           d.Get("host_name").(string),
-			PreValidatedCustomDomainResourceId: expandCustomDomainResourceReference(d.Get("pre_validated_custom_domain_resource_id").([]interface{})),
+			PreValidatedCustomDomainResourceId: expandCustomDomainResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
 			TlsSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
 	}
@@ -319,15 +303,13 @@ func resourceFrontdoorProfileCustomDomainDelete(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func expandCustomDomainResourceReference(input []interface{}) *afdcustomdomains.ResourceReference {
-	if len(input) == 0 || input[0] == nil {
+func expandCustomDomainResourceReference(input interface{}) *afdcustomdomains.ResourceReference {
+	if input == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-
 	return &afdcustomdomains.ResourceReference{
-		Id: utils.String(v["id"].(string)),
+		Id: utils.String(input.(string)),
 	}
 }
 
@@ -343,7 +325,7 @@ func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *afdcustomd
 	return &afdcustomdomains.AFDDomainHttpsParameters{
 		CertificateType:   certificateTypeValue,
 		MinimumTlsVersion: &minimumTlsVersionValue,
-		Secret:            expandCustomDomainResourceReference(v["secret"].([]interface{})),
+		Secret:            expandCustomDomainResourceReference(v["secret_id"].(string)),
 	}
 }
 
@@ -360,7 +342,7 @@ func flattenCustomDomainAFDDomainHttpsParameters(input *afdcustomdomains.AFDDoma
 		result["minimum_tls_version"] = *input.MinimumTlsVersion
 	}
 
-	result["secret"] = flattenCustomDomainResourceReference(input.Secret)
+	result["secret_id"] = *flattenCustomDomainResourceReference(input.Secret)
 	return append(results, result)
 }
 
@@ -382,16 +364,10 @@ func flattenCustomDomainDomainValidationProperties(input *afdcustomdomains.Domai
 	return append(results, result)
 }
 
-func flattenCustomDomainResourceReference(input *afdcustomdomains.ResourceReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCustomDomainResourceReference(input *afdcustomdomains.ResourceReference) *string {
 	if input == nil {
-		return results
+		return nil
 	}
 
-	result := make(map[string]interface{})
-
-	if input.Id != nil {
-		result["id"] = *input.Id
-	}
-	return append(results, result)
+	return input.Id
 }

@@ -28,12 +28,19 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_frontdoor_profile_origin_group":  resourceFrontdoorProfileOriginGroup(),
-		"azurerm_frontdoor_profile_custom_domain": resourceFrontdoorProfileCustomDomain(),
-		"azurerm_frontdoor_profile_origin":        resourceFrontdoorProfileOrigin(),
-		"azurerm_frontdoor_profile_endpoint":      resourceFrontdoorProfileEndpoint(),
-		"azurerm_cdn_endpoint":                    resourceCdnEndpoint(),
-		"azurerm_cdn_endpoint_custom_domain":      resourceArmCdnEndpointCustomDomain(),
-		"azurerm_cdn_profile":                     resourceCdnProfile(),
+		"azurerm_frontdoor_profile_origin_group":    resourceFrontdoorProfileOriginGroup(),
+		"azurerm_frontdoor_profile_custom_domain":   resourceFrontdoorProfileCustomDomain(),
+		"azurerm_frontdoor_profile_origin":          resourceFrontdoorProfileOrigin(),
+		"azurerm_frontdoor_profile_endpoint":        resourceFrontdoorProfileEndpoint(),
+		"azurerm_frontdoor_profile_policy":          resourceFrontdoorProfilePolicy(),
+		"azurerm_frontdoor_profile_rule_set":        resourceFrontdoorProfileRuleSet(),
+		"azurerm_frontdoor_profile_security_policy": resourceFrontdoorProfileSecurityPolicy(),
+		"azurerm_frontdoor_profile":                 resourceFrontdoorProfile(),
+		"azurerm_frontdoor_profile_route":           resourceFrontdoorProfileRoute(),
+		"azurerm_frontdoor_profile_secret":          resourceFrontdoorProfileSecret(),
+		"azurerm_frontdoor_profile_rule":            resourceFrontdoorProfileRule(),
+		"azurerm_cdn_endpoint":                      resourceCdnEndpoint(),
+		"azurerm_cdn_endpoint_custom_domain":        resourceArmCdnEndpointCustomDomain(),
+		"azurerm_cdn_profile":                       resourceCdnProfile(),
 	}
 }
