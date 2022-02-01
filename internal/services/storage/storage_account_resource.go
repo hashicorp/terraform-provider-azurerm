@@ -12,14 +12,14 @@ import (
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
@@ -347,43 +347,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.IdentityTypeSystemAssigned),
-								string(storage.IdentityTypeSystemAssignedUserAssigned),
-								string(storage.IdentityTypeUserAssigned),
-							}, true),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"blob_properties": {
 				Type:     pluginsdk.TypeList,
@@ -1799,10 +1763,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return err
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	storageClient := meta.(*clients.Client).Storage
@@ -2885,76 +2849,59 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func expandAzureRmStorageAccountIdentity(vs []interface{}) (*storage.Identity, error) {
-	if len(vs) == 0 {
-		return &storage.Identity{
-			Type: storage.IdentityTypeNone,
-		}, nil
+func expandAzureRmStorageAccountIdentity(input []interface{}) (*storage.Identity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-	identity := storage.Identity{
-		Type: storage.IdentityType(v["type"].(string)),
+	userAssignedIdentities := make(map[string]*storage.UserAssignedIdentity)
+	for id := range expanded.IdentityIds {
+		userAssignedIdentities[id] = &storage.UserAssignedIdentity{}
 	}
 
-	var identityIdSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if identity.Type == storage.IdentityTypeUserAssigned || identity.Type == storage.IdentityTypeSystemAssignedUserAssigned {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
-		}
-
-		userAssignedIdentities := make(map[string]*storage.UserAssignedIdentity)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &storage.UserAssignedIdentity{}
-		}
-
-		identity.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", identity.Type)
-	}
-
-	return &identity, nil
+	return &storage.Identity{
+		Type:                   storage.IdentityType(string(expanded.Type)),
+		UserAssignedIdentities: userAssignedIdentities,
+	}, nil
 }
 
-func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) ([]interface{}, error) {
-	if identity == nil || identity.Type == storage.IdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
+func flattenAzureRmStorageAccountIdentity(input *storage.Identity) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 
-	var principalId, tenantId string
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if input != nil {
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: nil,
 		}
+		if input.PrincipalID != nil {
+			config.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			config.TenantId = *input.TenantID
+		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		for k, v := range input.UserAssignedIdentities {
+			if v == nil {
+				continue
+			}
+
+			details := identity.UserAssignedIdentityDetails{}
+
+			if v.ClientID != nil {
+				details.ClientId = utils.String(*v.ClientID)
+			}
+			if v.PrincipalID != nil {
+				details.PrincipalId = utils.String(*v.PrincipalID)
+			}
+
+			identityIds[k] = details
+		}
+
+		config.IdentityIds = identityIds
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"identity_ids": pluginsdk.NewSet(pluginsdk.HashString, identityIds),
-		},
-	}, nil
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }
 
 func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
