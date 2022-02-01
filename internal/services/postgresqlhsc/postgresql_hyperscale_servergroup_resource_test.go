@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/sdk/2021-12-01-preview/loadtests"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc/sdk/2020-10-05-privatepreview/servergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,19 +27,19 @@ func TestPostgreSQLHyperScaleServerGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
 // Exists func
 
 func (r PostgreSQLHyperScaleServerGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := loadtests.ParseLoadTestID(state.ID)
+	id, err := servergroups.ParseServerGroupsv2ID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.LoadTest.LoadTestsClient.Get(ctx, *id)
+	resp, err := client.PostgreSQLHSC.ServerGroupsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
@@ -63,18 +63,26 @@ provider "azurerm" {
 %s
 
 resource "azurerm_postgresql_hyperscale_servergroup" "test" {
-  name                = "acctestPGHSC-%d"
+  name                = "acctestcitus-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  administrator_login_password = "SPW!53cr3tp455#@"
+  administrator_login_password = "CMU7kVMB0cl2SsXk236iC0O71AoAqsSm"
+  create_mode = "Default"
   citus_version = "8.3"
   postgresql_version = "11"
   server_role_group {
-    name = "coordinator"
     role = "Coordinator"
     server_count = 1
     vcores = 16
+    storage_quota_in_mb = 524288
   }
+  server_role_group {
+    role = "Worker"
+    server_count = 1
+    vcores = 16
+    storage_quota_in_mb = 524288
+  }
+
   tags = {
     Environment = "hyperscale"
   }

@@ -27,8 +27,7 @@ type PostgreSQLHyperScaleServerGroupResourceModel struct {
 	Location                string                 `tfschema:"location"`
 	Tags                    map[string]string      `tfschema:"tags"`
 	CreateMode              string                 `tfschema:"create_mode""`
-	AdministratorLogin      string                 `tfschema:"administrator_login"`
-	AdministratorPassword   string                 `tfschema:"administrator_password"`
+	AdministratorPassword   string                 `tfschema:"administrator_login_password"`
 	BackupRetentionDays     int                    `tfschema:"backup_retention_days"`
 	CitusVersion            string                 `tfschema:"citus_version"`
 	EnableMX                bool                   `tfschema:"mx_enabled"`
@@ -41,16 +40,13 @@ type PostgreSQLHyperScaleServerGroupResourceModel struct {
 }
 
 type ServerRoleGroupModel struct {
-	Name                    string `tfschema:"name"`
-	Role                    string `tfschema:"role"`
-	ServerCount             int    `tfschema:"server_count"`
-	ServerEdition           string `tfschema:"server_edition"`
-	VCores                  int    `tfschema:"vcores"`
-	StorageQuotaInMB        int    `tfschema:"storage_quota_in_mb"`
-	EnableHA                bool   `tfschema:"ha_enabled"`
-	LogMinDurationStatement int    `tfschema:"log_min_duration_statement"`
-	LogStatement            string `tfschema:"log_statement"`
-	RandomPageCost          int    `tfschema:"random_page_cost"`
+	Name             string `tfschema:"name"`
+	Role             string `tfschema:"role"`
+	ServerCount      int    `tfschema:"server_count"`
+	ServerEdition    string `tfschema:"server_edition"`
+	VCores           int    `tfschema:"vcores"`
+	StorageQuotaInMB int    `tfschema:"storage_quota_in_mb"`
+	EnableHA         bool   `tfschema:"ha_enabled"`
 }
 
 func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -67,8 +63,7 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 
 		"create_mode": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  servergroups.CreateModeDefault,
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servergroups.CreateModeDefault),
 				string(servergroups.CreateModePointInTimeRestore),
@@ -101,6 +96,7 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 				string(servergroups.CitusVersionNinePointThree),
 				string(servergroups.CitusVersionNinePointFour),
 				string(servergroups.CitusVersionNinePointFive),
+				"10.2",
 			}, false),
 		},
 
@@ -111,16 +107,35 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servergroups.PostgreSQLVersionOneOne),
 				string(servergroups.PostgreSQLVersionOneTwo),
+				"13",
 			}, false),
 		},
 
 		"preview_features": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Computed: true,
 		},
 
 		"log_min_duration_statement": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+
+		"mx_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"zfs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"track_activity_query_size": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
@@ -133,7 +148,8 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
+						Default:  "",
 					},
 					"role": {
 						Type:     pluginsdk.TypeString,
@@ -162,8 +178,7 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 					},
 					"storage_quota_in_mb": {
 						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true,
+						Required: true,
 					},
 					"ha_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -314,14 +329,27 @@ func (r PostgreSQLHyperScaleServerGroupResource) Read() sdk.ResourceFunc {
 					state.Tags = *model.Tags
 				}
 				if props := model.Properties; props != nil {
-					state.AdministratorLogin = *props.AdministratorLogin
-					state.BackupRetentionDays = int(*props.BackupRetentionDays)
-					state.CitusVersion = string(*props.CitusVersion)
-					state.CreateMode = string(*props.CreateMode)
-					state.EnableMX = *props.EnableMx
-					state.EnableZFS = *props.EnableZfs
-					state.PostgreSQLVersion = string(*props.PostgresqlVersion)
-					state.ServerRoleGroup = flattenServerRoleGroupModel(props.ServerRoleGroups)
+					if props.BackupRetentionDays != nil {
+						state.BackupRetentionDays = int(*props.BackupRetentionDays)
+					}
+					if props.CitusVersion != nil {
+						state.CitusVersion = string(*props.CitusVersion)
+					}
+					if props.CreateMode != nil {
+						state.CreateMode = string(*props.CreateMode)
+					}
+					if props.EnableMx != nil {
+						state.EnableMX = *props.EnableMx
+					}
+					if props.EnableZfs != nil {
+						state.EnableZFS = *props.EnableZfs
+					}
+					if props.PostgresqlVersion != nil {
+						state.PostgreSQLVersion = string(*props.PostgresqlVersion)
+					}
+					if props.ServerRoleGroups != nil {
+						state.ServerRoleGroup = flattenServerRoleGroupModel(props.ServerRoleGroups)
+					}
 				}
 			}
 			return metadata.Encode(&state)
