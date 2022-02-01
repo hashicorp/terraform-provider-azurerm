@@ -63,7 +63,8 @@ func (r PostgreSQLHyperScaleServerGroupResource) Arguments() map[string]*plugins
 
 		"create_mode": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
+			Default:  string(servergroups.CreateModeDefault),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servergroups.CreateModeDefault),
 				string(servergroups.CreateModePointInTimeRestore),
@@ -209,6 +210,27 @@ func (r PostgreSQLHyperScaleServerGroupResource) IDValidationFunc() pluginsdk.Sc
 	return servergroups.ValidateServerGroupsv2ID
 }
 
+func (r PostgreSQLHyperScaleServerGroupResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model PostgreSQLHyperScaleServerGroupResourceModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("DecodeDiff: %+v", err)
+			}
+			pluginsdk.ForceNewIfChange("create_mode", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldMode := servergroups.CreateMode(old.(string))
+				newMode := servergroups.CreateMode(new.(string))
+				// Instance could not be changed from Default to Replica
+				if oldMode == servergroups.CreateModeDefault && newMode == servergroups.CreateModeReadReplica {
+					return true
+				}
+				return false
+			})
+			return nil
+		},
+	}
+}
+
 func (r PostgreSQLHyperScaleServerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -334,9 +356,6 @@ func (r PostgreSQLHyperScaleServerGroupResource) Read() sdk.ResourceFunc {
 					}
 					if props.CitusVersion != nil {
 						state.CitusVersion = string(*props.CitusVersion)
-					}
-					if props.CreateMode != nil {
-						state.CreateMode = string(*props.CreateMode)
 					}
 					if props.EnableMx != nil {
 						state.EnableMX = *props.EnableMx

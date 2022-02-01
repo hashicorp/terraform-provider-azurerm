@@ -63,23 +63,22 @@ provider "azurerm" {
 %s
 
 resource "azurerm_postgresql_hyperscale_servergroup" "test" {
-  name                = "acctestcitus-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                         = "acctestcitus-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login_password = "CMU7kVMB0cl2SsXk236iC0O71AoAqsSm"
-  create_mode = "Default"
-  citus_version = "8.3"
-  postgresql_version = "11"
+  citus_version                = "8.3"
+  postgresql_version           = "11"
   server_role_group {
-    role = "Coordinator"
-    server_count = 1
-    vcores = 16
+    role                = "Coordinator"
+    server_count        = 1
+    vcores              = 16
     storage_quota_in_mb = 524288
   }
   server_role_group {
-    role = "Worker"
-    server_count = 1
-    vcores = 16
+    role                = "Worker"
+    server_count        = 1
+    vcores              = 16
     storage_quota_in_mb = 524288
   }
 

@@ -74,6 +74,7 @@ var services = mapOf(
         "policy" to "Policy",
         "portal" to "Portal",
         "postgres" to "PostgreSQL",
+        "postgresqlhsc" to "PostgreSQL HyperScale",
         "powerbi" to "PowerBI",
         "privatedns" to "Private DNS",
         "purview" to "Purview",
