@@ -19,14 +19,18 @@ import (
 type PostgreSQLHyperScaleServerGroupResource struct {
 }
 
+var _ sdk.Resource = PostgreSQLHyperScaleServerGroupResource{}
 var _ sdk.ResourceWithUpdate = PostgreSQLHyperScaleServerGroupResource{}
+
+// var _ sdk.ResourceWithCustomImporter = PostgreSQLHyperScaleServerGroupResource{}
+// var _ sdk.ResourceWithCustomizeDiff = PostgreSQLHyperScaleServerGroupResource{}
 
 type PostgreSQLHyperScaleServerGroupResourceModel struct {
 	Name                    string                 `tfschema:"name"`
 	ResourceGroup           string                 `tfschema:"resource_group_name"`
 	Location                string                 `tfschema:"location"`
 	Tags                    map[string]string      `tfschema:"tags"`
-	CreateMode              string                 `tfschema:"create_mode""`
+	CreateMode              string                 `tfschema:"create_mode"`
 	AdministratorPassword   string                 `tfschema:"administrator_login_password"`
 	BackupRetentionDays     int                    `tfschema:"backup_retention_days"`
 	CitusVersion            string                 `tfschema:"citus_version"`
@@ -210,26 +214,34 @@ func (r PostgreSQLHyperScaleServerGroupResource) IDValidationFunc() pluginsdk.Sc
 	return servergroups.ValidateServerGroupsv2ID
 }
 
-func (r PostgreSQLHyperScaleServerGroupResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model PostgreSQLHyperScaleServerGroupResourceModel
-			if err := metadata.DecodeDiff(&model); err != nil {
-				return fmt.Errorf("DecodeDiff: %+v", err)
-			}
-			pluginsdk.ForceNewIfChange("create_mode", func(ctx context.Context, old, new, meta interface{}) bool {
-				oldMode := servergroups.CreateMode(old.(string))
-				newMode := servergroups.CreateMode(new.(string))
-				// Instance could not be changed from Default to Replica
-				if oldMode == servergroups.CreateModeDefault && newMode == servergroups.CreateModeReadReplica {
-					return true
-				}
-				return false
-			})
-			return nil
-		},
-	}
-}
+// func (r PostgreSQLHyperScaleServerGroupResource) CustomImporter() sdk.ResourceRunFunc {
+// 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+// 		client := metadata.Client.PostgreSQLHSC.ServerGroupsClient
+//
+// 		id, err := servergroups.ParseServerGroupsv2ID(metadata.ResourceData.Id())
+// 		if err != nil {
+// 			return fmt.Errorf("while parsing resource ID: %+v", err)
+// 		}
+// 		_, err = client.Get(ctx, *id)
+// 		if err != nil {
+// 			return fmt.Errorf("while checking for Server Group's %q existence: %+v", id.ServerGroupName, err)
+// 		}
+//
+// 		metadata.ResourceData.Set("create_mode", "Default")
+// 		return nil
+// 	}
+// }
+//
+// func (k PostgreSQLHyperScaleServerGroupResource) CustomizeDiff() sdk.ResourceFunc {
+// 	return sdk.ResourceFunc{
+// 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+// 			rd := metadata.ResourceDiff
+// 			rd.SetNew("create_mode", "Default")
+// 			return nil
+// 		},
+// 		Timeout: 30 * time.Minute,
+// 	}
+// }
 
 func (r PostgreSQLHyperScaleServerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
