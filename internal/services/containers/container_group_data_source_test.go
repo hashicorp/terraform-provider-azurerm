@@ -11,7 +11,7 @@ import (
 type ContainerGroupDataSource struct {
 }
 
-func TestAccDataSourceAzureRMContainerGroup_complete(t *testing.T) {
+func TestAccDataSourceContainerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_group", "test")
 	r := ContainerGroupDataSource{}
 
