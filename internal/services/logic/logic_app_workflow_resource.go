@@ -198,7 +198,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentity(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,

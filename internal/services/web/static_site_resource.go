@@ -78,7 +78,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentity(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,

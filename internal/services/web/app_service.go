@@ -227,6 +227,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 }
 
 func schemaAppServiceIdentity() *pluginsdk.Schema {
+	// TODO: 3.0 - conditionally switch this out
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
