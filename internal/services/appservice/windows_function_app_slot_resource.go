@@ -278,7 +278,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppId.ResourceGroup, functionAppId.SiteName, functionAppSlot.Name)
 			functionApp, err := client.Get(ctx, functionAppId.ResourceGroup, functionAppId.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading parent Windows Function App for %s: %+v", id, err)
+				return fmt.Errorf("retrieving parent Windows %s: %+v", *functionAppId, err)
 			}
 			if functionApp.Location == nil {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)

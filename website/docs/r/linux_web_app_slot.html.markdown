@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
-* `app_service_ID` - (Required) The ID of the Linux Web App this Deployment Slot will be part of.
+* `app_service_id` - (Required) The ID of the Linux Web App this Deployment Slot will be part of. Changing this forces a new Linux Web App to be created.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 

@@ -65,13 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Windows Function App Slot. Changing this forces a new resource to be created.
 
-* `function_app_name` - (Required) The name of the Windows Function App this Slot is a member of. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure Region where the Windows Function App should exist. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Windows Function App should exist. Changing this forces a new resource to be created.
-
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
+* `function_app_id` - (Required) The name of the Windows Function App this Slot is a member of. Changing this forces a new resource to be created.
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 

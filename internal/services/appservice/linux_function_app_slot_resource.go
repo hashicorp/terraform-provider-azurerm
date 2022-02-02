@@ -271,7 +271,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppId.ResourceGroup, functionAppId.SiteName, functionAppSlot.Name)
 			functionApp, err := client.Get(ctx, functionAppId.ResourceGroup, functionAppId.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading parent Windows Function App for %s: %+v", id, err)
+				return fmt.Errorf("retrieving parent Linux %s: %+v", *functionAppId, err)
 			}
 			if functionApp.Location == nil {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)
@@ -390,7 +390,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     utils.String("functionapp,linux"),
 				Identity: helpers.ExpandIdentity(functionAppSlot.Identity),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         props.ServerFarmID,
+					ServerFarmID:         utils.String(servicePlanId.ID()),
 					Enabled:              utils.Bool(functionAppSlot.Enabled),
 					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
 					SiteConfig:           siteConfig,
