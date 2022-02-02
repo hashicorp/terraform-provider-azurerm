@@ -4,3 +4,5 @@ dependencies:
   - vendor/**/*
 documentation:
   - website/**/*
+service/aadb2c:
+  - internal/services/aadb2c/**/*
