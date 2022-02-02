@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
+* `azurerm_web_pubsub_hub` - `auth.0.managed_identity_id` now accepts UUIDs [GH-15183]
 
 BUG FIXES:
 
