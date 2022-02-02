@@ -24,6 +24,10 @@ BUG FIXES:
 * `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
 * `azurerm_static_site` - fixing the creation of a Free tier Static Site [GH-15141]
 * `azurerm_storage_share` - fixing the `ShareBeingDeleted` error when the Storage Share is recreated [GH-15180]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_spark_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_hbase_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
 
 ## 2.94.0 (January 28, 2022)
 
