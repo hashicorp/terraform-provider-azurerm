@@ -29,7 +29,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_traffic_manager_azure_endpoint":    resourceArmTrafficManagerAzureEndpoint(),
+		"azurerm_traffic_manager_azure_endpoint":    resourceAzureEndpoint(),
 		"azurerm_traffic_manager_external_endpoint": resourceArmTrafficManagerExternalEndpoint(),
 		"azurerm_traffic_manager_nested_endpoint":   resourceArmTrafficManagerNestedEndpoint(),
 		"azurerm_traffic_manager_endpoint":          resourceArmTrafficManagerEndpoint(),

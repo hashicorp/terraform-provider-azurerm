@@ -2,15 +2,18 @@ package trafficmanager
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -18,15 +21,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmTrafficManagerAzureEndpoint() *pluginsdk.Resource {
+func resourceAzureEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmTrafficManagerAzureEndpointCreateUpdate,
-		Read:   resourceArmTrafficManagerAzureEndpointRead,
-		Update: resourceArmTrafficManagerAzureEndpointCreateUpdate,
-		Delete: resourceArmTrafficManagerAzureEndpointDelete,
+		Create: resourceAzureEndpointCreateUpdate,
+		Read:   resourceAzureEndpointRead,
+		Update: resourceAzureEndpointCreateUpdate,
+		Delete: resourceAzureEndpointDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := endpoints.ParseEndpointTypeID(id)
-			return err
+			endpointType, err := endpoints.ParseEndpointTypeID(id)
+			if err != nil {
+				return err
+			}
+
+			if endpointType.EndpointType != endpoints.EndpointTypeAzureEndpoints {
+				return fmt.Errorf("this resource only supports `AzureEndpoints` but got %s", string(endpointType.EndpointType))
+			}
+
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -44,18 +55,17 @@ func resourceArmTrafficManagerAzureEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"profile_name": {
+			"profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.TrafficManagerProfileID,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
 			"target_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"weight": {
@@ -111,12 +121,12 @@ func resourceArmTrafficManagerAzureEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -130,21 +140,17 @@ func resourceArmTrafficManagerAzureEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmTrafficManagerAzureEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
+	profileId, err := parse.TrafficManagerProfileID(d.Get("profile_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `profile_id`: %+v", err)
+	}
 
-	name := d.Get("name").(string)
-	fullEndpointType := fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)
-	profileName := d.Get("profile_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := endpoints.NewEndpointTypeID(subscriptionId, resourceGroup, profileName, endpoints.EndpointTypeAzureEndpoints, name)
-
+	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.Name, endpoints.EndpointTypeAzureEndpoints, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -164,8 +170,8 @@ func resourceArmTrafficManagerAzureEndpointCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	params := endpoints.Endpoint{
-		Name: &name,
-		Type: &fullEndpointType,
+		Name: utils.String(id.EndpointName),
+		Type: utils.String(fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
 			EndpointStatus:   &status,
@@ -223,10 +229,10 @@ func resourceArmTrafficManagerAzureEndpointCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	d.SetId(id.ID())
-	return resourceArmTrafficManagerAzureEndpointRead(d, meta)
+	return resourceAzureEndpointRead(d, meta)
 }
 
-func resourceArmTrafficManagerAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,8 +252,8 @@ func resourceArmTrafficManagerAzureEndpointRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("profile_name", id.ProfileName)
+	d.Set("profile_id", parse.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			enabled := true
@@ -272,7 +278,7 @@ func resourceArmTrafficManagerAzureEndpointRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceArmTrafficManagerAzureEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,11 +288,8 @@ func resourceArmTrafficManagerAzureEndpointDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
