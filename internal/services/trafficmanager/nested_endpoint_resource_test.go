@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TrafficManagerNestedEndpointResource struct{}
+type NestedEndpointResource struct{}
 
-func TestAccAzureRMTrafficManagerNestedEndpoint_basic(t *testing.T) {
+func TestAccNestedEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := TrafficManagerNestedEndpointResource{}
+	r := NestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,24 @@ func TestAccAzureRMTrafficManagerNestedEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerNestedEndpoint_complete(t *testing.T) {
+func TestAccNestedEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := TrafficManagerNestedEndpointResource{}
+	r := NestedEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccNestedEndpoint_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
+	r := NestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,9 +75,9 @@ func TestAccAzureRMTrafficManagerNestedEndpoint_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerNestedEndpoint_subnet(t *testing.T) {
+func TestAccNestedEndpoint_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := TrafficManagerNestedEndpointResource{}
+	r := NestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +90,7 @@ func TestAccAzureRMTrafficManagerNestedEndpoint_subnet(t *testing.T) {
 	})
 }
 
-func (r TrafficManagerNestedEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NestedEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -88,46 +103,58 @@ func (r TrafficManagerNestedEndpointResource) Exists(ctx context.Context, client
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r TrafficManagerNestedEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := endpoints.ParseEndpointTypeID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	return utils.Bool(true), nil
-}
-
-func (r TrafficManagerNestedEndpointResource) basic(data acceptance.TestData) string {
+func (r NestedEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_traffic_manager_nested_endpoint" "test" {
   name                    = "acctestend-parent%d"
   target_resource_id      = azurerm_traffic_manager_profile.child.id
-  profile_name            = azurerm_traffic_manager_profile.parent.name
-  resource_group_name     = azurerm_resource_group.test.name
+  profile_id              = azurerm_traffic_manager_profile.parent.id
   minimum_child_endpoints = 5
   weight                  = 3
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TrafficManagerNestedEndpointResource) complete(data acceptance.TestData) string {
+func (r NestedEndpointResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_traffic_manager_nested_endpoint" "import" {
+  name                    = azurerm_traffic_manager_nested_endpoint.test.name
+  target_resource_id      = azurerm_traffic_manager_nested_endpoint.test.target_resource_id
+  profile_id              = azurerm_traffic_manager_nested_endpoint.test.profile_id
+  minimum_child_endpoints = azurerm_traffic_manager_nested_endpoint.test.minimum_child_endpoints
+  weight                  = azurerm_traffic_manager_nested_endpoint.test.weight
+}
+`, r.basic(data))
+}
+
+func (r NestedEndpointResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_traffic_manager_nested_endpoint" "test" {
   name                                  = "acctestend-parent%d"
   target_resource_id                    = azurerm_traffic_manager_profile.child.id
   priority                              = 3
-  profile_name                          = azurerm_traffic_manager_profile.parent.name
-  resource_group_name                   = azurerm_resource_group.test.name
+  profile_id                            = azurerm_traffic_manager_profile.parent.id
   weight                                = 5
   minimum_child_endpoints               = 9
   minimum_required_child_endpoints_ipv4 = 2
@@ -139,24 +166,20 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TrafficManagerNestedEndpointResource) template(data acceptance.TestData) string {
+func (r NestedEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_traffic_manager_profile" "parent" {
-  name                   = "acctest-TMP-%d"
+  name                   = "acctest-TMP-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "acctest-tmp-%d"
+    relative_name = "acctest-tmp-%[1]d"
     ttl           = 30
   }
 
@@ -168,12 +191,12 @@ resource "azurerm_traffic_manager_profile" "parent" {
 }
 
 resource "azurerm_traffic_manager_profile" "child" {
-  name                   = "acctesttmpchild%d"
+  name                   = "acctesttmpchild%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmpchild%d"
+    relative_name = "acctesttmpchild%[1]d"
     ttl           = 30
   }
 
@@ -183,27 +206,27 @@ resource "azurerm_traffic_manager_profile" "child" {
     path     = "/"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r TrafficManagerNestedEndpointResource) subnets(data acceptance.TestData) string {
+func (r NestedEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctest-TMP-%d"
+  name                   = "acctest-TMP-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Subnet"
 
   dns_config {
-    relative_name = "acctest-tmp-%d"
+    relative_name = "acctest-tmp-%[1]d"
     ttl           = 30
   }
 
@@ -215,12 +238,12 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_traffic_manager_profile" "child" {
-  name                   = "acctesttmpchild%d"
+  name                   = "acctesttmpchild%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmpchild%d"
+    relative_name = "acctesttmpchild%[1]d"
     ttl           = 30
   }
 
@@ -232,10 +255,9 @@ resource "azurerm_traffic_manager_profile" "child" {
 }
 
 resource "azurerm_traffic_manager_nested_endpoint" "test" {
-  name                    = "acctestend-parent%d"
+  name                    = "acctestend-parent%[1]d"
   target_resource_id      = azurerm_traffic_manager_profile.child.id
-  profile_name            = azurerm_traffic_manager_profile.test.name
-  resource_group_name     = azurerm_resource_group.test.name
+  profile_id              = azurerm_traffic_manager_profile.test.id
   minimum_child_endpoints = 5
   weight                  = 3
 
@@ -248,5 +270,5 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
     last  = "11.12.13.14"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

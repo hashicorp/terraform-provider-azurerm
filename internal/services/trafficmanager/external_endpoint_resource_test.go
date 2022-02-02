@@ -103,7 +103,7 @@ func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Cl
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ExternalEndpointResource) basic(data acceptance.TestData) string {
