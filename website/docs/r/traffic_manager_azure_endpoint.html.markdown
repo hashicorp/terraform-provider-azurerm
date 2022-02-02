@@ -52,7 +52,7 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_azure_endpoint" "example" {
-  name               = "exmaple-endpoint"
+  name               = "example-endpoint"
   profile_id         = azurerm_traffic_manager_profile.example.id
   weight             = 100
   target_resource_id = azurerm_public_ip.test.id
