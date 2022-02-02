@@ -38,7 +38,7 @@ func ThreePointOh() bool {
 // Whilst this currently isn't exposed, this will be via an Environment
 // Variable in the future.
 func ThreePointOhBeta() bool {
-	return false
+	return ThreePointOh() || false
 }
 
 // ThreePointOhBetaResources returns whether this provider is opted into
