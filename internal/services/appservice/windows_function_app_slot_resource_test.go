@@ -752,10 +752,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -774,10 +771,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -801,10 +795,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -846,10 +837,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%[2]d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1003,10 +991,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%[2]d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1169,10 +1154,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%[2]d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1280,10 +1262,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1328,10 +1307,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1352,10 +1328,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1380,10 +1353,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1407,10 +1377,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1441,10 +1408,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1465,10 +1429,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1489,10 +1450,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1514,10 +1472,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1541,10 +1496,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1567,10 +1519,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1593,10 +1542,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1619,10 +1565,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1645,10 +1588,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1669,10 +1609,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%d"
-  function_app_name          = azurerm_windows_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.update.name
   storage_account_access_key = azurerm_storage_account.update.primary_access_key
 

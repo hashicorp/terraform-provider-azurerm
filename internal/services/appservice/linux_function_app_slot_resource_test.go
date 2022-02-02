@@ -743,30 +743,6 @@ func TestAccLinuxFunctionAppSlot_appStackPowerShellCore(t *testing.T) {
 
 // Others
 
-func TestAccLinuxFunctionAppSlot_updateServicePlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.servicePlanUpdate(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -822,10 +798,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -844,10 +817,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -868,10 +838,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -893,10 +860,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -920,10 +884,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -944,10 +905,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -971,10 +929,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -999,10 +954,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1023,10 +975,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1071,10 +1020,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1105,10 +1051,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1132,10 +1075,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1158,10 +1098,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1184,10 +1121,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1210,10 +1144,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1236,10 +1167,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1266,10 +1194,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1303,10 +1228,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1329,10 +1251,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1374,10 +1293,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%[2]d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1534,10 +1450,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%[2]d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1708,10 +1621,7 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%[2]d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1813,30 +1723,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) servicePlanUpdate(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.update.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {}
-
-  depends_on = [azurerm_service_plan.update]
-}
-`, r.templateServicePlanUpdate(data, planSku), data.RandomInteger)
-}
-
 func (r LinuxFunctionAppSlotResource) updateStorageAccount(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1847,10 +1733,7 @@ provider "azurerm" {
 
 resource "azurerm_linux_function_app_slot" "test" {
   name                       = "acctest-LFAS-%d"
-  function_app_name          = azurerm_linux_function_app.test.name
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.update.name
   storage_account_access_key = azurerm_storage_account.update.primary_access_key
 
@@ -1944,20 +1827,6 @@ resource "azurerm_linux_function_app" "test" {
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
-}
-
-func (r LinuxFunctionAppSlotResource) templateServicePlanUpdate(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_service_plan" "update" {
-  name                = "acctestASP2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
-  sku_name            = "%s"
-}
-`, r.template(data, planSku), data.RandomInteger, planSku)
 }
 
 func (r LinuxFunctionAppSlotResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {

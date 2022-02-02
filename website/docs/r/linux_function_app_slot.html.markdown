@@ -52,10 +52,7 @@ resource "azurerm_linux_function_app" "example" {
 
 resource "azurerm_linux_function_app_slot" "example" {
   name                 = "example-linux-function-app-slot"
-  function_app_name    = azurerm_linux_function_app.example.name
-  location             = azurerm_resource_group.example.location
-  resource_group_name  = azurerm_resource_group.example.name
-  service_plan_id      = azurerm_service_plan.example.id
+  function_app_id      = azurerm_linux_function_app.example.id
   storage_account_name = azurerm_storage_account.example.name
 
   site_config {}
@@ -70,12 +67,6 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Function App Slot. Changing this forces a new resource to be created.
 
 * `function_app_name` - (Required) The name of the Linux Function App this Slot is a member of. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure Region where the Linux Function App should exist. Changing this forces a new Resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App Slot should exist. Changing this forces a new Resource to be created.
-
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 

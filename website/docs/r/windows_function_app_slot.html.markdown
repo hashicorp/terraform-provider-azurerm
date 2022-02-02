@@ -51,12 +51,9 @@ resource "azurerm_windows_function_app" "example" {
 }
 
 resource "azurerm_windows_function_app_slot" "example" {
-  name                 = "example"
-  function_app_name    = "example"
-  location             = "example"
-  resource_group_name  = "example"
-  service_plan_id      = "example"
-  storage_account_name = "example"
+  name                 = "example-slot"
+  function_app_id      = azurerm_windows_function_app.example.id
+  storage_account_name = azurerm_storage_account.example.name
 
   site_config = {}
 }
