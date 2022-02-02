@@ -192,11 +192,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-azure%[1]d"
-  target              = "www.example.com"
-  weight              = 5
-  profile_name        = azurerm_traffic_manager_profile.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name       = "acctestend-azure%[1]d"
+  target     = "www.example.com"
+  weight     = 5
+  profile_id = azurerm_traffic_manager_profile.test.id
 
   subnet {
     first = "1.2.3.0"

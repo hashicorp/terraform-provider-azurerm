@@ -126,10 +126,6 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 
 func (r NestedEndpointResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_traffic_manager_nested_endpoint" "import" {
