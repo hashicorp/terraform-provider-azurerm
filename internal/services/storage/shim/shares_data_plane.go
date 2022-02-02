@@ -43,9 +43,8 @@ func (w DataPlaneStorageShareWrapper) Create(ctx context.Context, _, accountName
 			Timeout:        time.Until(timeout),
 		}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return err
-		}
+		_, err := stateConf.WaitForStateContext(ctx)
+		return err
 	}
 
 	// otherwise it's a legit error, so raise it
