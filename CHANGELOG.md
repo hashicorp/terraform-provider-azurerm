@@ -3,7 +3,12 @@
 FEATURES: 
 
 * **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
-* `azurerm_web_pubsub_hub` - `auth.0.managed_identity_id` now accepts UUIDs [GH-15183]
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v0.22.0` of `github.com/hashicorp/go-azure-helpers` [GH-15207]
+* `azurerm_storage_account` - the `identity` block is no longer computed [GH-15207]
+* `azurerm_web_pubsub_hub` - `managed_identity_id` within the `auth` block now accepts UUIDs [GH-15183]
 
 BUG FIXES:
 
