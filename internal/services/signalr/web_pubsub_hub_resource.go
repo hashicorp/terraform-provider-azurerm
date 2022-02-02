@@ -90,9 +90,12 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"managed_identity_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: identityValidate.UserAssignedIdentityID,
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.Any(
+											validation.IsUUID,
+											identityValidate.UserAssignedIdentityID,
+										),
 									},
 								},
 							},
