@@ -45,7 +45,6 @@ type SiteConfigWindows struct {
 	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
 	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
 	Cors                     []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
@@ -210,6 +209,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
@@ -295,12 +295,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional:    true,
 					Default:     false,
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO - Add slot name validation here?
 				},
 
 				"detailed_error_logging_enabled": {
@@ -462,11 +456,6 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				"cors": CorsSettingsSchemaComputed(),
 
 				"virtual_application": virtualApplicationsSchemaComputed(),
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -684,12 +673,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO - Add slot name validation here?
-				},
-
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
@@ -850,11 +833,6 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchemaComputed(),
 
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -905,6 +883,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v3.0",
 						"v4.0",
 						"v5.0",
+						"v6.0",
 					}, false),
 				},
 
@@ -922,8 +901,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7",
-						"3.4.0",
+						"3.4.0", // Note: The portal only lists `3.6`, however, the service only uses the value `3.4.0`. Anything else is silently discarded
 					}, false),
 				},
 
@@ -931,13 +909,10 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"10.1",   // Linux Only?
-						"10.6",   // Linux Only?
-						"10.10",  // Linux Only?
-						"10.14",  // Linux Only?
-						"10-LTS", // Linux Only?
+						"10-LTS", // Deprecated?
 						"12-LTS",
 						"14-LTS",
+						"16-LTS",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
@@ -947,9 +922,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
 						"1.8",
 						"11",
 					}, false),
@@ -957,7 +930,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 
 				"java_container": {Type: pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
 						"JETTY",
@@ -971,7 +943,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_container_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container",
 					},
@@ -982,7 +953,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_registry",
 						"site_config.0.application_stack.0.docker_container_tag",
 					},
 				},
@@ -991,10 +961,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.docker_container_tag",
-					},
 				},
 
 				"docker_container_tag": {
@@ -1003,7 +969,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.docker_container_registry",
 					},
 				},
 
@@ -2805,7 +2770,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
 		expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
 		if winAppStack.DockerContainerName != "" {
-			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			if winAppStack.DockerContainerRegistry != "" {
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			}
+			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 		}
 		currentStack = winAppStack.CurrentStack
 	}
@@ -2898,10 +2866,6 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
 		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(winSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -3512,10 +3476,15 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
-		winAppStack.DockerContainerTag = parts[1]
-		path := strings.Split(parts[0], "/")
-		winAppStack.DockerContainerRegistry = path[0]
-		winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+		if len(parts) == 2 {
+			winAppStack.DockerContainerTag = parts[1]
+			path := strings.Split(parts[0], "/")
+			if len(path) > 2 {
+				winAppStack.DockerContainerRegistry = path[0]
+				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			}
+			winAppStack.DockerContainerName = path[0]
+		}
 	}
 	winAppStack.CurrentStack = currentStack
 
@@ -3658,7 +3627,7 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 	return connectionStrings
 }
 
-func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
+func ExpandAppSettingsForUpdate(settings map[string]string) *web.StringDictionary {
 	appSettings := make(map[string]*string)
 	for k, v := range settings {
 		appSettings[k] = utils.String(v)
@@ -3667,6 +3636,20 @@ func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
 	return &web.StringDictionary{
 		Properties: appSettings,
 	}
+}
+
+func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair {
+	if len(settings) > 0 {
+		result := make([]web.NameValuePair, 0)
+		for k, v := range settings {
+			result = append(result, web.NameValuePair{
+				Name:  utils.String(k),
+				Value: utils.String(v),
+			})
+		}
+		return &result
+	}
+	return nil
 }
 
 func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {

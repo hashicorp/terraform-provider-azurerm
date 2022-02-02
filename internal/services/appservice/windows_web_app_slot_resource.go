@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -20,41 +18,51 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WindowsWebAppResource struct{}
+type WindowsWebAppSlotResource struct{}
 
-type WindowsWebAppModel struct {
-	Name                          string                      `tfschema:"name"`
-	ResourceGroup                 string                      `tfschema:"resource_group_name"`
-	Location                      string                      `tfschema:"location"`
-	ServicePlanId                 string                      `tfschema:"service_plan_id"`
-	AppSettings                   map[string]string           `tfschema:"app_settings"`
-	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
-	Backup                        []helpers.Backup            `tfschema:"backup"`
-	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
-	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
-	Enabled                       bool                        `tfschema:"enabled"`
-	HttpsOnly                     bool                        `tfschema:"https_only"`
-	Identity                      []helpers.Identity          `tfschema:"identity"`
-	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
-	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
-	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
-	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
-	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string                      `tfschema:"default_hostname"`
-	Kind                          string                      `tfschema:"kind"`
-	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                    `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                      `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                    `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential    `tfschema:"site_credential"`
-	Tags                          map[string]string           `tfschema:"tags"`
+type WindowsWebAppSlotModel struct {
+	Name                          string                                `tfschema:"name"`
+	AppServiceId                  string                                `tfschema:"app_service_id"`
+	AppSettings                   map[string]string                     `tfschema:"app_settings"`
+	AuthSettings                  []helpers.AuthSettings                `tfschema:"auth_settings"`
+	Backup                        []helpers.Backup                      `tfschema:"backup"`
+	ClientAffinityEnabled         bool                                  `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled             bool                                  `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                                `tfschema:"client_certificate_mode"`
+	Enabled                       bool                                  `tfschema:"enabled"`
+	HttpsOnly                     bool                                  `tfschema:"https_only"`
+	Identity                      []helpers.Identity                    `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                                `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                    []helpers.LogsConfig                  `tfschema:"logs"`
+	SiteConfig                    []helpers.SiteConfigWindowsWebAppSlot `tfschema:"site_config"`
+	StorageAccounts               []helpers.StorageAccount              `tfschema:"storage_account"`
+	ConnectionStrings             []helpers.ConnectionString            `tfschema:"connection_string"`
+	CustomDomainVerificationId    string                                `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string                                `tfschema:"default_hostname"`
+	Kind                          string                                `tfschema:"kind"`
+	OutboundIPAddresses           string                                `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string                              `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string                                `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string                              `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials               []helpers.SiteCredential              `tfschema:"site_credential"`
+	Tags                          map[string]string                     `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
+var _ sdk.ResourceWithUpdate = WindowsWebAppSlotResource{}
 
-func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
+func (r WindowsWebAppSlotResource) ModelObject() interface{} {
+	return &WindowsWebAppSlotModel{}
+}
+
+func (r WindowsWebAppSlotResource) ResourceType() string {
+	return "azurerm_windows_web_app_slot"
+}
+
+func (r WindowsWebAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.WebAppSlotID
+}
+
+func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -63,14 +71,11 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"location": location.Schema(),
-
-		"service_plan_id": {
+		"app_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ForceNew:     true,
+			ValidateFunc: validate.WebAppID,
 		},
 
 		// Optional
@@ -134,7 +139,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"logs": helpers.LogsConfigSchema(),
 
-		"site_config": helpers.SiteConfigSchemaWindows(),
+		"site_config": helpers.SiteConfigSchemaWindowsWebAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
@@ -142,10 +147,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-// TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights?
-
-func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
+func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -193,30 +195,35 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r WindowsWebAppResource) ModelObject() interface{} {
-	return &WindowsWebAppModel{}
-}
-
-func (r WindowsWebAppResource) ResourceType() string {
-	return "azurerm_windows_web_app"
-}
-
-func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
+func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var webApp WindowsWebAppModel
-			if err := metadata.Decode(&webApp); err != nil {
+			var webAppSlot WindowsWebAppSlotModel
+			if err := metadata.Decode(&webAppSlot); err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			appId, err := parse.WebAppID(webAppSlot.AppServiceId)
+			if err != nil {
+				return err
+			}
 
-			id := parse.NewWebAppID(subscriptionId, webApp.ResourceGroup, webApp.Name)
+			id := parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, webAppSlot.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			webApp, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
+			}
+			if webApp.Location == nil {
+				return fmt.Errorf("could not determine location for %s: %+v", id, err)
+			}
+			siteProps := webApp.SiteProperties
+			if siteProps == nil || siteProps.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
+
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
@@ -225,78 +232,33 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(webApp.Name),
-				Type: web.CheckNameResourceTypesMicrosoftWebsites,
-			}
-
-			servicePlanId, err := parse.ServicePlanID(webApp.ServicePlanId)
+			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(webAppSlot.SiteConfig, nil, metadata)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-			if err != nil {
-				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
-			}
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
-				// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
-				// setting from ASEv1? Hence the non-fatal approach here.
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
-						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
-						}
-					}
-				}
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.%s", webApp.Name, servicePlanId.ServerfarmName, nameSuffix))
-				availabilityRequest.IsFqdn = utils.Bool(true)
-			}
-
-			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
-			if err != nil {
-				return fmt.Errorf("checking name availability for %s: %+v", id, err)
-			}
-			if !*checkName.NameAvailable {
-				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
-			}
-
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindows(webApp.SiteConfig, nil, metadata)
-			if err != nil {
-				return err
-			}
-
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
 
 			siteEnvelope := web.Site{
-				Location: utils.String(webApp.Location),
-				Tags:     tags.FromTypedObject(webApp.Tags),
-				Identity: helpers.ExpandIdentity(webApp.Identity),
+				Location: webApp.Location,
+				Tags:     tags.FromTypedObject(webAppSlot.Tags),
+				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webApp.ServicePlanId),
-					Enabled:               utils.Bool(webApp.Enabled),
-					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					ServerFarmID:          siteProps.ServerFarmID,
+					Enabled:               utils.Bool(webAppSlot.Enabled),
+					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
 					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					ClientAffinityEnabled: utils.Bool(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
 				},
 			}
 
-			if webApp.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
+			if webAppSlot.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
+			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
@@ -310,53 +272,53 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if currentStack != nil && *currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 				siteMetadata.Properties["CURRENT_STACK"] = currentStack
-				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
+				if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {
 					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if appSettings != nil {
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
 				}
 			}
 
-			auth := helpers.ExpandAuthSettings(webApp.AuthSettings)
+			auth := helpers.ExpandAuthSettings(webAppSlot.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
-				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("logs") {
-				logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
+				logsConfig := helpers.ExpandLogsConfig(webAppSlot.LogsConfig)
 				if logsConfig.SiteLogsConfigProperties != nil {
-					if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
+					if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, *logsConfig, id.SlotName); err != nil {
 						return fmt.Errorf("setting Diagnostic Logs Configuration for Windows %s: %+v", id, err)
 					}
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
+			backupConfig := helpers.ExpandBackupConfig(webAppSlot.Backup)
 			if backupConfig.BackupRequestProperties != nil {
-				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
+				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
-			storageConfig := helpers.ExpandStorageConfig(webApp.StorageAccounts)
+			storageConfig := helpers.ExpandStorageConfig(webAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
-				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
 					if err != nil {
 						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 					}
 				}
 			}
 
-			connectionStrings := helpers.ExpandConnectionStrings(webApp.ConnectionStrings)
+			connectionStrings := helpers.ExpandConnectionStrings(webAppSlot.ConnectionStrings)
 			if connectionStrings.Properties != nil {
-				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
+				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
 					return fmt.Errorf("setting Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
@@ -368,16 +330,17 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
+func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+
+			webApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				if utils.ResponseWasNotFound(webApp.Response) {
 					return metadata.MarkAsGone(id)
@@ -385,49 +348,50 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
+			props := webApp.SiteProperties
+			if props == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
 
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
-			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			webAppSiteConfig, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 
-			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+			auth, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
-			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
 					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
-			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			logsConfig, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Diagnostic Logs information for Windows %s: %+v", id, err)
 			}
 
-			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			appSettings, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
-			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
-			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+			connectionStrings, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
-			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
@@ -440,18 +404,14 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 
-			siteMetadata, err := client.ListMetadata(ctx, id.ResourceGroup, id.SiteName)
+			siteMetadata, err := client.ListMetadataSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
-
-			state := WindowsWebAppModel{
-				Name:                        id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
-				Location:                    location.NormalizeNilable(webApp.Location),
+			state := WindowsWebAppSlotModel{
+				Name:                        id.SlotName,
+				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				AuthSettings:                helpers.FlattenAuthSettings(auth),
 				Backup:                      helpers.FlattenBackupConfig(backup),
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
@@ -490,28 +450,28 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			return metadata.Encode(&state)
 		},
 	}
 }
 
-func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
+func (r WindowsWebAppSlotResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			deleteMetrics := true // TODO - Look at making this a feature flag?
+			deleteMetrics := true
 			deleteEmptyServerFarm := false
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+			if _, err := client.DeleteSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
 				return fmt.Errorf("deleting Windows %s: %+v", id, err)
 			}
 			return nil
@@ -519,36 +479,29 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r WindowsWebAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.WebAppID
-}
-
-func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
+func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			// TODO - Need locking here for the source control meta resource?
 
-			var state WindowsWebAppModel
+			var state WindowsWebAppSlotModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-			}
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}
@@ -575,7 +528,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			currentStack := ""
 			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig, existing.SiteConfig, metadata)
+				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
@@ -583,7 +536,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				existing.SiteConfig = siteConfig
 			}
 
-			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
+			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("updating Windows %s: %+v", id, err)
 			}
@@ -593,14 +546,14 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 			siteMetadata.Properties["CURRENT_STACK"] = utils.String(currentStack)
-			if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
+			if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {
 				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}
 			}
@@ -610,14 +563,14 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				if connectionStringUpdate.Properties == nil {
 					connectionStringUpdate.Properties = map[string]*web.ConnStringValueTypePair{}
 				}
-				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
+				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
-				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
@@ -625,11 +578,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("backup") {
 				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
 				if backupUpdate.BackupRequestProperties == nil {
-					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
+					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
 					}
 				} else {
-					if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
+					if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupUpdate, id.SlotName); err != nil {
 						return fmt.Errorf("updating Backup Settings for Windows %s: %+v", id, err)
 					}
 				}
@@ -640,53 +593,19 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				if logsUpdate.SiteLogsConfigProperties == nil {
 					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block
 				}
-				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
+				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, *logsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Logs Config for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
-				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
 			return nil
 		},
-	}
-}
-
-func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.AppService.WebAppsClient
-		servicePlanClient := metadata.Client.AppService.ServicePlanClient
-
-		id, err := parse.WebAppID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-		site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-		if err != nil || site.SiteProperties == nil {
-			return fmt.Errorf("reading Windows %s: %+v", id, err)
-		}
-		props := site.SiteProperties
-		if props.ServerFarmID == nil {
-			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
-		}
-		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
-		if err != nil {
-			return err
-		}
-
-		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-		if err != nil || sp.Kind == nil {
-			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
-		}
-		if strings.Contains(*sp.Kind, "linux") || strings.Contains(*sp.Kind, "Linux") {
-			return fmt.Errorf("specified Service Plan is not a Windows plan")
-		}
-
-		return nil
 	}
 }

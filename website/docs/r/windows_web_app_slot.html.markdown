@@ -1,14 +1,14 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_windows_web_app"
+page_title: "Azure Resource Manager: azurerm_windows_web_app_slot"
 description: |-
-  Manages a Windows Web App.
+  Manages a Windows Web App Slot.
 ---
 
-# azurerm_windows_web_app
+# azurerm_windows_web_app_slot
 
-Manages a Windows Web App.
+Manages a Windows Web App Slot.
 
 !> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
@@ -28,6 +28,7 @@ resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
+  os_type             = "Windows"
   sku_name            = "P1V2"
 }
 
@@ -39,17 +40,32 @@ resource "azurerm_windows_web_app" "example" {
 
   site_config {}
 }
+
+resource "azurerm_windows_web_app_slot" "example" {
+  name                = "example"
+  app_service_name    = azurerm_windows_web_app.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
 ```
 
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Windows Web App should exist. Changing this forces a new Windows Web App to be created.
+* `name` - (Required) The name which should be used for this Windows Web App Slot. Changing this forces a new Windows Web App Slot to be created.
 
-* `name` - (Required) The name which should be used for this Windows Web App. Changing this forces a new Windows Web App to be created.
+* ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the App Service Environment for this to complete reliably.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Windows Web App should exist. Changing this forces a new Windows Web App to be created.
+* `location` - (Required) The Azure Region where the Windows Web App Slot should exist. Changing this forces a new Windows Web App Slot to be created.
+
+* `app_service_name` - (Required) The name of the Windows Web App this Deployment Slot will be part of.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Windows Web App Slot should exist. Changing this forces a new Windows Web App Slot to be created.
 
 * `service_plan_id` - (Required) The ID of the Service Plan that this Windows App Service will be created in.
 
@@ -59,7 +75,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs of App Settings.
 
-* `auth_settings` - (Optional) An `auth_settings` block as defined below.
+* `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `backup` - (Optional) A `backup` block as defined below.
 
@@ -71,27 +87,29 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
-* `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.
+* `enabled` - (Optional) Should the Windows Web App Slot be enabled? Defaults to `true`.
 
-* `https_only` - (Optional) Should the Windows Web App require HTTPS connections.
+* `https_only` - (Optional) Should the Windows Web App Slot require HTTPS connections.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `logs` - (Optional) A `logs` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App Slot.
 
 ---
 
 A `action` block supports the following:
 
-* `action_type` - (Required) Predefined action to be taken to an Auto Heal trigger. Possible values include: `Recycle`, `LogEvent`, and `CustomAction`.
+* `action_type` - (Required) Predefined action to be taken to an Auto Heal trigger. Possible values include: `Recycle`.
 
 * `custom_action` - (Optional) A `custom_action` block as defined below.
 
-* `minimum_process_execution_time` - (Optional) The minimum amount of time in `hh:mm:ss` the Windows Web App must have been running before the defined action will be run in the event of a trigger.
+* `minimum_process_execution_time` - (Optional) The minimum amount of time in `hh:mm:ss` the Windows Web App Slot must have been running before the defined action will be run in the event of a trigger.
 
 ---
 
@@ -99,11 +117,11 @@ A `active_directory` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory. 
+* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
-~> **Note:** The `client_id` value is always considered an allowed audience.
+~> **Note:** The `client_id` value is always considered an allowed audience, so should not be included.
 
-* `client_secret` - (Optional) The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`. 
+* `client_secret` - (Optional) The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.
 
@@ -119,7 +137,7 @@ A `application_logs` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
+* `current_stack` - (Optional) The Application Stack for the Windows Web App Slot. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
@@ -151,15 +169,15 @@ A `application_stack` block supports the following:
 
 A `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature is enabled for the Windows Web App be enabled?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Web App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in. 
+* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
-* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
+* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App Slot.
 
-* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
+* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.
 
 ~> **NOTE:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
 
@@ -169,17 +187,17 @@ A `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App.
+* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App Slot.
 
 ~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
-* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App.
+* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App Slot.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours. 
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
-* `token_store_enabled` - (Optional) Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
+* `token_store_enabled` - (Optional) Should the Windows Web App Slot durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -189,9 +207,9 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Required) An `action` block as defined above.
+* `action` - (Optional) A `action` block as defined above.
 
-* `trigger` - (Required) A `trigger` block as defined below.
+* `trigger` - (Optional) A `trigger` block as defined below.
 
 ---
 
@@ -245,7 +263,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`. 
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
 
@@ -279,13 +297,13 @@ A `google` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes. 
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
 
 ---
 
 A `headers` block supports the following:
 
-~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
+~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
@@ -293,7 +311,7 @@ A `headers` block supports the following:
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
-* `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied. 
+* `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied.
 
 ---
 
@@ -307,9 +325,13 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 ---
 
@@ -323,7 +345,7 @@ A `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`. 
+* `priority` - (Optional) The priority value of this `ip_restriction`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -339,9 +361,9 @@ A `logs` block supports the following:
 
 * `detailed_error_messages` - (Optional) Should detailed error messages be enabled.
 
-* `failed_request_tracing` - (Optional) Should tracing be enabled for failed requests.
+* `failed_request_tracing` - (Optional) Should failed request tracing be enabled.
 
-* `http_logs` - (Optional) A `http_logs` block as defined above.
+* `http_logs` - (Optional) An `http_logs` block as defined above.
 
 ---
 
@@ -350,7 +372,7 @@ A `microsoft` block supports the following:
 * `client_id` - (Required) The OAuth 2.0 client ID that was created for the app used for authentication.
 
 * `client_secret` - (Optional) The OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret_setting_name`.
-  
+
 * `client_secret_setting_name` - (Optional) The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. If not specified, "wl.basic" is used as the default scope.
@@ -361,7 +383,7 @@ A `requests` block supports the following:
 
 * `count` - (Required) The number of requests in the specified `interval` to trigger this rule.
 
-* `interval` - (Required) The interval in `hh:mm:ss`. 
+* `interval` - (Required) The interval in `hh:mm:ss`.
 
 ---
 
@@ -403,9 +425,11 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App Slot is Always On enabled. Defaults to `false`.
 
-* `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
+* `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot os associated with.
+
+* `api_definition_url` - (Optional) The URL to the API Definition for this Windows Web App Slot.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
@@ -415,17 +439,21 @@ A `site_config` block supports the following:
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
+* `auto_swap_slot_name` - (Optional) The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+
+~> **Note:** This must be a valid slot name on the target Windows Web App Slot. 
+
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
 
 * `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
 
 * `cors` - (Optional) A `cors` block as defined above.
 
-* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App Slot.
 
 * `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include: `AllAllowed`, `FtpsOnly`, `Disabled`.
 
-~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
+~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it. 
 
 * `health_check_path` - (Optional) The path to the Health Check.
 
@@ -441,7 +469,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`. 
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
 * `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
@@ -451,15 +479,15 @@ A `site_config` block supports the following:
 
 * `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `scm_use_main_ip_restriction` - (Optional) Should the Windows Web App `ip_restriction` configuration be used for the SCM also.
+* `scm_use_main_ip_restriction` - (Optional) Should the Windows Web App Slot `ip_restriction` configuration be used for the SCM also.
 
-* `32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
+* `use_32_bit_worker` - (Optional) Should the Windows Web App Slotuse a 32-bit worker. Defaults to `true`.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
-* `worker_count` - (Optional) The number of Workers for this Windows App Service.
+* `worker_count` - (Optional) The number of Workers for this Windows App Service Slot.
 
 ---
 
@@ -483,7 +511,7 @@ A `status_code` block supports the following:
 
 * `status_code_range` - (Required) The status code for this rule, accepts single status codes and status code ranges. e.g. `500` or `400-499`. Possible values are integers between `101` and `599`
 
-* `path` - (Optional) The path to which this rule status code applies. 
+* `path` - (Optional) The path to which this rule status code applies.
 
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
@@ -497,7 +525,7 @@ A `storage_account` block supports the following:
 
 * `account_name` - (Required) The Name of the Storage Account.
 
-* `name` - (Required) The name which should be used for this TODO.
+* `name` - (Required) The name which should be used for this Storage Account.
 
 * `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
 
@@ -521,10 +549,10 @@ A `trigger` block supports the following:
 
 A `twitter` block supports the following:
 
-* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in. 
-  
+* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
 * `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.
-  
+
 * `consumer_secret_setting_name` - (Optional) The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret`.
 
 ---
@@ -551,13 +579,15 @@ A `virtual_directory` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Windows Web App.
+* `id` - The ID of the Windows Web App Slot.
+
+* `app_metadata` - A `app_metadata` block as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
-* `default_hostname` - The default hostname of the Windows Web App.
+* `default_hostname` - The default hostname of the Windows Web App Slot.
 
-* `kind` - The Kind value for this Windows Web App. 
+* `kind` - The Kind value for this Windows Web App Slot.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
 
@@ -581,15 +611,15 @@ A `site_credential` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Windows Web App.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Web App.
-* `update` - (Defaults to 30 minutes) Used when updating the Windows Web App.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Windows Web App.
+* `create` - (Defaults to 30 minutes) Used when creating the Windows Web App Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Web App Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Windows Web App Slot.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Windows Web App Slot.
 
 ## Import
 
 Windows Web Apps can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_windows_web_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
+terraform import azurerm_linux_web_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```

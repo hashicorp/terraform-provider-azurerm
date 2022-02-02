@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinuxWebAppSlotResource struct{}
+type WindowsWebAppSlotResource struct{}
 
-func TestAccLinuxWebAppSlot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccLinuxWebAppSlot_basic(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +45,9 @@ func TestAccLinuxWebAppSlot_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_autoSwap(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_autoSwap(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,9 +62,9 @@ func TestAccLinuxWebAppSlot_autoSwap(t *testing.T) {
 
 // Complete
 
-func TestAccLinuxWebAppSlot_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,9 +77,9 @@ func TestAccLinuxWebAppSlot_complete(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_completeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,9 +108,9 @@ func TestAccLinuxWebAppSlot_completeUpdate(t *testing.T) {
 
 // Block Tests
 
-func TestAccLinuxWebAppSlot_backup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_backup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,9 +123,9 @@ func TestAccLinuxWebAppSlot_backup(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_backupUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_backupUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -152,32 +152,30 @@ func TestAccLinuxWebAppSlot_backupUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withConnectionStrings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withConnectionStrings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -185,7 +183,6 @@ func TestAccLinuxWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -193,7 +190,6 @@ func TestAccLinuxWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStringsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -201,7 +197,6 @@ func TestAccLinuxWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -209,16 +204,15 @@ func TestAccLinuxWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebAppSlot_withIPRestrictions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withIPRestrictions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -231,9 +225,9 @@ func TestAccLinuxWebAppSlot_withIPRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withIPRestrictionsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withIPRestrictionsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -260,9 +254,9 @@ func TestAccLinuxWebAppSlot_withIPRestrictionsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withAuthSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withAuthSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -275,9 +269,9 @@ func TestAccLinuxWebAppSlot_withAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withAuthSettingsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withAuthSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -318,9 +312,9 @@ func TestAccLinuxWebAppSlot_withAuthSettingsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withAutoHealRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withAutoHealRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -332,9 +326,9 @@ func TestAccLinuxWebAppSlot_withAutoHealRules(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -368,9 +362,9 @@ func TestAccLinuxWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_appSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_appSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -385,43 +379,41 @@ func TestAccLinuxWebAppSlot_appSettings(t *testing.T) {
 	})
 }
 
-// Atrtibutes
+// Attributes
 
-func TestAccLinuxWebAppSlot_loadBalancing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_loadBalancing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.loadBalancing(data, "WeightedRoundRobin"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebAppSlot_detailedLogging(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_detailedLogging(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -470,13 +462,13 @@ func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
 
 // App Stacks
 
-func TestAccLinuxWebAppSlot_withDotNet21(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withDotNet3(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "2.1"),
+			Config: r.dotNet(data, "v3.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -485,13 +477,13 @@ func TestAccLinuxWebAppSlot_withDotNet21(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withDotNet31(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withDotNet4(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "3.1"),
+			Config: r.dotNet(data, "v4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -500,13 +492,13 @@ func TestAccLinuxWebAppSlot_withDotNet31(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withDotNet50(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withDotNet5(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "5.0"),
+			Config: r.dotNet(data, "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -515,9 +507,24 @@ func TestAccLinuxWebAppSlot_withDotNet50(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPhp56(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withDotNet6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v6.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebAppSlot_withPhp56(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -530,24 +537,9 @@ func TestAccLinuxWebAppSlot_withPhp56(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPhp72(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withPhp73(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withPhp73(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -560,9 +552,9 @@ func TestAccLinuxWebAppSlot_withPhp73(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPhp74(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -575,13 +567,13 @@ func TestAccLinuxWebAppSlot_withPhp74(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython27(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withPython(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "2.7"),
+			Config: r.python(data, "3.4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -590,13 +582,13 @@ func TestAccLinuxWebAppSlot_withPython27(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython36(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withNode10LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.6"),
+			Config: r.node(data, "10-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -605,13 +597,13 @@ func TestAccLinuxWebAppSlot_withPython36(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython37(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withNode12LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.7"),
+			Config: r.node(data, "12-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -620,13 +612,13 @@ func TestAccLinuxWebAppSlot_withPython37(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython38(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withNode14LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.8"),
+			Config: r.node(data, "14-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -635,13 +627,13 @@ func TestAccLinuxWebAppSlot_withPython38(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode101(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withNode16LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.1"),
+			Config: r.node(data, "16-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -650,13 +642,13 @@ func TestAccLinuxWebAppSlot_withNode101(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode106(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withJava8Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.6"),
+			Config: r.java(data, "1.8", "JAVA", "9.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -665,13 +657,13 @@ func TestAccLinuxWebAppSlot_withNode106(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode1014(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withJava11Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.14"),
+			Config: r.java(data, "11", "JAVA", "9.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -680,172 +672,15 @@ func TestAccLinuxWebAppSlot_withNode1014(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode10LTS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
+func TestAccWindowsWebAppSlot_withDocker(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10-lts"),
+			Config: r.docker(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withNode12LTS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "12-lts"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withNode14LTS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "14-lts"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJre8Java(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "jre8", "JAVA", "8"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJre11Java(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "java11", "JAVA", "11"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11-java11"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJava1109(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "11.0.9", "JAVA", ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11.0.9"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJava8u242(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "8u242", "JAVA", ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|8u242"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJava11Tomcat9(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJava11Tomcat8561(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "java11", "TOMCAT", "8.5.61"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|8.5.61-java11"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withJava8JBOSSEAP73(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.javaPremiumV3Plan(data, "java8", "JBOSSEAP", "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JBOSSEAP|7.3-java8"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.docker(data, "mcr.microsoft.com/appsvc/staticsite", "latest"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
 			),
 		},
 		data.ImportStep(),
@@ -856,7 +691,7 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 
 // Exists
 
-func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WindowsWebAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebAppSlotID(state.ID)
 	if err != nil {
 		return nil, err
@@ -867,7 +702,7 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Linux %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
@@ -879,7 +714,7 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 
 // Configs
 
-func (r LinuxWebAppSlotResource) basic(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -887,30 +722,31 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) requiresImport(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
 
-resource "azurerm_linux_web_app_slot" "import" {
-  name           = azurerm_linux_web_app_slot.test.name
-  app_service_id = azurerm_linux_web_app_slot.test.app_service_id
+resource "azurerm_windows_web_app_slot" "import" {
+  name           = azurerm_windows_web_app_slot.test.name
+  app_service_id = azurerm_windows_web_app_slot.test.app_service_id
 
   site_config {}
+
 }
 `, r.basic(data))
 }
 
-func (r LinuxWebAppSlotResource) appSettings(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -918,9 +754,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -932,7 +768,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) autoHealRules(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) autoHealRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -940,9 +776,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -966,7 +802,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) autoHealRulesUpdate(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) autoHealRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -974,9 +810,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -1005,7 +841,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) autoSwap(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) autoSwap(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1013,9 +849,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     auto_swap_slot_name = "production"
@@ -1024,7 +860,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) basicWithStorage(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) basicWithStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1032,16 +868,16 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) complete(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1049,9 +885,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   app_settings = {
     foo = "bar"
@@ -1167,10 +1003,21 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
 
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     auto_swap_slot_name = "Production"
     auto_heal_enabled   = true
+
+    virtual_application {
+      virtual_path  = "/"
+      physical_path = "site\\wwwroot"
+      preload       = true
+
+      virtual_directory {
+        virtual_path  = "/stuff"
+        physical_path = "site\\stuff"
+      }
+    }
 
     auto_heal_setting {
       trigger {
@@ -1194,7 +1041,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/storage/files"
+    mount_path   = "/mounts/files"
   }
 
   tags = {
@@ -1205,7 +1052,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.templateWithStorageAccount(data), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxWebAppSlotResource) withDetailedLogging(data acceptance.TestData, detailedErrorLogging bool) string {
+func (r WindowsWebAppSlotResource) withDetailedLogging(data acceptance.TestData, detailedErrorLogging bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1213,9 +1060,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1226,7 +1073,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, detailedErrorLogging)
 }
 
-func (r LinuxWebAppSlotResource) loadBalancing(data acceptance.TestData, loadBalancingMode string) string {
+func (r WindowsWebAppSlotResource) loadBalancing(data acceptance.TestData, loadBalancingMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1234,9 +1081,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     load_balancing_mode = "%s"
@@ -1245,7 +1092,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, loadBalancingMode)
 }
 
-func (r LinuxWebAppSlotResource) withAuthSettings(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1253,9 +1100,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1282,7 +1129,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxWebAppSlotResource) withAuthSettingsUpdate(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withAuthSettingsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1290,9 +1137,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1356,7 +1203,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxWebAppSlotResource) withBackup(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withBackup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1364,9 +1211,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1382,7 +1229,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withConnectionStrings(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withConnectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1390,9 +1237,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1405,7 +1252,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withConnectionStringsUpdate(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withConnectionStringsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1413,9 +1260,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1434,7 +1281,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withIPRestrictions(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withIPRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1442,9 +1289,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     ip_restriction {
@@ -1464,7 +1311,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withIPRestrictionsUpdate(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withIPRestrictionsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1472,9 +1319,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     ip_restriction {
@@ -1494,7 +1341,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withLogsHttpBlob(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withLogsHttpBlob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1502,9 +1349,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1530,7 +1377,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) withLoggingComplete(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) withLoggingComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1538,9 +1385,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 
@@ -1569,7 +1416,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) dotNet(data acceptance.TestData, dotNetVersion string) string {
+func (r WindowsWebAppSlotResource) dotNet(data acceptance.TestData, dotNetVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1577,9 +1424,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
@@ -1591,7 +1438,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
-func (r LinuxWebAppSlotResource) php(data acceptance.TestData, phpVersion string) string {
+func (r WindowsWebAppSlotResource) php(data acceptance.TestData, phpVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1599,9 +1446,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
@@ -1613,7 +1460,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }
 
-func (r LinuxWebAppSlotResource) python(data acceptance.TestData, pythonVersion string) string {
+func (r WindowsWebAppSlotResource) python(data acceptance.TestData, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1621,12 +1468,13 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
+      current_stack  = "python"
       python_version = "%s"
     }
   }
@@ -1635,7 +1483,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
-func (r LinuxWebAppSlotResource) node(data acceptance.TestData, nodeVersion string) string {
+func (r WindowsWebAppSlotResource) node(data acceptance.TestData, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1643,9 +1491,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
@@ -1657,7 +1505,16 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
 
-func (r LinuxWebAppSlotResource) java(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
+func (r WindowsWebAppSlotResource) java(data acceptance.TestData, javaVersion string, javaContainer string, javaContainerVersion string) string {
+	javaContainerStr := ""
+	if javaContainer != "" {
+		javaContainerStr = fmt.Sprintf("java_container = %q", javaContainer)
+	}
+	javaContainerVersionStr := ""
+	if javaContainerVersion != "" {
+		javaContainerVersionStr = fmt.Sprintf("java_container_version = %q", javaContainerVersion)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1665,23 +1522,24 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
-      java_version        = "%s"
-      java_server         = "%s"
-      java_server_version = "%s"
+      current_stack = "java"
+      java_version  = "%s"
+      %s
+      %s
     }
   }
 }
 
-`, r.baseTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
+`, r.baseTemplate(data), data.RandomInteger, javaVersion, javaContainerStr, javaContainerVersionStr)
 }
 
-func (r LinuxWebAppSlotResource) javaPremiumV3Plan(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
+func (r WindowsWebAppSlotResource) docker(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1689,56 +1547,30 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app_slot" "test" {
+resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
-
-  site_config {
-    application_stack {
-      java_version        = "%s"
-      java_server         = "%s"
-      java_server_version = "%s"
-    }
-  }
-}
-
-`, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
-}
-
-func (r LinuxWebAppSlotResource) docker(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_windows_web_app.test.id
 
   app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
     "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
     "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-
   }
 
   site_config {
     application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
+      docker_container_name = "%s"
+      docker_container_tag  = "%s"
     }
   }
 }
-
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "hello-world", "latest")
 }
 
 // Templates
 
-func (LinuxWebAppSlotResource) baseTemplate(data acceptance.TestData) string {
+func (WindowsWebAppSlotResource) baseTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -1749,11 +1581,11 @@ resource "azurerm_service_plan" "test" {
   name                = "acctestASP-WAS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
+  os_type             = "Windows"
   sku_name            = "S1"
 }
 
-resource "azurerm_linux_web_app" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctestWA-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1764,7 +1596,7 @@ resource "azurerm_linux_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LinuxWebAppSlotResource) templateWithStorageAccount(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) templateWithStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -1828,7 +1660,7 @@ data "azurerm_storage_account_sas" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
 }
 
-func (LinuxWebAppSlotResource) premiumV3PlanTemplate(data acceptance.TestData) string {
+func (WindowsWebAppSlotResource) premiumV3PlanContainerTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -1840,11 +1672,11 @@ resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
   sku_name            = "P1v3"
+  os_type             = "WindowsContainer"
 }
 
-resource "azurerm_linux_web_app" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctestWA-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
