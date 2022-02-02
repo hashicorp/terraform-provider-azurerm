@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TrafficManagerExternalEndpointResource struct{}
+type ExternalEndpointResource struct{}
 
-func TestAccAzureRMTrafficManagerExternalEndpoint_basic(t *testing.T) {
+func TestAccExternalEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := TrafficManagerExternalEndpointResource{}
+	r := ExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,24 @@ func TestAccAzureRMTrafficManagerExternalEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerExternalEndpoint_complete(t *testing.T) {
+func TestAccExternalEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := TrafficManagerExternalEndpointResource{}
+	r := ExternalEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccExternalEndpoint_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
+	r := ExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,9 +75,9 @@ func TestAccAzureRMTrafficManagerExternalEndpoint_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerExternalEndpoint_subnets(t *testing.T) {
+func TestAccExternalEndpoint_subnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := TrafficManagerExternalEndpointResource{}
+	r := ExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +90,7 @@ func TestAccAzureRMTrafficManagerExternalEndpoint_subnets(t *testing.T) {
 	})
 }
 
-func (r TrafficManagerExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -91,45 +106,52 @@ func (r TrafficManagerExternalEndpointResource) Exists(ctx context.Context, clie
 	return utils.Bool(true), nil
 }
 
-func (r TrafficManagerExternalEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := endpoints.ParseEndpointTypeID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	return utils.Bool(true), nil
+func (r ExternalEndpointResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
 }
 
-func (r TrafficManagerExternalEndpointResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
 %s
 
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-azure%d"
-  target              = "pluginsdk.io"
-  weight              = 3
-  profile_name        = azurerm_traffic_manager_profile.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name       = "acctestend-azure%d"
+  target     = "www.example.com"
+  weight     = 3
+  profile_id = azurerm_traffic_manager_profile.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TrafficManagerExternalEndpointResource) complete(data acceptance.TestData) string {
+func (r ExternalEndpointResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_traffic_manager_external_endpoint" "import" {
+  name       = azurerm_traffic_manager_external_endpoint.test.name
+  target     = azurerm_traffic_manager_external_endpoint.test.target
+  weight     = azurerm_traffic_manager_external_endpoint.test.weight
+  profile_id = azurerm_traffic_manager_external_endpoint.test.profile_id
+}
+`, r.basic(data))
+}
+
+func (r ExternalEndpointResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-azure%d"
-  target              = "pluginsdk.io"
-  weight              = 5
-  profile_name        = azurerm_traffic_manager_profile.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  enabled             = false
-  priority            = 4
-  endpoint_location   = azurerm_resource_group.test.location
+  name              = "acctestend-azure%d"
+  target            = "www.example.com"
+  weight            = 5
+  profile_id        = azurerm_traffic_manager_profile.test.id
+  enabled           = false
+  priority          = 4
+  endpoint_location = azurerm_resource_group.test.location
 
   geo_mappings = ["WORLD"]
 
@@ -141,54 +163,24 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TrafficManagerExternalEndpointResource) template(data acceptance.TestData) string {
+func (r ExternalEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctest-TMP-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  traffic_routing_method = "Weighted"
-
-  dns_config {
-    relative_name = "acctest-tmp-%d"
-    ttl           = 30
-  }
-
-  monitor_config {
-    protocol = "https"
-    port     = 443
-    path     = "/"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (r TrafficManagerExternalEndpointResource) subnets(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
-}
-
-resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctest-TMP-%d"
+  name                   = "acctest-TMP-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Subnet"
 
   dns_config {
-    relative_name = "acctest-tmp-%d"
+    relative_name = "acctest-tmp-%[1]d"
     ttl           = 30
   }
 
@@ -200,8 +192,8 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-azure%d"
-  target              = "pluginsdk.io"
+  name                = "acctestend-azure%[1]d"
+  target              = "www.example.com"
   weight              = 5
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -215,5 +207,32 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
     last  = "11.12.13.14"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ExternalEndpointResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Weighted"
+
+  dns_config {
+    relative_name = "acctest-tmp-%[1]d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Azure Endpoint. Changing this forces a new resource to be created.
 
-* `profile_name` - (Required) The ID of the Traffic Manager Profile that this Azure Endpoint should be created within. Changing this forces a new resource to be created.
+* `profile_id` - (Required) The ID of the Traffic Manager Profile that this Azure Endpoint should be created within. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is the endpoint enabled? Defaults to `true`.
 

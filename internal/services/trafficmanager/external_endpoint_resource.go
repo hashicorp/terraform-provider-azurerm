@@ -2,16 +2,16 @@ package trafficmanager
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -19,15 +19,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmTrafficManagerExternalEndpoint() *pluginsdk.Resource {
+func resourceExternalEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmTrafficManagerExternalEndpointCreateUpdate,
-		Read:   resourceArmTrafficManagerExternalEndpointRead,
-		Update: resourceArmTrafficManagerExternalEndpointCreateUpdate,
-		Delete: resourceArmTrafficManagerExternalEndpointDelete,
+		Create: resourceExternalEndpointCreateUpdate,
+		Read:   resourceExternalEndpointRead,
+		Update: resourceExternalEndpointCreateUpdate,
+		Delete: resourceExternalEndpointDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := endpoints.ParseEndpointTypeID(id)
-			return err
+			endpointType, err := endpoints.ParseEndpointTypeID(id)
+			if err != nil {
+				return err
+			}
+
+			if endpointType.EndpointType != endpoints.EndpointTypeExternalEndpoints {
+				return fmt.Errorf("this resource only supports `ExternalEndpoints` but got %s", string(endpointType.EndpointType))
+			}
+
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -45,14 +53,12 @@ func resourceArmTrafficManagerExternalEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"profile_name": {
+			"profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.TrafficManagerProfileID,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"target": {
 				Type:         pluginsdk.TypeString,
@@ -121,12 +127,12 @@ func resourceArmTrafficManagerExternalEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -140,21 +146,17 @@ func resourceArmTrafficManagerExternalEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmTrafficManagerExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
+	profileId, err := parse.TrafficManagerProfileID(d.Get("profile_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `profile_id`: %+v", err)
+	}
 
-	name := d.Get("name").(string)
-	fullEndpointType := fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)
-	profileName := d.Get("profile_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := endpoints.NewEndpointTypeID(subscriptionId, resourceGroup, profileName, endpoints.EndpointTypeExternalEndpoints, name)
-
+	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.Name, endpoints.EndpointTypeExternalEndpoints, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -174,8 +176,8 @@ func resourceArmTrafficManagerExternalEndpointCreateUpdate(d *pluginsdk.Resource
 	}
 
 	params := endpoints.Endpoint{
-		Name: &name,
-		Type: &fullEndpointType,
+		Name: utils.String(id.EndpointName),
+		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			Target:         utils.String(d.Get("target").(string)),
 			EndpointStatus: &status,
@@ -237,10 +239,10 @@ func resourceArmTrafficManagerExternalEndpointCreateUpdate(d *pluginsdk.Resource
 	}
 
 	d.SetId(id.ID())
-	return resourceArmTrafficManagerExternalEndpointRead(d, meta)
+	return resourceExternalEndpointRead(d, meta)
 }
 
-func resourceArmTrafficManagerExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,8 +262,8 @@ func resourceArmTrafficManagerExternalEndpointRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("profile_name", id.ProfileName)
+	d.Set("profile_id", parse.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			enabled := true
@@ -287,7 +289,7 @@ func resourceArmTrafficManagerExternalEndpointRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmTrafficManagerExternalEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExternalEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -297,11 +299,8 @@ func resourceArmTrafficManagerExternalEndpointDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

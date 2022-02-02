@@ -171,7 +171,7 @@ func resourceAzureEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	params := endpoints.Endpoint{
 		Name: utils.String(id.EndpointName),
-		Type: utils.String(fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
+		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
 			EndpointStatus:   &status,
