@@ -830,7 +830,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -874,7 +874,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -889,21 +889,21 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -942,7 +942,7 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
 	})
 }
 
-func (r WindowsVirtualMachineResource) otherHotpatching(data acceptance.TestData, hotPatch bool, patchMode string) string {
+func (r WindowsVirtualMachineResource) otherHotpatching(data acceptance.TestData, hotPatch bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -970,10 +970,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  patch_mode          = "%s"
+  patch_mode          = "AutomaticByPlatform"
   hotpatching_enabled = %t
 }
-`, r.template(data), patchMode, hotPatch)
+`, r.template(data), hotPatch)
 }
 
 func (r WindowsVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
