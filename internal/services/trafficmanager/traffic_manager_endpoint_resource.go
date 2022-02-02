@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +30,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favor of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint'."),
+		DeprecationMessage: "The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favour of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint' and will be removed in version 3.0 of the Azure Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -280,10 +279,10 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
 			d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
 			d.Set("geo_mappings", props.GeoMapping)
-			if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			if err := d.Set("subnet", flattenEndpointSubnetConfig(props.Subnets)); err != nil {
 				return fmt.Errorf("setting `subnet`: %s", err)
 			}
-			if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+			if err := d.Set("custom_header", flattenEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
 				return fmt.Errorf("setting `custom_header`: %s", err)
 			}
 		}
@@ -399,7 +398,7 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoint
 	return &endpointProps
 }
 
-func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
+func flattenEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -420,7 +419,7 @@ func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]endpoints.Endpoin
 	return result
 }
 
-func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
+func flattenEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
