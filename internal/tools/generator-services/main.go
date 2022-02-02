@@ -53,7 +53,7 @@ type generator interface {
 	run(outputFileName string, packagesToSkip map[string]struct{}) error
 }
 
-const githubLabelsTemplate = `
+const githubLabelsTemplate = `# NOTE: this file is generated via 'make generate'
 dependencies:
   - go.mod
   - go.sum
