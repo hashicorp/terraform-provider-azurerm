@@ -74,7 +74,7 @@ The following arguments are supported:
 
 -> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 3.0 of the provider.
 
-* `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created. Do not combine with `storage_account_name` and `resource_group_name`.
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 
