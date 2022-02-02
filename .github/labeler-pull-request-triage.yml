@@ -1,6 +1,9 @@
+# NOTE: this file is generated via 'make generate'
 dependencies:
   - go.mod
   - go.sum
   - vendor/**/*
 documentation:
   - website/**/*
+service/aadb2c:
+  - internal/services/aadb2c/**/*

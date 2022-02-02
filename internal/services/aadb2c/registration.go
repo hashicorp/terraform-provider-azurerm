@@ -7,8 +7,12 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/aadb2c"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
