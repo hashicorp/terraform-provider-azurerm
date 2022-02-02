@@ -1534,9 +1534,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		skuTier := "Free"
 		if v := d.Get("sku_tier").(string); v != "" {
-			existing.Sku.Tier = containerservice.ManagedClusterSKUTier(skuTier)
+			skuTier = v
 		}
-		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
+		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(skuTier)
 	}
 
 	if d.HasChange("automatic_channel_upgrade") {
