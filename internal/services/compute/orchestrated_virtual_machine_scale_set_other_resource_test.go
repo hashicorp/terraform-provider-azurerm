@@ -43,7 +43,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatching(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_AutomaticVMGuestPatchingLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -58,7 +58,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatching(t *
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatchingUpdate(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_AutomaticVMGuestPatchingUpdateLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -87,7 +87,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_LinuxAutomaticVMGuestPatchingUpda
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatching(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_AutomaticVMGuestPatchingWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -102,7 +102,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatching(t
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatchingUpdate(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_AutomaticVMGuestPatchingUpdateWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -131,7 +131,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_WindowsAutomaticVMGuestPatchingUp
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_WindowsHotpatchingEnabled(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_AutomaticVMGuestPatchingHotpatchingEnabledWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
