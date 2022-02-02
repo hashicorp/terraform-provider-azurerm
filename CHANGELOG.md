@@ -16,6 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
+* `azurerm_kubernetes_cluster` - prevent panic when updating `sku_tier` [GH-15229]
 * `azurerm_log_analytics_datasource_windows_event` - adding a state migration to fix `ID was missing the dataSources element` [GH-15194]
 * `azurerm_policy_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
 * `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
