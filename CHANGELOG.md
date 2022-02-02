@@ -8,6 +8,8 @@ FEATURES:
 BUG FIXES:
 
 * `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
+* `azurerm_policy_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
+* `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
 * `azurerm_static_site` - fixing the creation of a Free tier Static Site [GH-15141]
 
 ## 2.94.0 (January 28, 2022)
