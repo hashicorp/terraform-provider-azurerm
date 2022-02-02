@@ -1526,6 +1526,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("sku_tier") {
 		updateCluster = true
+		if existing.Sku == nil {
+			existing.Sku = &containerservice.ManagedClusterSKU{}
+		}
+
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
