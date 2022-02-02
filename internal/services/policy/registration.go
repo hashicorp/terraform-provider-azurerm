@@ -56,7 +56,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_machine_configuration_policy_assignment": resourceVirtualMachineConfigurationPolicyAssignment(),
 	}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		resources["azurerm_policy_assignment"] = resourceArmPolicyAssignment()
 	}
 

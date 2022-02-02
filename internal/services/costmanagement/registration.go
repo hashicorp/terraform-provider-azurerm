@@ -43,7 +43,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	resources := make(map[string]*pluginsdk.Resource)
 
-	if features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		resources["azurerm_cost_management_export_resource_group"] = resourceCostManagementExportResourceGroup()
 	}
 
