@@ -119,8 +119,8 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("checking for presence of existing Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", id.ID())
 	}
 
 	parameters := operationalinsights.Cluster{

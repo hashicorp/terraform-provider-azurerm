@@ -100,8 +100,8 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_data_export_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_data_export_rule", id.ID())
 		}
 	}
 

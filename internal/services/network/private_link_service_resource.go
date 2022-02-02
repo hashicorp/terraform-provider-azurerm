@@ -164,8 +164,8 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_link_service", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
 		}
 	}
 

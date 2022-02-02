@@ -292,8 +292,8 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logic_app_workflow", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_logic_app_workflow", id.ID())
 		}
 	}
 

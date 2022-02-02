@@ -142,8 +142,8 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
 		}
 	}
 

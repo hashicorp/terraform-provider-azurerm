@@ -189,8 +189,8 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_security_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
 		}
 	}
 

@@ -156,8 +156,8 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_plan", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
 		}
 	}
 

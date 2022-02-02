@@ -400,8 +400,8 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
 		}
 	}
 

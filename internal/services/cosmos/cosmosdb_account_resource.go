@@ -634,8 +634,8 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_account", id.ID())
 		}
 	}
 

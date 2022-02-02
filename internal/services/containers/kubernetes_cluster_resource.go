@@ -1043,29 +1043,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 }
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*clients.Client).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	existing, err := client.Get(ctx, resGroup, name)
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
 	}
 
-	if err := validateKubernetesCluster(d, nil, resGroup, name); err != nil {
+	if err := validateKubernetesCluster(d, nil, id.ResourceGroup, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1145,8 +1144,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := containerservice.ManagedCluster{
-		Name:     &name,
-		Location: &location,
+		Name:     utils.String(id.ManagedClusterName),
+		Location: utils.String(location),
 		Sku: &containerservice.ManagedClusterSKU{
 			Name: containerservice.ManagedClusterSKUNameBasic, // the only possible value at this point
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
@@ -1227,13 +1226,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.DiskEncryptionSetID = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
@@ -1241,14 +1240,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := containerservice.MaintenanceConfiguration{
 			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
 		}
-		if _, err := client.CreateOrUpdate(ctx, resGroup, name, "default", parameters); err != nil {
-			return fmt.Errorf("creating/updating maintenance config for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating maintenance config for %s: %+v", id, err)
 		}
 	}
 
-	id := parse.NewClusterID(client.SubscriptionID, resGroup, name)
 	d.SetId(id.ID())
-
 	return resourceKubernetesClusterRead(d, meta)
 }
 
@@ -1259,9 +1256,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*clients.Client).Account.TenantId
-
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
 	id, err := parse.ClusterID(d.Id())
 	if err != nil {
@@ -1273,10 +1267,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// we need to conditionally update the cluster
 	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
 	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 	}
 
 	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.ManagedClusterName); err != nil {
@@ -1292,7 +1286,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("service_principal") && !d.HasChange("identity") {
-		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating the Service Principal for %s..", *id)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -1306,21 +1300,20 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.ManagedClusterName, params)
 		if err != nil {
-			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving updated %s: %+v", *id, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+			return fmt.Errorf("retrieving updated %s: `properties` was nil", *id)
 		}
 	}
 
@@ -1332,9 +1325,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
-			return fmt.Errorf("reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
 		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		tenantId := meta.(*clients.Client).Account.TenantId
 		rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 		if err != nil {
 			return err
@@ -1350,11 +1344,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
-					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.ManagedClusterName, id.ResourceGroup, err)
+					return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
 				}
 			}
 		} else {
@@ -1557,26 +1551,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if updateCluster {
-		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
 	if d.HasChange("kubernetes_version") {
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+			return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 		}
 
 		kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -1585,11 +1579,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -1605,22 +1599,22 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		nodePoolName := *agentProfile.Name
+		defaultNodePoolId := parse.NewNodePoolID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, *agentProfile.Name)
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, nodePoolName, *nodePoolVersion); err != nil {
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, defaultNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
 
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, nodePoolName, agentProfile)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, agentProfile)
 		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 		}
 
 		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Default Node Pool %s: %+v", defaultNodePoolId, err)
 		}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
@@ -1653,20 +1647,20 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -1831,17 +1825,17 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		if _, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, "default"); err != nil {
-			return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", *id, err)
 		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

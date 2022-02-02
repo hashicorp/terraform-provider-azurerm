@@ -324,8 +324,8 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", id.ID())
 		}
 	}
 

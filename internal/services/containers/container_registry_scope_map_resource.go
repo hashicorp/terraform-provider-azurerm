@@ -84,8 +84,8 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry_scope_map", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_registry_scope_map", id.ID())
 		}
 	}
 

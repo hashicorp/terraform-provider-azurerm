@@ -317,23 +317,21 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	kubernetesClusterId, err := parse.ClusterID(d.Get("kubernetes_cluster_id").(string))
+	clusterId, err := parse.ClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := kubernetesClusterId.ResourceGroup
-	clusterName := kubernetesClusterId.ManagedClusterName
-	name := d.Get("name").(string)
+	id := parse.NewNodePoolID(poolsClient.SubscriptionID, clusterId.ResourceGroup, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving Kubernetes Cluster %q (Resource Group %q)..", clusterName, resourceGroup)
-	cluster, err := clustersClient.Get(ctx, resourceGroup, clusterName)
+	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
+	cluster, err := clustersClient.Get(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(cluster.Response) {
-			return fmt.Errorf("Kubernetes Cluster %q was not found in Resource Group %q!", clusterName, resourceGroup)
+			return fmt.Errorf("%s was not found", *clusterId)
 		}
 
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *clusterId, err)
 	}
 
 	// try to provide a more helpful error here
@@ -349,18 +347,18 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 	if !defaultPoolIsVMSS {
-		return fmt.Errorf("The Default Node Pool for Kubernetes Cluster %q (Resource Group %q) must be a VirtualMachineScaleSet to attach multiple node pools!", clusterName, resourceGroup)
+		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
+	existing, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Agent Pool %q (Kubernetes Cluster %q / Resource Group %q): %s", name, clusterName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
 	}
 
 	count := d.Get("node_count").(int)
@@ -371,13 +369,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	priority := d.Get("priority").(string)
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
-	vmSize := d.Get("vm_size").(string)
-	enableHostEncryption := d.Get("enable_host_encryption").(bool)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
+		EnableEncryptionAtHost: utils.Bool(d.Get("enable_host_encryption").(bool)),
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
@@ -385,8 +382,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolTypeVirtualMachineScaleSets,
-		VMSize:                 utils.String(vmSize),
-		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
@@ -419,7 +415,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
 	if orchestratorVersion != "" {
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, resourceGroup, clusterName, name, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, id, orchestratorVersion); err != nil {
 			return err
 		}
 
@@ -514,22 +510,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	parameters := containerservice.AgentPool{
-		Name:                                     &name,
+		Name:                                     utils.String(id.AgentPoolName),
 		ManagedClusterAgentPoolProfileProperties: &profile,
 	}
 
-	future, err := poolsClient.CreateOrUpdate(ctx, resourceGroup, clusterName, name, parameters)
+	future, err := poolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, poolsClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	id := parse.NewNodePoolID(poolsClient.SubscriptionID, resourceGroup, clusterName, name)
 	d.SetId(id.ID())
-
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -546,17 +540,17 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+			return fmt.Errorf("%s was not found", *id)
 		}
 
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if existing.ManagedClusterAgentPoolProfileProperties == nil {
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	props := existing.ManagedClusterAgentPoolProfileProperties
@@ -567,7 +561,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		enableAutoScaling = *props.EnableAutoScaling
 	}
 
-	log.Printf("[DEBUG] Determining delta for existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
 	// delta patching
 	if d.HasChange("availability_zones") {
@@ -621,7 +615,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		orchestratorVersion := d.Get("orchestrator_version").(string)
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, *id, orchestratorVersion); err != nil {
 			return err
 		}
 
@@ -672,15 +666,15 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.MinCount = nil
 	}
 
-	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+	log.Printf("[DEBUG] Updating existing %s..", *id)
 	existing.ManagedClusterAgentPoolProfileProperties = props
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, existing)
 	if err != nil {
-		return fmt.Errorf("updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	d.Partial(false)
@@ -700,31 +694,30 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// if the parent cluster doesn't exist then the node pool won't
+	clusterId := parse.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
 	cluster, err := clustersClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(cluster.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", clusterId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", clusterId, err)
 	}
 
 	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q - removing from state!", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.AgentPoolName)
-
-	clusterId := parse.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
 	d.Set("kubernetes_cluster_id", clusterId.ID())
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
@@ -857,11 +850,11 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
-		return fmt.Errorf("deleting Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", id, err)
 	}
 
 	return nil
