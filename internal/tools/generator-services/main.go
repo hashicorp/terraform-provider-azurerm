@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
@@ -34,6 +36,7 @@ func main() {
 	}
 
 	generators := []generator{
+		githubLabelsGenerator{},
 		teamCityServicesListGenerator{},
 		websiteCategoriesGenerator{},
 	}
@@ -48,6 +51,70 @@ func main() {
 type generator interface {
 	outputPath(rootDirectory string) string
 	run(outputFileName string, packagesToSkip map[string]struct{}) error
+}
+
+const githubLabelsTemplate = `
+dependencies:
+  - go.mod
+  - go.sum
+  - vendor/**/*
+documentation:
+  - website/**/*
+`
+
+const githubLabelServiceTemplate = `
+%[1]s:
+  - internal/services/%[2]s/**/*
+`
+
+type githubLabelsGenerator struct{}
+
+func (githubLabelsGenerator) outputPath(rootDirectory string) string {
+	return fmt.Sprintf("%s/.github/labeler-pull-request-triage.yml", rootDirectory)
+}
+
+func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) error {
+	packagesToLabel := make(map[string]string, 0)
+	// combine and unique these
+	for _, service := range provider.SupportedTypedServices() {
+		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		info := reflect.TypeOf(service)
+		packageSegments := strings.Split(info.PkgPath(), "/")
+		packageName := packageSegments[len(packageSegments)-1]
+		packagesToLabel[packageName] = v.AssociatedGitHubLabel()
+	}
+	for _, service := range provider.SupportedUntypedServices() {
+		v, ok := service.(sdk.UntypedServiceRegistrationWithAGitHubLabel)
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		info := reflect.TypeOf(service)
+		packageSegments := strings.Split(info.PkgPath(), "/")
+		packageName := packageSegments[len(packageSegments)-1]
+		packagesToLabel[packageName] = v.AssociatedGitHubLabel()
+	}
+
+	sortedPackages := make([]string, 0)
+	for k := range packagesToLabel {
+		sortedPackages = append(sortedPackages, k)
+	}
+	sort.Strings(sortedPackages)
+
+	output := strings.TrimSpace(githubLabelsTemplate)
+	for _, packageName := range sortedPackages {
+		label := packagesToLabel[packageName]
+		templated := fmt.Sprintf(githubLabelServiceTemplate, label, packageName)
+		output += templated
+	}
+
+	return writeToFile(outputFileName, output)
 }
 
 type teamCityServicesListGenerator struct{}
