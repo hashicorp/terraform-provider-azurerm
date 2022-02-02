@@ -59,6 +59,8 @@ dependencies:
   - vendor/**/*
 documentation:
   - website/**/*
+tooling:
+  - internal/tools/**/*
 `
 
 const githubLabelServiceTemplate = `

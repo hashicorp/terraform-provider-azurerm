@@ -5,6 +5,8 @@ dependencies:
   - vendor/**/*
 documentation:
   - website/**/*
+tooling:
+  - internal/tools/**/*
 service/aadb2c:
   - internal/services/aadb2c/**/*
 
