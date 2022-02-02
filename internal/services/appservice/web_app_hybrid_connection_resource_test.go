@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WindowsWebAppHybridConnectionResource struct{}
+type WebAppHybridConnectionResource struct{}
 
 func TestWindowsWebAppHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_hybrid_connection", "test")
-	r := WindowsWebAppHybridConnectionResource{}
+	r := WebAppHybridConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +30,7 @@ func TestWindowsWebAppHybridConnection_basic(t *testing.T) {
 	})
 }
 
-func (r WindowsWebAppHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebAppHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppHybridConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (r WindowsWebAppHybridConnectionResource) Exists(ctx context.Context, clien
 	return utils.Bool(true), nil
 }
 
-func (r WindowsWebAppHybridConnectionResource) basic(data acceptance.TestData, planSKU string) string {
+func (r WebAppHybridConnectionResource) basic(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -64,7 +64,7 @@ resource "azurerm_windows_web_app_hybrid_connection" "test" {
 `, r.template(data, planSKU), data.RandomStringOfLength(8))
 }
 
-func (r WindowsWebAppHybridConnectionResource) template(data acceptance.TestData, planSKU string) string {
+func (r WebAppHybridConnectionResource) template(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
