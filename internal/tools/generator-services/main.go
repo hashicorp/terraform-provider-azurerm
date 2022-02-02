@@ -73,7 +73,7 @@ func (githubLabelsGenerator) outputPath(rootDirectory string) string {
 }
 
 func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) error {
-	packagesToLabel := make(map[string]string, 0)
+	packagesToLabel := make(map[string]string)
 	// combine and unique these
 	for _, service := range provider.SupportedTypedServices() {
 		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
