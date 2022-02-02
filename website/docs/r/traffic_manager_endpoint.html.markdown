@@ -10,7 +10,7 @@ description: |-
 
 Manages a Traffic Manager Endpoint.
 
-~> **NOTE:** This resource is being **deprecated** and split out into `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint`, or `azurerm_traffic_manager_nested_endpoint`.
+~> **NOTE:** This resource is **deprecated** in favour of the `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint`, or `azurerm_traffic_manager_nested_endpoint` resources and will be removed in version 3.0 of the Azure Provider.
 
 ## Example Usage
 

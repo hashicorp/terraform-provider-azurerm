@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,6 +30,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 		Delete: resourceArmTrafficManagerEndpointDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favor of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint'."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
