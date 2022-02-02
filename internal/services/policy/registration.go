@@ -6,8 +6,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.UntypedServiceRegistration = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/policy"
+}
 
 type Registration struct{}
 
