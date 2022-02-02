@@ -124,9 +124,10 @@ func expandTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalT
 	output := make([]kusto.TrustedExternalTenant, 0)
 
 	for _, v := range input {
-		// TODO 3.0: remove MyTenantOnly
-		if v.(string) == "MyTenantOnly" {
-			return &[]kusto.TrustedExternalTenant{}
+		if !features.ThreePointOhBetaResources() {
+			if v.(string) == "MyTenantOnly" {
+				return &[]kusto.TrustedExternalTenant{}
+			}
 		}
 		output = append(output, kusto.TrustedExternalTenant{
 			Value: utils.String(v.(string)),
