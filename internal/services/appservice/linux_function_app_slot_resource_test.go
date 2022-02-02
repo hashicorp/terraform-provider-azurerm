@@ -3,7 +3,6 @@ package appservice_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -15,36 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinuxFunctionAppResource struct{}
-
-const (
-	SkuConsumptionPlan    = "Y1"
-	SkuElasticPremiumPlan = "EP1"
-	SkuStandardPlan       = "S1"
-	SkuBasicPlan          = "B1"
-	SkuPremiumPlan        = "P1v2"
-)
+type LinuxFunctionAppSlotResource struct{}
 
 // Plan types
-func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, SkuBasicPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxFunctionApp_basicConsumptionPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_basicConsumptionPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,9 +34,9 @@ func TestAccLinuxFunctionApp_basicConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_basicElasticPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_basicElasticPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,9 +50,9 @@ func TestAccLinuxFunctionApp_basicElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_basicPremiumAppServicePlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_basicPremiumAppServicePlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,9 +66,9 @@ func TestAccLinuxFunctionApp_basicPremiumAppServicePlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_basicStandardPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_basicStandardPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,26 +84,9 @@ func TestAccLinuxFunctionApp_basicStandardPlan(t *testing.T) {
 
 // App Settings by Plan Type
 
-func TestAccLinuxFunctionApp_withAppSettingsBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.appSettings(data, SkuBasicPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxFunctionApp_withAppSettingsConsumption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAppSettingsConsumption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -142,9 +101,9 @@ func TestAccLinuxFunctionApp_withAppSettingsConsumption(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withAppSettingsElasticPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAppSettingsElasticPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -159,9 +118,9 @@ func TestAccLinuxFunctionApp_withAppSettingsElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withAppSettingsPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAppSettingsPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,9 +135,9 @@ func TestAccLinuxFunctionApp_withAppSettingsPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withAppSettingsStandardPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAppSettingsStandardPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -195,9 +154,9 @@ func TestAccLinuxFunctionApp_withAppSettingsStandardPlan(t *testing.T) {
 
 // backup by plan type
 
-func TestAccLinuxFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withBackupElasticPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -211,9 +170,9 @@ func TestAccLinuxFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withBackupPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withBackupPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -227,9 +186,9 @@ func TestAccLinuxFunctionApp_withBackupPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withBackupStandardPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withBackupStandardPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -245,9 +204,9 @@ func TestAccLinuxFunctionApp_withBackupStandardPlan(t *testing.T) {
 
 // Completes by plan type
 
-func TestAccLinuxFunctionApp_consumptionComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_consumptionComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -260,9 +219,9 @@ func TestAccLinuxFunctionApp_consumptionComplete(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_consumptionCompleteUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_consumptionCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -290,9 +249,9 @@ func TestAccLinuxFunctionApp_consumptionCompleteUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_elasticPremiumComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -305,9 +264,9 @@ func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_standardComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_standardComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -322,9 +281,9 @@ func TestAccLinuxFunctionApp_standardComplete(t *testing.T) {
 
 // Individual Settings / Blocks
 
-func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAuthSettingsStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -338,9 +297,9 @@ func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withAuthSettingsConsumption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withAuthSettingsConsumption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -354,9 +313,9 @@ func TestAccLinuxFunctionApp_withAuthSettingsConsumption(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_builtInLogging(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_builtInLogging(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -370,9 +329,9 @@ func TestAccLinuxFunctionApp_builtInLogging(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withConnectionStrings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withConnectionStrings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -386,9 +345,9 @@ func TestAccLinuxFunctionApp_withConnectionStrings(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withUserIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -402,9 +361,9 @@ func TestAccLinuxFunctionApp_withUserIdentity(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_withConnectionStringsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -442,9 +401,9 @@ func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_dailyTimeQuotaConsumptionPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_dailyTimeQuotaConsumptionPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -458,9 +417,9 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -474,9 +433,9 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_healthCheckPath(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_healthCheckPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -489,9 +448,9 @@ func TestAccLinuxFunctionApp_healthCheckPath(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_healthCheckPathWithEviction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_healthCheckPathWithEviction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -504,9 +463,9 @@ func TestAccLinuxFunctionApp_healthCheckPathWithEviction(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_healthCheckPathWithEvictionUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_healthCheckPathWithEvictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -533,9 +492,9 @@ func TestAccLinuxFunctionApp_healthCheckPathWithEvictionUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appServiceLogging(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appServiceLogging(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -549,9 +508,9 @@ func TestAccLinuxFunctionApp_appServiceLogging(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appServiceLoggingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -564,14 +523,6 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.appServiceLogs(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.appServiceLogsWithRetention(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -591,13 +542,13 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 
 // App Stacks
 
-func TestAccLinuxFunctionApp_appStackDotNet31(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackDotNet31(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "3.1"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "3.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -607,13 +558,13 @@ func TestAccLinuxFunctionApp_appStackDotNet31(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackDotNet6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackDotNet6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "6"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "6"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -623,13 +574,13 @@ func TestAccLinuxFunctionApp_appStackDotNet6(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackPython(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackPython(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.7"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -639,13 +590,13 @@ func TestAccLinuxFunctionApp_appStackPython(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.7"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -653,7 +604,7 @@ func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackPython(data, SkuBasicPlan, "3.9"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -663,13 +614,13 @@ func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackNode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackNode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuStandardPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -679,13 +630,13 @@ func TestAccLinuxFunctionApp_appStackNode(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "12"),
+			Config: r.appStackNode(data, SkuStandardPlan, "12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -693,23 +644,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxFunctionApp_appStackJava(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.appStackJava(data, SkuBasicPlan, "11"),
+			Config: r.appStackNode(data, SkuStandardPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -719,20 +654,36 @@ func TestAccLinuxFunctionApp_appStackJava(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackJavaUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackJava(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackJava(data, SkuBasicPlan, "8"),
+			Config: r.appStackJava(data, SkuStandardPlan, "11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_appStackJavaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackJava(data, SkuStandardPlan, "8"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
 		data.ImportStep(), {
-			Config: r.appStackJava(data, SkuBasicPlan, "11"),
+			Config: r.appStackJava(data, SkuStandardPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -742,13 +693,13 @@ func TestAccLinuxFunctionApp_appStackJavaUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackDocker(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackDocker(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDocker(data, SkuBasicPlan),
+			Config: r.appStackDocker(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
@@ -758,13 +709,13 @@ func TestAccLinuxFunctionApp_appStackDocker(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackDockerManagedServiceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDockerUseMSI(data, SkuBasicPlan),
+			Config: r.appStackDockerUseMSI(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
@@ -774,13 +725,13 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 	})
 }
 
-func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_appStackPowerShellCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Config: r.appStackPowerShellCore(data, SkuStandardPlan, "7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -792,9 +743,9 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
 
 // Others
 
-func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_updateServicePlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -816,9 +767,9 @@ func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
+func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -840,35 +791,10 @@ func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
 	})
 }
 
-// CustomDiff tests
-func TestAccLinuxFunctionApp_consumptionPlanBackupShouldError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.backup(data, SkuConsumptionPlan),
-			ExpectError: regexp.MustCompile("cannot specify backup configuration for Dynamic tier Service Plans"),
-		},
-	})
-}
-
-func TestAccLinuxFunctionApp_basicPlanBackupShouldError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.backup(data, SkuBasicPlan),
-			ExpectError: regexp.MustCompile("cannot specify backup configuration for Basic tier Service Plans"),
-		},
-	})
-}
-
 // Configs
 
-func (r LinuxFunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FunctionAppID(state.ID)
+func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FunctionAppSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -886,7 +812,7 @@ func (r LinuxFunctionAppResource) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(true), nil
 }
 
-func (r LinuxFunctionAppResource) basic(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) basic(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -894,12 +820,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -908,7 +834,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) healthCheckPath(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -916,12 +842,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -932,7 +858,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -940,12 +866,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -957,7 +883,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) userIdentity(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) userIdentity(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -965,12 +891,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -984,7 +910,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) builtInLogging(data acceptance.TestData, planSku string, builtInLogging bool) string {
+func (r LinuxFunctionAppSlotResource) builtInLogging(data acceptance.TestData, planSku string, builtInLogging bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -992,12 +918,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1008,7 +934,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, builtInLogging)
 }
 
-func (r LinuxFunctionAppResource) appSettings(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) appSettings(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1016,12 +942,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1035,7 +961,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) connectionStrings(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) connectionStrings(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1043,12 +969,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1063,7 +989,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) dailyTimeLimitQuota(data acceptance.TestData, planSku string, quota int) string {
+func (r LinuxFunctionAppSlotResource) dailyTimeLimitQuota(data acceptance.TestData, planSku string, quota int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1071,12 +997,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1087,7 +1013,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, quota)
 }
 
-func (r LinuxFunctionAppResource) withAuthSettings(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) withAuthSettings(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1095,12 +1021,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1135,7 +1061,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomString)
 }
 
-func (r LinuxFunctionAppResource) connectionStringsUpdate(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) connectionStringsUpdate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1143,12 +1069,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1169,7 +1095,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appServiceLogs(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) appServiceLogs(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1177,38 +1103,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    app_service_logs {
-      disk_quota_mb = 25
-    }
-  }
-}
-`, r.template(data, planSku), data.RandomInteger)
-}
-
-func (r LinuxFunctionAppResource) appServiceLogsWithRetention(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1222,7 +1122,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appStackDotNet(data acceptance.TestData, planSku string, version string) string {
+func (r LinuxFunctionAppSlotResource) appStackDotNet(data acceptance.TestData, planSku string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1230,12 +1130,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1248,7 +1148,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-func (r LinuxFunctionAppResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
+func (r LinuxFunctionAppSlotResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1256,12 +1156,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1274,7 +1174,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, pythonVersion)
 }
 
-func (r LinuxFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
+func (r LinuxFunctionAppSlotResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1282,12 +1182,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1300,7 +1200,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, javaVersion)
 }
 
-func (r LinuxFunctionAppResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
+func (r LinuxFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1308,12 +1208,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1326,7 +1226,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
-func (r LinuxFunctionAppResource) appStackDocker(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) appStackDocker(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1334,12 +1234,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1356,7 +1256,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appStackDockerUseMSI(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) appStackDockerUseMSI(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1364,12 +1264,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1393,7 +1293,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
+func (r LinuxFunctionAppSlotResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1401,12 +1301,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1419,7 +1319,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-func (r LinuxFunctionAppResource) backup(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) backup(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1427,12 +1327,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1450,7 +1350,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) consumptionComplete(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) consumptionComplete(data acceptance.TestData) string {
 	planSku := "Y1"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1472,12 +1372,12 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[2]d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1610,7 +1510,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxFunctionAppResource) standardComplete(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) standardComplete(data acceptance.TestData) string {
 	planSku := "S1"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1632,12 +1532,12 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[2]d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1785,7 +1685,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxFunctionAppResource) elasticComplete(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1806,12 +1706,12 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[2]d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1913,7 +1813,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) servicePlanUpdate(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) servicePlanUpdate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1921,12 +1821,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.update.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.update.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1937,7 +1837,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.templateServicePlanUpdate(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) updateStorageAccount(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) updateStorageAccount(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1945,12 +1845,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_name          = azurerm_linux_function_app.test.name
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.update.name
   storage_account_access_key = azurerm_storage_account.update.primary_access_key
 
@@ -1959,19 +1859,19 @@ resource "azurerm_linux_function_app" "test" {
 `, r.templateExtraStorageAccount(data, planSku), data.RandomInteger)
 }
 
-func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {
+func (LinuxFunctionAppSlotResource) template(data acceptance.TestData, planSku string) string {
 	var additionalConfig string
 	if strings.EqualFold(planSku, "EP1") {
 		additionalConfig = "maximum_elastic_worker_count = 5"
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
-  location = "%s"
+  name     = "acctestRG-LFA-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1979,17 +1879,29 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
-  sku_name            = "%s"
-  %s
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku, additionalConfig)
+  sku_name            = "%[4]s"
+  %[5]s
 }
 
-func (LinuxFunctionAppResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku, additionalConfig)
+}
+
+func (LinuxFunctionAppSlotResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"
@@ -2019,10 +1931,22 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "%[4]s"
 }
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
 }
 
-func (r LinuxFunctionAppResource) templateServicePlanUpdate(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) templateServicePlanUpdate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2036,7 +1960,7 @@ resource "azurerm_service_plan" "update" {
 `, r.template(data, planSku), data.RandomInteger, planSku)
 }
 
-func (r LinuxFunctionAppResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2080,7 +2004,7 @@ data "azurerm_storage_account_sas" "test" {
 `, r.template(data, planSku))
 }
 
-func (r LinuxFunctionAppResource) identityTemplate(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) identityTemplate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 %s
 

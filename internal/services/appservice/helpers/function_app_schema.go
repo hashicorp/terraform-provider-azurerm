@@ -1395,11 +1395,13 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      35,
 					ValidateFunc: validation.IntBetween(25, 100),
+					Description:  "The amount of disk space to use for logs. Valid values are between `25` and `100`.",
 				},
 				"retention_period_days": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
+					Description:  "The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).",
 				},
 			},
 		},

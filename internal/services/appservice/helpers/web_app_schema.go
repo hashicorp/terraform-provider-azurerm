@@ -224,7 +224,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true, // Variable default value depending on several factors, such as plan type.
+					Default:  true, // Variable default value depending on several factors, such as plan type?
 				},
 
 				"websockets_enabled": {
@@ -2224,6 +2224,7 @@ func BackupSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name which should be used for this Backup.",
 				},
 
 				"storage_account_url": {
@@ -2231,12 +2232,14 @@ func BackupSchema() *pluginsdk.Schema {
 					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.IsURLWithHTTPS,
+					Description:  "The SAS URL to the container.",
 				},
 
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
+					Description: "Should this backup job be enabled?",
 				},
 
 				"schedule": {
@@ -2249,6 +2252,7 @@ func BackupSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeInt,
 								Required:     true,
 								ValidateFunc: validation.IntBetween(0, 1000),
+								Description:  "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
 							},
 
 							"frequency_unit": {
@@ -2258,12 +2262,14 @@ func BackupSchema() *pluginsdk.Schema {
 									"Day",
 									"Hour",
 								}, false),
+								Description: "The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.",
 							},
 
 							"keep_at_least_one_backup": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-								Default:  false,
+								Type:        pluginsdk.TypeBool,
+								Optional:    true,
+								Default:     false,
+								Description: "Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.",
 							},
 
 							"retention_period_days": {
@@ -2271,19 +2277,22 @@ func BackupSchema() *pluginsdk.Schema {
 								Optional:     true,
 								Default:      30,
 								ValidateFunc: validation.IntBetween(0, 9999999),
+								Description:  "After how many days backups should be deleted.",
 							},
 
 							"start_time": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Computed: true,
+								Type:        pluginsdk.TypeString,
+								Optional:    true,
+								Computed:    true,
+								Description: "When the schedule should start working in RFC-3339 format.",
 								//DiffSuppressFunc: suppress.RFC3339Time,
 								//ValidateFunc:     validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
+								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -2300,19 +2309,22 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of this Backup.",
 				},
 
 				"storage_account_url": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The SAS URL to the container.",
 				},
 
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is this backup job enabled?",
 				},
 
 				"schedule": {
@@ -2321,33 +2333,39 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
+								Type:        pluginsdk.TypeInt,
+								Computed:    true,
+								Description: "How often the backup should is executed in multiples of the `frequency_unit`.",
 							},
 
 							"frequency_unit": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
+								Description: "The unit of time for how often the backup takes place.",
 							},
 
 							"keep_at_least_one_backup": {
-								Type:     pluginsdk.TypeBool,
-								Computed: true,
+								Type:        pluginsdk.TypeBool,
+								Computed:    true,
+								Description: "Does the service keep at least one backup, regardless of age of backup.",
 							},
 
 							"retention_period_days": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
+								Type:        pluginsdk.TypeInt,
+								Computed:    true,
+								Description: "After how many days are backups deleted.",
 							},
 
 							"start_time": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
+								Description: "When the schedule should start working in RFC-3339 format.",
 							},
 
 							"last_execution_time": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
+								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -2373,6 +2391,7 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name which should be used for this Connection.",
 				},
 
 				"type": {
@@ -2391,12 +2410,14 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 						string(web.ConnectionStringTypeSQLAzure),
 						string(web.ConnectionStringTypeSQLServer),
 					}, true),
+					Description: "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
 				},
 
 				"value": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Sensitive:   true,
+					Description: "The connection string value.",
 				},
 			},
 		},
@@ -2410,19 +2431,22 @@ func ConnectionStringSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of this Connection.",
 				},
 
 				"type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The type of database.",
 				},
 
 				"value": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The connection string value.",
 				},
 			},
 		},
@@ -2740,9 +2764,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	winSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.always_on") {
-		expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
-	}
+	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
@@ -2784,9 +2806,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
-	}
+	expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
@@ -2796,9 +2816,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
-	}
+	expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
@@ -2808,9 +2826,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
-		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
-	}
+	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
@@ -2820,9 +2836,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
-		expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
-	}
+	expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
@@ -2832,21 +2846,15 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
-	}
+	expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
 
-	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
-	}
+	expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
@@ -2904,9 +2912,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.always_on") {
-		expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
-	}
+	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
@@ -2967,9 +2973,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
-	}
+	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
@@ -2989,9 +2993,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
-		expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
-	}
+	expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
@@ -3001,21 +3003,15 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
-	}
+	expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
 
-	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
-	}
+	expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
@@ -3047,9 +3043,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.Cors = cors
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
-		expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
-	}
+	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
