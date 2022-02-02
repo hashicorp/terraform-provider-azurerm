@@ -58,23 +58,23 @@ The following arguments are supported:
 
 * `profile_id` - (Required) The ID of the Traffic Manager Profile that this External Endpoint should be created within. Changing this forces a new resource to be created.
 
+* `target` - (Required) The FQDN DNS name of the target.
+
+* `weight` - (Required) Specifies how much traffic should be distributed to this
+  endpoint. Valid values are between `1` and `1000`.
+
 ---
+
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
 
 * `enabled` - (Optional) Is the endpoint enabled? Defaults to `true`.
 
-* `target` - (Optional) The FQDN DNS name of the target. 
-
-* `weight` - (Required) Specifies how much traffic should be distributed to this
-    endpoint. Valid values are between `1` and `1000`.
-
-* `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `priority` - (Optional) Specifies the priority of this Endpoint, this must be
   specified for Profiles using the `Priority` traffic routing method. Supports
   values between 1 and 1000, with no Endpoints sharing the same value. If
   omitted the value will be computed in order of creation.
-
-* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `subnet` - (Optional) One or more `subnet` blocks as defined below
 
