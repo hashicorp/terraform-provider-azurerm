@@ -104,7 +104,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: eventhubsclusters.ValidateClusterID,
 			},
 
-			"identity": commonschema.SystemAssignedIdentity(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,

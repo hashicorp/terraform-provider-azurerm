@@ -171,7 +171,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"identity": commonschema.SystemAssignedIdentity(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,

@@ -56,7 +56,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			},
 
 			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
-			"identity": commonschema.SystemAssignedIdentity(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"is_public": {
 				Type:     pluginsdk.TypeBool,

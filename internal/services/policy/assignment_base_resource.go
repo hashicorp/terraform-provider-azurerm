@@ -317,7 +317,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 
 		"location": azure.SchemaLocationOptional(),
 
-		"identity": commonschema.SystemAssignedIdentity(),
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"enforce": {
 			Type:     pluginsdk.TypeBool,

@@ -56,7 +56,7 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityDataSource(),
+			"identity": commonschema.SystemAssignedIdentityComputed(),
 
 			"tags": commonschema.TagsDataSource(),
 		},
