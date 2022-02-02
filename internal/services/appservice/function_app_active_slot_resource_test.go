@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WebAppActiveSlotResource struct{}
+type FunctionApActiveSlotResource struct{}
 
-func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
+func TestAccFunctionAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
-	r := WebAppActiveSlotResource{}
+	r := FunctionApActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
+func TestAccFunctionAppActiveSlot_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
-	r := WebAppActiveSlotResource{}
+	r := FunctionApActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,8 +45,8 @@ func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
 	})
 }
 
-func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppSlotID(state.ID)
+func (r FunctionApActiveSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FunctionAppSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(*app.SiteProperties.SlotSwapStatus.SourceSlotName == id.SlotName), nil
 }
 
-func (r WebAppActiveSlotResource) basicWindows(data acceptance.TestData) string {
+func (r FunctionApActiveSlotResource) basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -67,14 +67,14 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_web_app_active_slot" "test" {
-  slot_id = azurerm_windows_web_app_slot.test.id
+resource "azurerm_function_app_active_slot" "test" {
+  slot_id = azurerm_windows_function_app_slot.test.id
 }
 
 `, r.templateWindows(data))
 }
 
-func (r WebAppActiveSlotResource) basicLinux(data acceptance.TestData) string {
+func (r FunctionApActiveSlotResource) basicLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -82,14 +82,14 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_web_app_active_slot" "test" {
-  slot_id = azurerm_linux_web_app_slot.test.id
+resource "azurerm_function_app_active_slot" "test" {
+  slot_id = azurerm_linux_function_app_slot.test.id
 }
 
 `, r.templateLinux(data))
 }
 
-func (WebAppActiveSlotResource) templateLinux(data acceptance.TestData) string {
+func (FunctionApActiveSlotResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -122,7 +122,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (WebAppActiveSlotResource) templateWindows(data acceptance.TestData) string {
+func (FunctionApActiveSlotResource) templateWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
