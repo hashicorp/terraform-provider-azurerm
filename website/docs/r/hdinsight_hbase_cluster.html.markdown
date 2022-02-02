@@ -190,6 +190,8 @@ A `storage_account` block supports the following:
 
 -> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
+* `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
+
 ---
 
 A `storage_account_gen2` block supports the following:
