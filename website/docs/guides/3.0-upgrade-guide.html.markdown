@@ -99,6 +99,12 @@ Below we'll cover each of the Data Sources and Resources which will be affected 
 
 -> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
+### Data Source: `azurerm_batch_pool`
+
+The deprecated field `environment` will be removed in favour of the `common_environment_properties` properties.
+
+The deprecated field `start_task.max_task_retry_count` will be removed in favour of the `start_task.task_retry_maximum` property.
+
 ### Data Source: `azurerm_container_registry`
 
 The deprecated field `storage_account_id` has been removed as it is no longer recognized by the API nor functional.
@@ -115,11 +121,15 @@ The deprecated field `secondary_readonly_master_key` will be removed in favour o
 
 ### Data Source: `azurerm_key_vault`
 
-The deprecated field `soft_delete_enabled` has been removed since the Azure API always returns `true`.
+The deprecated field `soft_delete_enabled` will be removed since the Azure API always returns `true`.
+
+### Data Source: `azurerm_lb_rule`
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
 
 ### Data Source: `azurerm_log_analytics_workspace`
 
-The deprecated field `portal_url` has been removed since it no longer exists in the Azure API.
+The deprecated field `portal_url` will be removed since it no longer exists in the Azure API.
 
 ### Data Source: `azurerm_management_group`
 
@@ -127,7 +137,7 @@ The deprecated field `group_id` will be removed in favour of the `name` property
 
 ### Data Source: `azurerm_netapp_volume`
 
-The deprecated field `replication_schedule` will be removed as it no longer exists in the Azure API.
+The deprecated field `data_protection_replication.replication_schedule` will be removed as it no longer exists in the Azure API. The property `data_protection_replication.replication_frequency` can be used instead.
 
 ### Data Source: `azurerm_public_ips`
 
@@ -147,7 +157,7 @@ The deprecated field `master_key` will be removed in favour of the `primary_key`
 
 ### Resource: `azurerm_api_management_custom_domain`
 
-The deprecated field `proxy` will be removed in favour of the `gateway` property.
+The deprecated `proxy` block will be removed in favour of the `gateway` block.
 
 ### Resource: `azurerm_api_management_diagnostic`
 
@@ -159,9 +169,13 @@ The `azurerm_api_management_property` resource will be removed in favour of the 
 
 ### Resource: `azurerm_api_management`
 
-The deprecated field `enabled_triple_des_ciphers` will be removed in favour of the `triple_des_ciphers_enabled` property.
+The deprecated field `security.enabled_triple_des_ciphers` will be removed in favour of the `security.triple_des_ciphers_enabled` property.
 
 The deprecated field `sample` will be removed in favour of the `example` property.
+
+### Resource: `azurerm_automation_schedule`
+
+The default value for the field `timezone` will be changed from `UTC` to `Etc/UTC`.
 
 ### Resource: `azurerm_batch_pool`
 
@@ -171,13 +185,17 @@ The deprecated field `max_task_retry_count` will be removed in favour of the `ta
 
 ### Resource: `azurerm_cognitive_account`
 
-The deprecated field `virtual_network_subnet_ids` will be removed in favour of the `virtual_network_rules` property.
+The deprecated field `network_acls.virtual_network_subnet_ids` will be removed in favour of the `network_acls.virtual_network_rules` property.
 
 ### Resource: `azurerm_container_registry`
 
 The deprecated field `georeplication_locations` will be removed in favour of the `georeplications` property.
 
 The deprecated field `storage_account_id` will be removed since it is no longer recognized by the Azure API.
+
+### Resource: `azurerm_consumption_budget_subscription`
+
+The field `subscription_id` will only accept subscription resource IDs instead of subscription IDs.
 
 ### Resource: `azurerm_cost_management_export_resource_group`
 
@@ -395,11 +413,23 @@ The deprecated field `alternate_name` will be removed since any DRC created with
 
 ### Resource: `azurerm_firewall_policy`
 
-The deprecated field `network_rule_fqdn_enabled` will be removed since it is not longer supported by the Azure API.
+The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_firewall`
+
+The field `sku_name` will become Required.
+
+The field `sku_tier` will become Required.
+
+The field `threat_intel_mode` will no longer have a default value and will not accept `""` as a valid value.
 
 ### Resource: `azurerm_frontdoor`
 
 The deprecated field `location` will be removed since it must always be set to `Global` for new resources.
+
+### Resource: `azurerm_frontdoor_rules_engine`
+
+The default value for the field `negate_condition` will change from `true` to `false`.
 
 ### Resource: `azurerm_hdinsight_hadoop_cluster`
 
@@ -443,6 +473,8 @@ The deprecated field `zookeeper_worker.min_instance_count` will be removed since
 
 The deprecated field `kafka_management_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
 
+The field `security_group_name` will become Required.
+
 ### Resource: `azurerm_hdinsight_ml_services_cluster`
 
 The `azurerm_hdinsight_ml_services_cluster` resource will be removed since MLServices will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions)).
@@ -467,27 +499,27 @@ The `azurerm_hdinsight_storm_cluster` resource will be removed since Apache Stor
 
 ### Resource: `azurerm_hpc_cache`
 
-The deprecated field `root_squash_enabled` will be removed in favour of `default_access_policy.0.access_rule.x.root_squash_enabled`.
+The deprecated field `access_rule.root_squash_enabled` will be removed in favour of `default_access_policy.access_rule.root_squash_enabled`.
 
 ### Resource: `azurerm_iothub_dps`
 
-The default value for the field `allocation_weight` will change from `0` to `1`.
+The default value for the field `linked_hub.allocation_weight` will change from `0` to `1`.
 
 ### Resource: `azurerm_iothub_endpoint_eventhub`
 
-The deprecated field `iothub_name` will be removed in favour of `iothub_id`
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
 
 ### Resource: `azurerm_iothub_endpoint_servicebus_queue`
 
-The deprecated field `iothub_name` will be removed in favour of `iothub_id`
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
 
 ### Resource: `azurerm_iothub_endpoint_servicebus_topic`
 
-The deprecated field `iothub_name` will be removed in favour of `iothub_id`
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
 
 ### Resource: `azurerm_iothub_endpoint_storage_container`
 
-The deprecated field `iothub_name` will be removed in favour of `iothub_id`
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
 
 ### Resource: `azurerm_key_vault`
 
@@ -501,17 +533,17 @@ The field `trusted_external_tenants` will no longer accept `MyTenantOnly` as a v
 
 The `azurerm_kusto_database_principal` resource will be removed in favour of the `azurerm_kusto_database_principal_assignment` resource.
 
-### Resource: `azurerm_loadbalancer_address_pool`
+### Resource: `azurerm_lb_backend_address_pool`
 
 The deprecated field `resource_group_name` will be removed since it will be inferred from the `loadbalancer_id`.
 
-The deprecated field `backend_address` will be removed since it is no longer functional.
+The deprecated field `backend_address` will be removed since it is no longer functional, the `azurerm_lb_backend_address_pool_address` resource can be used instead.
 
-### Resource: `azurerm_loadbalancer`
+### Resource: `azurerm_lb`
 
-The deprecated field `zones` will be removed in favour of `availability_zone`.
+The deprecated field `zones` will become Computed only and is replaced by the `availability_zone` property.
 
-### Resource: `azurerm_loadbalancer_rule`
+### Resource: `azurerm_lb_rule`
 
 The deprecated field `backend_address_pool_id` will be removed in favour of `backend_address_pool_ids`.
 
@@ -531,9 +563,15 @@ The deprecated field `portal_url` will be removed since it is no longer supporte
 
 ### Resource: `azurerm_management_group`
 
+The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
+
+### Resource: `azurerm_management_group`
+
 The deprecated field `group_id` will be removed in favour of `name`.
 
 ### Resource: `azurerm_mariadb`
+
+The field `auto_grow_enabled` will default to `true`.
 
 The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
 
@@ -556,6 +594,8 @@ The deprecated block `extended_auditing_policy` will be removed and replaced by 
 The default value of the field `minimum_tls_version` will be set to `1.2`.
 
 ### Resource: `azurerm_mysql_server`
+
+The field `auto_grow_enabled` will default to `true`.
 
 The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
 
@@ -658,6 +698,8 @@ The deprecated field `name` will be removed since it is no longer used.
 The deprecated field `cmk_enabled` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_postgresql_server`
+
+The field `auto_grow_enabled` will default to `true`.
 
 The default value of the field `ssl_minimal_tls_version_enforced` will change from `TLSEnforcementDisabled` to `TLS1_2`.
 
@@ -815,9 +857,23 @@ The deprecated field `storage_account_name` will be removed in favour of the `st
 
 The deprecated field `resource_group_name` will be removed since it can be inferred from the `storage_account_id` property.
 
+### Resource: `azurerm_storage_management_policy`
+
+The default value for the field `actions.base_blob.tier_to_cool_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.base_blob.tier_to_archive_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.base_blob.delete_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.snapshot.delete_after_days_since_creation_greater_than` will change from null to `-1`.
+
 ### Resource: `azurerm_synapse_workspace_key`
 
 The deprecated field `cusomter_managed_key_name` will be removed in favour of the `customer_managed_key_name` property.
+
+### Resource: `azurerm_traffic_manager_endpoint`
+
+The resource `azurerm_traffic_manager_endpoint` will be removed in favour of the `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint` and `azurerm_traffic_manager_nested_endpoint` resources.
 
 ### Resource: `azurerm_app_service_certificate`
 
