@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
+* **New Beta Resource:** - `azurerm_disk_pool_iscsi_target` [GH-14975]
 * **New Beta Resource:** - `azurerm_linux_function_app_slot` [GH-14940]
 * **New Beta Resource:** - `azurerm_windows_function_app_slot` [GH-14940]
 * **New Beta Resource:** - `azurerm_windows_web_app_slot` [GH-14613]
