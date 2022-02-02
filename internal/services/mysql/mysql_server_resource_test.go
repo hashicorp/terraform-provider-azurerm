@@ -214,6 +214,21 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
+func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryption(data, "5.7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+	})
+}
+
 func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -254,6 +269,33 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
+func (MySQLServerResource) infrastructureEncryption(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                              = "acctestmysqlsvr-%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = "GP_Gen5_2"
+  administrator_login               = "acctestun"
+  administrator_login_password      = "H@Sh1CoR3!"
+  ssl_enforcement_enabled           = true
+  ssl_minimal_tls_version_enforced  = "TLS1_1"
+  storage_mb                        = 51200
+  version                           = "%s"
+  infrastructure_encryption_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+}
+
 func (MySQLServerResource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -276,6 +318,7 @@ resource "azurerm_mysql_server" "test" {
   backup_retention_days            = 7
   create_mode                      = "Default"
   geo_redundant_backup_enabled     = false
+  public_network_access_enabled    = true
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_2"
   storage_mb                       = 51200
@@ -286,6 +329,9 @@ resource "azurerm_mysql_server" "test" {
     email_account_admins = true
     email_addresses      = ["pearcec@example.com", "admin@example.com"]
     retention_days       = 7
+  }
+  tags = {
+    environment = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
