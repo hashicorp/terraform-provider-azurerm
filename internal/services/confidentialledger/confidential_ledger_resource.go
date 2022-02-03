@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -37,11 +38,25 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
+			"aad_based_security_principals": {},
+
+			"cert_based_security_principals": {},
+
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ConfidentialLedgerID,
+			},
+
+			"ledger_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "free",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Public",
+					"Private",
+				}, false),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -80,7 +95,12 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &confidentialledger.LedgerProperties{
+			AadBasedSecurityPrincipals:  nil, // *[]AADBasedSecurityPrincipal
+			CertBasedSecurityPrincipals: nil, // *[]CertBasedSecurityPrincipal
+			LedgerType:                  nil, // *LedgerType
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.LedgerCreateThenPoll(ctx, resourceId, parameters); err != nil {
@@ -88,6 +108,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(resourceId.ID())
+	// TODO
 	// return resourceAppConfigurationRead(d, meta)
 	return nil
 }
