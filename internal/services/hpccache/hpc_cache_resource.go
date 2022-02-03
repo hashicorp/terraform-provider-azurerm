@@ -244,7 +244,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						return fmt.Errorf("setting `default_access_policy`: %v", err)
 					}
 
-					if !features.ThreePointOhBetaResources() {
+					if !features.ThreePointOhBeta() {
 						// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
 						// not encounter plan diff.
 						d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
@@ -932,7 +932,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-	if features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		out["root_squash_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,

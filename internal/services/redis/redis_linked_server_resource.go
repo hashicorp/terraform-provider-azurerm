@@ -64,7 +64,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 					string(redis.ReplicationRolePrimary),
 					string(redis.ReplicationRoleSecondary),
 					// TODO: make this case-sensitive in 3.0
-				}, !features.ThreePointOhBetaResources()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 

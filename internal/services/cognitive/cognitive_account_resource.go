@@ -422,7 +422,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
-	if !features.ThreePointOhBetaResources() && d.HasChange("network_acls.0.virtual_network_subnet_ids") {
+	if !features.ThreePointOhBeta() && d.HasChange("network_acls.0.virtual_network_subnet_ids") {
 		networkRulesRaw := v["virtual_network_subnet_ids"]
 		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
 			rawId := v.(string)
@@ -582,7 +582,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,
 	}
-	if !features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		out["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds)
 	}
 
@@ -822,15 +822,15 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 					"virtual_network_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Computed: !features.ThreePointOhBetaResources(),
+						Computed: !features.ThreePointOhBeta(),
 						ConflictsWith: func() []string {
-							if features.ThreePointOhBetaResources() {
+							if features.ThreePointOhBeta() {
 								return []string{}
 							}
 							return []string{"network_acls.0.virtual_network_subnet_ids"}
 						}(),
 						ConfigMode: func() schema.SchemaConfigMode {
-							if features.ThreePointOhBetaResources() {
+							if features.ThreePointOhBeta() {
 								return pluginsdk.SchemaConfigModeAuto
 							}
 							return pluginsdk.SchemaConfigModeAttr
@@ -854,7 +854,7 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"outbound_network_access_restrited": {
+		"outbound_network_access_restricted": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -911,7 +911,7 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 	}
-	if features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,

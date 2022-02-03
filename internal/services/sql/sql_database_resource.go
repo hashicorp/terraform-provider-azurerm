@@ -352,7 +352,7 @@ func flattenArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy 
 
 	threatDetectionPolicy["state"] = string(properties.State)
 	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
-	if features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
 	}
 
@@ -428,7 +428,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 
 		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
 		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
-		if features.ThreePointOhBetaResources() {
+		if !features.ThreePointOhBetaResources() {
 			properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
 		}
 

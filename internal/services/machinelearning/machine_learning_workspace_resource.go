@@ -176,7 +176,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  string(Basic),
 				ValidateFunc: validation.StringInSlice(func() []string {
 					out := []string{string(Basic)}
-					if !features.ThreePointOhBetaResources() {
+					if !features.ThreePointOhBeta() {
 						out = append(out, "Enterprise")
 					}
 					return out

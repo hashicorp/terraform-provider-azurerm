@@ -326,7 +326,7 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 
-	if !features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 
 		schema["sku_name"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,

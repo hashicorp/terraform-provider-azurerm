@@ -73,7 +73,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 
 	var cpu int
 	var mem int
-	if !features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		cpu = d.Get("cpu").(int)
 		mem = d.Get("memory_in_gb").(int)
 	}
@@ -136,7 +136,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 		existing.Sku.Capacity = utils.Int32(int32(d.Get("instance_count").(int)))
 	}
 
-	if features.ThreePointOhBetaResources() && d.HasChange("cpu") {
+	if features.ThreePointOhBeta() && d.HasChange("cpu") {
 		existing.Properties.DeploymentSettings.CPU = utils.Int32(int32(d.Get("cpu").(int)))
 
 		// "cpu" within "quota" that takes precedence of deprecated "cpu" should be ignored in this situation where users explicitly update the deprecated "cpu" that conflicts with "cpu" within "quota"
@@ -153,7 +153,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 		existing.Properties.DeploymentSettings.JvmOptions = utils.String(d.Get("jvm_options").(string))
 	}
 
-	if features.ThreePointOhBetaResources() && d.HasChange("memory_in_gb") {
+	if features.ThreePointOhBeta() && d.HasChange("memory_in_gb") {
 		existing.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(d.Get("memory_in_gb").(int)))
 
 		// "memory" that takes precedence of "memory_in_gb" should be ignored in this situation where users explicitly update the legacy "memory_in_gb" that conflicts with "memory"
@@ -169,7 +169,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 		var cpu int
 		var mem int
-		if !features.ThreePointOhBetaResources() {
+		if !features.ThreePointOhBeta() {
 			cpu = d.Get("cpu").(int)
 			mem = d.Get("memory_in_gb").(int)
 		}
@@ -227,7 +227,7 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `quota`: %+v", err)
 		}
 
-		if features.ThreePointOhBetaResources() {
+		if !features.ThreePointOhBeta() {
 			d.Set("cpu", settings.CPU)
 			d.Set("memory_in_gb", settings.MemoryInGB)
 		}
@@ -436,7 +436,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			Default: string(appplatform.RuntimeVersionJava8),
 		},
 	}
-	if !features.ThreePointOhBetaResources() {
+	if !features.ThreePointOhBeta() {
 		schema["cpu"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,

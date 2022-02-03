@@ -85,7 +85,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 						"custom_webhook_payload": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.ThreePointOhBetaResources(),
+							Computed:     !features.ThreePointOhBeta(),
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {

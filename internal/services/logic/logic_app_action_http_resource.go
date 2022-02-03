@@ -200,7 +200,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if body := inputs["body"]; body != nil {
-		if v, ok := body.(string); ok && !features.ThreePointOhBetaResources() {
+		if v, ok := body.(string); ok && !features.ThreePointOhBeta() {
 			d.Set("body", v)
 		} else {
 			// if user edit workflow in portal, the body becomes json object

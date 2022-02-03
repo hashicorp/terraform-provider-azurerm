@@ -79,8 +79,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"auto_grow_enabled": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
-				Computed:      !features.ThreePointOhBetaResources(),
-				Default:       features.ThreePointOhBetaResources(),
+				Computed:      !features.ThreePointOhBeta(),
+				Default:       features.ThreePointOhBeta(),
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 

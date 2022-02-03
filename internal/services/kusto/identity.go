@@ -124,7 +124,7 @@ func expandTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalT
 	output := make([]kusto.TrustedExternalTenant, 0)
 
 	for _, v := range input {
-		if !features.ThreePointOhBetaResources() {
+		if !features.ThreePointOhBeta() {
 			if v.(string) == "MyTenantOnly" {
 				return &[]kusto.TrustedExternalTenant{}
 			}

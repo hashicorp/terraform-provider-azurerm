@@ -195,7 +195,7 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	toDeleteRunningTasks := features.ThreePointOhBetaResources()
+	toDeleteRunningTasks := features.ThreePointOhBeta()
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

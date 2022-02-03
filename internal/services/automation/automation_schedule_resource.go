@@ -432,7 +432,7 @@ func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.Advanc
 }
 
 func getDefaultTimezone() string {
-    if features.ThreePointOhBetaResources() {
+    if features.ThreePointOhBeta() {
         return "Etc/UTC"
     }
     return "UTC"
