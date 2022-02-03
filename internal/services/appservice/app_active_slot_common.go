@@ -31,7 +31,7 @@ func (r ActiveSlotResource) ResourceType() string {
 	return "" // This is never called
 }
 
-var _ sdk.Resource = ActiveSlotResource{}
+var _ sdk.ResourceWithUpdate = ActiveSlotResource{}
 
 func (r ActiveSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nil // This is never called
@@ -42,11 +42,10 @@ func (r ActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"slot_id": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
-			ForceNew:    true,
 			Description: "The ID of the Slot to swap with `Production`.",
 			ValidateFunc: validation.Any(
 				validate.WebAppSlotID,
-				// validate.FunctionAppSlotID, // Uncomment when #14940 is merged
+				validate.FunctionAppSlotID,
 			),
 		},
 
@@ -63,8 +62,9 @@ func (r ActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
 func (r ActiveSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"last_successful_swap": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The timestamp of the last successful swap with `Production`",
 		},
 	}
 }
@@ -80,37 +80,38 @@ func (r ActiveSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			slotID, err := parse.WebAppSlotID(activeSlot.SlotID)
+			id, err := parse.WebAppSlotID(activeSlot.SlotID)
+			appId := parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("parsing App ID: %+v", err)
 			}
 
-			app, err := client.Get(ctx, slotID.ResourceGroup, slotID.SiteName)
+			app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(app.Response) {
-					return fmt.Errorf("%s was not found", slotID)
+					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("reading  %s: %+v", slotID, err)
+				return fmt.Errorf("reading  %s: %+v", id, err)
 			}
 
 			csmSlotEntity := web.CsmSlotEntity{
-				TargetSlot:   &slotID.SlotName,
+				TargetSlot:   &id.SlotName,
 				PreserveVnet: &activeSlot.OverwriteNetworking,
 			}
 
-			locks.ByID(slotID.ID())
-			defer locks.UnlockByID(slotID.ID())
+			locks.ByID(appId.ID())
+			defer locks.UnlockByID(appId.ID())
 
-			future, err := client.SwapSlotWithProduction(ctx, slotID.ResourceGroup, slotID.SiteName, csmSlotEntity)
+			future, err := client.SwapSlotWithProduction(ctx, id.ResourceGroup, id.SiteName, csmSlotEntity)
 			if err != nil {
-				return fmt.Errorf("making %s the active slot: %+v", slotID, err)
+				return fmt.Errorf("making %s the active slot: %+v", id.SlotName, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for slot swap to complete: %+v", err)
 			}
 
-			metadata.SetID(slotID)
+			metadata.SetID(appId)
 
 			return nil
 		},
@@ -123,7 +124,7 @@ func (r ActiveSlotResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
+			id, err := parse.WebAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -141,15 +142,8 @@ func (r ActiveSlotResource) Read() sdk.ResourceFunc {
 				LastSwap: app.SiteProperties.SlotSwapStatus.TimestampUtc.String(),
 			}
 
-			// decode the slot ID from the last successful swap data
-			if app.ID != nil {
-				if appId, err := parse.WebAppID(*app.ID); err != nil {
-					return err
-				} else {
-					if slotName := app.SiteProperties.SlotSwapStatus.SourceSlotName; slotName != nil {
-						activeSlot.SlotID = parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, *slotName).ID()
-					}
-				}
+			if slotName := app.SiteProperties.SlotSwapStatus.SourceSlotName; slotName != nil {
+				activeSlot.SlotID = parse.NewWebAppSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, *slotName).ID()
 			}
 
 			// Default value here for imports as this cannot be read from service as it's part of the swap request only and not stored
@@ -173,4 +167,12 @@ func (r ActiveSlotResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+// Note: `Update` re-uses `Create` as there is no actual resource being managed, this meta-resource simply triggers a
+// swap operations between the named slot and `Production`. Without this changing which slot is `Active` would result in
+// Terraform deleting and recreating this resource, which may cause concern that the operation is somehow destructive.
+
+func (r ActiveSlotResource) Update() sdk.ResourceFunc {
+	return r.Create()
 }

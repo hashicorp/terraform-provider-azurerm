@@ -8,7 +8,7 @@ import (
 
 type FunctionAppActiveSlotResource ActiveSlotResource
 
-var _ sdk.Resource = FunctionAppActiveSlotResource{}
+var _ sdk.ResourceWithUpdate = FunctionAppActiveSlotResource{}
 
 func (r FunctionAppActiveSlotResource) ModelObject() interface{} {
 	return &ActiveSlotModel{}
@@ -19,7 +19,7 @@ func (r FunctionAppActiveSlotResource) ResourceType() string {
 }
 
 func (r FunctionAppActiveSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.WebAppSlotID
+	return validate.FunctionAppID
 }
 
 func (r FunctionAppActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
@@ -40,4 +40,8 @@ func (r FunctionAppActiveSlotResource) Read() sdk.ResourceFunc {
 
 func (r FunctionAppActiveSlotResource) Delete() sdk.ResourceFunc {
 	return ActiveSlotResource{}.Delete()
+}
+
+func (r FunctionAppActiveSlotResource) Update() sdk.ResourceFunc {
+	return ActiveSlotResource{}.Update()
 }
