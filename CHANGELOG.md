@@ -8,6 +8,9 @@ FEATURES:
 * **New Beta Resource:** - `azurerm_linux_function_app_slot` [GH-14940]
 * **New Beta Resource:** - `azurerm_windows_function_app_slot` [GH-14940]
 * **New Beta Resource:** - `azurerm_windows_web_app_slot` [GH-14613]
+* **New Beat Resource:** - `azurerm_traffic_manager_azure_endpoint` [GH-15178]
+* **New Beat Resource:** - `azurerm_traffic_manager_external_endpoint` [GH-15178]
+* **New Beat Resource:** - `azurerm_traffic_manager_nested_endpoint` [GH-15178]
 
 ENHANCEMENTS:
 
