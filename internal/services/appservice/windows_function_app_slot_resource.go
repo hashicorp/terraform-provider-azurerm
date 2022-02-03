@@ -9,8 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -26,10 +24,7 @@ type WindowsFunctionAppSlotResource struct{}
 
 type WindowsFunctionAppSlotModel struct {
 	Name                          string                                     `tfschema:"name"`
-	ResourceGroup                 string                                     `tfschema:"resource_group_name"`
-	FunctionAppName               string                                     `tfschema:"function_app_name"`
-	Location                      string                                     `tfschema:"location"`
-	ServicePlanId                 string                                     `tfschema:"service_plan_id"`
+	FunctionAppID                 string                                     `tfschema:"function_app_id"`
 	StorageAccountName            string                                     `tfschema:"storage_account_name"`
 	StorageAccountKey             string                                     `tfschema:"storage_account_access_key"`
 	StorageUsesMSI                bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
@@ -82,23 +77,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description:  "Specifies the name of the Windows Function App Slot.",
 		},
 
-		"function_app_name": {
+		"function_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WebAppName,
-			Description:  "The name of the Windows Function App this Slot is a member of.",
-		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"location": location.Schema(),
-
-		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App Slot.",
+			ValidateFunc: validate.FunctionAppID,
+			Description:  "The ID of the Windows Function App this Slot is a member of.",
 		},
 
 		"storage_account_name": {
@@ -282,13 +266,28 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
+			functionAppId, err := parse.FunctionAppID(functionAppSlot.FunctionAppID)
+			if err != nil {
+				return err
+			}
+
 			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
 			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppSlot.ResourceGroup, functionAppSlot.FunctionAppName, functionAppSlot.Name)
-
-			servicePlanId, err := parse.ServicePlanID(functionAppSlot.ServicePlanId)
+			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppId.ResourceGroup, functionAppId.SiteName, functionAppSlot.Name)
+			functionApp, err := client.Get(ctx, functionAppId.ResourceGroup, functionAppId.SiteName)
+			if err != nil {
+				return fmt.Errorf("retrieving parent Windows %s: %+v", *functionAppId, err)
+			}
+			if functionApp.Location == nil {
+				return fmt.Errorf("could not determine location for %s: %+v", id, err)
+			}
+			props := functionApp.SiteProperties
+			if props == nil || props.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
+			servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
 			if err != nil {
 				return err
 			}
@@ -392,12 +391,12 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
 
 			siteEnvelope := web.Site{
-				Location: utils.String(functionAppSlot.Location),
+				Location: functionApp.Location,
 				Tags:     tags.FromTypedObject(functionAppSlot.Tags),
 				Kind:     utils.String("functionapp"),
 				Identity: helpers.ExpandIdentity(functionAppSlot.Identity),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         utils.String(functionAppSlot.ServicePlanId),
+					ServerFarmID:         utils.String(servicePlanId.ID()),
 					Enabled:              utils.Bool(functionAppSlot.Enabled),
 					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
 					SiteConfig:           siteConfig,
@@ -522,10 +521,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state := WindowsFunctionAppSlotModel{
 				Name:                 id.SlotName,
-				FunctionAppName:      id.SiteName,
-				ResourceGroup:        id.ResourceGroup,
-				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
-				Location:             location.NormalizeNilable(functionAppSlot.Location),
+				FunctionAppID:        parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				Enabled:              utils.NormaliseNilableBool(functionAppSlot.Enabled),
 				ClientCertMode:       string(functionAppSlot.ClientCertMode),
 				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
@@ -612,10 +608,6 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-			}
-
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}
