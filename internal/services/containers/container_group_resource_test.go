@@ -385,6 +385,23 @@ func TestAccContainerGroup_virtualNetwork(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_virtualNetworkParallel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.virtualNetworkParallel(data, 4),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName+".0").ExistsInAzure(r),
+				check.That(data.ResourceName+".1").ExistsInAzure(r),
+				check.That(data.ResourceName+".2").ExistsInAzure(r),
+				check.That(data.ResourceName+".3").ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccContainerGroup_SystemAssignedIdentityVirtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -1214,6 +1231,77 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) virtualNetworkParallel(data acceptance.TestData, count int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test" {
+  name                = "testnetprofile"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "testcnic"
+
+    ip_configuration {
+      name      = "testipconfig"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_container_group" "test" {
+  count               = %d
+  name                = "acctestcontainergroup-${count.index}-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.test.id
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port = 80
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, count, data.RandomInteger)
 }
 
 func (ContainerGroupResource) SystemAssignedIdentityVirtualNetwork(data acceptance.TestData) string {

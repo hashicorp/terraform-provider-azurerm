@@ -4,12 +4,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 type Registration struct{}
 
-func (r Registration) PackagePath() string {
-	return "TODO: Not implemented yet"
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/load-test"
 }
 
 func (r Registration) WebsiteCategories() []string {

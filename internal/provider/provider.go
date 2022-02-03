@@ -242,7 +242,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		p.Schema["skip_credentials_validation"] = &schema.Schema{
 			Type:        schema.TypeBool,
 			Optional:    true,
@@ -279,7 +279,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		useMsal := d.Get("use_msal").(bool)
-		if features.ThreePointOh() {
+		if features.ThreePointOhBeta() {
 			useMsal = true
 		}
 

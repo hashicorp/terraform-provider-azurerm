@@ -110,7 +110,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice(func() []string {
-						if features.ThreePointOh() {
+						if features.ThreePointOhBeta() {
 							return []string{"*"}
 						}
 						return []string{"MyTenantOnly", "*"}
@@ -291,11 +291,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
-	if v, ok := d.GetOk("trusted_external_tenants"); ok && !features.ThreePointOh() {
+	if v, ok := d.GetOk("trusted_external_tenants"); ok && !features.ThreePointOhBeta() {
 		trustedExternalTenants := expandTrustedExternalTenants(v.([]interface{}))
 		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		trustedExternalTenants := expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
 		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}

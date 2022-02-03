@@ -302,7 +302,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(postgresql.TLS12)
 					}
 					return string(postgresql.TLSEnforcementDisabled)

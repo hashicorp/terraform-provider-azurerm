@@ -93,7 +93,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(redis.TLSVersionOneFullStopTwo)
 					}
 					return string(redis.TLSVersionOneFullStopZero)

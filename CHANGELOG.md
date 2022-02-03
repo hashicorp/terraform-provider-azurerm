@@ -2,23 +2,36 @@
 
 FEATURES: 
 
+* **New Data Source:** `azurerm_container_group` [GH-14946]
 * **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
-* **New Beta Resource:** `azurerm_windows_web_app_slot` [GH-14613]
+* **New Beta Resource:** - `azurerm_disk_pool_iscsi_target` [GH-14975]
+* **New Beta Resource:** - `azurerm_linux_function_app_slot` [GH-14940]
+* **New Beta Resource:** - `azurerm_windows_function_app_slot` [GH-14940]
+* **New Beta Resource:** - `azurerm_windows_web_app_slot` [GH-14613]
 
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.22.0` of `github.com/hashicorp/go-azure-helpers` [GH-15207]
 * `azurerm_storage_account` - the `identity` block is no longer computed [GH-15207]
-* `azurerm_web_pubsub_hub` - `managed_identity_id` within the `auth` block now accepts UUIDs [GH-15183]
+* `azurerm_web_pubsub_hub` - the `managed_identity_id` property within the `auth` block now accepts UUIDs [GH-15183]
+* `azurerm_linux_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
+* `azurerm_windows_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
 
 BUG FIXES:
 
+* `azurerm_container_group` - fixing parallel provisioning failures with the same `network_profile_id` [GH-15098]
 * `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
+* `azurerm_kubernetes_cluster` - prevent panic when updating `sku_tier` [GH-15229]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_spark_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_hdinsight_hbase_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
+* `azurerm_log_analytics_datasource_windows_event` - adding a state migration to fix `ID was missing the dataSources element` [GH-15194]
 * `azurerm_policy_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
 * `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
 * `azurerm_static_site` - fixing the creation of a Free tier Static Site [GH-15141]
 * `azurerm_storage_share` - fixing the `ShareBeingDeleted` error when the Storage Share is recreated [GH-15180]
-
+* 
 ## 2.94.0 (January 28, 2022)
 
 UPGRADE NOTES:

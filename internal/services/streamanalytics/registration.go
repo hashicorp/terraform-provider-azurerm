@@ -8,7 +8,11 @@ import (
 type Registration struct{}
 
 var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/stream-analytics"
+}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}

@@ -21,20 +21,30 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 }
 
 // ThreePointOh returns whether this provider is running in 3.0 mode
-// that is to say - that functionality which requires/changes in 3.0
-// should be conditionally toggled on
+// that is to say - the final 3.0 release
 //
-// At this point in time this exists just to be able to place this
-// infrastructure as required - but in time we'll flip this through
-// a Beta and then GA at 3.0 release.
+// This exists to allow breaking changes to be piped through the provider
+// during the development of 2.x until 3.0 is ready.
 func ThreePointOh() bool {
 	return false
+}
+
+// ThreePointOhBeta returns whether this provider is running in 3.0 mode
+// which is an opt-in Beta of the (non-breaking changes) coming in 3.0.
+//
+// Any features behind this flag should be backwards-compatible to allow
+// users to try out 3.0 functionality.
+//
+// Whilst this currently isn't exposed, this will be via an Environment
+// Variable in the future.
+func ThreePointOhBeta() bool {
+	return ThreePointOh() || false
 }
 
 // ThreePointOhBetaResources returns whether this provider is opted into
 // the Beta Resources coming in v3.0 - or explicitly opted into v3.0.
 func ThreePointOhBetaResources() bool {
-	if ThreePointOh() {
+	if ThreePointOh() || ThreePointOhBeta() {
 		return true
 	}
 
