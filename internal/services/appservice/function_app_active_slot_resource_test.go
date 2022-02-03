@@ -101,6 +101,9 @@ func (r FunctionApActiveSlotResource) Exists(ctx context.Context, client *client
 	}
 
 	app, err := client.AppService.WebAppsClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return nil, fmt.Errorf("retreiving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
+	}
 	if app.SiteProperties == nil || app.SiteProperties.SlotSwapStatus == nil || app.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)
 	}
