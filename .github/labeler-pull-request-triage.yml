@@ -22,17 +22,18 @@ service/api-management:
 service/app-configuration:
   - internal/services/appconfiguration/**/*
 
-service/application-insights:
-  - internal/services/applicationinsights/**/*
-
 service/app-service:
   - internal/services/appservice/**/*
+
+service/application-insights:
+  - internal/services/applicationinsights/**/*
 
 service/attestation:
   - internal/services/attestation/**/*
 
 service/authorization:
   - internal/services/authorization/**/*
+  - internal/services/msi/**/*
 
 service/automation:
   - internal/services/automation/**/*
@@ -73,15 +74,6 @@ service/cost-management:
 service/custom-resource-provider:
   - internal/services/customproviders/**/*
 
-service/database-migration:
-  - internal/services/databasemigration/**/*
-
-service/databox-edge:
-  - internal/services/databoxedge/**/*
-
-service/databricks:
-  - internal/services/databricks/**/*
-
 service/data-factory:
   - internal/services/datafactory/**/*
 
@@ -94,8 +86,14 @@ service/data-protection:
 service/data-share:
   - internal/services/datashare/**/*
 
-service/virtual-desktops:
-  - internal/services/desktopvirtualization/**/*
+service/database-migration:
+  - internal/services/databasemigration/**/*
+
+service/databox-edge:
+  - internal/services/databoxedge/**/*
+
+service/databricks:
+  - internal/services/databricks/**/*
 
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
@@ -108,6 +106,7 @@ service/disks:
 
 service/dns:
   - internal/services/dns/**/*
+  - internal/services/privatedns/**/*
 
 service/domain-services:
   - internal/services/domainservices/**/*
@@ -196,9 +195,6 @@ service/mixed-reality:
 service/monitor:
   - internal/services/monitor/**/*
 
-service/authorization:
-  - internal/services/msi/**/*
-
 service/mssql:
   - internal/services/mssql/**/*
 
@@ -223,9 +219,6 @@ service/postgresql:
 service/power-bi:
   - internal/services/powerbi/**/*
 
-service/dns:
-  - internal/services/privatedns/**/*
-
 service/purview:
   - internal/services/purview/**/*
 
@@ -234,8 +227,6 @@ service/recovery-services:
 
 service/redis:
   - internal/services/redis/**/*
-
-service/redis:
   - internal/services/redisenterprise/**/*
 
 service/relay:
@@ -285,6 +276,9 @@ service/traffic-manager:
 
 service/video-analyzer:
   - internal/services/videoanalyzer/**/*
+
+service/virtual-desktops:
+  - internal/services/desktopvirtualization/**/*
 
 service/vmware:
   - internal/services/vmware/**/*

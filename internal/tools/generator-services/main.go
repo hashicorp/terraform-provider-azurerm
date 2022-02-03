@@ -63,11 +63,6 @@ tooling:
   - internal/tools/**/*
 `
 
-const githubLabelServiceTemplate = `
-%[1]s:
-  - internal/services/%[2]s/**/*
-`
-
 type githubLabelsGenerator struct{}
 
 func (githubLabelsGenerator) outputPath(rootDirectory string) string {
@@ -102,17 +97,40 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 		packagesToLabel[packageName] = v.AssociatedGitHubLabel()
 	}
 
-	sortedPackages := make([]string, 0)
-	for k := range packagesToLabel {
-		sortedPackages = append(sortedPackages, k)
+	// labels can be present in more than one package, so we need to group them
+	labelsToPackages := make(map[string][]string)
+	for pkg, label := range packagesToLabel {
+		existing, ok := labelsToPackages[label]
+		if !ok {
+			existing = []string{}
+		}
+
+		existing = append(existing, pkg)
+		labelsToPackages[label] = existing
 	}
-	sort.Strings(sortedPackages)
+
+	sortedLabels := make([]string, 0)
+	for k := range labelsToPackages {
+		sortedLabels = append(sortedLabels, k)
+	}
+	sort.Strings(sortedLabels)
 
 	output := strings.TrimSpace(githubLabelsTemplate)
-	for _, packageName := range sortedPackages {
-		label := packagesToLabel[packageName]
-		templated := fmt.Sprintf(githubLabelServiceTemplate, label, packageName)
-		output += templated
+	for _, labelName := range sortedLabels {
+		pkgs := labelsToPackages[labelName]
+
+		// for consistent generation
+		sort.Strings(pkgs)
+
+		out := []string{
+			fmt.Sprintf("%[1]s:", labelName),
+		}
+		for _, pkg := range pkgs {
+			out = append(out, fmt.Sprintf("  - internal/services/%[1]s/**/*", pkg))
+		}
+
+		out = append(out, "")
+		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
 	}
 
 	return writeToFile(outputFileName, output)
