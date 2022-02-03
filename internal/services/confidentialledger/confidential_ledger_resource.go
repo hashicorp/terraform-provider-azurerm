@@ -139,8 +139,8 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 
 	aadBasedUsers := make([]confidentialledger.AADBasedSecurityPrincipal, numAadBasedUsers)
 	for i := 0; i < numAadBasedUsers; i++ {
-		ledgerRoleName := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(confidentialledger.LedgerRoleName)
-		// principalId := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(confidentialledger.LedgerRoleName)
+		tempData := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(pluginsdk.ResourceData)
+		ledgerRoleName := tempData.Get("ledger_role_name").(confidentialledger.LedgerRoleName)
 
 		aadBasedUsers = append(aadBasedUsers, confidentialledger.AADBasedSecurityPrincipal{
 			LedgerRoleName: &ledgerRoleName,
