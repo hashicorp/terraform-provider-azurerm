@@ -1,9 +1,9 @@
 ---
-subcategory: "Appservice"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_app_active_slot"
 description: |-
-	Manages a Web App Active Slot.
+  Manages a Web App Active Slot.
 ---
 
 # azurerm_web_app_active_slot
@@ -12,10 +12,89 @@ Manages a Web App Active Slot.
 
 ## Example Usage
 
-```hcl
-resource "azurerm_web_app_active_slot" "example" {
-  slot_id = "example"
+### Windows Web App
 
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example-plan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "West Europe"
+  os_type             = "Windows"
+  sku_name            = "P1V2"
+}
+
+resource "azurerm_windows_web_app" "example" {
+  name                = "example-windows-web-app"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
+resource "azurerm_windows_web_app_slot" "example" {
+  name           = "example-windows-web-app-slot"
+  app_service_id = azurerm_windows_web_app.example.name
+
+  site_config {}
+}
+
+resource "azurerm_web_app_active_slot" "example" {
+  slot_id = azurerm_windows_web_app_slot.example.id
+
+}
+```
+
+### Linux Web App
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example-plan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "West Europe"
+  os_type             = "Linux"
+  sku_name            = "P1V2"
+}
+
+resource "azurerm_linux_web_app" "example" {
+  name                = "example-linux-web-app"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
+resource "azurerm_linux_web_app_slot" "example" {
+  name                = "example-linux-web-app-slot"
+  app_service_name    = azurerm_linux_web_app.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
+resource "azurerm_web_app_active_slot" "example" {
+  slot_id = azurerm_linux_web_app_slot.example.id
 }
 ```
 
@@ -35,7 +114,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Web App Active Slot
 
-* `last_successful_swap` - The timestamp of the last successful swap with `Production`
+* `last_successful_swap` - The timestamp of the last successful swap with `Production`.
 
 
 ## Timeouts

@@ -3,7 +3,7 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app_active_slot"
 description: |-
-	Manages a Function App Active Slot.
+  Manages a Function App Active Slot.
 ---
 
 # azurerm_function_app_active_slot
@@ -12,12 +12,106 @@ Manages a Function App Active Slot.
 
 ## Example Usage
 
+### Windows Function App
+
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "windowsfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example-app-service-plan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  os_type             = "Windows"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_windows_function_app" "example" {
+  name                 = "example-windows-function-app"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  storage_account_name = azurerm_storage_account.example.name
+  service_plan_id      = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
+resource "azurerm_windows_function_app_slot" "example" {
+  name                 = "example-windows-function-app-slot"
+  function_app_id      = azurerm_windows_function_app.example.id
+  storage_account_name = azurerm_storage_account.example.name
+
+  site_config = {}
+}
 
 resource "azurerm_function_app_active_slot" "example" {
-  slot_id = "example"
-
+  slot_id = azurerm_windows_function_app_slot.example.id
 }
+```
+
+### Linux Function App
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "linuxfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example-app-service-plan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  os_type             = "Linux"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_linux_function_app" "example" {
+  name                 = "example-linux-function-app"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  service_plan_id      = azurerm_service_plan.example.id
+  storage_account_name = azurerm_storage_account.example.name
+
+  site_config {}
+}
+
+resource "azurerm_linux_function_app_slot" "example" {
+  name                 = "example-linux-function-app-slot"
+  function_app_id      = azurerm_linux_function_app.example.name
+  storage_account_name = azurerm_storage_account.example.name
+
+  site_config {}
+}
+
+resource "azurerm_function_app_active_slot" "example" {
+  slot_id = azurerm_linux_function_app_slot.example.id
+}
+
 ```
 
 ## Arguments Reference
