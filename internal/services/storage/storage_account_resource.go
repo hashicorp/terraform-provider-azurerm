@@ -2855,15 +2855,24 @@ func expandAzureRmStorageAccountIdentity(input []interface{}) (*storage.Identity
 		return nil, err
 	}
 
-	userAssignedIdentities := make(map[string]*storage.UserAssignedIdentity)
-	for id := range expanded.IdentityIds {
-		userAssignedIdentities[id] = &storage.UserAssignedIdentity{}
+	out := storage.Identity{
+		Type: storage.IdentityType(string(expanded.Type)),
 	}
 
-	return &storage.Identity{
-		Type:                   storage.IdentityType(string(expanded.Type)),
-		UserAssignedIdentities: userAssignedIdentities,
-	}, nil
+	// 'Failed to perform resource identity operation. Status: 'BadRequest'. Response:
+	// {"error":{"code":"BadRequest",
+	//  "message":"The request format was unexpected, a non-UserAssigned identity type should not contain: userAssignedIdentities"
+	// }}
+	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17650
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]*storage.UserAssignedIdentity)
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = &storage.UserAssignedIdentity{}
+		}
+		out.UserAssignedIdentities = userAssignedIdentities
+	}
+
+	return &out, nil
 }
 
 func flattenAzureRmStorageAccountIdentity(input *storage.Identity) (*[]interface{}, error) {
