@@ -139,10 +139,10 @@ func (r AzureEndpointResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_traffic_manager_azure_endpoint" "import" {
-  name                = azurerm_traffic_manager_azure_endpoint.test.name
-  target_resource_id  = azurerm_traffic_manager_azure_endpoint.test.target_resource_id
-  weight              = azurerm_traffic_manager_azure_endpoint.test.weight
-  profile_id          = azurerm_traffic_manager_azure_endpoint.test.profile_id
+  name               = azurerm_traffic_manager_azure_endpoint.test.name
+  target_resource_id = azurerm_traffic_manager_azure_endpoint.test.target_resource_id
+  weight             = azurerm_traffic_manager_azure_endpoint.test.weight
+  profile_id         = azurerm_traffic_manager_azure_endpoint.test.profile_id
 }
 `, template)
 }
