@@ -72,7 +72,7 @@ func TestAccBatchAccountDataSource_cmk(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.cmk(data, tenantID),
+			Config: r.cmkData(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("encryption.key_vault_key_id").Exists(),
@@ -213,7 +213,7 @@ data "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID, tenantID, subscriptionID, data.RandomString)
 }
 
-func (BatchAccountDataSource) cmk(data acceptance.TestData, tenantID string) string {
+func (BatchAccountDataSource) cmkData(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
 	features {}
