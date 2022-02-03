@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -38,9 +39,51 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"aad_based_security_principals": {},
+			"aad_based_security_principals": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"principal_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+						},
+						"tenant_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+						},
+						"ledger_role_name": {
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Administrator",
+								"Contributor",
+								"Reader",
+							}, false),
+						},
+					},
+				},
+			},
 
-			"cert_based_security_principals": {},
+			"cert_based_security_principals": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cert": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+						},
+						"ledger_role_name": {
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Administrator",
+								"Contributor",
+								"Reader",
+							}, false),
+						},
+					},
+				},
+			},
 
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -50,9 +93,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 			},
 
 			"ledger_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "free",
+				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Public",
 					"Private",
@@ -91,14 +132,44 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_confidential_ledger", resourceId.ID())
 	}
 
+	numAadBasedUsers, err := strconv.Atoi(d.Get("aad_based_security_principals.#").(string))
+	if err != nil {
+		return fmt.Errorf("Could not convert 'aad_based_security_principals.#' = '%s' to integer", d.Get("aad_based_security_principals.#"))
+	}
+
+	aadBasedUsers := make([]confidentialledger.AADBasedSecurityPrincipal, numAadBasedUsers)
+	for i := 0; i < numAadBasedUsers; i++ {
+		ledgerRoleName := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(confidentialledger.LedgerRoleName)
+		// principalId := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(confidentialledger.LedgerRoleName)
+
+		aadBasedUsers = append(aadBasedUsers, confidentialledger.AADBasedSecurityPrincipal{
+			LedgerRoleName: &ledgerRoleName,
+			PrincipalId:    nil,
+			TenantId:       nil,
+		})
+	}
+
+	numCertBasedUsers, err := strconv.Atoi(d.Get("cert_based_security_principals.#").(string))
+	if err != nil {
+		return fmt.Errorf("Could not convert 'aad_based_security_principals.#' = '%s' to integer", d.Get("aad_based_security_principals.#"))
+	}
+
+	certBasedUsers := make([]confidentialledger.CertBasedSecurityPrincipal, numCertBasedUsers)
+	for i := 0; i < numAadBasedUsers; i++ {
+		certBasedUsers = append(certBasedUsers, confidentialledger.CertBasedSecurityPrincipal{
+			Cert:           nil,
+			LedgerRoleName: nil,
+		})
+	}
+
 	// TODO: Insert ledger properties..?
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
 		Properties: &confidentialledger.LedgerProperties{
-			AadBasedSecurityPrincipals:  nil, // *[]AADBasedSecurityPrincipal
-			CertBasedSecurityPrincipals: nil, // *[]CertBasedSecurityPrincipal
-			LedgerType:                  nil, // *LedgerType
+			AadBasedSecurityPrincipals:  &aadBasedUsers,
+			CertBasedSecurityPrincipals: &certBasedUsers,
+			LedgerType:                  d.Get("ledger_type").(*confidentialledger.LedgerType),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
