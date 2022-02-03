@@ -338,6 +338,15 @@ func expandStreamAnalyticsJobIdentity(input []interface{}) (*streamanalytics.Ide
 		return nil, err
 	}
 
+	// Otherwise we get:
+	//   Code="BadRequest"
+	//   Message="The JSON provided in the request body is invalid. Cannot convert value 'None' to
+	//   type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17649
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
 	return &streamanalytics.Identity{
 		Type: utils.String(string(expanded.Type)),
 	}, nil
