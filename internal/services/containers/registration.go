@@ -23,6 +23,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_kubernetes_service_versions":  dataSourceKubernetesServiceVersions(),
+		"azurerm_container_group":              dataSourceContainerGroup(),
 		"azurerm_container_registry":           dataSourceContainerRegistry(),
 		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map": dataSourceContainerRegistryScopeMap(),
