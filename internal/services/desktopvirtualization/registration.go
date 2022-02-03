@@ -1,12 +1,18 @@
 package desktopvirtualization
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-// Registration - Name is the name of this Service
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/virtual-desktops"
+}
+
 func (r Registration) Name() string {
 	return "Desktop Virtualization"
 }
