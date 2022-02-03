@@ -400,8 +400,12 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 							"3",
 							"4",
 						}, false),
-
-						schema["quota"].ConflictsWith: []string{"cpu"},
+						ConflictsWith: func() []string {
+							if features.ThreePointOhBeta() {
+								return []string{}
+							}
+							return []string{"cpu"}
+						}(),
 					},
 
 					// The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
@@ -420,7 +424,12 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 							"7Gi",
 							"8Gi",
 						}, false),
-						ConflictsWith: []string{"memory_in_gb"},
+						ConflictsWith: func() []string {
+							if features.ThreePointOhBeta() {
+								return []string{}
+							}
+							return []string{"memory_in_gb"}
+						}(),
 					},
 				},
 			},
