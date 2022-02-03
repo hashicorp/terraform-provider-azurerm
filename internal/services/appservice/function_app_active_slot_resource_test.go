@@ -150,8 +150,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app_slot" "update" {
-  name           = "acctestWAS2-%d"
-  app_service_id = azurerm_windows_function_app.test.id
+  name            = "acctestWAS2-%d"
+  function_app_id = azurerm_windows_function_app.test.id
 
   site_config {}
 }
@@ -192,6 +192,14 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-WAS-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -206,16 +214,21 @@ resource "azurerm_linux_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   site_config {}
 }
 
 resource "azurerm_linux_function_app_slot" "test" {
-  name           = "acctestWAS-%[1]d"
-  app_service_id = azurerm_linux_function_app.test.id
+  name                       = "acctest-LFAS-%[1]d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (FunctionApActiveSlotResource) templateWindows(data acceptance.TestData) string {
@@ -223,6 +236,14 @@ func (FunctionApActiveSlotResource) templateWindows(data acceptance.TestData) st
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_service_plan" "test" {
@@ -239,14 +260,19 @@ resource "azurerm_windows_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   site_config {}
 }
 
 resource "azurerm_windows_function_app_slot" "test" {
-  name           = "acctestWAS-%[1]d"
-  app_service_id = azurerm_windows_function_app.test.id
+  name                       = "acctest-WFAS-%[1]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
