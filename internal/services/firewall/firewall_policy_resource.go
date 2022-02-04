@@ -892,7 +892,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 			return commonschema.UserAssignedIdentityOptional()
 		}(),
-
 		"tls_certificate": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
