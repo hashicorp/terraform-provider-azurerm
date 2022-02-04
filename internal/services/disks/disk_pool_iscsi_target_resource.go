@@ -138,6 +138,7 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating DisksPool iscsi target %q : %+v", id.ID(), err)
 			}
 
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
 				if err := d.retryError("waiting for creation DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
@@ -202,6 +203,8 @@ func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("deleting DisksPool iscsi target %q: %+v", id.ID(), err)
 			}
+
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
 				return d.retryError("waiting for deletion of DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone())
 			})
