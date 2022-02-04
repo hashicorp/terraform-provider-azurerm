@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -565,14 +567,10 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"public_network_access": {
-				Type:     pluginsdk.TypeString,
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  string(apimanagement.PublicNetworkAccessEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.PublicNetworkAccessEnabled),
-					string(apimanagement.PublicNetworkAccessDisabled),
-				}, false),
+				Default:  true,
 			},
 
 			"private_ip_addresses": {
@@ -676,9 +674,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	t := d.Get("tags").(map[string]interface{})
 
 	publicIpAddressId := d.Get("public_ip_address_id").(string)
-	publicNetworkAccess := d.Get("public_network_access").(string)
-	publisherName := d.Get("publisher_name").(string)
-	publisherEmail := d.Get("publisher_email").(string)
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 
@@ -688,12 +683,17 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	certificates := expandAzureRmApiManagementCertificates(d)
 
+	publicNetworkAccess := apimanagement.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
+	}
+
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:       utils.String(publisherName),
-			PublisherEmail:      utils.String(publisherEmail),
-			PublicNetworkAccess: apimanagement.PublicNetworkAccess(publicNetworkAccess),
+			PublisherName:       pointer.FromString(d.Get("publisher_name").(string)),
+			PublisherEmail:      pointer.FromString(d.Get("publisher_email").(string)),
+			PublicNetworkAccess: publicNetworkAccess,
 			CustomProperties:    customProperties,
 			Certificates:        certificates,
 		},
@@ -911,7 +911,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
 		d.Set("public_ip_address_id", props.PublicIPAddressID)
-		d.Set("public_network_access", props.PublicNetworkAccess)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == apimanagement.PublicNetworkAccessEnabled)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
@@ -948,6 +948,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
 		d.Set("min_api_version", minApiVersion)
+
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {

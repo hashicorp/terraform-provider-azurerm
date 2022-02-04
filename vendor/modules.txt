@@ -193,6 +193,7 @@ github.com/hashicorp/errwrap
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
+github.com/hashicorp/go-azure-helpers/lang/pointer
 github.com/hashicorp/go-azure-helpers/lang/response
 github.com/hashicorp/go-azure-helpers/polling
 github.com/hashicorp/go-azure-helpers/resourcemanager/commonids
