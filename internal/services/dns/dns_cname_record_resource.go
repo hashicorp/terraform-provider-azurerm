@@ -97,8 +97,8 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dns_cname_record", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_dns_cname_record", resourceId.ID())
 		}
 	}
 

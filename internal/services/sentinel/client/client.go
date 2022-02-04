@@ -8,7 +8,9 @@ import (
 type Client struct {
 	AlertRulesClient         *securityinsight.AlertRulesClient
 	AlertRuleTemplatesClient *securityinsight.AlertRuleTemplatesClient
+	AutomationRulesClient    *securityinsight.AutomationRulesClient
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
+	WatchlistsClient         *securityinsight.WatchlistsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -18,12 +20,20 @@ func NewClient(o *common.ClientOptions) *Client {
 	alertRuleTemplatesClient := securityinsight.NewAlertRuleTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&alertRuleTemplatesClient.Client, o.ResourceManagerAuthorizer)
 
+	automationRulesClient := securityinsight.NewAutomationRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&automationRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	dataConnectorsClient := securityinsight.NewDataConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dataConnectorsClient.Client, o.ResourceManagerAuthorizer)
+
+	watchListsClient := securityinsight.NewWatchlistsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&watchListsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		AlertRulesClient:         &alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
+		AutomationRulesClient:    &automationRulesClient,
 		DataConnectorsClient:     &dataConnectorsClient,
+		WatchlistsClient:         &watchListsClient,
 	}
 }

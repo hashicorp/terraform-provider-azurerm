@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -96,16 +97,17 @@ func TestAccStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	jobName := state.Attributes["stream_analytics_job_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := parse.StreamInputID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, resourceGroup, jobName, name)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }

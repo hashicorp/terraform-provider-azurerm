@@ -3,7 +3,8 @@ package kusto
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,7 +92,7 @@ func flattenIdentity(input *kusto.Identity) ([]interface{}, error) {
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
 		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -123,6 +124,10 @@ func expandTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalT
 	output := make([]kusto.TrustedExternalTenant, 0)
 
 	for _, v := range input {
+		// TODO 3.0: remove MyTenantOnly
+		if v.(string) == "MyTenantOnly" {
+			return &[]kusto.TrustedExternalTenant{}
+		}
 		output = append(output, kusto.TrustedExternalTenant{
 			Value: utils.String(v.(string)),
 		})
@@ -137,6 +142,10 @@ func flattenTrustedExternalTenants(input *[]kusto.TrustedExternalTenant) []inter
 	}
 
 	output := make([]interface{}, 0)
+
+	if !features.ThreePointOhBeta() && len(*input) == 0 {
+		return append(output, "MyTenantOnly")
+	}
 
 	for _, v := range *input {
 		if v.Value == nil {

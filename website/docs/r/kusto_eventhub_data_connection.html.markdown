@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created.
 
+* `identity_id` - (Optional) The resource ID of a managed identity (system or user assigned) to be used to authenticate with event hub.
+
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSVE`, `TSV`, `TXT`, and `W3CLOGFILE`.

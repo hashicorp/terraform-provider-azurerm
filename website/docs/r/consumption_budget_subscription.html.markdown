@@ -28,7 +28,7 @@ resource "azurerm_monitor_action_group" "example" {
 
 resource "azurerm_consumption_budget_subscription" "example" {
   name            = "example"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -92,9 +92,11 @@ resource "azurerm_consumption_budget_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `subscription_id` - (Required) The ID of the Subscription for which to create a Consumption Budget. Changing this forces a new resource to be created.
+
+~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 

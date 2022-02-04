@@ -47,8 +47,6 @@ The following attributes are exported:
 
 * `sku` - The SKU of this Container Registry, such as `Basic`.
 
-* `storage_account_id` - The ID of the Storage Account used for this Container Registry. This is only returned for `Classic` SKU's.
-
 * `tags` - A map of tags assigned to the Container Registry.
 
 ## Timeouts

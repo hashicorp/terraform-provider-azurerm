@@ -27,7 +27,7 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_web" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
 }
@@ -35,7 +35,7 @@ resource "azurerm_data_factory_linked_service_web" "example" {
 resource "azurerm_data_factory_dataset_parquet" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
   http_server_location {
@@ -138,5 +138,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Datasets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_dataset_azure_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example
+terraform import azurerm_data_factory_dataset_parquet.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example
 ```

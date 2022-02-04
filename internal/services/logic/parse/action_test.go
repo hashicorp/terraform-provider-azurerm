@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ActionId{}
+var _ resourceids.Id = ActionId{}
 
 func TestActionIDFormatter(t *testing.T) {
 	actual := NewActionID("12345678-1234-9876-4563-123456789012", "group1", "workflow1", "action1").ID()

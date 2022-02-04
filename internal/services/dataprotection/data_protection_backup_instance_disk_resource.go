@@ -214,7 +214,6 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 
 	future, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

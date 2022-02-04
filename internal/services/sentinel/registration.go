@@ -1,10 +1,17 @@
 package sentinel
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/sentinel"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -41,5 +48,16 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection": resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection(),
 		"azurerm_sentinel_data_connector_office_365":                                    resourceSentinelDataConnectorOffice365(),
 		"azurerm_sentinel_data_connector_threat_intelligence":                           resourceSentinelDataConnectorThreatIntelligence(),
+		"azurerm_sentinel_automation_rule":                                              resourceSentinelAutomationRule(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		WatchlistResource{},
 	}
 }

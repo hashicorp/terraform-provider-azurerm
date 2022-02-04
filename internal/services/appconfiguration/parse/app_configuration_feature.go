@@ -18,7 +18,6 @@ func (k AppConfigurationFeatureId) ID() string {
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {
-
 	resourceID, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)

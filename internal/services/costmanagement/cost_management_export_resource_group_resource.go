@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement"
+	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -29,6 +29,11 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 			_, err := parse.CostManagementExportResourceGroupID(id)
 			return err
 		}),
+
+		DeprecationMessage: func() string {
+			msg := `The 'azurerm_cost_management_export_resource_group' resource is deprecated in favour of the 'azurerm_resource_group_cost_management_export' resource and will be removed in version 3.0 of the Azure Provider.`
+			return strings.ReplaceAll(msg, "'", "`")
+		}(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -127,8 +132,8 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 								string(costmanagement.Custom),
 								string(costmanagement.MonthToDate),
 								string(costmanagement.TheLastMonth),
-								string(costmanagement.TheLastWeek),
-								string(costmanagement.TheLastYear),
+								string(costmanagement.BillingMonthToDate),
+								string(costmanagement.TheLastBillingMonth),
 								string(costmanagement.WeekToDate),
 								string(costmanagement.MonthToDate),
 							}, false),
@@ -149,7 +154,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 	resourceGroup := d.Get("resource_group_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Cost Management Export Resource Group %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -180,7 +185,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 		},
 		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
 		Format:       costmanagement.Csv,
-		Definition:   expandExportQuery(d.Get("query").([]interface{})),
+		Definition:   expandExportDefinition(d.Get("query").([]interface{})),
 	}
 
 	account := costmanagement.Export{
@@ -191,7 +196,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating Cost Management Export Resource Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Cost Management Export Resource Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -221,7 +226,7 @@ func resourceCostManagementExportResourceGroupRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceId, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -250,7 +255,7 @@ func resourceCostManagementExportResourceGroupRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `delivery_info`: %+v", err)
 	}
 
-	if err := d.Set("query", flattenExportQuery(resp.Definition)); err != nil {
+	if err := d.Set("query", flattenExportDefinition(resp.Definition)); err != nil {
 		return fmt.Errorf("setting `query`: %+v", err)
 	}
 
@@ -300,44 +305,27 @@ func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []inter
 	}
 
 	destination := input.Destination
-	attrs := make(map[string]interface{})
-	if resourceID := destination.ResourceID; resourceID != nil {
-		attrs["storage_account_id"] = *resourceID
-	}
-	if containerName := destination.Container; containerName != nil {
-		attrs["container_name"] = *containerName
-	}
-	if rootFolderPath := destination.RootFolderPath; rootFolderPath != nil {
-		attrs["root_folder_path"] = *rootFolderPath
+
+	storageAccountId := ""
+	if v := destination.ResourceID; v != nil {
+		storageAccountId = *v
 	}
 
-	return []interface{}{attrs}
-}
-
-func expandExportQuery(input []interface{}) *costmanagement.QueryDefinition {
-	if len(input) == 0 || input[0] == nil {
-		return nil
+	containerName := ""
+	if v := destination.Container; v != nil {
+		containerName = *v
 	}
 
-	attrs := input[0].(map[string]interface{})
-	definitionInfo := &costmanagement.QueryDefinition{
-		Type:      utils.String(attrs["type"].(string)),
-		Timeframe: costmanagement.TimeframeType(attrs["time_frame"].(string)),
+	rootFolderPath := ""
+	if v := destination.RootFolderPath; v != nil {
+		rootFolderPath = *v
 	}
 
-	return definitionInfo
-}
-
-func flattenExportQuery(input *costmanagement.QueryDefinition) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	return []interface{}{
+		map[string]interface{}{
+			"container_name":     containerName,
+			"root_folder_path":   rootFolderPath,
+			"storage_account_id": storageAccountId,
+		},
 	}
-
-	attrs := make(map[string]interface{})
-	if queryType := input.Type; queryType != nil {
-		attrs["type"] = *queryType
-	}
-	attrs["time_frame"] = string(input.Timeframe)
-
-	return []interface{}{attrs}
 }

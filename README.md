@@ -1,6 +1,10 @@
+<a href="https://terraform.io">
+    <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="left" height="50" />
+</a>
+
 # Terraform Provider for Azure (Resource Manager)
 
-Version 2.x of the AzureRM Provider requires Terraform 0.12.x and later, but 1.0 is recommended.
+Version 2.x of the AzureRM Provider supports Terraform 0.12.x and later, but we recommend using the latest version of Terraform Core (1.1 at the time of writing).
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
@@ -18,7 +22,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "=2.71.0"
+      version = "=2.91.0"
     }
   }
 }
@@ -44,8 +48,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 # Create a virtual network in the production-resources resource group
-resource "azurerm_virtual_network" "test" {
-  name                = "production-network"
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
@@ -57,7 +61,7 @@ Further [usage documentation is available on the Terraform website](https://regi
 ## Developer Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x + (but 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.16.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.17.x (to build the provider plugin)
 
 ### On Windows
 
@@ -70,6 +74,7 @@ For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
 For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
 
 Or install via [Chocolatey](https://chocolatey.org/install) (`Git Bash for Windows` must be installed per steps above)
+
 ```powershell
 choco install make golang terraform -y
 refreshenv

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LinkedServiceId struct {
@@ -42,7 +42,7 @@ func (id LinkedServiceId) ID() string {
 
 // LinkedServiceID parses a LinkedService ID into an LinkedServiceId struct
 func LinkedServiceID(input string) (*LinkedServiceId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

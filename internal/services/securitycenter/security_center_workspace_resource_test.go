@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,13 +17,13 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func testAccSecurityCenterWorkspace_basic(t *testing.T) {
+func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,12 +39,12 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,12 +63,12 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_update(t *testing.T) {
+func TestAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -90,12 +91,15 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	})
 }
 
-func (SecurityCenterWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) (*bool, error) {
-	workspaceSettingName := "default"
-
-	resp, err := clients.SecurityCenter.WorkspaceClient.Get(ctx, workspaceSettingName)
+func (SecurityCenterWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center Subscription Workspace Rule Set (%s): %+v", workspaceSettingName, err)
+		return nil, err
+	}
+
+	resp, err := clients.SecurityCenter.WorkspaceClient.Get(ctx, id.WorkspaceSettingName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.WorkspaceSettingProperties != nil), nil
@@ -108,7 +112,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier          = "Standard"
+  tier          = "Free"
   resource_type = "VirtualMachines"
 }
 
@@ -149,7 +153,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
+  tier = "Free"
 }
 
 resource "azurerm_resource_group" "test" {

@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var hostpoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -60,8 +63,8 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.Personal),
-					string(desktopvirtualization.Pooled),
+					string(desktopvirtualization.HostPoolTypePersonal),
+					string(desktopvirtualization.HostPoolTypePooled),
 				}, false),
 			},
 
@@ -70,9 +73,9 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.BreadthFirst),
-					string(desktopvirtualization.DepthFirst),
-					string(desktopvirtualization.Persistent),
+					string(desktopvirtualization.LoadBalancerTypeBreadthFirst),
+					string(desktopvirtualization.LoadBalancerTypeDepthFirst),
+					string(desktopvirtualization.LoadBalancerTypePersistent),
 				}, false),
 			},
 
@@ -104,8 +107,8 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.Automatic),
-					string(desktopvirtualization.Direct),
+					string(desktopvirtualization.PersonalDesktopAssignmentTypeAutomatic),
+					string(desktopvirtualization.PersonalDesktopAssignmentTypeDirect),
 				}, false),
 			},
 
@@ -194,6 +197,9 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	locks.ByName(name, hostpoolResourceType)
+	defer locks.UnlockByName(name, hostpoolResourceType)
+
 	context := desktopvirtualization.HostPool{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -279,6 +285,10 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id, err := parse.HostPoolID(d.Id())
+
+	locks.ByName(id.Name, hostpoolResourceType)
+	defer locks.UnlockByName(id.Name, hostpoolResourceType)
+
 	if err != nil {
 		return err
 	}
@@ -301,7 +311,7 @@ func expandVirtualDesktopHostPoolRegistrationInfo(d *pluginsdk.ResourceData) *de
 
 	if len(oldInterfaces) != 0 && len(newInterfaces) == 0 {
 		deleteConfig := desktopvirtualization.RegistrationInfo{
-			RegistrationTokenOperation: desktopvirtualization.Delete,
+			RegistrationTokenOperation: desktopvirtualization.RegistrationTokenOperationDelete,
 		}
 		return &deleteConfig
 	}
@@ -312,7 +322,7 @@ func expandVirtualDesktopHostPoolRegistrationInfo(d *pluginsdk.ResourceData) *de
 		ExpirationTime: &date.Time{
 			Time: expdt,
 		},
-		RegistrationTokenOperation: desktopvirtualization.Update,
+		RegistrationTokenOperation: desktopvirtualization.RegistrationTokenOperationUpdate,
 	}
 
 	return &configuration

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,6 +27,11 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SmartDetectionRuleID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SmartDetectionRuleUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

@@ -67,7 +67,7 @@ func (client WorkspaceManagedSQLServerSecurityAlertPolicyClient) CreateOrUpdate(
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -102,6 +102,7 @@ func (client WorkspaceManagedSQLServerSecurityAlertPolicyClient) CreateOrUpdateP
 // http.Response Body if it receives an error.
 func (client WorkspaceManagedSQLServerSecurityAlertPolicyClient) CreateOrUpdateSender(req *http.Request) (future WorkspaceManagedSQLServerSecurityAlertPolicyCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

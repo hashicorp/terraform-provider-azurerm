@@ -2,7 +2,10 @@ package datafactory
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -584,7 +587,7 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interfac
 	var identityIds []string
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			id, err := msiParse.UserAssignedIdentityID(key)
+			id, err := msiParse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -606,12 +609,23 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	if len(input) == 0 {
 		return []interface{}{}
 	}
+
 	result := make([]interface{}, 0)
 	for name, item := range input {
+		var valueResult string
+		typeResult := strings.Title(string(item.Type))
+
+		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
+			j, _ := json.Marshal(item.Value)
+			valueResult = string(j)
+		} else {
+			valueResult = fmt.Sprintf("%v", item.Value)
+		}
+
 		result = append(result, map[string]interface{}{
 			"name":  name,
-			"type":  string(item.Type),
-			"value": item.Value,
+			"type":  typeResult,
+			"value": valueResult,
 		})
 	}
 	return result

@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// ApplyUpdatesClient is the maintenance Client
+// ApplyUpdatesClient is the azure Maintenance Management Client
 type ApplyUpdatesClient struct {
 	BaseClient
 }

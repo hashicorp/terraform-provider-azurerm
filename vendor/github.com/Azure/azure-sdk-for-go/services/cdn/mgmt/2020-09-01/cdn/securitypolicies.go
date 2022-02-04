@@ -65,7 +65,7 @@ func (client SecurityPoliciesClient) Create(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,6 +100,7 @@ func (client SecurityPoliciesClient) CreatePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client SecurityPoliciesClient) CreateSender(req *http.Request) (future SecurityPoliciesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -155,7 +156,7 @@ func (client SecurityPoliciesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -188,6 +189,7 @@ func (client SecurityPoliciesClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client SecurityPoliciesClient) DeleteSender(req *http.Request) (future SecurityPoliciesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -455,7 +457,7 @@ func (client SecurityPoliciesClient) Patch(ctx context.Context, resourceGroupNam
 
 	result, err = client.PatchSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Patch", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecurityPoliciesClient", "Patch", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -490,6 +492,7 @@ func (client SecurityPoliciesClient) PatchPreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client SecurityPoliciesClient) PatchSender(req *http.Request) (future SecurityPoliciesPatchFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

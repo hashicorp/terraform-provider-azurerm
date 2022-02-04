@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,17 +97,14 @@ func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
 }
 
 func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory LinkedServiceDatabricksResource (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Data Factory Databricks Resource (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -136,7 +133,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                       = "acctestDatabricksLinkedService%d"
   resource_group_name        = azurerm_resource_group.test.name
-  data_factory_name          = azurerm_data_factory.test.name
+  data_factory_id            = azurerm_data_factory.test.id
   msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
   description         = "Initial description"
@@ -170,7 +167,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   access_token        = "SomeFakeAccessToken"
   description         = "Initial description"
   annotations         = ["test1", "test2"]
@@ -221,7 +218,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
@@ -261,7 +258,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                       = "acctestDatabricksLinkedService%d"
   resource_group_name        = azurerm_resource_group.test.name
-  data_factory_name          = azurerm_data_factory.test.name
+  data_factory_id            = azurerm_data_factory.test.id
   msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
   description = "Initial description"
@@ -315,7 +312,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   description         = "Initial Description"
   annotations         = ["a1", "a2"]
   parameters = {

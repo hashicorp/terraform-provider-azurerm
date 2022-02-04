@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -380,16 +380,14 @@ QUERY
 }
 
 func (t MonitorScheduledQueryRulesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ScheduledQueryRulesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["scheduledqueryrules"]
 
-	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Scheduled Query Rules (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

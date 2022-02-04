@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -50,13 +50,13 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		if userWantsToRollInstances {
 			// If the updated image version is not "latest" and upgrade mode is automatic then azure will roll the instances automatically.
 			// Calling upgradeInstancesForAutomaticUpgradePolicy() in this case will cause an error.
-			if upgradeMode == compute.Automatic && isUsingLatestImage(update) {
+			if upgradeMode == compute.UpgradeModeAutomatic && isUsingLatestImage(update) {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
 			}
 
-			if upgradeMode == compute.Manual {
+			if upgradeMode == compute.UpgradeModeManual {
 				if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
 					return err
 				}

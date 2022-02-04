@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application Group.
 
+* `default_desktop_display_name` - (Optional) Option to set the display name for the default sessionDesktop desktop when `type` is set to `Desktop`.
+
 * `description` - (Optional) Option to set a description for the Virtual Desktop Application Group.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -107,6 +109,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 Virtual Desktop Application Groups can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_desktop_application_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup
 ```

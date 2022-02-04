@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -103,39 +106,34 @@ func dataSourceArmLoadBalancer() *pluginsdk.Resource {
 
 func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	id := parse.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer %q (resource group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Load Balancer %s: %s", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.SetId(id.ID())
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
+	privateIpAddress := ""
+	privateIpAddresses := make([]string, 0)
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)); err != nil {
 				return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
 			}
 
-			privateIpAddress := ""
-			privateIpAddresses := make([]string, 0)
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -147,11 +145,10 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 			}
-
-			d.Set("private_ip_address", privateIpAddress)
-			d.Set("private_ip_addresses", privateIpAddresses)
 		}
 	}
+	d.Set("private_ip_address", privateIpAddress)
+	d.Set("private_ip_addresses", privateIpAddresses)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -19,27 +19,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadWrite"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -55,18 +49,14 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCustomSize(data, 128),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
 			Config: r.disksOSDiskCustomSize(data, 256),
@@ -74,9 +64,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -91,9 +79,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -108,9 +94,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -125,9 +109,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardL
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -142,9 +124,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -159,9 +139,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLR
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -176,9 +154,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -388,13 +364,14 @@ func (r WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSet(dat
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  sku                  = "Standard_F2"
+  instances            = 1
+  admin_username       = "adminuser"
+  admin_password       = "P@ssword1234!"
+  computer_name_prefix = "destest"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -24,9 +28,9 @@ import (
 
 func resourceMsSqlServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlServerCreateUpdate,
+		Create: resourceMsSqlServerCreate,
 		Read:   resourceMsSqlServerRead,
-		Update: resourceMsSqlServerCreateUpdate,
+		Update: resourceMsSqlServerUpdate,
 		Delete: resourceMsSqlServerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -100,6 +104,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
+						"azuread_authentication_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -125,8 +135,21 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(sql.IdentityTypeSystemAssigned),
+								string(sql.IdentityTypeUserAssigned),
 							}, false),
+						},
+						"user_assigned_identity_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
+							RequiredWith: []string{
+								"primary_user_assigned_identity_id",
+							},
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -140,9 +163,25 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
+			"primary_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
+				RequiredWith: []string{
+					"identity.0.user_assigned_identity_ids",
+				},
+			},
+
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return "1.2"
+					}
+					return nil
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"1.1",
@@ -174,17 +213,20 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
+
+			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
+		),
 	}
 }
 
-func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -196,17 +238,15 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	metadata := tags.Expand(t)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.String(), err)
-			}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_server", *existing.ID)
-		}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
 	}
 
 	props := sql.Server{
@@ -215,7 +255,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ServerProperties: &sql.ServerProperties{
 			Version:             utils.String(version),
 			AdministratorLogin:  utils.String(adminUsername),
-			PublicNetworkAccess: sql.ServerPublicNetworkAccessEnabled,
+			PublicNetworkAccess: sql.ServerNetworkAccessFlagEnabled,
 		},
 	}
 
@@ -224,8 +264,111 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.Identity = sqlServerIdentity
 	}
 
+	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		props.ServerProperties.PublicNetworkAccess = sql.ServerPublicNetworkAccessDisabled
+		props.ServerProperties.PublicNetworkAccess = sql.ServerNetworkAccessFlagDisabled
+	}
+
+	if d.HasChange("administrator_login_password") {
+		adminPassword := d.Get("administrator_login_password").(string)
+		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
+	}
+
+	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
+	}
+
+	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); ok {
+		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
+	if err != nil {
+		return fmt.Errorf("issuing create request for %s: %+v", id.String(), err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
+		}
+
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id.String(), err)
+	}
+
+	d.SetId(id.ID())
+
+	connection := sql.ServerConnectionPolicy{
+		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
+			ConnectionType: sql.ServerConnectionType(d.Get("connection_policy").(string)),
+		},
+	}
+	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
+		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
+	}
+
+	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
+	}
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
+		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
+	}
+
+	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
+	if err != nil {
+		return fmt.Errorf("issuing create request for Blob Auditing Policies %s: %+v", id.String(), err)
+	}
+
+	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
+	}
+
+	return resourceMsSqlServerRead(d, meta)
+}
+
+func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
+	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
+	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	adminUsername := d.Get("administrator_login").(string)
+	version := d.Get("version").(string)
+
+	t := d.Get("tags").(map[string]interface{})
+	metadata := tags.Expand(t)
+
+	props := sql.Server{
+		Location: utils.String(location),
+		Tags:     metadata,
+		ServerProperties: &sql.ServerProperties{
+			Version:             utils.String(version),
+			AdministratorLogin:  utils.String(adminUsername),
+			PublicNetworkAccess: sql.ServerNetworkAccessFlagEnabled,
+		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		sqlServerIdentity := expandSqlServerIdentity(d)
+		props.Identity = sqlServerIdentity
+	}
+
+	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
+	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+		props.ServerProperties.PublicNetworkAccess = sql.ServerNetworkAccessFlagDisabled
 	}
 
 	if d.HasChange("administrator_login_password") {
@@ -239,27 +382,28 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for %s: %+v", id.String(), err)
+		return fmt.Errorf("issuing update request for %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasConflict(future.Response()) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", id.Name)
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
 		}
 
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for update of %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
-		adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
-		}
-
-		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
+			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
+				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
+			}
+			log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", id.String(), err)
+		} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of AD Only Authentications %s: %+v", id.String(), err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
@@ -271,6 +415,31 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
 			}
+		} else {
+			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
+			}
+
+			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
+			}
+		}
+	}
+
+	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
+		aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
+			AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
+				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
+			},
+		}
+		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		if err != nil {
+			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+		}
+
+		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
 		}
 	}
 
@@ -280,20 +449,24 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
-		return fmt.Errorf("issuing create/update request for Connection Policy %s: %+v", id.String(), err)
+		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
+	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
+	}
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
+		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
 	}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Blob Auditing Policies %s: %+v", id.String(), err)
+		return fmt.Errorf("issuing update request for Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for update of Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -303,7 +476,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +485,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %s - removing from state", id.String())
@@ -329,8 +501,12 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	identity, err := flattenSqlServerIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
-	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -339,17 +515,18 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerPublicNetworkAccessEnabled)
-	}
-
-	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("reading AAD admin %s: %v", id.Name, err)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
+		primaryUserAssignedIdentityID := ""
+		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
+			parsedPrimaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityIDInsensitively(*props.PrimaryUserAssignedIdentityID)
+			if err != nil {
+				return err
+			}
+			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
-	} else {
-		if err := d.Set("azuread_administrator", flatternMsSqlServerAdministrator(adminResp)); err != nil {
-			return fmt.Errorf("setting `azuread_administrator`: %+v", err)
+		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
+		if props.Administrators != nil {
+			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
 		}
 	}
 
@@ -371,11 +548,11 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
-	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
@@ -407,14 +584,26 @@ func expandSqlServerIdentity(d *pluginsdk.ResourceData) *sql.ResourceIdentity {
 	}
 	identity := identities[0].(map[string]interface{})
 	identityType := sql.IdentityType(identity["type"].(string))
-	return &sql.ResourceIdentity{
+
+	userAssignedIdentityIds := make(map[string]*sql.UserIdentity)
+	for _, id := range identity["user_assigned_identity_ids"].(*pluginsdk.Set).List() {
+		userAssignedIdentityIds[id.(string)] = &sql.UserIdentity{}
+	}
+
+	managedServiceIdentity := sql.ResourceIdentity{
 		Type: identityType,
 	}
+
+	if identityType == sql.IdentityTypeUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentityIds
+	}
+
+	return &managedServiceIdentity
 }
 
-func flattenSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
+func flattenSqlServerIdentity(identity *sql.ResourceIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 	result := make(map[string]interface{})
 	result["type"] = identity.Type
@@ -425,7 +614,30 @@ func flattenSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
 		result["tenant_id"] = identity.TenantID.String()
 	}
 
-	return []interface{}{result}
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+	}
+	result["user_assigned_identity_ids"] = identityIds
+
+	return []interface{}{result}, nil
+}
+
+func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+	if len(input) == 0 || input[0] == nil {
+		return false
+	}
+	admin := input[0].(map[string]interface{})
+	if v, ok := admin["azuread_authentication_only"]; ok && v != nil {
+		return v.(bool)
+	}
+	return false
 }
 
 func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
@@ -452,7 +664,34 @@ func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdmin
 	return &adminParams
 }
 
-func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []interface{} {
+func expandMsSqlServerAdministrators(input []interface{}) *sql.ServerExternalAdministrator {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	admin := input[0].(map[string]interface{})
+	sid, _ := uuid.FromString(admin["object_id"].(string))
+
+	adminParams := sql.ServerExternalAdministrator{
+		AdministratorType: sql.AdministratorTypeActiveDirectory,
+		Login:             utils.String(admin["login_username"].(string)),
+		Sid:               &sid,
+	}
+
+	if v, ok := admin["tenant_id"]; ok && v != "" {
+		tid, _ := uuid.FromString(v.(string))
+		adminParams.TenantID = &tid
+	}
+
+	if v, ok := admin["azuread_authentication_only"]; ok && v != "" {
+		adOnlyAuthentication := v.(bool)
+		adminParams.AzureADOnlyAuthentication = &adOnlyAuthentication
+	}
+
+	return &adminParams
+}
+
+func flatternMsSqlServerAdministrators(admin sql.ServerExternalAdministrator) []interface{} {
 	var login, sid, tid string
 	if admin.Login != nil {
 		login = *admin.Login
@@ -466,11 +705,17 @@ func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []in
 		tid = admin.TenantID.String()
 	}
 
+	var aadOnlyAuthentictionsEnabled bool
+	if admin.AzureADOnlyAuthentication != nil {
+		aadOnlyAuthentictionsEnabled = *admin.AzureADOnlyAuthentication
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"login_username": login,
-			"object_id":      sid,
-			"tenant_id":      tid,
+			"login_username":              login,
+			"object_id":                   sid,
+			"tenant_id":                   tid,
+			"azuread_authentication_only": aadOnlyAuthentictionsEnabled,
 		},
 	}
 }
@@ -494,6 +739,14 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
+	}
+	return
+}
+
+func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
+	if old.(bool) && d.HasChange("administrator_login_password") {
+		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }

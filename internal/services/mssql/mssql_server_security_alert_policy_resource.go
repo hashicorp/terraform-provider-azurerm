@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -113,6 +113,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 
 func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -136,12 +137,12 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceDat
 	if err != nil {
 		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
-
-	if result.ID == nil {
-		return fmt.Errorf("reading mssql server security alert policy id (server %q, resource group %q)", serverName, resourceGroupName)
+	if result.Name == nil {
+		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", serverName, resourceGroupName)
 	}
+	id := parse.NewServerSecurityAlertPolicyID(subscriptionId, resourceGroupName, serverName, *result.Name)
 
-	d.SetId(*result.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }
@@ -172,7 +173,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("server_name", id.ServerName)
 
-	if props := result.SecurityAlertPolicyProperties; props != nil {
+	if props := result.SecurityAlertsPolicyProperties; props != nil {
 		d.Set("state", string(props.State))
 
 		if props.DisabledAlerts != nil {
@@ -230,8 +231,8 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	}
 
 	disabledPolicy := sql.ServerSecurityAlertPolicy{
-		SecurityAlertPolicyProperties: &sql.SecurityAlertPolicyProperties{
-			State: sql.SecurityAlertPolicyStateDisabled,
+		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
+			State: sql.SecurityAlertsPolicyStateDisabled,
 		},
 	}
 
@@ -252,15 +253,15 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 }
 
 func expandSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.ServerSecurityAlertPolicy {
-	state := sql.SecurityAlertPolicyState(d.Get("state").(string))
+	state := sql.SecurityAlertsPolicyState(d.Get("state").(string))
 
 	policy := sql.ServerSecurityAlertPolicy{
-		SecurityAlertPolicyProperties: &sql.SecurityAlertPolicyProperties{
+		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
 			State: state,
 		},
 	}
 
-	props := policy.SecurityAlertPolicyProperties
+	props := policy.SecurityAlertsPolicyProperties
 
 	if v, ok := d.GetOk("disabled_alerts"); ok {
 		disabledAlerts := make([]string, 0)

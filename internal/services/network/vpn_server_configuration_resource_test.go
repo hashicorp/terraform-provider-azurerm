@@ -546,6 +546,7 @@ resource "azurerm_vpn_server_configuration" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["AAD", "Certificate"]
+  vpn_protocols            = ["OpenVPN"]
 
   azure_active_directory_authentication {
     audience = "00000000-abcd-abcd-abcd-999999999999"

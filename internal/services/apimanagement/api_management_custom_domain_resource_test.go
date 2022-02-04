@@ -84,7 +84,7 @@ func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Custom Domain (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

@@ -60,7 +60,7 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdate(ctx 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -96,6 +96,7 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdatePrepa
 // http.Response Body if it receives an error.
 func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

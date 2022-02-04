@@ -72,7 +72,7 @@ func (client ServiceFabricsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client ServiceFabricsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client ServiceFabricsClient) CreateOrUpdateSender(req *http.Request) (future ServiceFabricsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -156,7 +157,7 @@ func (client ServiceFabricsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -190,6 +191,7 @@ func (client ServiceFabricsClient) DeletePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client ServiceFabricsClient) DeleteSender(req *http.Request) (future ServiceFabricsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -537,7 +539,7 @@ func (client ServiceFabricsClient) Start(ctx context.Context, resourceGroupName 
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -571,6 +573,7 @@ func (client ServiceFabricsClient) StartPreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client ServiceFabricsClient) StartSender(req *http.Request) (future ServiceFabricsStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -618,7 +621,7 @@ func (client ServiceFabricsClient) Stop(ctx context.Context, resourceGroupName s
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.ServiceFabricsClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -652,6 +655,7 @@ func (client ServiceFabricsClient) StopPreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ServiceFabricsClient) StopSender(req *http.Request) (future ServiceFabricsStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

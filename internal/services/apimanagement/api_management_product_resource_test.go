@@ -6,10 +6,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -155,18 +157,42 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementProduct_subscriptionRequiredDefault(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionRequiredDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("true"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("1"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementProductResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ProductID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
 
-	resp, err := clients.ApiManagement.ProductsClient.Get(ctx, resourceGroup, serviceName, productId)
+	resp, err := clients.ApiManagement.ProductsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Product (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -354,6 +380,39 @@ resource "azurerm_api_management_product" "test" {
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementProductResource) subscriptionRequiredDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_product" "test" {
+  product_id          = "test-product"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Test Product"
+  approval_required   = true
+  subscriptions_limit = 1
+  published           = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Traffic Manager Endpoint.
 
+~> **NOTE:** This resource is **deprecated** in favour of the `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint`, or `azurerm_traffic_manager_nested_endpoint` resources and will be removed in version 3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl
@@ -110,7 +112,7 @@ The following arguments are supported:
     profile. This argument only applies to Endpoints of type `nestedEndpoints`
     and has to be larger than `0`.
 
-~>**NOTE**: If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
+~>**NOTE:** If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
 
 * `minimum_required_child_endpoints_ipv4` - (Optional) This argument specifies the minimum number of IPv4 (DNS record type A) endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and defaults to `1`.
 

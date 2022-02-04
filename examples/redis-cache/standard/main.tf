@@ -4,14 +4,14 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
   name                = "${var.prefix}-cache"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"

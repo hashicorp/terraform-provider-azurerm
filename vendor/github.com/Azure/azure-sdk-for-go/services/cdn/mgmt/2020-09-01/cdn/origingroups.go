@@ -65,7 +65,7 @@ func (client OriginGroupsClient) Create(ctx context.Context, resourceGroupName s
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client OriginGroupsClient) CreatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client OriginGroupsClient) CreateSender(req *http.Request) (future OriginGroupsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -157,7 +158,7 @@ func (client OriginGroupsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -191,6 +192,7 @@ func (client OriginGroupsClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client OriginGroupsClient) DeleteSender(req *http.Request) (future OriginGroupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -463,7 +465,7 @@ func (client OriginGroupsClient) Update(ctx context.Context, resourceGroupName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -499,6 +501,7 @@ func (client OriginGroupsClient) UpdatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client OriginGroupsClient) UpdateSender(req *http.Request) (future OriginGroupsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

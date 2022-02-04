@@ -3,9 +3,10 @@ package servicebus
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -43,23 +44,52 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Make it required
+			"namespace_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceID,
+				ConflictsWith: []string{"namespace_name", "resource_group_name"},
+			},
 
+			// TODO 3.0 - Remove in favor of namespace_id
 			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of namespace_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
 			},
 
 			"default_action": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Allow),
+				Default:  string(servicebus.DefaultActionAllow),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Allow),
-					string(servicebus.Deny),
+					string(servicebus.DefaultActionAllow),
+					string(servicebus.DefaultActionDeny),
 				}, false),
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"ip_rules": {
@@ -68,6 +98,12 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"trusted_services_allowed": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"network_rules": {
@@ -96,17 +132,24 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewNamespaceNetworkRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), namespaceNetworkRuleSetName)
+	var resourceId parse.NamespaceNetworkRuleSetId
+	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
+		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
+		resourceId = parse.NewNamespaceNetworkRuleSetID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, namespaceNetworkRuleSetName)
+	} else {
+		resourceId = parse.NewNamespaceNetworkRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), namespaceNetworkRuleSetName)
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.GetNetworkRuleSet(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for the presnece of existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for the presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
@@ -117,11 +160,27 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
+	defaultAction := servicebus.DefaultAction(d.Get("default_action").(string))
+	vnetRule := expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List())
+	ipRule := expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
+	publicNetworkAcc := "Disabled"
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAcc = "Enabled"
+	}
+
+	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
+	// TODO: The check won't be needed when 2021-11-01 API is released since service team will fail the update with bad request in that version
+	if defaultAction == servicebus.DefaultActionDeny && vnetRule == nil && ipRule == nil {
+		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", resourceId)
+	}
+
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction:       servicebus.DefaultAction(d.Get("default_action").(string)),
-			VirtualNetworkRules: expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
-			IPRules:             expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			DefaultAction:               defaultAction,
+			VirtualNetworkRules:         vnetRule,
+			IPRules:                     ipRule,
+			PublicNetworkAccess:         servicebus.PublicNetworkAccessFlag(publicNetworkAcc),
+			TrustedServiceAccessEnabled: utils.Bool(d.Get("trusted_services_allowed").(bool)),
 		},
 	}
 
@@ -134,7 +193,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -155,9 +214,12 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
+		d.Set("trusted_services_allowed", props.TrustedServiceAccessEnabled)
+		d.Set("public_network_access_enabled", strings.EqualFold(string(props.PublicNetworkAccess), "Enabled"))
 
 		if err := d.Set("network_rules", pluginsdk.NewSet(networkRuleHash, flattenServiceBusNamespaceVirtualNetworkRules(props.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("failed to set `network_rules`: %+v", err)
@@ -172,7 +234,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +248,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction: servicebus.Deny,
+			DefaultAction: servicebus.DefaultActionAllow,
 		},
 	}
 
@@ -288,7 +350,7 @@ func CheckNetworkRuleNullified(resp servicebus.NetworkRuleSet) bool {
 	if resp.NetworkRuleSetProperties == nil {
 		return true
 	}
-	if resp.DefaultAction != servicebus.Deny {
+	if resp.DefaultAction != servicebus.DefaultActionAllow {
 		return false
 	}
 	if resp.VirtualNetworkRules != nil && len(*resp.VirtualNetworkRules) > 0 {

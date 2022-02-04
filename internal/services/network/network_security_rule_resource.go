@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,10 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 		Read:   resourceNetworkSecurityRuleRead,
 		Update: resourceNetworkSecurityRuleCreateUpdate,
 		Delete: resourceNetworkSecurityRuleDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SecurityRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -123,7 +126,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -132,7 +135,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -172,23 +175,22 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 
 func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	nsgName := d.Get("network_security_group_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, nsgName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Rule %q (Network Security Group %q / Resource Group %q): %s", name, nsgName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_security_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
 		}
 	}
 
@@ -202,12 +204,12 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	protocol := d.Get("protocol").(string)
 
 	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(nsgName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	rule := network.SecurityRule{
-		Name: &name,
+		Name: &id.Name,
 		SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 			SourcePortRange:          &sourcePortRange,
 			DestinationPortRange:     &destinationPortRange,
@@ -287,24 +289,16 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		rule.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, nsgName, name, rule)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name, rule)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, nsgName, name)
-	if err != nil {
-		return fmt.Errorf("making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Network Security Rule %s (NSG %q / resource group %s) ID", name, nsgName, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkSecurityRuleRead(d, meta)
 }
@@ -314,26 +308,23 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SecurityRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	networkSGName := id.Path["networkSecurityGroups"]
-	sgRuleName := id.Path["securityRules"]
 
-	resp, err := client.Get(ctx, resGroup, networkSGName, sgRuleName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, networkSGName, resGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("network_security_group_name", networkSGName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("network_security_group_name", id.NetworkSecurityGroupName)
 
 	if props := resp.SecurityRulePropertiesFormat; props != nil {
 		d.Set("description", props.Description)
@@ -367,26 +358,23 @@ func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SecurityRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	nsgName := id.Path["networkSecurityGroups"]
-	sgRuleName := id.Path["securityRules"]
 
 	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(nsgName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
-	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
+		return fmt.Errorf("Deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

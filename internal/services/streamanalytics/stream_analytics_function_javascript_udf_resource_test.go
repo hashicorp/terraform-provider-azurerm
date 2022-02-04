@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -67,16 +68,17 @@ func TestAccStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	jobName := state.Attributes["stream_analytics_job_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := parse.FunctionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, resourceGroup, jobName, name)
+	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Function JavaScript UDF %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s : %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

@@ -74,16 +74,16 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
 
-	existingModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	existingModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existingModel.Response) {
-			return fmt.Errorf("checking for presence of existing  DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	existingId := helper.GetAzurermDataShareDataSetId(existingModel.Value)
@@ -98,21 +98,11 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.Create(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name, dataSet); err != nil {
-		return fmt.Errorf("creating DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name, dataSet); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
-	}
-
-	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
-	}
-
-	d.SetId(*respId)
+	d.SetId(id.ID())
 	return resourceDataShareDataSetKustoClusterRead(d, meta)
 }
 

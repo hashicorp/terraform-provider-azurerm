@@ -91,6 +91,28 @@ func TestAccDataSourceKeyVault_softDelete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKeyVault_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
+	r := KeyVaultDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tenant_id").Exists(),
+				check.That(data.ResourceName).Key("sku_name").Exists(),
+				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("false"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (KeyVaultDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -111,6 +133,17 @@ data "azurerm_key_vault" "test" {
   resource_group_name = azurerm_key_vault.test.resource_group_name
 }
 `, KeyVaultResource{}.complete(data))
+}
+
+func (KeyVaultDataSource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_key_vault" "test" {
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
+}
+`, KeyVaultResource{}.update(data))
 }
 
 func (KeyVaultDataSource) networkAcls(data acceptance.TestData) string {

@@ -120,7 +120,6 @@ resource "azurerm_media_streaming_locator" "test" {
   streaming_policy_name       = "Predefined_ClearStreamingOnly"
   asset_name                  = azurerm_media_asset.test.name
 }
-
 `, r.template(data))
 }
 
@@ -135,7 +134,6 @@ resource "azurerm_media_streaming_locator" "import" {
   streaming_policy_name       = "Predefined_ClearStreamingOnly"
   asset_name                  = azurerm_media_asset.test.name
 }
-
 `, r.basic(data))
 }
 
@@ -154,7 +152,6 @@ resource "azurerm_media_streaming_locator" "test" {
   streaming_locator_id        = "90000000-0000-0000-0000-000000000000"
   alternative_media_id        = "my-Alternate-MediaID"
 }
-
 `, r.template(data))
 }
 

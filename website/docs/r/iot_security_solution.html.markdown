@@ -52,6 +52,10 @@ The following arguments are supported:
 
 * `iothub_ids` - (Required) Specifies the IoT Hub resource IDs to which this Iot Security Solution is applied.
 
+* `additional_workspace` - (Optional) A `additional_workspace` block as defined below.
+
+* `disabled_data_sources` - (Optional) A list of disabled data sources for the Iot Security Solution. Possible value is `TwinData`.
+
 * `enabled` - (Optional) Is the Iot Security Solution enabled? Defaults to `true`.
 
 * `events_to_export` - (Optional) A list of data which is to exported to analytic workspace. Valid values include `RawEvents`.
@@ -67,6 +71,14 @@ The following arguments are supported:
 * `query_subscription_ids` - (Optional) A list of subscription Ids on which the user defined resources query should be executed.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `additional_workspace` block supports the following:
+
+* `data_types` - (Required) A list of data types which sent to workspace. Possible values are `Alerts` and `RawEvents`.
+
+* `workspace_id` - (Required) The resource ID of the Log Analytics Workspace.
 
 ---
 

@@ -73,7 +73,7 @@ func (client ControllersClient) Create(ctx context.Context, resourceGroupName st
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -107,6 +107,7 @@ func (client ControllersClient) CreatePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client ControllersClient) CreateSender(req *http.Request) (future ControllersCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -164,7 +165,7 @@ func (client ControllersClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -196,6 +197,7 @@ func (client ControllersClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client ControllersClient) DeleteSender(req *http.Request) (future ControllersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

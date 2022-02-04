@@ -6,10 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,12 +22,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		{
-			Config: testResource.basicConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(testResource),
-			),
-		},
+		data.ApplyStep(testResource.basicConfig, testResource),
 		data.ImportStep(),
 	})
 }
@@ -38,19 +31,13 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		{
-			Config: testResource.basicConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(testResource),
-			),
-		},
+		data.ApplyStep(testResource.basicConfig, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
 
 func TestAccResourceGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
-
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -62,7 +49,6 @@ func TestAccResourceGroup_disappears(t *testing.T) {
 
 func TestAccResourceGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
-
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
@@ -114,7 +100,6 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 			Destroy: true,
 		},
 	})
-
 }
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

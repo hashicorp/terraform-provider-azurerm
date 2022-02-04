@@ -151,7 +151,7 @@ func (client Client) Create(ctx context.Context, resourceGroupName string, name 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.Client", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.Client", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -185,6 +185,7 @@ func (client Client) CreatePreparer(ctx context.Context, resourceGroupName strin
 // http.Response Body if it receives an error.
 func (client Client) CreateSender(req *http.Request) (future CreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -231,7 +232,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, name 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.Client", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.Client", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -263,6 +264,7 @@ func (client Client) DeletePreparer(ctx context.Context, resourceGroupName strin
 // http.Response Body if it receives an error.
 func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -316,7 +318,7 @@ func (client Client) ExportData(ctx context.Context, resourceGroupName string, n
 
 	result, err = client.ExportDataSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.Client", "ExportData", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.Client", "ExportData", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -350,6 +352,7 @@ func (client Client) ExportDataPreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client Client) ExportDataSender(req *http.Request) (future ExportDataFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -558,7 +561,7 @@ func (client Client) ImportData(ctx context.Context, resourceGroupName string, n
 
 	result, err = client.ImportDataSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.Client", "ImportData", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.Client", "ImportData", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -592,6 +595,7 @@ func (client Client) ImportDataPreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client Client) ImportDataSender(req *http.Request) (future ImportDataFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -143,9 +143,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -218,8 +218,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Low),
-					string(compute.Regular),
+					string(compute.VirtualMachinePriorityTypesLow),
+					string(compute.VirtualMachinePriorityTypesRegular),
 				}, true),
 			},
 
@@ -228,8 +228,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -299,7 +299,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -360,7 +360,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -395,7 +395,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"network_profile": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -554,7 +554,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -651,7 +651,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -688,7 +688,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"plan": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -713,7 +713,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -794,24 +794,25 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID())
 		}
 	}
 
@@ -872,11 +873,15 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 			ExtensionProfile: extensions,
 			Priority:         compute.VirtualMachinePriorityTypes(priority),
 		},
+		// OrchestrationMode needs to be hardcoded to Uniform, for the
+		// standard VMSS resource, since virtualMachineProfile is now supported
+		// in both VMSS and Orchestrated VMSS...
+		OrchestrationMode:    compute.OrchestrationModeUniform,
 		Overprovision:        &overprovision,
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
-	if strings.EqualFold(priority, string(compute.Low)) {
+	if strings.EqualFold(priority, string(compute.VirtualMachinePriorityTypesLow)) {
 		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
 	}
 
@@ -898,7 +903,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:                             &name,
+		Name:                             &id.Name,
 		Location:                         &location,
 		Tags:                             tags.Expand(t),
 		Sku:                              sku,
@@ -918,7 +923,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		properties.Plan = expandAzureRmVirtualMachineScaleSetPlan(d)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
 		return err
 	}
@@ -927,15 +932,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Machine Scale Set %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualMachineScaleSetRead(d, meta)
 }
@@ -950,7 +947,8 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", id.Name)
@@ -968,7 +966,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("zones", resp.Zones)
 
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `sku`: %#v", err)
+		return fmt.Errorf("[DEBUG] setting `sku`: %#v", err)
 	}
 
 	flattenedIdentity, err := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
@@ -976,7 +974,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 	if err := d.Set("identity", flattenedIdentity); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
+		return fmt.Errorf("[DEBUG] setting `identity`: %+v", err)
 	}
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
@@ -988,7 +986,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+					return fmt.Errorf("[DEBUG] setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
 				}
 			}
 
@@ -1006,28 +1004,28 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting `os_profile`: %#v", err)
+				return fmt.Errorf("[DEBUG] setting `os_profile`: %#v", err)
 			}
 
 			if osProfile := profile.OsProfile; osProfile != nil {
 				if linuxConfiguration := osProfile.LinuxConfiguration; linuxConfiguration != nil {
 					flattenedLinuxConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(linuxConfiguration)
 					if err := d.Set("os_profile_linux_config", flattenedLinuxConfiguration); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `os_profile_linux_config`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `os_profile_linux_config`: %#v", err)
 					}
 				}
 
 				if secrets := osProfile.Secrets; secrets != nil {
 					flattenedSecrets := flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets)
 					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `os_profile_secrets`: %#v", err)
 					}
 				}
 
 				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
 					flattenedWindowsConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)
 					if err := d.Set("os_profile_windows_config", flattenedWindowsConfiguration); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `os_profile_windows_config`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `os_profile_windows_config`: %#v", err)
 					}
 				}
 			}
@@ -1037,7 +1035,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 					flattenedDiagnostics := flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)
 					// TODO: rename this field to `diagnostics_profile`
 					if err := d.Set("boot_diagnostics", flattenedDiagnostics); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `boot_diagnostics`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `boot_diagnostics`: %#v", err)
 					}
 				}
 			}
@@ -1051,7 +1049,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
 				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
+					return fmt.Errorf("[DEBUG] setting `network_profile`: %#v", err)
 				}
 			}
 
@@ -1059,21 +1057,21 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 				if dataDisks := resp.VirtualMachineProfile.StorageProfile.DataDisks; dataDisks != nil {
 					flattenedDataDisks := flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(dataDisks)
 					if err := d.Set("storage_profile_data_disk", flattenedDataDisks); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `storage_profile_data_disk`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `storage_profile_data_disk`: %#v", err)
 					}
 				}
 
 				if imageRef := storageProfile.ImageReference; imageRef != nil {
 					flattenedImageRef := flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(imageRef)
 					if err := d.Set("storage_profile_image_reference", flattenedImageRef); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `storage_profile_image_reference`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `storage_profile_image_reference`: %#v", err)
 					}
 				}
 
 				if osDisk := storageProfile.OsDisk; osDisk != nil {
 					flattenedOSDisk := flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(osDisk)
 					if err := d.Set("storage_profile_os_disk", flattenedOSDisk); err != nil {
-						return fmt.Errorf("[DEBUG] Error setting `storage_profile_os_disk`: %#v", err)
+						return fmt.Errorf("[DEBUG] setting `storage_profile_os_disk`: %#v", err)
 					}
 				}
 			}
@@ -1081,10 +1079,10 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 			if extensionProfile := properties.VirtualMachineProfile.ExtensionProfile; extensionProfile != nil {
 				extension, err := flattenAzureRmVirtualMachineScaleSetExtensionProfile(extensionProfile)
 				if err != nil {
-					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
+					return fmt.Errorf("[DEBUG] setting Virtual Machine Scale Set Extension Profile error: %#v", err)
 				}
 				if err := d.Set("extension", extension); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting `extension`: %#v", err)
+					return fmt.Errorf("[DEBUG] setting `extension`: %#v", err)
 				}
 			}
 		}
@@ -1093,7 +1091,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 	if plan := resp.Plan; plan != nil {
 		flattenedPlan := flattenAzureRmVirtualMachineScaleSetPlan(plan)
 		if err := d.Set("plan", flattenedPlan); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting `plan`: %#v", err)
+			return fmt.Errorf("[DEBUG] setting `plan`: %#v", err)
 		}
 	}
 
@@ -2079,7 +2077,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		if managedDiskType != "" {
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
 		} else {
-			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
+			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StorageAccountTypeStandardLRS)
 		}
 
 		// assume that data disks in VMSS can only be Managed Disks

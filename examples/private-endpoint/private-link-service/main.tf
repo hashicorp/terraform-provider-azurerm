@@ -6,7 +6,7 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -61,21 +61,21 @@ resource "azurerm_private_link_service" "example" {
 
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
-  
+
   nat_ip_configuration {
     name      = azurerm_public_ip.example.name
     subnet_id = azurerm_subnet.service.id
     primary   = true
   }
-  
+
   load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
 }
 
 resource "azurerm_private_endpoint" "example" {
-  name                 = "${var.prefix}-pe"
-  location             = azurerm_resource_group.example.location
-  resource_group_name  = azurerm_resource_group.example.name
-  subnet_id            = azurerm_subnet.endpoint.id
+  name                = "${var.prefix}-pe"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
     name                           = "tfex-pls-connection"

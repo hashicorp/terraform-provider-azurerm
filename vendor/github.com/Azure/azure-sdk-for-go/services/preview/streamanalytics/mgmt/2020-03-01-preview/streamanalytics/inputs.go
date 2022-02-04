@@ -482,7 +482,7 @@ func (client InputsClient) Test(ctx context.Context, resourceGroupName string, j
 
 	result, err = client.TestSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -520,6 +520,7 @@ func (client InputsClient) TestPreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client InputsClient) TestSender(req *http.Request) (future InputsTestFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

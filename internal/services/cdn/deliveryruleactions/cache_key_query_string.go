@@ -16,10 +16,10 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.Exclude),
-					string(cdn.ExcludeAll),
-					string(cdn.Include),
-					string(cdn.IncludeAll),
+					string(cdn.QueryStringBehaviorExclude),
+					string(cdn.QueryStringBehaviorExcludeAll),
+					string(cdn.QueryStringBehaviorInclude),
+					string(cdn.QueryStringBehaviorIncludeAll),
 				}, false),
 			},
 
@@ -38,7 +38,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 		item := v.(map[string]interface{})
 
 		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
-			Name: cdn.NameCacheKeyQueryString,
+			Name: cdn.NameBasicDeliveryRuleActionNameCacheKeyQueryString,
 			Parameters: &cdn.CacheKeyQueryStringActionParameters{
 				OdataType:           utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
 				QueryStringBehavior: cdn.QueryStringBehavior(item["behavior"].(string)),
@@ -46,7 +46,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 		}
 
 		if parameters := item["parameters"].(string); parameters == "" {
-			if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.Include || behavior == cdn.Exclude {
+			if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.QueryStringBehaviorInclude || behavior == cdn.QueryStringBehaviorExclude {
 				return nil, fmt.Errorf("Parameters can not be empty if the behaviour is either Include or Exclude.")
 			}
 		} else {

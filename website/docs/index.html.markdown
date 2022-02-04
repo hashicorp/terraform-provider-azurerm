@@ -37,7 +37,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=2.91.0"
     }
   }
 }
@@ -161,6 +161,10 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
 
+* `use_msal` - (Optional) When `true`, and when using service principal authentication, the provider will obtain [v2 authentication tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#token-formats-and-ownership) from the Microsoft Identity Platform. Has no effect when authenticating via Managed Identity or the Azure CLI. Can also be set via the `ARM_USE_MSAL` or `ARM_USE_MSGRAPH` environment variables.
+
+-> **Note:** This will behaviour will be defaulted on in version 3.0 of the AzureRM (with no opt-out) due to [the deprecation of Azure Active Directory Graph](https://docs.microsoft.com/azure/active-directory/develop/msal-migration).
+
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features
@@ -241,7 +245,7 @@ The `virtual_machine` block supports the following:
 
 ~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
-* `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.  
+* `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
@@ -254,3 +258,5 @@ The `virtual_machine_scale_set` block supports the following:
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
+
+* `scale_to_zero_before_deletion` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources scale to 0 instances before deleting the resource. Defaults to `true`.

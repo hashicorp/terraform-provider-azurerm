@@ -72,6 +72,13 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 
 			"identity": SystemAssignedUserAssigned{}.Schema(),
 
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"tags": tags.ForceNewSchema(),
 		},
 	}
@@ -105,10 +112,11 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := machinelearningservices.ComputeResource{
 		Properties: &machinelearningservices.SynapseSpark{
-			Properties:      nil,
-			ComputeLocation: utils.String(d.Get("location").(string)),
-			Description:     utils.String(d.Get("description").(string)),
-			ResourceID:      utils.String(d.Get("synapse_spark_pool_id").(string)),
+			Properties:       nil,
+			ComputeLocation:  utils.String(d.Get("location").(string)),
+			Description:      utils.String(d.Get("description").(string)),
+			ResourceID:       utils.String(d.Get("synapse_spark_pool_id").(string)),
+			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -165,6 +173,9 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("identity", identity)
 
 	if props, ok := resp.Properties.AsSynapseSpark(); ok && props != nil {
+		if props.DisableLocalAuth != nil {
+			d.Set("local_auth_enabled", !*props.DisableLocalAuth)
+		}
 		d.Set("description", props.Description)
 		d.Set("synapse_spark_pool_id", props.ResourceID)
 	} else {

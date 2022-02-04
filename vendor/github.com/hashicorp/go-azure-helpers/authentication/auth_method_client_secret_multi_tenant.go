@@ -1,16 +1,20 @@
 package authentication
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
+	"github.com/manicminer/hamilton/auth"
+	"github.com/manicminer/hamilton/environments"
 )
 
 type servicePrincipalClientSecretMultiTenantAuth struct {
 	clientId           string
 	clientSecret       string
+	environment        string
 	subscriptionId     string
 	tenantId           string
 	tenantOnly         bool
@@ -21,6 +25,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) build(b Builder) (authMetho
 	method := servicePrincipalClientSecretMultiTenantAuth{
 		clientId:           b.ClientID,
 		clientSecret:       b.ClientSecret,
+		environment:        b.Environment,
 		subscriptionId:     b.SubscriptionID,
 		tenantId:           b.TenantID,
 		tenantOnly:         b.TenantOnly,
@@ -37,12 +42,12 @@ func (a servicePrincipalClientSecretMultiTenantAuth) name() string {
 	return "Multi Tenant Service Principal / Client Secret"
 }
 
-func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
-	if oauth.MultiTenantOauth == nil {
-		return nil, fmt.Errorf("Error getting Authorization Token for client cert: an MultiTenantOauth token wasn't configured correctly; please file a bug with more details")
+func (a servicePrincipalClientSecretMultiTenantAuth) getADALToken(_ context.Context, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	if oauthConfig.MultiTenantOauth == nil {
+		return nil, fmt.Errorf("getting Authorization Token for client cert: an MultiTenantOauth token wasn't configured correctly; please file a bug with more details")
 	}
 
-	spt, err := adal.NewMultiTenantServicePrincipalToken(*oauth.MultiTenantOauth, a.clientId, a.clientSecret, endpoint)
+	spt, err := adal.NewMultiTenantServicePrincipalToken(*oauthConfig.MultiTenantOauth, a.clientId, a.clientSecret, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +61,30 @@ func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sende
 	return auth, nil
 }
 
+func (a servicePrincipalClientSecretMultiTenantAuth) getMSALToken(ctx context.Context, api environments.Api, _ autorest.Sender, _ *OAuthConfig, _ string) (autorest.Authorizer, error) {
+	environment, err := environments.EnvironmentFromString(a.environment)
+	if err != nil {
+		return nil, fmt.Errorf("environment config error: %v", err)
+	}
+
+	conf := auth.ClientCredentialsConfig{
+		Environment:        environment,
+		TenantID:           a.tenantId,
+		AuxiliaryTenantIDs: a.auxiliaryTenantIDs,
+		ClientID:           a.clientId,
+		ClientSecret:       a.clientSecret,
+		Scopes:             []string{api.DefaultScope()},
+		TokenVersion:       auth.TokenVersion2,
+	}
+
+	authorizer := conf.TokenSource(ctx, auth.ClientCredentialsSecretType)
+	if authTyped, ok := authorizer.(autorest.Authorizer); ok {
+		return authTyped, nil
+	}
+
+	return nil, fmt.Errorf("returned auth.Authorizer does not implement autorest.Authorizer")
+}
+
 func (a servicePrincipalClientSecretMultiTenantAuth) populateConfig(c *Config) error {
 	c.AuthenticatedAsAServicePrincipal = true
 	c.GetAuthenticatedObjectID = buildServicePrincipalObjectIDFunc(c)
@@ -65,7 +94,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) populateConfig(c *Config) e
 func (a servicePrincipalClientSecretMultiTenantAuth) validate() error {
 	var err *multierror.Error
 
-	fmtErrorMessage := "A %s must be configured when authenticating as a Service Principal using a Multi Tenant Client Secret."
+	fmtErrorMessage := "%s must be configured when authenticating as a Service Principal using a Multi Tenant Client Secret."
 
 	if !a.tenantOnly && a.subscriptionId == "" {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Subscription ID"))

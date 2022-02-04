@@ -12,40 +12,7 @@ import (
 type KubernetesClusterDataSource struct {
 }
 
-var kubernetesDataSourceTests = map[string]func(t *testing.T){
-	"basic":                                            testAccDataSourceKubernetesCluster_basic,
-	"roleBasedAccessControl":                           testAccDataSourceKubernetesCluster_roleBasedAccessControl,
-	"roleBasedAccessControlAAD":                        testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD,
-	"localAccountDisabled":                             testAccDataSourceKubernetesCluster_localAccountDisabled,
-	"internalNetwork":                                  testAccDataSourceKubernetesCluster_internalNetwork,
-	"advancedNetworkingAzure":                          testAccDataSourceKubernetesCluster_advancedNetworkingAzure,
-	"advancedNetworkingAzureCalicoPolicy":              testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-	"advancedNetworkingAzureNPMPolicy":                 testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-	"advancedNetworkingAzureComplete":                  testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete,
-	"advancedNetworkingAzureCalicoPolicyComplete":      testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-	"advancedNetworkingAzureNPMPolicyComplete":         testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-	"advancedNetworkingKubenet":                        testAccDataSourceKubernetesCluster_advancedNetworkingKubenet,
-	"advancedNetworkingKubenetComplete":                testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete,
-	"addOnProfileOMS":                                  testAccDataSourceKubernetesCluster_addOnProfileOMS,
-	"addOnProfileKubeDashboard":                        testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard,
-	"addOnProfileAzurePolicy":                          testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy,
-	"addOnProfileRouting":                              testAccDataSourceKubernetesCluster_addOnProfileRouting,
-	"addOnProfileIngressApplicationGateewayAppGateway": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway,
-	"addOnProfileIngressApplicationGateewaySubnetCIDR": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR,
-	"addOnProfileIngressApplicationGateewaySubnetId":   testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId,
-	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
-	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
-	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
-	"nodePublicIP":                                     testAccDataSourceKubernetesCluster_nodePublicIP,
-	"privateCluster":                                   testAccDataSourceKubernetesCluster_privateCluster,
-}
-
 func TestAccDataSourceKubernetesCluster_basic(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_basic(t)
-}
-
-func testAccDataSourceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -75,11 +42,6 @@ func testAccDataSourceKubernetesCluster_basic(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_privateCluster(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_privateCluster(t)
-}
-
-func testAccDataSourceKubernetesCluster_privateCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -95,11 +57,6 @@ func testAccDataSourceKubernetesCluster_privateCluster(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_roleBasedAccessControl(t)
-}
-
-func testAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -118,11 +75,6 @@ func testAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t)
-}
-
-func testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -147,11 +99,6 @@ func testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 }
 
 func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_localAccountDisabled(t)
-}
-
-func testAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 	clientData := data.Client()
@@ -174,11 +121,6 @@ func testAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_internalNetwork(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_internalNetwork(t)
-}
-
-func testAccDataSourceKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -193,11 +135,6 @@ func testAccDataSourceKubernetesCluster_internalNetwork(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzure(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -217,11 +154,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -243,11 +175,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *t
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -269,11 +196,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *test
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -293,11 +215,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete(t *testi
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -319,11 +236,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyCompl
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -345,11 +257,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingKubenet(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -369,11 +276,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingKubenet(t *testing.T) 
 }
 
 func TestAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t)
-}
-
-func testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -393,11 +295,6 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t *tes
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileOMS(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -418,11 +315,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -439,11 +331,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) 
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -459,11 +346,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileRouting(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -481,11 +363,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -510,11 +387,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayApp
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -534,11 +406,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t)
-}
-
-func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -556,12 +423,39 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t)
+func TestAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.addOnProfileOpenServiceMeshConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
+			),
+		},
+	})
 }
 
-func testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.addOnProfileAzureKeyvaultSecretsProviderConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -580,11 +474,6 @@ func testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 }
 
 func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t)
-}
-
-func testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -605,11 +494,6 @@ func testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 }
 
 func TestAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_nodeLabels(t)
-}
-
-func testAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 	labels := map[string]string{"key": "value"}
@@ -625,11 +509,6 @@ func testAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_nodePublicIP(t)
-}
-
-func testAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -862,6 +741,28 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileIngressApplicationGatewaySubnetIdConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileOpenServiceMeshConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data, true))
+}
+
+func (KubernetesClusterDataSource) addOnProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {

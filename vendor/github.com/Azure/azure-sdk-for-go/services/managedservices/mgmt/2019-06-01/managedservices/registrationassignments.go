@@ -72,7 +72,7 @@ func (client RegistrationAssignmentsClient) CreateOrUpdate(ctx context.Context, 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client RegistrationAssignmentsClient) CreateOrUpdatePreparer(ctx context.C
 // http.Response Body if it receives an error.
 func (client RegistrationAssignmentsClient) CreateOrUpdateSender(req *http.Request) (future RegistrationAssignmentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -154,7 +155,7 @@ func (client RegistrationAssignmentsClient) Delete(ctx context.Context, scope st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -185,6 +186,7 @@ func (client RegistrationAssignmentsClient) DeletePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client RegistrationAssignmentsClient) DeleteSender(req *http.Request) (future RegistrationAssignmentsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return

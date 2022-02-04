@@ -43,9 +43,8 @@ func (w DataPlaneStorageShareWrapper) Create(ctx context.Context, _, accountName
 			Timeout:        time.Until(timeout),
 		}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return err
-		}
+		_, err := stateConf.WaitForStateContext(ctx)
+		return err
 	}
 
 	// otherwise it's a legit error, so raise it
@@ -87,9 +86,10 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 	}
 
 	return &StorageShareProperties{
-		MetaData: props.MetaData,
-		QuotaGB:  props.ShareQuota,
-		ACLs:     acls.SignedIdentifiers,
+		MetaData:        props.MetaData,
+		QuotaGB:         props.ShareQuota,
+		ACLs:            acls.SignedIdentifiers,
+		EnabledProtocol: props.EnabledProtocol,
 	}, nil
 }
 

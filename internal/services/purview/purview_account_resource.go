@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
+	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,19 +51,26 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			// TODO 3.0 - Remove sku_name property.
+			//            https://github.com/Azure/azure-rest-api-specs/issues/15675
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_4",
-					"Standard_16",
-				}, false),
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
 			},
 
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"managed_resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceGroupName,
 			},
 
 			"identity": {
@@ -80,6 +87,27 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"managed_resources": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"resource_group_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"storage_account_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"event_hub_namespace_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -145,17 +173,20 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	account := purview.Account{
 		AccountProperties: &purview.AccountProperties{},
 		Identity: &purview.Identity{
-			Type: purview.SystemAssigned,
+			Type: purview.TypeSystemAssigned,
 		},
 		Location: &location,
-		Sku:      expandPurviewSkuName(d),
 		Tags:     tags.Expand(t),
 	}
 
 	if d.Get("public_network_enabled").(bool) {
-		account.AccountProperties.PublicNetworkAccess = purview.Enabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessEnabled
 	} else {
-		account.AccountProperties.PublicNetworkAccess = purview.Disabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessDisabled
+	}
+
+	if v, ok := d.GetOk("managed_resource_group_name"); ok {
+		account.AccountProperties.ManagedResourceGroupName = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
@@ -194,14 +225,23 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku_name", flattenPurviewSkuName(resp.Sku))
 
 	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 
+	if err := d.Set("managed_resources", flattenPurviewAccountManagedResources(resp.ManagedResources)); err != nil {
+		return fmt.Errorf("flattening `managed_resources`: %+v", err)
+	}
+
 	if props := resp.AccountProperties; props != nil {
-		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.Enabled)
+		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
+
+		managedResourceGroupName := ""
+		if props.ManagedResourceGroupName != nil {
+			managedResourceGroupName = *props.ManagedResourceGroupName
+		}
+		d.Set("managed_resource_group_name", managedResourceGroupName)
 
 		if endpoints := resp.Endpoints; endpoints != nil {
 			d.Set("catalog_endpoint", endpoints.Catalog)
@@ -242,31 +282,6 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandPurviewSkuName(d *pluginsdk.ResourceData) *purview.AccountSku {
-	sku := d.Get("sku_name").(string)
-
-	if len(sku) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(sku)
-	if err != nil {
-		return nil
-	}
-	return &purview.AccountSku{
-		Name:     purview.Name(name),
-		Capacity: utils.Int32(capacity),
-	}
-}
-
-func flattenPurviewSkuName(input *purview.AccountSku) string {
-	if input == nil || input.Capacity == nil {
-		return ""
-	}
-
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
-}
-
 func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {
 	if identity == nil || identity.Type == "None" {
 		return make([]interface{}, 0)
@@ -285,6 +300,32 @@ func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {
 			"type":         string(identity.Type),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
+		},
+	}
+}
+
+func flattenPurviewAccountManagedResources(managedResources *purview.AccountPropertiesManagedResources) interface{} {
+	if managedResources == nil {
+		return make([]interface{}, 0)
+	}
+
+	resourceGroup := ""
+	if managedResources.ResourceGroup != nil {
+		resourceGroup = *managedResources.ResourceGroup
+	}
+	storageAccount := ""
+	if managedResources.StorageAccount != nil {
+		storageAccount = *managedResources.StorageAccount
+	}
+	eventHubNamespace := ""
+	if managedResources.EventHubNamespace != nil {
+		eventHubNamespace = *managedResources.EventHubNamespace
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"resource_group_id":      resourceGroup,
+			"storage_account_id":     storageAccount,
+			"event_hub_namespace_id": eventHubNamespace,
 		},
 	}
 }

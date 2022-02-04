@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -78,9 +78,9 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(netapp.Premium),
-					string(netapp.Standard),
-					string(netapp.Ultra),
+					string(netapp.ServiceLevelPremium),
+					string(netapp.ServiceLevelStandard),
+					string(netapp.ServiceLevelUltra),
 				}, false),
 			},
 
@@ -130,6 +130,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 102400),
+			},
+
+			"throughput_in_mibps": {
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				Computed: true,
 			},
 
 			"export_policy_rule": {
@@ -221,6 +227,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"snapshot_directory_visible": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"data_protection_replication": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -258,10 +270,19 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
-			"snapshot_directory_visible": {
-				Type:     pluginsdk.TypeBool,
+			"data_protection_snapshot_policy": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Default:  true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"snapshot_policy_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -269,23 +290,20 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("pool_name").(string)
-
+	id := parse.NewVolumeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_netapp_volume", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_netapp_volume", id.ID())
 		}
 	}
 
@@ -301,10 +319,10 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	// Handling security style property
 	securityStyle := d.Get("security_style").(string)
 	if strings.EqualFold(securityStyle, "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0].(string), "cifs") {
-		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for %s", id)
 	}
 	if strings.EqualFold(securityStyle, "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0].(string), "nfsv3") || strings.EqualFold(protocols[0].(string), "nfsv4.1")) {
-		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 	}
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
@@ -313,13 +331,21 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	exportPolicyRule := expandNetAppVolumeExportPolicyRule(exportPolicyRuleRaw)
 
 	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
+	dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
+
 	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+	dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicy(dataProtectionSnapshotPolicyRaw)
 
 	authorizeReplication := false
 	volumeType := ""
 	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) == "dst" {
 		authorizeReplication = true
 		volumeType = "DataProtection"
+	}
+
+	// Validating that snapshot policies are not being created in a data protection volume
+	if dataProtectionSnapshotPolicy.Snapshot != nil && volumeType != "" {
+		return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
 
 	snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
@@ -377,50 +403,56 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		if !strings.EqualFold(string(sourceVolume.ServiceLevel), serviceLevel) {
 			propertyMismatch = append(propertyMismatch, "service_level")
 		}
-		if !strings.EqualFold(parsedVolumeID.ResourceGroup, resourceGroup) {
+		if !strings.EqualFold(parsedVolumeID.ResourceGroup, id.ResourceGroup) {
 			propertyMismatch = append(propertyMismatch, "resource_group_name")
 		}
-		if !strings.EqualFold(parsedVolumeID.NetAppAccountName, accountName) {
+		if !strings.EqualFold(parsedVolumeID.NetAppAccountName, id.NetAppAccountName) {
 			propertyMismatch = append(propertyMismatch, "account_name")
 		}
-		if !strings.EqualFold(parsedVolumeID.CapacityPoolName, poolName) {
+		if !strings.EqualFold(parsedVolumeID.CapacityPoolName, id.CapacityPoolName) {
 			propertyMismatch = append(propertyMismatch, "pool_name")
 		}
 		if len(propertyMismatch) > 0 {
-			return fmt.Errorf("Following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source Volume %q (Resource Group %q): %+v", name, resourceGroup, propertyMismatch)
+			return fmt.Errorf("Following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source %s: %s", id, strings.Join(propertyMismatch, ", "))
 		}
 	}
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
-			CreationToken:            utils.String(volumePath),
-			ServiceLevel:             netapp.ServiceLevel(serviceLevel),
-			SubnetID:                 utils.String(subnetID),
-			ProtocolTypes:            utils.ExpandStringSlice(protocols),
-			SecurityStyle:            netapp.SecurityStyle(securityStyle),
-			UsageThreshold:           utils.Int64(storageQuotaInGB),
-			ExportPolicy:             exportPolicyRule,
-			VolumeType:               utils.String(volumeType),
-			SnapshotID:               utils.String(snapshotID),
-			DataProtection:           dataProtectionReplication,
+			CreationToken:  utils.String(volumePath),
+			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
+			SubnetID:       utils.String(subnetID),
+			ProtocolTypes:  utils.ExpandStringSlice(protocols),
+			SecurityStyle:  netapp.SecurityStyle(securityStyle),
+			UsageThreshold: utils.Int64(storageQuotaInGB),
+			ExportPolicy:   exportPolicyRule,
+			VolumeType:     utils.String(volumeType),
+			SnapshotID:     utils.String(snapshotID),
+			DataProtection: &netapp.VolumePropertiesDataProtection{
+				Replication: dataProtectionReplication.Replication,
+				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
+			},
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, accountName, poolName, name)
+	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
+		parameters.VolumeProperties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+
 	if err != nil {
-		return fmt.Errorf("creating NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	// Waiting for volume be completely provisioned
-	id := parse.NewVolumeID(client.SubscriptionID, resourceGroup, accountName, poolName, name)
-	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
-	if err := waitForVolumeCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+	if err := waitForVolumeCreation(ctx, client, id); err != nil {
 		return err
 	}
 
@@ -443,16 +475,16 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		)
 
 		if err != nil {
-			return fmt.Errorf("Cannot authorize volume replication: %v", err)
+			return fmt.Errorf("cannot authorize volume replication: %v", err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Cannot get authorize volume replication future response: %v", err)
+			return fmt.Errorf("cannot get authorize volume replication future response: %v", err)
 		}
 
 		// Wait for volume replication authorization to complete
 		log.Printf("[DEBUG] Waiting for replication authorization on NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
-		if err := waitForReplAuthorization(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+		if err := waitForReplAuthorization(ctx, client, id); err != nil {
 			return err
 		}
 	}
@@ -475,11 +507,11 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] NetApp Volumes %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NetApp Volumes %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -496,6 +528,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
+		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
@@ -507,6 +540,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
+		}
+		if err := d.Set("data_protection_snapshot_policy", flattenNetAppVolumeDataProtectionSnapshotPolicy(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_snapshot_policy`: %+v", err)
 		}
 	}
 
@@ -527,70 +563,78 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-	if replVolumeID := id; dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if replicaVolumeId := id; dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+		if dataProtectionReplication.Replication.RemoteVolumeResourceID == nil {
+			return fmt.Errorf("remote volume id was nil")
+		}
+
 		if strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replVolumeID, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
+			replicaVolumeId, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
 			if err != nil {
 				return err
 			}
 		}
 
 		// Checking replication status before deletion, it need to be broken before proceeding with deletion
-		if res, err := client.ReplicationStatusMethod(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err == nil {
+		if res, err := client.ReplicationStatusMethod(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err == nil {
 			// Wait for replication state = "mirrored"
 			if strings.ToLower(string(res.MirrorState)) == "uninitialized" {
-				if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete), "mirrored"); err != nil {
-					return err
+				if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "mirrored"); err != nil {
+					return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
 				}
 			}
 
 			// Breaking replication
 			_, err = client.BreakReplication(ctx,
-				replVolumeID.ResourceGroup,
-				replVolumeID.NetAppAccountName,
-				replVolumeID.CapacityPoolName,
-				replVolumeID.Name,
+				replicaVolumeId.ResourceGroup,
+				replicaVolumeId.NetAppAccountName,
+				replicaVolumeId.CapacityPoolName,
+				replicaVolumeId.Name,
 				&netapp.BreakReplicationRequest{
 					ForceBreakReplication: utils.Bool(true),
 				})
 
 			if err != nil {
-				return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 			}
 
 			// Waiting for replication be in broken state
-			log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be in broken state", replVolumeID.Name, replVolumeID.ResourceGroup)
-			if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete), "broken"); err != nil {
-				return err
+			log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)
+			if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "broken"); err != nil {
+				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
 			}
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if _, err = client.DeleteReplication(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err != nil {
-			return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+		if _, err = client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err != nil {
+			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 
-		log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", replVolumeID.Name, replVolumeID.ResourceGroup)
-		if err := waitForReplicationDeletion(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
-			return err
+		log.Printf("[DEBUG] Waiting for the replica of %s to be deleted", replicaVolumeId)
+		if err := waitForReplicationDeletion(ctx, client, *replicaVolumeId); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 		}
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
-		return fmt.Errorf("deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	if err := waitForVolumeDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
-		return err
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
+	if err := waitForVolumeDeletion(ctx, client, *id); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
+func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -598,17 +642,21 @@ func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id
 		Pending:                   []string{"204", "404"},
 		Target:                    []string{"200", "202"},
 		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
-		Timeout:                   timeout,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
 	}
 
 	return nil
 }
 
-func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
+func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -616,7 +664,7 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 		Pending:                   []string{"204", "404", "400"}, // TODO: Remove 400 when bug is fixed on RP side, where replicationStatus returns 400 at some point during authorization process
 		Target:                    []string{"200", "202"},
 		Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id),
-		Timeout:                   timeout,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -626,7 +674,11 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 	return nil
 }
 
-func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration, desiredState string) error {
+func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, desiredState string) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -634,17 +686,22 @@ func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, i
 		Pending:                   []string{"200"}, // 200 means mirror state is still Mirrored
 		Target:                    []string{"204"}, // 204 means mirror state is <> than Mirrored
 		Refresh:                   netappVolumeReplicationMirrorStateRefreshFunc(ctx, client, id, desiredState),
-		Timeout:                   timeout,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NetApp Volume %q (Resource Group %q) to be in %s mirroring state: %+v", id.Name, id.ResourceGroup, desiredState, err)
+		return fmt.Errorf("waiting for %s to be in the state %q: %+v", id, desiredState, err)
 	}
 
 	return nil
 }
 
-func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
+func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -652,17 +709,21 @@ func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClien
 		Pending:                   []string{"200", "202", "400"}, // TODO: Remove 400 when bug is fixed on RP side, where replicationStatus returns 400 while it is in "Deleting" state
 		Target:                    []string{"404"},
 		Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id),
-		Timeout:                   timeout,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Replication of %s to be deleted: %+v", id, err)
 	}
 
 	return nil
 }
 
-func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
+func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -670,11 +731,11 @@ func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
 		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
-		Timeout:                   timeout,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil
@@ -703,9 +764,6 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 			return nil, "", fmt.Errorf("Invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, netapp.PossibleMirrorStateValues())
 		}
 
-		// Setting 200 as default response
-		response := 200
-
 		res, err := client.ReplicationStatusMethod(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
@@ -713,6 +771,9 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 			}
 		}
 
+		// TODO: fix this refresh function to use strings instead of fake status codes
+		// Setting 200 as default response
+		response := 200
 		if strings.EqualFold(string(res.MirrorState), desiredState) {
 			// return 204 if state matches desired state
 			response = 204
@@ -826,6 +887,24 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.Vo
 	}
 }
 
+func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *netapp.VolumePropertiesDataProtection {
+	if len(input) == 0 || input[0] == nil {
+		return &netapp.VolumePropertiesDataProtection{}
+	}
+
+	snapshotObject := netapp.VolumeSnapshotProperties{}
+
+	snapshotRaw := input[0].(map[string]interface{})
+
+	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
+		snapshotObject.SnapshotPolicyID = utils.String(v.(string))
+	}
+
+	return &netapp.VolumePropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
+}
+
 func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Rules == nil {
@@ -931,6 +1010,18 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
 			"replication_frequency":     translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
+		},
+	}
+}
+
+func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *netapp.VolumePropertiesDataProtection) []interface{} {
+	if input == nil || input.Snapshot == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"snapshot_policy_id": input.Snapshot.SnapshotPolicyID,
 		},
 	}
 }

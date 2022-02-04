@@ -102,7 +102,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		}
 
 		return nil
-	}) //lintignore:R006
+	})
 	if err != nil {
 		return err
 	}

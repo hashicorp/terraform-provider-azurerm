@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -31,7 +31,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSet(compute.Windows, "azurerm_windows_virtual_machine_scale_set")),
+		}, importVirtualMachineScaleSet(compute.OperatingSystemTypesWindows, "azurerm_windows_virtual_machine_scale_set")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -137,8 +137,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -202,10 +202,10 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -228,6 +228,12 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
 
 			"secret": windowsSecretSchema(),
+
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
@@ -255,12 +261,24 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Manual),
+				Default:  string(compute.UpgradeModeManual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, false),
+			},
+
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"winrm_listener": winRmListenerSchema(),
@@ -275,11 +293,11 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 			"scale_in_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(compute.Default),
+				Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Default),
-					string(compute.NewestVM),
-					string(compute.OldestVM),
+					string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+					string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+					string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
 				}, false),
 			},
 
@@ -298,16 +316,15 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	exists, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	exists, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
 		}
 	}
 
@@ -347,7 +364,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.Windows)
+	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
 
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -366,17 +383,17 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
+	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
+		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+		return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+		return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
@@ -396,7 +413,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
-		computerNamePrefix = name
+		computerNamePrefix = id.Name
 	}
 
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
@@ -453,7 +470,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	// otherwise the service return the error:
 	// Rolling Upgrade mode is not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided.
-	if upgradeMode == compute.Rolling && (healthProbeId == "" && !hasHealthExtension) {
+	if upgradeMode == compute.UpgradeModeRolling && (healthProbeId == "" && !hasHealthExtension) {
 		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
@@ -461,7 +478,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -475,18 +492,50 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		virtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
+	}
+
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.Spot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if len(additionalUnattendContentRaw) > 0 {
@@ -503,6 +552,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("terminate_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("user_data"); ok {
+		virtualMachineProfile.UserData = utils.String(v.(string))
 	}
 
 	scaleInPolicy := d.Get("scale_in_policy").(string)
@@ -529,6 +582,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
 			VirtualMachineProfile:                  &virtualMachineProfile,
 			UpgradePolicy:                          &upgradePolicy,
+			// OrchestrationMode needs to be hardcoded to Uniform, for the
+			// standard VMSS resource, since virtualMachineProfile is now supported
+			// in both VMSS and Orchestrated VMSS...
+			OrchestrationMode: compute.OrchestrationModeUniform,
 			ScaleInPolicy: &compute.ScaleInPolicy{
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
 			},
@@ -554,28 +611,19 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Windows Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+	log.Printf("[DEBUG] Creating Windows %s.", id)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Windows Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Windows %s to be created.", id)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+	log.Printf("[DEBUG] Windows %s was created", id)
 
-	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
@@ -593,7 +641,8 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	updateInstances := false
 
 	// retrieve
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -660,7 +709,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -684,7 +733,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			windowsConfig := compute.WindowsConfiguration{}
 
 			if d.HasChange("enable_automatic_updates") {
-				if upgradeMode == compute.Automatic {
+				if upgradeMode == compute.UpgradeModeAutomatic {
 					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
 				}
 
@@ -807,9 +856,10 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		if updateProps.VirtualMachineProfile.SecurityProfile == nil {
+			updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
 	}
 
 	if d.HasChange("license_type") {
@@ -873,6 +923,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
+	if d.HasChange("user_data") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data").(string))
+	}
+
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -886,7 +941,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		Client:                       meta.(*clients.Client).Compute,
 		Existing:                     existing,
 		ID:                           id,
-		OSType:                       compute.Windows,
+		OSType:                       compute.OperatingSystemTypesWindows,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -906,7 +961,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Windows Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -987,7 +1042,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	rule := string(compute.Default)
+	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
 	if props.ScaleInPolicy != nil {
 		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
 			rule = string((*rules)[0])
@@ -1012,7 +1067,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := compute.Regular
+		priority := compute.VirtualMachinePriorityTypesRegular
 		if profile.Priority != "" {
 			priority = profile.Priority
 		}
@@ -1060,7 +1115,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
 				// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 				// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
-				if upgradeMode != compute.Automatic {
+				if upgradeMode != compute.UpgradeModeAutomatic {
 					d.Set("enable_automatic_updates", enableAutomaticUpdates)
 				}
 
@@ -1105,10 +1160,27 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
-		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+		vtpmEnabled := false
+		secureBootEnabled := false
+
+		if secprofile := profile.SecurityProfile; secprofile != nil {
+			if secprofile.EncryptionAtHost != nil {
+				encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+			}
+			if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+				if uefi.VTpmEnabled != nil {
+					vtpmEnabled = *uefi.VTpmEnabled
+				}
+				if uefi.SecureBootEnabled != nil {
+					secureBootEnabled = *uefi.SecureBootEnabled
+				}
+			}
 		}
+
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+		d.Set("vtpm_enabled", vtpmEnabled)
+		d.Set("secure_boot_enabled", secureBootEnabled)
+		d.Set("user_data", profile.UserData)
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {
@@ -1128,7 +1200,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
@@ -1143,7 +1215,8 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	// Original Error: Code="InUseSubnetCannotBeDeleted" Message="Subnet internal is in use by
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
-	if resp.Sku != nil {
+	scaleToZeroOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleToZeroOnDelete
+	if scaleToZeroOnDelete && resp.Sku != nil {
 		resp.Sku.Capacity = utils.Int64(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")

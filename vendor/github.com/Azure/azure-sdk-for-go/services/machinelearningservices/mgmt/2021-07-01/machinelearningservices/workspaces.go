@@ -73,7 +73,7 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -107,6 +107,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future WorkspacesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -162,7 +163,7 @@ func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -194,6 +195,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DeleteSender(req *http.Request) (future WorkspacesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -249,7 +251,7 @@ func (client WorkspacesClient) Diagnose(ctx context.Context, resourceGroupName s
 
 	result, err = client.DiagnoseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Diagnose", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Diagnose", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -286,6 +288,7 @@ func (client WorkspacesClient) DiagnosePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DiagnoseSender(req *http.Request) (future WorkspacesDiagnoseFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1105,7 +1108,7 @@ func (client WorkspacesClient) PrepareNotebook(ctx context.Context, resourceGrou
 
 	result, err = client.PrepareNotebookSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "PrepareNotebook", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "PrepareNotebook", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1137,6 +1140,7 @@ func (client WorkspacesClient) PrepareNotebookPreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) PrepareNotebookSender(req *http.Request) (future WorkspacesPrepareNotebookFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1193,7 +1197,7 @@ func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName
 
 	result, err = client.ResyncKeysSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1225,6 +1229,7 @@ func (client WorkspacesClient) ResyncKeysPreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ResyncKeysSender(req *http.Request) (future WorkspacesResyncKeysFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

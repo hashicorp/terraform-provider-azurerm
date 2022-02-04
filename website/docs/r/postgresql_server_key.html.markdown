@@ -66,7 +66,7 @@ resource "azurerm_postgresql_server" "example" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name   = "GP_Gen5_2"

@@ -67,7 +67,7 @@ func (client ConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysql.ConfigurationsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.ConfigurationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -102,6 +102,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (future ConfigurationsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

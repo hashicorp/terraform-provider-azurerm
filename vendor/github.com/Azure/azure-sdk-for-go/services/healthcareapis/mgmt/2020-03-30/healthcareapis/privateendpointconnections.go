@@ -72,7 +72,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.PrivateEndpointConnectionsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthcareapis.PrivateEndpointConnectionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -107,6 +107,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdatePreparer(ctx contex
 // http.Response Body if it receives an error.
 func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Request) (future PrivateEndpointConnectionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -166,7 +167,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.PrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthcareapis.PrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -199,6 +200,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (future PrivateEndpointConnectionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

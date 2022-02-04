@@ -6,7 +6,7 @@ description: |-
   Manages an IotHub ServiceBus Topic Endpoint
 ---
 
-# azurerm_iothub_endpoint_eventhub
+# azurerm_iothub_endpoint_servicebus_topic
 
 Manages an IotHub ServiceBus Topic Endpoint
 
@@ -51,7 +51,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 
@@ -75,7 +74,25 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
 
-* `connection_string` - (Required) The connection string for the endpoint.
+* `resource_group_name` - (Required) The name of the resource group under which the Service Bus Topic has been created. Changing this forces a new resource to be created.
+
+* `authentication_type` - (Optional) Type used to authenticate against the Service Bus Topic endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) ID of the User Managed Identity used to authenticate against the Service Bus Topic endpoint.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
+
+* `endpoint_uri` - (Optional) URI of the Service Bus endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+
+* `entity_path` - (Optional) Name of the Service Bus Topic. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+
+* `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
+
+* `iothub_name` - (Optional) The IoTHub name for the endpoint.
+
+~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
+
+* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
 
 ## Attributes Reference
 

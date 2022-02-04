@@ -57,7 +57,7 @@ func (client ElasticPoolsClient) Failover(ctx context.Context, resourceGroupName
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "Failover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "Failover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -90,6 +90,7 @@ func (client ElasticPoolsClient) FailoverPreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client ElasticPoolsClient) FailoverSender(req *http.Request) (future ElasticPoolsFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,7 +18,7 @@ func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType stri
 		}
 
 		client := meta.(*clients.Client).Compute.VMClient
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
@@ -48,7 +48,7 @@ func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType stri
 		}
 
 		hasSshKeys := false
-		if osType == compute.Linux {
+		if osType == compute.OperatingSystemTypesLinux {
 			if linux := vm.VirtualMachineProperties.OsProfile.LinuxConfiguration; linux != nil {
 				if linux.SSH != nil && linux.SSH.PublicKeys != nil {
 					hasSshKeys = len(*linux.SSH.PublicKeys) > 0

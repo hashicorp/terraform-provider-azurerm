@@ -225,7 +225,7 @@ func (client VirtualMachineSchedulesClient) Execute(ctx context.Context, resourc
 
 	result, err = client.ExecuteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Execute", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Execute", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -259,6 +259,7 @@ func (client VirtualMachineSchedulesClient) ExecutePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client VirtualMachineSchedulesClient) ExecuteSender(req *http.Request) (future VirtualMachineSchedulesExecuteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

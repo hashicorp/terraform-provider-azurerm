@@ -16,12 +16,12 @@ import (
 type SecurityCenterSubscriptionPricingResource struct {
 }
 
-func testAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
+func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	// lintignore:AT001
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	//lintignore:AT001
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "AppServices"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -42,14 +42,14 @@ func testAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 }
 
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SecurityCenterSubscriptionPricingID(state.ID)
+	id, err := parse.PricingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SecurityCenter.PricingClient.Get(ctx, id.ResourceType)
+	resp, err := clients.SecurityCenter.PricingClient.Get(ctx, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center Subscription Pricing (%s): %+v", id.ResourceType, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.PricingProperties != nil), nil

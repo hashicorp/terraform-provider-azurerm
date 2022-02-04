@@ -1,0 +1,24 @@
+---
+name: Validate Examples
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/**'
+      - 'examples/**'
+
+concurrency:
+  group: 'examples-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  website-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.17.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make validate-examples

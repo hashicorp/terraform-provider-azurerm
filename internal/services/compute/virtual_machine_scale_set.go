@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -310,10 +310,10 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.IPv4),
+					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPv4),
-						string(compute.IPv6),
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
 					}, false),
 				},
 			},
@@ -552,8 +552,8 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
-	if primary && version == compute.IPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+	if primary && version == compute.IPVersionIPv6 {
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetIPConfiguration{
@@ -683,7 +683,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
-	if primary && version == compute.IPv6 {
+	if primary && version == compute.IPVersionIPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -1098,7 +1098,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
+									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
 						},
@@ -1526,6 +1526,11 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					Default:  true,
 				},
 
+				"automatic_upgrade_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
 				"force_update_tag": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -1624,6 +1629,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
+			EnableAutomaticUpgrade:   utils.Bool(extensionRaw["automatic_upgrade_enabled"].(bool)),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
 		}
 
@@ -1686,6 +1692,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		}
 
 		autoUpgradeMinorVersion := false
+		enableAutomaticUpgrade := false
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
@@ -1709,6 +1716,10 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 
 			if props.AutoUpgradeMinorVersion != nil {
 				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
+			}
+
+			if props.EnableAutomaticUpgrade != nil {
+				enableAutomaticUpgrade = *props.EnableAutomaticUpgrade
 			}
 
 			if props.ForceUpdateTag != nil {
@@ -1739,6 +1750,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		result = append(result, map[string]interface{}{
 			"name":                       name,
 			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
+			"automatic_upgrade_enabled":  enableAutomaticUpgrade,
 			"force_update_tag":           forceUpdateTag,
 			"provision_after_extensions": provisionAfterExtension,
 			"protected_settings":         protectedSettings,

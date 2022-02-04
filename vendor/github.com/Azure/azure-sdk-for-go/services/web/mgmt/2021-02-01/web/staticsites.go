@@ -64,7 +64,7 @@ func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnection(ctx con
 
 	result, err = client.ApproveOrRejectPrivateEndpointConnectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ApproveOrRejectPrivateEndpointConnection", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ApproveOrRejectPrivateEndpointConnection", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnectionPreparer
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnectionSender(req *http.Request) (future StaticSitesApproveOrRejectPrivateEndpointConnectionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -155,7 +156,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSite(ctx context.Context, re
 
 	result, err = client.CreateOrUpdateStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -189,6 +190,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSitePreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) CreateOrUpdateStaticSiteSender(req *http.Request) (future StaticSitesCreateOrUpdateStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -513,7 +515,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomain(ctx context
 
 	result, err = client.CreateOrUpdateStaticSiteCustomDomainSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSiteCustomDomain", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSiteCustomDomain", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -548,6 +550,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainPreparer(ctx
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainSender(req *http.Request) (future StaticSitesCreateOrUpdateStaticSiteCustomDomainFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -778,7 +781,7 @@ func (client StaticSitesClient) CreateZipDeploymentForStaticSite(ctx context.Con
 
 	result, err = client.CreateZipDeploymentForStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateZipDeploymentForStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateZipDeploymentForStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -812,6 +815,7 @@ func (client StaticSitesClient) CreateZipDeploymentForStaticSitePreparer(ctx con
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) CreateZipDeploymentForStaticSiteSender(req *http.Request) (future StaticSitesCreateZipDeploymentForStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -869,7 +873,7 @@ func (client StaticSitesClient) CreateZipDeploymentForStaticSiteBuild(ctx contex
 
 	result, err = client.CreateZipDeploymentForStaticSiteBuildSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateZipDeploymentForStaticSiteBuild", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateZipDeploymentForStaticSiteBuild", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -904,6 +908,7 @@ func (client StaticSitesClient) CreateZipDeploymentForStaticSiteBuildPreparer(ct
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) CreateZipDeploymentForStaticSiteBuildSender(req *http.Request) (future StaticSitesCreateZipDeploymentForStaticSiteBuildFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -958,7 +963,7 @@ func (client StaticSitesClient) DeletePrivateEndpointConnection(ctx context.Cont
 
 	result, err = client.DeletePrivateEndpointConnectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeletePrivateEndpointConnection", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeletePrivateEndpointConnection", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -991,6 +996,7 @@ func (client StaticSitesClient) DeletePrivateEndpointConnectionPreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) DeletePrivateEndpointConnectionSender(req *http.Request) (future StaticSitesDeletePrivateEndpointConnectionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1008,7 +1014,7 @@ func (client StaticSitesClient) DeletePrivateEndpointConnectionResponder(resp *h
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -1045,7 +1051,7 @@ func (client StaticSitesClient) DeleteStaticSite(ctx context.Context, resourceGr
 
 	result, err = client.DeleteStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1077,6 +1083,7 @@ func (client StaticSitesClient) DeleteStaticSitePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) DeleteStaticSiteSender(req *http.Request) (future StaticSitesDeleteStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1131,7 +1138,7 @@ func (client StaticSitesClient) DeleteStaticSiteBuild(ctx context.Context, resou
 
 	result, err = client.DeleteStaticSiteBuildSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteBuild", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteBuild", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1164,6 +1171,7 @@ func (client StaticSitesClient) DeleteStaticSiteBuildPreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) DeleteStaticSiteBuildSender(req *http.Request) (future StaticSitesDeleteStaticSiteBuildFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1218,7 +1226,7 @@ func (client StaticSitesClient) DeleteStaticSiteCustomDomain(ctx context.Context
 
 	result, err = client.DeleteStaticSiteCustomDomainSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteCustomDomain", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteCustomDomain", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1251,6 +1259,7 @@ func (client StaticSitesClient) DeleteStaticSiteCustomDomainPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) DeleteStaticSiteCustomDomainSender(req *http.Request) (future StaticSitesDeleteStaticSiteCustomDomainFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1391,7 +1400,7 @@ func (client StaticSitesClient) DetachStaticSite(ctx context.Context, resourceGr
 
 	result, err = client.DetachStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DetachStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DetachStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1423,6 +1432,7 @@ func (client StaticSitesClient) DetachStaticSitePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) DetachStaticSiteSender(req *http.Request) (future StaticSitesDetachStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -4099,7 +4109,7 @@ func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSite(ct
 
 	result, err = client.RegisterUserProvidedFunctionAppWithStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "RegisterUserProvidedFunctionAppWithStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "RegisterUserProvidedFunctionAppWithStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -4137,6 +4147,7 @@ func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSitePre
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteSender(req *http.Request) (future StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -4199,7 +4210,7 @@ func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBui
 
 	result, err = client.RegisterUserProvidedFunctionAppWithStaticSiteBuildSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "RegisterUserProvidedFunctionAppWithStaticSiteBuild", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "RegisterUserProvidedFunctionAppWithStaticSiteBuild", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -4238,6 +4249,7 @@ func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBui
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBuildSender(req *http.Request) (future StaticSitesRegisterUserProvidedFunctionAppWithStaticSiteBuildFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -4560,7 +4572,7 @@ func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSite(ctx c
 
 	result, err = client.ValidateCustomDomainCanBeAddedToStaticSiteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ValidateCustomDomainCanBeAddedToStaticSite", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ValidateCustomDomainCanBeAddedToStaticSite", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -4595,6 +4607,7 @@ func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSitePrepar
 // http.Response Body if it receives an error.
 func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSiteSender(req *http.Request) (future StaticSitesValidateCustomDomainCanBeAddedToStaticSiteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

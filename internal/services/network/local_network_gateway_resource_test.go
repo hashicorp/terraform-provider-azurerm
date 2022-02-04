@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -227,36 +227,32 @@ func TestAccLocalNetworkGateway_fqdn(t *testing.T) {
 }
 
 func (t LocalNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
-	resp, err := clients.Network.LocalNetworkGatewaysClient.Get(ctx, resGroup, name)
+	resp, err := clients.Network.LocalNetworkGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Local Network Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
-	future, err := client.Network.LocalNetworkGatewaysClient.Delete(ctx, resGroup, name)
+	future, err := client.Network.LocalNetworkGatewaysClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Local Network Gateway %q: %+v", id, err)
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.LocalNetworkGatewaysClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Local Network Gateway %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for %s : %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

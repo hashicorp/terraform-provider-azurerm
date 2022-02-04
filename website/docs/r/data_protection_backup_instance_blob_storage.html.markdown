@@ -41,18 +41,17 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-  name                = "example-backup-policy"
-  resource_group_name = azurerm_resource_group.rg.name
-  vault_id            = azurerm_data_protection_backup_vault.example.id
-  retention_duration  = "P30D"
+  name               = "example-backup-policy"
+  vault_id           = azurerm_data_protection_backup_vault.example.id
+  retention_duration = "P30D"
 }
 
 resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
-  name                     = "example-backup-instance"
-  vault_id                 = azurerm_data_protection_backup_vault.example.id
-  storage_account_location = azurerm_resource_group.rg.location
-  storage_account_id       = azurerm_storage_account.example.id
-  backup_policy_id         = azurerm_data_protection_backup_policy_blob_storage.example.id
+  name               = "example-backup-instance"
+  vault_id           = azurerm_data_protection_backup_vault.example.id
+  location           = azurerm_resource_group.rg.location
+  storage_account_id = azurerm_storage_account.example.id
+  backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.example.id
 
   depends_on = [azurerm_role_assignment.example]
 }

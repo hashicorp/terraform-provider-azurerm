@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -77,14 +77,14 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	// Default values for Service Managed keys. Will update to AKV values if key_vault_key_id references a key.
 	serverKeyName := ""
-	serverKeyType := sql.ServiceManaged
+	serverKeyType := sql.ServerKeyTypeServiceManaged
 
 	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
 
 	// If it has content, then we assume it's a key vault key id
 	if keyVaultKeyId != "" {
 		// Update the server key type to AKV
-		serverKeyType = sql.AzureKeyVault
+		serverKeyType = sql.ServerKeyTypeAzureKeyVault
 
 		// Set the SQL Server Key properties
 		serverKeyProperties := sql.ServerKeyProperties{
@@ -190,7 +190,7 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	keyVaultKeyId := ""
 
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
-	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.AzureKeyVault {
+	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
 
 		keyVaultKeyId = *resp.EncryptionProtectorProperties.URI
@@ -223,7 +223,7 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 	// Service managed doesn't require a key name
 	encryptionProtector := sql.EncryptionProtector{
 		EncryptionProtectorProperties: &sql.EncryptionProtectorProperties{
-			ServerKeyType: sql.ServiceManaged,
+			ServerKeyType: sql.ServerKeyTypeServiceManaged,
 			ServerKeyName: &serverKeyName,
 		},
 	}

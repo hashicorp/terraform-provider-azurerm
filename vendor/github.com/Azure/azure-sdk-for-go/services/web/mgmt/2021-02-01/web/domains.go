@@ -196,7 +196,7 @@ func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -230,6 +230,7 @@ func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future DomainsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

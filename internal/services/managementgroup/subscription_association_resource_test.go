@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,7 +65,6 @@ resource "azurerm_management_group_subscription_association" "test" {
   management_group_id = azurerm_management_group.test.id
   subscription_id     = data.azurerm_subscription.test.id
 }
-
 `, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"))
 }
 
@@ -77,7 +76,6 @@ resource "azurerm_management_group_subscription_association" "import" {
   management_group_id = azurerm_management_group_subscription_association.test.management_group_id
   subscription_id     = azurerm_management_group_subscription_association.test.subscription_id
 }
-
 `, r.basic())
 }
 

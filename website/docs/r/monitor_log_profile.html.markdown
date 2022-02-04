@@ -106,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Log Profile can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_log_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.insights/logprofiles/test
+terraform import azurerm_monitor_log_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Insights/logProfiles/test
 ```

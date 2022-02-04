@@ -36,8 +36,8 @@ resource "azurerm_app_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   sku {
-    tier = "ElasticPremium"
-    size = "EP1"
+    tier = "WorkflowStandard"
+    size = "WS1"
   }
 }
 
@@ -77,8 +77,8 @@ resource "azurerm_app_service_plan" "example" {
   reserved            = true
 
   sku {
-    tier = "ElasticPremium"
-    size = "EP1"
+    tier = "WorkflowStandard"
+    size = "WS1"
   }
 }
 

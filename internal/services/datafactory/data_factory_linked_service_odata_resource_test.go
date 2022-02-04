@@ -76,7 +76,7 @@ func (t LinkedServiceODataResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Linked Service OData (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Data Factory OData (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -102,7 +102,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_odata" "test" {
   name                = "acctestlsodata%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -128,7 +128,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_odata" "test" {
   name                = "acctestlsodata%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
   basic_authentication {
     username = "emma"
@@ -158,7 +158,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_odata" "test" {
   name                = "acctestlsodata%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "https://services.odata.org/v4/TripPinServiceRW/"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"

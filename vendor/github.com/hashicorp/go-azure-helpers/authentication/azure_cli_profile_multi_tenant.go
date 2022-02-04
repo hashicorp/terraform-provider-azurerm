@@ -9,7 +9,6 @@ import (
 type azureCLIProfileMultiTenant struct {
 	profile cli.Profile
 
-	clientId           string
 	environment        string
 	subscriptionId     string
 	tenantId           string

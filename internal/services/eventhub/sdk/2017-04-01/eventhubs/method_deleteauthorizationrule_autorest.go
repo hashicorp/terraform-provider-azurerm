@@ -13,7 +13,7 @@ type DeleteAuthorizationRuleResponse struct {
 }
 
 // DeleteAuthorizationRule ...
-func (c EventHubsClient) DeleteAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result DeleteAuthorizationRuleResponse, err error) {
+func (c EventHubsClient) DeleteAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId) (result DeleteAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForDeleteAuthorizationRule(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhubs.EventHubsClient", "DeleteAuthorizationRule", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c EventHubsClient) DeleteAuthorizationRule(ctx context.Context, id Authori
 }
 
 // preparerForDeleteAuthorizationRule prepares the DeleteAuthorizationRule request.
-func (c EventHubsClient) preparerForDeleteAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (*http.Request, error) {
+func (c EventHubsClient) preparerForDeleteAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -23,8 +23,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -41,11 +43,24 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
+			// TODO remove in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
+				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
+				ExactlyOneOf: []string{"data_factory_id"},
+			},
+
+			"data_factory_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true, // TODO set to Required in 3.0
+				Computed:     true, // TODO remove in 3.0
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryID,
+				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -176,23 +191,36 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 
 func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	// TODO 3.0: remove/simplify this after deprecation
+	var err error
+	var dataFactoryId *parse.DataFactoryId
+	if v := d.Get("data_factory_name").(string); v != "" {
+		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
+		dataFactoryId = &newDataFactoryId
+	}
+	if v := d.Get("data_factory_id").(string); v != "" {
+		dataFactoryId, err = parse.DataFactoryID(v)
+		if err != nil {
+			return err
+		}
+	}
+
+	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Azure SQL Database %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_sql_database", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_sql_database", id.ID())
 		}
 	}
 
@@ -258,20 +286,11 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		Properties: azureSQLDatabaseLinkedService,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Azure SQL Database %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d, meta)
 }
@@ -286,6 +305,8 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -293,16 +314,18 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Azure SQL Database %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	// TODO 3.0: remove
 	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	sql, ok := resp.Properties.AsAzureSQLDatabaseLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Azure SQL Database %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeAzureSQLDatabase, *resp.Type)
 	}
 
 	if sql != nil {
@@ -371,7 +394,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *pluginsdk.Resourc
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Azure SQL Database %s: %+v", *id, err)
 		}
 	}
 

@@ -67,7 +67,7 @@ func (client WorkspaceManagedSQLServerEncryptionProtectorClient) CreateOrUpdate(
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerEncryptionProtectorClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerEncryptionProtectorClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client WorkspaceManagedSQLServerEncryptionProtectorClient) CreateOrUpdateP
 // http.Response Body if it receives an error.
 func (client WorkspaceManagedSQLServerEncryptionProtectorClient) CreateOrUpdateSender(req *http.Request) (future WorkspaceManagedSQLServerEncryptionProtectorCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -375,7 +376,7 @@ func (client WorkspaceManagedSQLServerEncryptionProtectorClient) Revalidate(ctx 
 
 	result, err = client.RevalidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerEncryptionProtectorClient", "Revalidate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerEncryptionProtectorClient", "Revalidate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -408,6 +409,7 @@ func (client WorkspaceManagedSQLServerEncryptionProtectorClient) RevalidatePrepa
 // http.Response Body if it receives an error.
 func (client WorkspaceManagedSQLServerEncryptionProtectorClient) RevalidateSender(req *http.Request) (future WorkspaceManagedSQLServerEncryptionProtectorRevalidateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

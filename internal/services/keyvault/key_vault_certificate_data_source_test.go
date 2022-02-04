@@ -25,6 +25,8 @@ func TestAccDataSourceKeyVaultCertificate_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_type").HasValue("RSA"),
 				check.That(data.ResourceName).Key("not_before").HasValue("2017-10-10T08:27:55Z"),
 				check.That(data.ResourceName).Key("expires").HasValue("2027-10-08T08:27:55Z"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/certificates/acctestcert%s", data.RandomString, data.RandomString)),
+				check.That(data.ResourceName).Key("versionless_secret_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/secrets/acctestcert%s", data.RandomString, data.RandomString)),
 			),
 		},
 	})
