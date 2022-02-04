@@ -141,7 +141,6 @@ func resourceImage() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"lun": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,

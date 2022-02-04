@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CognitiveAccountResource struct {
-}
+type CognitiveAccountResource struct{}
 
 func TestAccCognitiveAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")

@@ -87,7 +87,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					512,
-					4096}),
+					4096,
+				}),
 				Computed: true,
 			},
 

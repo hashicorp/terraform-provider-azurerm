@@ -159,7 +159,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,

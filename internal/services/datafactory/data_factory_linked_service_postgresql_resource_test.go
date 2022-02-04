@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServicePostgreSQLResource struct {
-}
+type LinkedServicePostgreSQLResource struct{}
 
 func TestAccDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")

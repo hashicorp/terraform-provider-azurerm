@@ -17,7 +17,6 @@ import (
 
 func dataSourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-
 		Read: dataSourceKeyVaultManagedHardwareSecurityModuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

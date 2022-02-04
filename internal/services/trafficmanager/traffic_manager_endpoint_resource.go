@@ -257,7 +257,6 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("type", id.EndpointType)
 	d.Set("profile_name", id.ProfileName)
 	if model := resp.Model; model != nil {
-
 		if props := model.Properties; props != nil {
 			endpointStatus := ""
 			if props.EndpointStatus != nil {

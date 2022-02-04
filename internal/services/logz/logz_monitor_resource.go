@@ -177,6 +177,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.MonitorClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

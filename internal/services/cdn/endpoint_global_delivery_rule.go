@@ -8,7 +8,7 @@ import (
 )
 
 func endpointGlobalDeliveryRule() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

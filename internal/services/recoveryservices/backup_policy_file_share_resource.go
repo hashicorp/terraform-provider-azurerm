@@ -44,7 +44,6 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -76,7 +75,6 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"frequency": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,

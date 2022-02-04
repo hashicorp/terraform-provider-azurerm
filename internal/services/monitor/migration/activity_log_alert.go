@@ -114,7 +114,7 @@ func activityLogAlertSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					//lintignore:XS003
+					// lintignore:XS003
 					"service_health": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,

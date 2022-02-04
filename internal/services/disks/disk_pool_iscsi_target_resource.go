@@ -145,7 +145,8 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 				metadata.SetID(id)
 				return nil
 			})
-		}}
+		},
+	}
 }
 
 func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {

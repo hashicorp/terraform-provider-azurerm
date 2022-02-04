@@ -386,7 +386,7 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 							}, false),
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"success_threshold": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

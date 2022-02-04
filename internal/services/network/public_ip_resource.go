@@ -64,7 +64,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"availability_zone": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				//Default:  "Zone-Redundant",
+				// Default:  "Zone-Redundant",
 				Computed: true,
 				ForceNew: true,
 				ConflictsWith: []string{

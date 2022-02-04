@@ -441,6 +441,7 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 		return res, "Pending", nil
 	}
 }
+
 func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

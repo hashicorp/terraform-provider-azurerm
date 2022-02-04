@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AutomationVariableIntResource struct {
-}
+type AutomationVariableIntResource struct{}
 
 func TestAccAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")

@@ -112,6 +112,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	return resourceContainerRegistryTokenRead(d, meta)
 }
+
 func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -162,7 +163,6 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Token %q was not found in Container Registry %q in Resource Group %q", id.TokenName, id.RegistryName, id.ResourceGroup)

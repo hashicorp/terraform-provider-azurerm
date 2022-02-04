@@ -44,14 +44,14 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 								ForceNew: true,
-								//ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+								// ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
 
 							"image_name": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 								ForceNew: true,
-								//ValidateFunc: validate.NoEmptyStrings,
+								// ValidateFunc: validate.NoEmptyStrings,
 							},
 
 							"registry_username": {

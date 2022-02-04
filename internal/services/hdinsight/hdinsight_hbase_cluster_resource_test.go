@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightHBaseClusterResource struct {
-}
+type HDInsightHBaseClusterResource struct{}
 
 func TestAccHDInsightHBaseCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")

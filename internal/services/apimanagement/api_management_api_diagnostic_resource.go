@@ -124,7 +124,7 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 }
 
 func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,

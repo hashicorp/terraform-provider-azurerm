@@ -92,6 +92,7 @@ func TestAccConsumptionBudgetSubscription_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionResource{}

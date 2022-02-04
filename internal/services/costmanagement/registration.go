@@ -8,8 +8,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.UntypedServiceRegistration               = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/cost-management"

@@ -66,7 +66,7 @@ func resourceArmRoleDefinition() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"permissions": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

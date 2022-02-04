@@ -443,7 +443,6 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
-
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -473,7 +472,6 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 				RemoteVolumeResourceID: utils.String(id.ID()),
 			},
 		)
-
 		if err != nil {
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
 		}

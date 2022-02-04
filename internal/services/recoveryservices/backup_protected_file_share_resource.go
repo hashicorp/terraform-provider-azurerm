@@ -41,7 +41,6 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {

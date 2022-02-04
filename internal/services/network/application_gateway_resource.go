@@ -908,7 +908,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
 			"enable_http2": {
@@ -984,7 +984,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  0,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"match": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -1232,7 +1232,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"ssl_policy": sslProfileSchema(false),
 
 						"id": {

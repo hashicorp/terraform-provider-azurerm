@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VPNGatewayResource struct {
-}
+type VPNGatewayResource struct{}
 
 func TestAccVPNGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
@@ -158,6 +157,7 @@ func (t VPNGatewayResource) Exists(ctx context.Context, clients *clients.Client,
 
 	return utils.Bool(resp.ID != nil), nil
 }
+
 func (r VPNGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -735,7 +735,6 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		val := receiverValue.(map[string]interface{})
 
 		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-
 		if err != nil {
 			return nil, err
 		}

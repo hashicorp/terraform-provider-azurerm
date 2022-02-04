@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubEndpointStorageContainerResource struct {
-}
+type IotHubEndpointStorageContainerResource struct{}
 
 func TestAccIotHubEndpointStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")

@@ -38,7 +38,6 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"automation_account_name": {

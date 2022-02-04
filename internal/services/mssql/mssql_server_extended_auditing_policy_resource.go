@@ -193,7 +193,6 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
 		}
-
 	}
 
 	return nil

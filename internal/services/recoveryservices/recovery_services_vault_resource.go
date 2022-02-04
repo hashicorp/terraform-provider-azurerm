@@ -311,7 +311,6 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id, err := parse.VaultID(d.Id())
-
 	if err != nil {
 		return err
 	}

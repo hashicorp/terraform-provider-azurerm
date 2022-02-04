@@ -176,7 +176,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 }
 
 func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -208,7 +208,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 }
 
 func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -362,7 +362,8 @@ func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 }
 
 func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
-	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+	atLeastOneOf := []string{
+		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
 		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLServerResource struct {
-}
+type PostgreSQLServerResource struct{}
 
 func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")

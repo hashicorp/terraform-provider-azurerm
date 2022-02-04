@@ -153,7 +153,6 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -279,13 +278,11 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 	defer cancel()
 
 	id, err := parse.IntegrationRuntimeID(d.Id())
-
 	if err != nil {
 		return err
 	}
 
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

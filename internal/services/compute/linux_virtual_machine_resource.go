@@ -1302,7 +1302,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
 			log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
 		} else {
-			//ISSUE: 4920
+			// ISSUE: 4920
 			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
 			// thus this can be a large cost-saving when deleting larger instances
 			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle

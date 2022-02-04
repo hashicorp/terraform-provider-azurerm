@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WindowsVirtualMachineResource struct {
-}
+type WindowsVirtualMachineResource struct{}
 
 func (t WindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineID(state.ID)
