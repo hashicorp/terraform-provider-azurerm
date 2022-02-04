@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -67,12 +67,12 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.Graph),
-					string(automation.GraphPowerShell),
-					string(automation.GraphPowerShellWorkflow),
-					string(automation.PowerShell),
-					string(automation.PowerShellWorkflow),
-					string(automation.Script),
+					string(automation.RunbookTypeEnumGraph),
+					string(automation.RunbookTypeEnumGraphPowerShell),
+					string(automation.RunbookTypeEnumGraphPowerShellWorkflow),
+					string(automation.RunbookTypeEnumPowerShell),
+					string(automation.RunbookTypeEnumPowerShellWorkflow),
+					string(automation.RunbookTypeEnumScript),
 				}, true),
 			},
 
