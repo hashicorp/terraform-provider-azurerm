@@ -192,8 +192,8 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_logz_monitor", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_logz_monitor", id.ID())
 	}
 
 	monitoringStatus := logz.MonitoringStatusDisabled
@@ -360,7 +360,6 @@ func expandMonitorUserInfo(input []interface{}) *logz.UserInfo {
 		EmailAddress: utils.String(v["email"].(string)),
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
 	}
-
 }
 
 func flattenMonitorOrganizationProperties(d *pluginsdk.ResourceData, input *logz.OrganizationProperties) {

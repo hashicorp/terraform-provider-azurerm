@@ -10,9 +10,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -138,11 +142,12 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"sql_aad_admin": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+				ConflictsWith: []string{"customer_managed_key"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"login": {
@@ -173,28 +178,14 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+			"identity": func() *schema.Schema {
+				// TODO: update the docs and tests to account for this
+				if features.ThreePointOh() {
+					return commonschema.SystemAssignedIdentityRequired()
+				}
 
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+				return commonschema.SystemAssignedIdentityComputed()
+			}(),
 
 			"managed_resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
@@ -307,7 +298,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"aad_admin"},
+				ConflictsWith: []string{"aad_admin", "sql_aad_admin"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
@@ -373,10 +364,19 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
 		},
-		Identity: &synapse.ManagedIdentity{
-			Type: synapse.ResourceIdentityTypeSystemAssigned,
-		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if features.ThreePointOh() {
+		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		workspaceInfo.Identity = expandedIdentity
+	} else {
+		workspaceInfo.Identity = &synapse.ManagedIdentity{
+			Type: synapse.ResourceIdentityTypeSystemAssigned,
+		}
 	}
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
@@ -496,7 +496,8 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if err := d.Set("identity", flattenArmWorkspaceManagedIdentity(resp.Identity)); err != nil {
+
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {
@@ -772,28 +773,6 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 	return nil
 }
 
-func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var principalId string
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-	var tenantId string
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
-}
-
 func flattenArmWorkspaceDataLakeStorageAccountDetails(input *synapse.DataLakeStorageAccountDetails) string {
 	if input != nil && input.AccountURL != nil && input.Filesystem != nil {
 		return fmt.Sprintf("%s/%s", *input.AccountURL, *input.Filesystem)
@@ -898,4 +877,35 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface
 	}
 
 	return make([]interface{}, 0)
+}
+
+func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := synapse.ManagedIdentity{
+		Type: synapse.ResourceIdentityType(string(expanded.Type)),
+	}
+	return &out, nil
+}
+
+func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
+	var config *identity.SystemAssigned
+
+	if input != nil {
+		config = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			config.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			config.TenantId = input.TenantID.String()
+		}
+	}
+
+	return identity.FlattenSystemAssigned(config)
 }

@@ -145,7 +145,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                = "azure-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -171,7 +171,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                = "azure-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   compute_type        = "ComputeOptimized"
@@ -198,7 +198,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                = "azure-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   core_count          = 16
@@ -225,7 +225,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                = "azure-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   time_to_live_min    = 10
@@ -252,7 +252,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                = "azure-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cleanup_enabled     = %t
@@ -296,7 +296,7 @@ func (t IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Azure (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

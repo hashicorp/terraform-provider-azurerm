@@ -126,6 +126,8 @@ output "storage_account_tier" {
 
 * `table_encryption_key_type` - The encryption key type of the table.
 
+* `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable/)
+    for more information.
 ---
 
 * `custom_domain` supports the following:

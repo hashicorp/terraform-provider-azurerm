@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -181,7 +181,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -424,7 +424,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -460,7 +460,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -547,7 +547,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -631,24 +631,23 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
 		}
 	}
 
@@ -730,7 +729,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	vm := compute.VirtualMachine{
-		Name:                     &name,
+		Name:                     &id.Name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
 		Tags:                     expandedTags,
@@ -745,10 +744,10 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vm)
 	if err != nil {
 		return err
 	}
@@ -757,19 +756,19 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Machine %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("cannot read %s", id)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
 	if err != nil {
-		return fmt.Errorf("determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("determining IP Address for %s: %+v", id, err)
 	}
 
 	provisionerType := "ssh"

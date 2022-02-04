@@ -643,26 +643,17 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	return append(results, result)
 }
 
-func flattenFunctionAppIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func appSettingsMapToNameValuePair(input map[string]*string) *[]web.NameValuePair {
+	if len(input) == 0 {
+		return nil
+	}
+	result := make([]web.NameValuePair, 0)
+	for k, v := range input {
+		result = append(result, web.NameValuePair{
+			Name:  utils.String(k),
+			Value: v,
+		})
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return &result
 }

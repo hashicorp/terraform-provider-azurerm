@@ -113,8 +113,8 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logz_tag_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
 		}
 	}
 

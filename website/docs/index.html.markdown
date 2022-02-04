@@ -37,7 +37,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=2.91.0"
     }
   }
 }
@@ -160,6 +160,10 @@ For some advanced scenarios, such as where more granular permissions are necessa
 ~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
 
 ~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
+
+* `use_msal` - (Optional) When `true`, and when using service principal authentication, the provider will obtain [v2 authentication tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#token-formats-and-ownership) from the Microsoft Identity Platform. Has no effect when authenticating via Managed Identity or the Azure CLI. Can also be set via the `ARM_USE_MSAL` or `ARM_USE_MSGRAPH` environment variables.
+
+-> **Note:** This will behaviour will be defaulted on in version 3.0 of the AzureRM (with no opt-out) due to [the deprecation of Azure Active Directory Graph](https://docs.microsoft.com/azure/active-directory/develop/msal-migration).
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 

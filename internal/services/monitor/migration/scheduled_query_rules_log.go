@@ -126,7 +126,7 @@ func scheduledQueryRulesLogSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// lintignore: S018
+		//lintignore: S018
 		"dynamic_criteria": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,

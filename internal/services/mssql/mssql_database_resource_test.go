@@ -7,11 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -699,7 +698,7 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skipf("This test runs only on 3.0")
 	}
 
@@ -727,7 +726,7 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skipf("This test runs only on 3.0")
 	}
 

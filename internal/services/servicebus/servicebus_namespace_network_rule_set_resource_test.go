@@ -110,8 +110,7 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) basic(data acceptance.TestDat
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "test" {
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   default_action = "Deny"
 
@@ -128,11 +127,11 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) complete(data acceptance.Test
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "test" {
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 
-  default_action           = "Deny"
-  trusted_services_allowed = true
+  default_action                = "Deny"
+  trusted_services_allowed      = true
+  public_network_access_enabled = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.test.id
@@ -188,8 +187,7 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) requiresImport(data acceptanc
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "import" {
-  namespace_name      = azurerm_servicebus_namespace_network_rule_set.test.namespace_name
-  resource_group_name = azurerm_servicebus_namespace_network_rule_set.test.resource_group_name
+  namespace_id = azurerm_servicebus_namespace_network_rule_set.test.namespace_id
 }
 `, r.basic(data))
 }

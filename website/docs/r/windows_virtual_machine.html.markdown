@@ -123,7 +123,9 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
-* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
+* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Conflicts with `dedicated_host_group_id`.
+
+* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group that this Windows Virtual Machine should be run within. Conflicts with `dedicated_host_id`.
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
@@ -170,6 +172,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+
+* `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
 

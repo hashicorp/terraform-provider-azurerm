@@ -186,8 +186,8 @@ func resourceHDInsightMLServicesClusterCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_ml_server_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_ml_server_cluster", id.ID())
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{

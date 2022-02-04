@@ -28,6 +28,8 @@ const (
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
+var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
+
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,
@@ -187,6 +189,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(7, 35),
+			},
+
+			"geo_redundant_backup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
 			},
 
 			"high_availability": {
@@ -412,6 +421,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 		if backup := props.Backup; backup != nil {
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
+			d.Set("geo_redundant_backup_enabled", backup.GeoRedundantBackup == postgresqlflexibleservers.GeoRedundantBackupEnumEnabled)
 		}
 
 		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
@@ -602,6 +612,12 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *postgresqlflexibleservers
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
 		backup.BackupRetentionDays = utils.Int32(int32(v.(int)))
+	}
+
+	if geoRedundantBackupEnabled := d.Get("geo_redundant_backup_enabled").(bool); geoRedundantBackupEnabled {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumEnabled
+	} else {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumDisabled
 	}
 
 	return &backup

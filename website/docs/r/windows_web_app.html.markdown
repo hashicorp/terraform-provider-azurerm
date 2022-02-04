@@ -159,7 +159,7 @@ A `auth_settings` block supports the following:
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
-* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `BuiltInAuthenticationProviderAzureActiveDirectory`, `BuiltInAuthenticationProviderFacebook`, `BuiltInAuthenticationProviderGoogle`, `BuiltInAuthenticationProviderMicrosoftAccount`, `BuiltInAuthenticationProviderTwitter`, `BuiltInAuthenticationProviderGithub`
+* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
 ~> **NOTE:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
 
@@ -217,7 +217,7 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -405,7 +405,7 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
 
-* `api_management_config_id` - (Optional) The ID of the APIM configuration for this Windows Web App.
+* `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
@@ -415,7 +415,9 @@ A `site_config` block supports the following:
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
-* `auto_swap_slot_name` - (Optional) The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
+
+* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
 
 * `cors` - (Optional) A `cors` block as defined above.
 

@@ -113,11 +113,13 @@ The following arguments are supported:
 
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
-* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified.
+
+* `gallery_image_reference_id` - (Optional) ID of a Gallery Image Version to copy when `create_option` is `FromImage`. This field cannot be specified if image_reference_id is specified.
 
 * `logical_sector_size` - (Optional) Logical Sector Size. Possible values are: `512` and `4096`. Defaults to `4096`. Changing this forces a new resource to be created.
 
-~> **NOTE**: Setting logical sector size is supported only with `UltraSSD_LRS` disks.
+~> **NOTE:** Setting logical sector size is supported only with `UltraSSD_LRS` disks.
 
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 
@@ -133,7 +135,7 @@ The following arguments are supported:
 
 * `max_shares` - (Optional) The maximum number of VMs that can attach to the disk at the same time. Value greater than one indicates a disk that can be mounted on multiple VMs at the same time.
 
--> **Note**: Premium SSD maxShares limit: `P15` and `P20` disks: 2. `P30`,`P40`,`P50` disks: 5. `P60`,`P70`,`P80` disks: 10. For ultra disks the `max_shares` minimum value is 1 and the maximum is 5.
+-> **Note:** Premium SSD maxShares limit: `P15` and `P20` disks: 2. `P30`,`P40`,`P50` disks: 5. `P60`,`P70`,`P80` disks: 10. For ultra disks the `max_shares` minimum value is 1 and the maximum is 5.
 
 * `trusted_launch_enabled` (Optional) Specifies if Trusted Launch is enabled for the Managed Disk. Defaults to `false`.
 
@@ -147,13 +149,13 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
-~> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+~> **Note:** Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 * `network_access_policy` - Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
 
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 
-~> **Note**: `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
+~> **Note:** `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
 
 * `public_network_access_enabled` - (Optional) Whether it is allowed to access the disk via public network. Defaults to `true`.
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -327,7 +326,8 @@ func TestAccSignalRService_featureFlags(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mode").HasValue("Default"),
+				check.That(data.ResourceName).Key("live_trace_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mode").HasValue("Serverless"),
 			),
 		},
 		data.ImportStep(),
@@ -345,6 +345,7 @@ func TestAccSignalRService_featureFlags(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("live_trace_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mode").HasValue("Classic"),
 			),
 		},
@@ -392,12 +393,27 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := signalr.ParseSignalRID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.SignalR.Client.Get(ctx, *id)
+	resp, err := client.SignalR.SignalRClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
@@ -632,7 +648,8 @@ resource "azurerm_signalr_service" "test" {
 
   connectivity_logs_enabled = true
   messaging_logs_enabled    = true
-  service_mode              = "Default"
+  live_trace_enabled        = true
+  service_mode              = "Serverless"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -661,8 +678,36 @@ resource "azurerm_signalr_service" "test" {
 
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
+  live_trace_enabled        = false
   service_mode              = "Classic"
 
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) withTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+  tags = {
+    ENV = "test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

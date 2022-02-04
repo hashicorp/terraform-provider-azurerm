@@ -227,6 +227,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 }
 
 func schemaAppServiceIdentity() *pluginsdk.Schema {
+	// TODO: 3.0 - conditionally switch this out
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -916,7 +917,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -926,7 +927,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -937,7 +938,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -948,7 +949,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -1012,7 +1013,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1021,7 +1022,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1030,7 +1031,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1039,7 +1040,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,

@@ -108,15 +108,14 @@ func TestAccConsumptionBudgetManagementGroup_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetManagementGroupID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	scope := fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", id.ManagementGroupName)
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, scope, id.BudgetName)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.BudgetProperties != nil), nil

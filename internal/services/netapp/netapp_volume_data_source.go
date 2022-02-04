@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +25,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.PoolName,
+				ValidateFunc: validate.VolumeName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -101,6 +100,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"replication_schedule": {
 							Type:       pluginsdk.TypeString,
 							Computed:   true,

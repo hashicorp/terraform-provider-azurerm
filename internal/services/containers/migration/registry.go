@@ -99,7 +99,7 @@ func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"storage_account": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
