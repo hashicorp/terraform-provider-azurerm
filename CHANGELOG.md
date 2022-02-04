@@ -1,41 +1,41 @@
-## 2.95.0 (Unreleased)
+## 2.95.0 (February 04, 2022)
 
 FEATURES: 
 
-* **New Data Source:** `azurerm_container_group` [GH-14946]
-* **New Data Source:** `azurerm_logic_app_standard` [GH-15199]
-* **New Beta Resource:** - `azurerm_disk_pool_iscsi_target` [GH-14975]
-* **New Beta Resource:** - `azurerm_linux_function_app_slot` [GH-14940]
-* **New Beta Resource:** - `azurerm_windows_function_app_slot` [GH-14940]
-* **New Beta Resource:** - `azurerm_windows_web_app_slot` [GH-14613]
-* **New Beat Resource:** - `azurerm_traffic_manager_azure_endpoint` [GH-15178]
-* **New Beat Resource:** - `azurerm_traffic_manager_external_endpoint` [GH-15178]
-* **New Beat Resource:** - `azurerm_traffic_manager_nested_endpoint` [GH-15178]
+* **New Data Source:** `azurerm_container_group` ([#14946](https://github.com/hashicorp/terraform-provider-azurerm/issues/14946))
+* **New Data Source:** `azurerm_logic_app_standard` ([#15199](https://github.com/hashicorp/terraform-provider-azurerm/issues/15199))
+* **New Beta Resource:** - `azurerm_disk_pool_iscsi_target` ([#14975](https://github.com/hashicorp/terraform-provider-azurerm/issues/14975))
+* **New Beta Resource:** - `azurerm_linux_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
+* **New Beta Resource:** - `azurerm_windows_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
+* **New Beta Resource:** - `azurerm_windows_web_app_slot` ([#14613](https://github.com/hashicorp/terraform-provider-azurerm/issues/14613))
+* **New Beat Resource:** - `azurerm_traffic_manager_azure_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
+* **New Beat Resource:** - `azurerm_traffic_manager_external_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
+* **New Beat Resource:** - `azurerm_traffic_manager_nested_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v0.22.0` of `github.com/hashicorp/go-azure-helpers` [GH-15207]
-* dependencies: updating `backup` to API Version `2021-07-01` [GH-14980]
-* `azurerm_storage_account` - the `identity` block is no longer computed [GH-15207]
-* `azurerm_linux_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
-* `azurerm_recovery_services_vault` - support Zone Redundant storage [GH-14980]
-* `azurerm_web_pubsub_hub` - the `managed_identity_id` property within the `auth` block now accepts UUIDs [GH-15183]
-* `azurerm_windows_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
+* dependencies: upgrading to `v0.22.0` of `github.com/hashicorp/go-azure-helpers` ([#15207](https://github.com/hashicorp/terraform-provider-azurerm/issues/15207))
+* dependencies: updating `backup` to API Version `2021-07-01` ([#14980](https://github.com/hashicorp/terraform-provider-azurerm/issues/14980))
+* `azurerm_storage_account` - the `identity` block is no longer computed ([#15207](https://github.com/hashicorp/terraform-provider-azurerm/issues/15207))
+* `azurerm_linux_virtual_machine` - support for the `dedicated_host_group_id` property ([#14936](https://github.com/hashicorp/terraform-provider-azurerm/issues/14936))
+* `azurerm_recovery_services_vault` - support Zone Redundant storage ([#14980](https://github.com/hashicorp/terraform-provider-azurerm/issues/14980))
+* `azurerm_web_pubsub_hub` - the `managed_identity_id` property within the `auth` block now accepts UUIDs ([#15183](https://github.com/hashicorp/terraform-provider-azurerm/issues/15183))
+* `azurerm_windows_virtual_machine` - support for the `dedicated_host_group_id` property ([#14936](https://github.com/hashicorp/terraform-provider-azurerm/issues/14936))
 
 BUG FIXES:
 
-* `azurerm_container_group` - fixing parallel provisioning failures with the same `network_profile_id` [GH-15098]
-* `azurerm_frontdoor` - fixing the validation for `resource_group_name` [GH-15174]
-* `azurerm_kubernetes_cluster` - prevent panic when updating `sku_tier` [GH-15229]
-* `azurerm_hdinsight_interactive_query_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
-* `azurerm_hdinsight_hadoop_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
-* `azurerm_hdinsight_spark_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
-* `azurerm_hdinsight_hbase_cluster` - support for the `storage_resource_id` property to fix missing storage account errors [GH-15039]
-* `azurerm_log_analytics_datasource_windows_event` - adding a state migration to fix `ID was missing the dataSources element` [GH-15194]
-* `azurerm_policy_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
-* `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` [GH-15209]
-* `azurerm_static_site` - fixing the creation of a Free tier Static Site [GH-15141]
-* `azurerm_storage_share` - fixing the `ShareBeingDeleted` error when the Storage Share is recreated [GH-15180]
+* `azurerm_container_group` - fixing parallel provisioning failures with the same `network_profile_id` ([#15098](https://github.com/hashicorp/terraform-provider-azurerm/issues/15098))
+* `azurerm_frontdoor` - fixing the validation for `resource_group_name` ([#15174](https://github.com/hashicorp/terraform-provider-azurerm/issues/15174))
+* `azurerm_kubernetes_cluster` - prevent panic when updating `sku_tier` ([#15229](https://github.com/hashicorp/terraform-provider-azurerm/issues/15229))
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `storage_resource_id` property to fix missing storage account errors ([#15039](https://github.com/hashicorp/terraform-provider-azurerm/issues/15039))
+* `azurerm_hdinsight_hadoop_cluster` - support for the `storage_resource_id` property to fix missing storage account errors ([#15039](https://github.com/hashicorp/terraform-provider-azurerm/issues/15039))
+* `azurerm_hdinsight_spark_cluster` - support for the `storage_resource_id` property to fix missing storage account errors ([#15039](https://github.com/hashicorp/terraform-provider-azurerm/issues/15039))
+* `azurerm_hdinsight_hbase_cluster` - support for the `storage_resource_id` property to fix missing storage account errors ([#15039](https://github.com/hashicorp/terraform-provider-azurerm/issues/15039))
+* `azurerm_log_analytics_datasource_windows_event` - adding a state migration to fix `ID was missing the dataSources element` ([#15194](https://github.com/hashicorp/terraform-provider-azurerm/issues/15194))
+* `azurerm_policy_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` ([#15209](https://github.com/hashicorp/terraform-provider-azurerm/issues/15209))
+* `azurerm_policy_set_definition` - fix the deprecation of `management_group_name` in favour of `management_group_id` ([#15209](https://github.com/hashicorp/terraform-provider-azurerm/issues/15209))
+* `azurerm_static_site` - fixing the creation of a Free tier Static Site ([#15141](https://github.com/hashicorp/terraform-provider-azurerm/issues/15141))
+* `azurerm_storage_share` - fixing the `ShareBeingDeleted` error when the Storage Share is recreated ([#15180](https://github.com/hashicorp/terraform-provider-azurerm/issues/15180))
 * 
 ## 2.94.0 (January 28, 2022)
 
