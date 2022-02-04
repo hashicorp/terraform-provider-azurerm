@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type springCloudAppIdentity = identity.SystemAssigned
 
 func resourceSpringCloudApp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -56,7 +55,8 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
-			"identity": springCloudAppIdentity{}.Schema(),
+			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"is_public": {
 				Type:     pluginsdk.TypeBool,
@@ -265,23 +265,27 @@ func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
 func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIdentityProperties, error) {
-	config, err := springCloudAppIdentity{}.Expand(input)
+	config, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
 
 	return &appplatform.ManagedIdentityProperties{
 		Type:        appplatform.ManagedIdentityType(config.Type),
-		TenantID:    &config.TenantId,
-		PrincipalID: &config.PrincipalId,
+		TenantID:    utils.String(config.TenantId),
+		PrincipalID: utils.String(config.PrincipalId),
 	}, nil
 }
 
@@ -297,26 +301,19 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 }
 
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
-	var config *identity.ExpandedConfig
-
+	var systemAssigned *identity.SystemAssigned
 	if input != nil {
-		principalId := ""
+		systemAssigned = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
 		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
+			systemAssigned.PrincipalId = *input.PrincipalID
 		}
-
-		tenantId := ""
 		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		config = &identity.ExpandedConfig{
-			Type:        identity.Type(string(input.Type)),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+			systemAssigned.TenantId = *input.TenantID
 		}
 	}
-	return springCloudAppIdentity{}.Flatten(config)
+	return identity.FlattenSystemAssigned(systemAssigned)
 }
 
 func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
