@@ -5,23 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-
 	legacyacr "github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2019-06-01-preview/containerregistry"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 

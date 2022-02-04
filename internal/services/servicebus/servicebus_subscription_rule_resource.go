@@ -46,27 +46,58 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 50),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"subscription_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SubscriptionID,
+				ConflictsWith: []string{"subscription_name", "topic_name", "namespace_name", "resource_group_name"},
 			},
 
-			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
-			},
-
+			// TODO 3.0 - Remove in favor of subscription_id
 			"subscription_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SubscriptionName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SubscriptionName(),
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"topic_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicName(),
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
 			},
 
 			"filter_type": {
@@ -188,12 +219,25 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	filterType := d.Get("filter_type").(string)
 
-	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
-		d.Get("resource_group_name").(string),
-		d.Get("namespace_name").(string),
-		d.Get("topic_name").(string),
-		d.Get("subscription_name").(string),
-		d.Get("name").(string))
+	var resourceId parse.SubscriptionRuleId
+	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
+		subscriptionId, _ := parse.SubscriptionID(subscriptionIdLit)
+		resourceId = parse.NewSubscriptionRuleID(subscriptionId.SubscriptionId,
+			subscriptionId.ResourceGroup,
+			subscriptionId.NamespaceName,
+			subscriptionId.TopicName,
+			subscriptionId.Name,
+			d.Get("name").(string),
+		)
+	} else {
+		resourceId = parse.NewSubscriptionRuleID(subscriptionId,
+			d.Get("resource_group_name").(string),
+			d.Get("namespace_name").(string),
+			d.Get("topic_name").(string),
+			d.Get("subscription_name").(string),
+			d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
 		if err != nil {
@@ -267,6 +311,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("topic_name", id.TopicName)
 	d.Set("subscription_name", id.SubscriptionName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("subscription_id", parse.NewSubscriptionID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
 
 	if properties := resp.Ruleproperties; properties != nil {
 		d.Set("filter_type", properties.FilterType)

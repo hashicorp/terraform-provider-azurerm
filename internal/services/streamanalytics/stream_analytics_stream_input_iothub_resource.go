@@ -105,7 +105,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID())
 		}
 	}

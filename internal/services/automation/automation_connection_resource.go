@@ -95,8 +95,8 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_connection", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_automation_connection", id.ID())
 		}
 	}
 

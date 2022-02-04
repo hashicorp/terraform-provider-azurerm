@@ -61,11 +61,11 @@ A `sku` block supports the following:
 
 A `linked_hub` block supports the following:
 
-* `connection_string` - (Required) The connection string to connect to the IoT Hub. Changing this forces a new resource.
+* `connection_string` - (Required) The connection string to connect to the IoT Hub.
 
-* `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
+* `location` - (Required) The location of the IoT hub.
 
-* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to false.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to true.
 
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 

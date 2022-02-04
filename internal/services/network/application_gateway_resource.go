@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -176,7 +176,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"fqdns": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.NoZeroValues,
@@ -554,6 +553,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"private_endpoint_connection": {
@@ -1626,6 +1630,10 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	if v, ok := d.GetOk("fips_enabled"); ok {
+		gateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOk("force_firewall_policy_association"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.ForceFirewallPolicyAssociation = utils.Bool(v.(bool))
 	}
@@ -1778,6 +1786,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		d.Set("enable_http2", props.EnableHTTP2)
+		d.Set("fips_enabled", props.EnableFips)
 		d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)

@@ -214,7 +214,7 @@ func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Cosmos.MongoDbClient.GetMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Mongo Collection (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

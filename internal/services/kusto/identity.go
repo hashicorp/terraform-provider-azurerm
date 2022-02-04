@@ -3,7 +3,7 @@ package kusto
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"

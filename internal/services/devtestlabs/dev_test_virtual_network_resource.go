@@ -125,8 +125,8 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", id.ID())
 		}
 	}
 

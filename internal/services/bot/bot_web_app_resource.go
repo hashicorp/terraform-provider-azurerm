@@ -158,7 +158,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("checking for presence of creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}

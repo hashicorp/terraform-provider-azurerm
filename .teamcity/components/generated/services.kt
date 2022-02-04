@@ -1,6 +1,7 @@
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
+        "aadb2c" to "AAD B2C",
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
@@ -35,6 +36,7 @@ var services = mapOf(
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
+        "disks" to "Disks",
         "domainservices" to "DomainServices",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
@@ -50,6 +52,7 @@ var services = mapOf(
         "kusto" to "Kusto",
         "lighthouse" to "Lighthouse",
         "loadbalancer" to "Load Balancer",
+        "loadtest" to "Load Test",
         "loganalytics" to "Log Analytics",
         "logic" to "Logic",
         "logz" to "Logz",

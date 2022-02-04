@@ -712,6 +712,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default: string(storage.KeyTypeService),
 			},
 
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -954,8 +961,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
 	}
 
 	accountKind := d.Get("account_kind").(string)
@@ -1076,6 +1083,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := d.Get("queue_encryption_key_type").(string)
 	tableEncryptionKeyType := d.Get("table_encryption_key_type").(string)
+
 	if accountKind != string(storage.KindStorageV2) {
 		if queueEncryptionKeyType == string(storage.KeyTypeAccount) {
 			return fmt.Errorf("`queue_encryption_key_type = \"Account\"` can only be used with account kind `StorageV2`")
@@ -1094,6 +1102,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				KeyType: storage.KeyType(tableEncryptionKeyType),
 			},
 		},
+	}
+
+	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
+
+	if infrastructureEncryption {
+		if accountKind != string(storage.KindStorageV2) {
+			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`")
+		}
+
+		parameters.Encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
 
 	// Create
@@ -1765,6 +1783,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+
+		infrastructure_encryption := false
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
+			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
+		}
+		d.Set("infrastructure_encryption_enabled", infrastructure_encryption)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
@@ -3017,9 +3041,9 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 		host = u.Host
 	}
 
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

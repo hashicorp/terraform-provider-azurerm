@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -59,7 +59,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				ValidateFunc: validate.IsCert,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"attestation_uri": {
 				Type:     pluginsdk.TypeString,
@@ -99,7 +99,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: attestationproviders.AttestationServiceCreationSpecificParams{
 			// AttestationPolicy was deprecated in October of 2019
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
@@ -155,7 +155,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("attestation_uri", props.AttestUri)
 			d.Set("trust_model", props.TrustModel)
 		}
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -173,7 +173,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 
 	updateParams := attestationproviders.AttestationServicePatchParams{}
 	if d.HasChange("tags") {
-		updateParams.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
+		updateParams.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, updateParams); err != nil {

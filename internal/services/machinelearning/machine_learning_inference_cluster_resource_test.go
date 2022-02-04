@@ -212,6 +212,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
@@ -235,6 +236,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     leaf_domain_label         = "contoso"
     overwrite_existing_domain = true
@@ -257,6 +259,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "FastProd"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")

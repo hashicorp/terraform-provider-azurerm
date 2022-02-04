@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -462,24 +464,22 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
 
-	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
 	}
 
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
@@ -489,7 +489,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
 	infraEncrypt := postgresql.InfrastructureEncryptionEnabled
@@ -582,75 +582,66 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	server := postgresql.ServerForCreate{
 		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
-		Location:   &location,
+		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: props,
 		Sku:        sku,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
 	if err != nil {
-		return fmt.Errorf("creating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(postgresql.ServerStateInaccessible)},
 		Target:     []string{string(postgresql.ServerStateReady)},
-		Refresh:    postgreSqlStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh:    postgreSqlStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
+			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("updataing postgres server security alert policy: %v", err)
+				return fmt.Errorf("updataing security alert policy for %s: %v", id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for update of security alert policy for %s: %+v", id, err)
 			}
 		}
 	}
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == postgresql.CreateModeReplica {
-		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := postgresql.ServerUpdateParameters{
 			ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 				PublicNetworkAccess: publicAccess,
 			},
 		}
 
-		future, err := client.Update(ctx, resourceGroup, name, properties)
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 		if err != nil {
-			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating Public Network Access for Replica %q: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for update of Public Network Access for Replica %q: %+v", id, err)
 		}
 	}
 
@@ -666,8 +657,6 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	// TODO: support for Delta updates
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
-
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
@@ -680,17 +669,17 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		primaryID = d.Get("creation_source_server_id").(string)
 
 		// Wait for possible restarts triggered by scaling primary (and its replicas)
-		log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Waiting for %s to become available", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{string(postgresql.ServerStateInaccessible), "Restarting"},
 			Target:     []string{string(postgresql.ServerStateReady)},
-			Refresh:    postgreSqlStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+			Refresh:    postgreSqlStateRefreshFunc(ctx, client, *id),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
 		}
 	}
 	locks.ByID(primaryID)
@@ -698,7 +687,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %v", err)
 	}
 
 	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
@@ -709,7 +698,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if indexOfSku(old) < indexOfSku(new) {
 			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("listing replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("listing replicas for %s: %+v", *id, err)
 			}
 
 			propertiesReplica := postgresql.ServerUpdateParameters{
@@ -722,11 +711,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 				}
 				future, err := client.Update(ctx, replicaId.ResourceGroup, replicaId.Name, propertiesReplica)
 				if err != nil {
-					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
+					return fmt.Errorf("updating SKU for Replica %s: %+v", *replicaId, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
+					return fmt.Errorf("waiting for SKU update for Replica %s: %+v", *replicaId, err)
 				}
 			}
 		}
@@ -770,10 +759,10 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating %q: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %q: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
@@ -794,11 +783,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("updataing mssql server security alert policy: %v", err)
+				return fmt.Errorf("updating security alert policy for %s: %+v", *id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of security alert policy for %s: %+v", *id, err)
 			}
 		}
 	}
@@ -820,20 +809,17 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server %q was not found (resource group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	tier := postgresql.Basic
 	if sku := resp.Sku; sku != nil {
@@ -895,16 +881,16 @@ func resourcePostgreSQLServerDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Postgres Server ID : %v", err)
+		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -1140,11 +1126,11 @@ func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
 	return utils.FlattenStringSlice(input)
 }
 
-func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
+func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersClient, id parse.ServerId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if !utils.ResponseWasNotFound(res.Response) && err != nil {
-			return nil, "", fmt.Errorf("retrieving status of PostgreSQL Server %s (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
 		}
 
 		// This is an issue with the RP, there is a 10 to 15 second lag before the

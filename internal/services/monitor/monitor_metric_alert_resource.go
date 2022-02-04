@@ -170,7 +170,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore: S018
+			//lintignore: S018
 			"dynamic_criteria": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -217,6 +217,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {
@@ -542,7 +543,7 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
-		// lintignore:R001
+		//lintignore:R001
 		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
 			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}

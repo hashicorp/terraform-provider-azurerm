@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -775,19 +775,18 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	}
 
 	// prepare old state to find sensitive props not returned by API.
-	oldGitPatternRepositories := []interface{}{}
+	oldGitPatternRepositories := map[string]interface{}{}
 	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
 		oldGitSetting := oldGitSettings[0].(map[string]interface{})
-		oldGitPatternRepositories = oldGitSetting["repository"].([]interface{})
+		for _, r := range oldGitSetting["repository"].([]interface{}) {
+			repo := r.(map[string]interface{})
+			if name, ok := repo["name"]; ok {
+				oldGitPatternRepositories[name.(string)] = r
+			}
+		}
 	}
 
-	for i, item := range *input {
-		// prepare old state to find sensitive props not returned by API.
-		oldGitPatternRepository := make(map[string]interface{})
-		if len(oldGitPatternRepositories) > 0 {
-			oldGitPatternRepository = oldGitPatternRepositories[i].(map[string]interface{})
-		}
-
+	for _, item := range *input {
 		name := ""
 		if item.Name != nil {
 			name = *item.Name
@@ -801,6 +800,12 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 		label := ""
 		if item.Label != nil {
 			label = *item.Label
+		}
+
+		// prepare old state to find sensitive props not returned by API.
+		oldGitPatternRepository := make(map[string]interface{})
+		if gpr, ok := oldGitPatternRepositories[name]; ok {
+			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
 		pattern := utils.FlattenStringSlice(item.Pattern)

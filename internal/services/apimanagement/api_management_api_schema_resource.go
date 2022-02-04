@@ -68,19 +68,17 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 
 func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	schemaID := d.Get("schema_id").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
+	id := parse.NewApiSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("schema_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -100,26 +98,26 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, schemaID, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return pluginsdk.RetryableError(fmt.Errorf("Expected schema %q (API Management Service %q / API %q / Resource Group %q) to be created but was in non existent state, retrying", schemaID, serviceName, apiName, resourceGroup))
+				return pluginsdk.RetryableError(fmt.Errorf("expected schema %s to be created but was in non existent state, retrying", id))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("getting schema %s: %+v", id, err))
 		}
 		if resp.ID == nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("cannot read ID for %s: %s", id, err))
 		}
-		d.SetId(*resp.ID)
+		d.SetId(id.ID())
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("getting %s: %+v", id, err)
 	}
 	return resourceApiManagementApiSchemaRead(d, meta)
 }

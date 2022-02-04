@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -59,6 +58,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Delete: hdinsightClusterDelete("Kafka"),
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
+
+		// TODO: won't be needed in v3.0
+		CustomizeDiff: resourceHDInsightKafkaClusterCustomizeDiff,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -140,6 +142,14 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
+						"security_group_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true, // TODO: make this Required in v3.0
+							Computed:     true, // TODO: remove Computed in v3.0
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 				RequiredWith: []string{"roles.0.kafka_management_node"},
@@ -167,11 +177,28 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 	}
 }
 
+func resourceHDInsightKafkaClusterCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+	// TODO: this conditional validation no longer needed in v3.0, `security_group_name` will be Required
+	if meta.(*clients.Client).Account.UseMSAL {
+		if v, ok := diff.GetOk("rest_proxy"); ok && len(v.([]interface{})) > 0 {
+			restProxy := v.([]interface{})[0].(map[string]interface{})
+			if restProxy["security_group_name"].(string) == "" {
+				return fmt.Errorf("`rest_proxy.0.security_group_name` is required when the provider setting `use_msal` is true")
+			}
+		}
+	}
+
+	return nil
+}
+
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	groupClient := meta.(*clients.Client).Authorization.GroupsClient
 	client := meta.(*clients.Client).HDInsight.ClustersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+
+	// TODO: remove graph client in v3.0
+	groupsClient := meta.(*clients.Client).HDInsight.GroupsClient
+
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -226,9 +253,22 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
 	}
 
-	kafkaRestProperty, err := expandKafkaRestProxyProperty(ctx, groupClient, d.Get("rest_proxy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding kafka rest proxy property")
+	// TODO: in v3.0, reduce this entire block to the following expandKafkaRestProxyProperty() function call
+	var kafkaRestProperty *hdinsight.KafkaRestProperties
+	if meta.(*clients.Client).Account.UseMSAL {
+		kafkaRestProperty = expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
+	} else {
+		kafkaRestProperty, err = expandKafkaRestProxyPropertyDeprecated(d.Get("rest_proxy").([]interface{}), func(groupId string) (*string, error) {
+			res, err := groupsClient.Get(ctx, groupId)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving AAD group %q: %v", groupId, err)
+			}
+
+			return res.DisplayName, nil
+		})
+		if err != nil {
+			return fmt.Errorf("expanding kafka rest proxy property: %v", err)
+		}
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -394,7 +434,8 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
-		if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+
+		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
 			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
 
@@ -430,7 +471,26 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 	}
 }
 
-func expandKafkaRestProxyProperty(ctx context.Context, client *graphrbac.GroupsClient, input []interface{}) (*hdinsight.KafkaRestProperties, error) {
+func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	groupId := raw["security_group_id"].(string)
+	groupName := raw["security_group_name"].(string)
+
+	return &hdinsight.KafkaRestProperties{
+		ClientGroupInfo: &hdinsight.ClientGroupInfo{
+			GroupID:   &groupId,
+			GroupName: &groupName,
+		},
+	}
+}
+
+// TODO: remove expandKafkaRestProxyPropertyDeprecated in v3.0
+// nolint gocritic
+func expandKafkaRestProxyPropertyDeprecated(input []interface{}, getGroupName func(string) (*string, error)) (*hdinsight.KafkaRestProperties, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -438,18 +498,27 @@ func expandKafkaRestProxyProperty(ctx context.Context, client *graphrbac.GroupsC
 	raw := input[0].(map[string]interface{})
 	groupId := raw["security_group_id"].(string)
 
-	// Current API requires users further specify the "security_group_name" in the client group info of the kafka rest property,
-	// which is unnecessary as user already specify the "security_group_id".
-	// https://github.com/Azure/azure-rest-api-specs/issues/10667
-	res, err := client.Get(ctx, groupId)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving AAD gruop %s: %v", groupId, err)
+	groupName := ""
+	if v, ok := raw["security_group_name"]; ok && v.(string) != "" {
+		groupName = v.(string)
+	} else {
+		if getGroupName == nil {
+			return nil, fmt.Errorf("getGroupName function was nil")
+		}
+		displayName, err := getGroupName(groupId)
+		if err != nil {
+			return nil, err
+		}
+		if displayName == nil {
+			return nil, fmt.Errorf("retrieving group name for %q: displayName was nil", groupId)
+		}
+		groupName = *displayName
 	}
 
 	return &hdinsight.KafkaRestProperties{
 		ClientGroupInfo: &hdinsight.ClientGroupInfo{
 			GroupID:   &groupId,
-			GroupName: res.DisplayName,
+			GroupName: &groupName,
 		},
 	}, nil
 }
@@ -460,14 +529,21 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 	}
 
 	groupInfo := input.ClientGroupInfo
+
 	groupId := ""
 	if groupInfo.GroupID != nil {
 		groupId = *groupInfo.GroupID
 	}
 
+	groupName := ""
+	if groupInfo.GroupName != nil {
+		groupName = *groupInfo.GroupName
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_id": groupId,
+			"security_group_id":   groupId,
+			"security_group_name": groupName,
 		},
 	}
 }

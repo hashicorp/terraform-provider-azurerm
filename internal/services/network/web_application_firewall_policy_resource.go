@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -269,7 +269,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 750),
+							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {

@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = AzureEndpointId{}
+var _ resourceids.Id = AzureEndpointId{}
 
 func TestAzureEndpointIDFormatter(t *testing.T) {
 	actual := NewAzureEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1", "azureEndpoint1").ID()

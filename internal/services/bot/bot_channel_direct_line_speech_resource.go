@@ -89,7 +89,7 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_direct_line_speech", id.ID())
 		}
 	}

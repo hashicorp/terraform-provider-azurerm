@@ -38,7 +38,7 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network mapping.
+* `name` - (Required) The name of the replication policy.
 
 * `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
 

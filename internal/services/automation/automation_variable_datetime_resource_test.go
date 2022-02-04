@@ -77,6 +77,50 @@ func TestAccAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAutomationVariableDateTime_encrypted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+	r := AutomationVariableDateTimeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encrypted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
+	})
+}
+
+func TestAccAutomationVariableDateTime_encryptedUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+	r := AutomationVariableDateTimeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.encrypted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AutomationVariableDateTimeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return testCheckAzureRMAutomationVariableExists(ctx, clients, state, "Datetime")
 }
@@ -132,6 +176,35 @@ resource "azurerm_automation_variable_datetime" "test" {
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
   value                   = "2019-04-20T08:40:04.02Z"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (AutomationVariableDateTimeResource) encrypted(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAutoAcct-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_variable_datetime" "test" {
+  name                    = "acctestAutoVar-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  description             = "This variable is created by Terraform acceptance test."
+  value                   = "2019-04-20T08:40:04.02Z"
+  encrypted               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

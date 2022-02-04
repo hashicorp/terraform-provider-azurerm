@@ -43,21 +43,48 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"topic_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicID,
+				ConflictsWith: []string{"topic_name", "namespace_name", "resource_group_name"},
 			},
 
+			// TODO 3.0 - Remove in favor of topic_id
 			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicName(),
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Remove in favor of topic_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of topic_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceGroupName,
+				Deprecated:    `Deprecated in favor of "topic_id"`,
+				ConflictsWith: []string{"topic_id"},
+			},
 		}),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
@@ -71,7 +98,14 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
 
-	resourceId := parse.NewTopicAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var resourceId parse.TopicAuthorizationRuleId
+	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
+		topicId, _ := parse.TopicID(topicIdLit)
+		resourceId = parse.NewTopicAuthorizationRuleID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+	} else {
+		resourceId = parse.NewTopicAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.AuthorizationRuleName)
 		if err != nil {
@@ -128,6 +162,7 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	d.Set("topic_name", id.TopicName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)

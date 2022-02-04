@@ -62,19 +62,15 @@ The following arguments are supported:
 
 * `github_action_configuration` - (Optional) A `github_action_configuration` block as defined below.
 
-* `manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.
+* `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.
 
 * `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`
-
-* `scm_type` - (Optional) The SCM System to use for Source Control. Possible values include 'ScmTypeNone', 'ScmTypeDropbox', 'ScmTypeTfs', 'ScmTypeLocalGit', 'ScmTypeGitHub', 'ScmTypeCodePlexGit', 'ScmTypeCodePlexHg', 'ScmTypeBitbucketGit', 'ScmTypeBitbucketHg', 'ScmTypeExternalGit', 'ScmTypeExternalHg', 'ScmTypeOneDrive', 'ScmTypeVSO'.
 
 ~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value. 
 
 ~> **NOTE:** SCM Type `ScmTypeVSTSRM` is not supported as this is set by Azure DevOps and overrides Terraform's control of this resource.
 
 * `use_mercurial` - (Optional) The repository specified is Mercurial. Defaults to `false`.
-
-* `uses_github_action` - (Optional) Should deployment be performed by GitHub Action. Defaults to `false`.
 
 ---
 
@@ -109,6 +105,10 @@ A `github_action_configuration` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the App Service Source Control.
+
+* `uses_github_action` - Should deployment be performed by GitHub Action. Defaults to `false`.
+
+* `scm_type` - The SCM System in use for Source Control.
 
 ## Timeouts
 

@@ -78,7 +78,6 @@ func resourceServiceFabricMeshSecretValueCreateUpdate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -86,9 +85,10 @@ func resourceServiceFabricMeshSecretValueCreateUpdate(d *pluginsdk.ResourceData,
 	if err != nil {
 		return err
 	}
+	id := parse.NewSecretValueID(secretID.SubscriptionId, secretID.ResourceGroup, secretID.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, secretID.ResourceGroup, secretID.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Service Fabric Mesh Secret Value: %+v", err)
@@ -108,20 +108,11 @@ func resourceServiceFabricMeshSecretValueCreateUpdate(d *pluginsdk.ResourceData,
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.Create(ctx, secretID.ResourceGroup, secretID.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating Service Fabric Mesh Secret Value %q (Resource Group %q / Secret %q): %+v", name, secretID.ResourceGroup, secretID.Name, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.SecretName, id.ValueName, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, secretID.ResourceGroup, secretID.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Service Fabric Mesh Secret Value %q (Resource Group %q / Secret %q): %+v", name, secretID.ResourceGroup, secretID.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("client returned a nil ID for Service Fabric Mesh Secret Value %q", name)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceServiceFabricMeshSecretValueRead(d, meta)
 }

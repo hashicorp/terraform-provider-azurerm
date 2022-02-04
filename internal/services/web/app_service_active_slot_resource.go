@@ -52,42 +52,42 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 
 func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appServiceName := d.Get("app_service_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	targetSlot := d.Get("app_service_slot_name").(string)
+	appServiceId := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string))
 	preserveVnet := true
+	id := parse.NewAppServiceSlotID(appServiceId.SubscriptionId, appServiceId.ResourceGroup, appServiceId.SiteName, d.Get("app_service_slot_name").(string))
 
-	resp, err := client.Get(ctx, resGroup, appServiceName)
+	resp, err := client.Get(ctx, appServiceId.ResourceGroup, appServiceId.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("[DEBUG] App Service %q (resource group %q) was not found.", appServiceName, resGroup)
+			return fmt.Errorf("%s was not found", appServiceId)
 		}
-		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", appServiceName, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	if _, err = client.GetSlot(ctx, resGroup, appServiceName, targetSlot); err != nil {
+	if _, err = client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("[DEBUG] App Service Target Active Slot %q/%q (resource group %q) was not found.", appServiceName, targetSlot, resGroup)
+			return fmt.Errorf("%s was not found.", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	cmsSlotEntity := web.CsmSlotEntity{
-		TargetSlot:   &targetSlot,
+		TargetSlot:   &id.SlotName,
 		PreserveVnet: &preserveVnet,
 	}
 
-	future, err := client.SwapSlotWithProduction(ctx, resGroup, appServiceName, cmsSlotEntity)
+	future, err := client.SwapSlotWithProduction(ctx, id.ResourceGroup, id.SiteName, cmsSlotEntity)
 	if err != nil {
-		return fmt.Errorf("swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceAppServiceActiveSlotRead(d, meta)
 }
 

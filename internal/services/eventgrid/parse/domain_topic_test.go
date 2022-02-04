@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = DomainTopicId{}
+var _ resourceids.Id = DomainTopicId{}
 
 func TestDomainTopicIDFormatter(t *testing.T) {
 	actual := NewDomainTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "domain1", "topic1").ID()

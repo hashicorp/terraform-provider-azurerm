@@ -656,6 +656,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				),
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"role_based_access_control": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1132,6 +1139,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
+	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
+	}
+
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -1152,6 +1164,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
 		},
@@ -1476,7 +1489,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
-
 		}
 
 		if networkProfile.NatGatewayProfile != nil {
@@ -1677,6 +1689,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess != containerservice.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""
 		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
@@ -2859,5 +2872,4 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 		"no_proxy":    noProxyList,
 		"trusted_ca":  trustedCa,
 	})
-
 }

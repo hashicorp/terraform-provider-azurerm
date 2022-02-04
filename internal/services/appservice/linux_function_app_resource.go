@@ -541,7 +541,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 			state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
-			state.unpackLinuxFunctionAppSettings(appSettingsResp)
+			state.unpackLinuxFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -815,7 +815,7 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringDictionary) {
+func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
 	if input.Properties == nil {
 		return
 	}
@@ -831,10 +831,16 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
 		case "WEBSITE_CONTENTSHARE":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if m.SiteConfig[0].ApplicationStack != nil {
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
 			}
 
@@ -847,7 +853,7 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
 			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
 
-		case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
+		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
 			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)

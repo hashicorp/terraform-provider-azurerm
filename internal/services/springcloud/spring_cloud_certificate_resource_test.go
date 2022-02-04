@@ -32,6 +32,22 @@ func TestAccSpringCloudCertificate_basic(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudCertificate_content(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
+	r := SpringCloudCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.content(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+			),
+		},
+		data.ImportStep("certificate_content"),
+	})
+}
+
 func TestAccSpringCloudCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
 	r := SpringCloudCertificateResource{}
@@ -72,6 +88,32 @@ resource "azurerm_spring_cloud_certificate" "test" {
   key_vault_certificate_id = azurerm_key_vault_certificate.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SpringCloudCertificateResource) content(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_spring_cloud_certificate" "test" {
+  name                = "acctest-scc-%[1]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+  certificate_content = filebase64("testdata/cer")
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SpringCloudCertificateResource) requiresImport(data acceptance.TestData) string {

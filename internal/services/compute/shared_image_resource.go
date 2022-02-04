@@ -167,20 +167,18 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
-
-	name := d.Get("name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -219,25 +217,16 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesGeneralized
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, image)
 	if err != nil {
-		return fmt.Errorf("creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, galleryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Shared Image %q (Gallery %q / Resource Group %q) ID", name, galleryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceSharedImageRead(d, meta)
 }

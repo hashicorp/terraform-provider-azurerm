@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -64,9 +64,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:             pluginsdk.TypeString,
@@ -226,7 +226,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			oldSku, newSku := d.GetChange("sku")
@@ -295,7 +295,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
-		Tags: tagsHelper.Expand(t),
+		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -391,8 +391,8 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 
-		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
-			return fmt.Errorf("setting `tags`: %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 

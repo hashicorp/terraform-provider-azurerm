@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Static Site.
 
-->**NOTE**: After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow).
+->**NOTE:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow).
 
 ## Example Usage
 
@@ -36,7 +36,17 @@ The following arguments are supported:
 
 * `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
+* `identitiy` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Static Site resource.
 
 ## Attributes Reference
 

@@ -64,6 +64,12 @@ resource "azurerm_monitor_action_group" "example" {
     use_common_alert_schema = true
   }
 
+  event_hub_receiver {
+    name                    = "sendtoeventhub"
+    event_hub_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-eventhub/providers/Microsoft.EventHub/namespaces/eventhubnamespace/eventhubs/eventhub1"
+    use_common_alert_schema = false
+  }
+
   itsm_receiver {
     name                 = "createorupdateticket"
     workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
@@ -112,6 +118,7 @@ The following arguments are supported:
 * `azure_app_push_receiver` - (Optional) One or more `azure_app_push_receiver` blocks as defined below.
 * `azure_function_receiver` - (Optional) One or more `azure_function_receiver` blocks as defined below.
 * `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
+* `event_hub_receiver` - (Optional) One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - (Optional) One or more `itsm_receiver` blocks as defined below.
 * `logic_app_receiver` - (Optional) One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - (Optional) One or more `sms_receiver` blocks as defined below.
@@ -163,6 +170,15 @@ The following arguments are supported:
 * `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `email_address` - (Required) The email address of this receiver.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
+
+---
+
+`event_hub_receiver` supports the following:
+
+* `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
+* `event_hub_id` - (Required) The resource ID of the respective Event Hub.
+* `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
+* `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
 
 ---
 

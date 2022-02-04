@@ -216,8 +216,8 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_managed_instance", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_managed_instance", id.ID())
 		}
 	}
 

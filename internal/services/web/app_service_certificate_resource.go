@@ -134,13 +134,13 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
 	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
@@ -153,10 +153,10 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -205,19 +205,11 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
-		return fmt.Errorf("creating/updating App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Service Certificate %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceCertificateRead(d, meta)
 }
