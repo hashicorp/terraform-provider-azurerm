@@ -748,7 +748,8 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 	if !features.ThreePointOhBetaResources() {
-		schema["use_server_default"] = &pluginsdk.Schema{
+		s := schema["threat_detection_policy"].Elem.(*pluginsdk.Resource)
+		s.Schema["use_server_default"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: suppress.CaseDifference,
