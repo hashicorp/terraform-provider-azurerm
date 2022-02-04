@@ -19,11 +19,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "automationAccount1"
+  name                = "example-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku_name = "Basic"
+  sku_name            = "Basic"
 
   tags = {
     environment = "development"
@@ -41,19 +40,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
-* `sku_name` - (Optional) The SKU name of the account - only `Basic` is supported at this time.
+* `sku_name` - (Optional) The SKU of the account - only `Basic` is supported at this time.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) An `identity` block as defined below.
-
-----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
 
 ----
 
