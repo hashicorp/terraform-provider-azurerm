@@ -2,6 +2,7 @@
 
 ENHANCEMENTS: 
 
+* `azurerm_application_insights` - Add support for `force_customer_storage_for_profiler` [GH-15254]
 * `azurerm_automation_account` - Support for managed identity [GH-15072]
 
 ## 2.95.0 (February 04, 2022)
