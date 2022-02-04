@@ -281,7 +281,7 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
@@ -314,7 +314,7 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
