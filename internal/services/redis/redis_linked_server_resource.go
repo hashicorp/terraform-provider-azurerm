@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -63,9 +64,13 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.ReplicationRolePrimary),
 					string(redis.ReplicationRoleSecondary),
-					// TODO: make this case-sensitive in 3.0
 				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+					if !features.ThreePointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
 			},
 
 			"name": {
