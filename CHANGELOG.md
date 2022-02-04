@@ -1,5 +1,9 @@
 ## 2.96.0 (Unreleased)
 
+ENHANCEMENTS: 
+
+* `azurerm_automation_account` - Support for managed identity [GH-15072]
+
 ## 2.95.0 (February 04, 2022)
 
 FEATURES: 
