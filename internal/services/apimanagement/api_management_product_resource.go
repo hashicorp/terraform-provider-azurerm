@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -48,10 +51,20 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"subscription_required": {
-				Type:     pluginsdk.TypeBool,
-				Required: true,
-			},
+			"subscription_required": func() *schema.Schema {
+				if features.ThreePointOh() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					}
+				}
+
+				return &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				}
+			}(),
 
 			"published": {
 				Type:     pluginsdk.TypeBool,

@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -152,6 +154,33 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 			Config:      r.approvalRequiredError(data),
 			ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
 		},
+	})
+}
+
+func TestAccApiManagementProduct_subscriptionRequiredDefault(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionRequiredDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("true"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("1"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -351,6 +380,39 @@ resource "azurerm_api_management_product" "test" {
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementProductResource) subscriptionRequiredDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_product" "test" {
+  product_id          = "test-product"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Test Product"
+  approval_required   = true
+  subscriptions_limit = 1
+  published           = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
