@@ -22,9 +22,9 @@ import (
 
 func resourceAutomationAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationAccountCreateUpdate,
+		Create: resourceAutomationAccountCreate,
 		Read:   resourceAutomationAccountRead,
-		Update: resourceAutomationAccountCreateUpdate,
+		Update: resourceAutomationAccountUpdate,
 		Delete: resourceAutomationAccountDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AutomationAccountID(id)
@@ -79,27 +79,25 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewAutomationAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_automation_account", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	identity, err := expandAutomationAccountIdentity(d.Get("identity").([]interface{}))
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_automation_account", id.ID())
+	}
+
+	identity, err := expandAutomationAccountIdentity(d.Get("identity").([]interface{}), true)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -115,10 +113,41 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceAutomationAccountRead(d, meta)
+}
+
+func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.AccountClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.AutomationAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+	identity, err := expandAutomationAccountIdentity(d.Get("identity").([]interface{}), false)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	parameters := automation.AccountUpdateParameters{
+		AccountUpdateProperties: &automation.AccountUpdateProperties{
+			Sku: &automation.Sku{
+				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
+			},
+		},
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceAutomationAccountRead(d, meta)
 }
 
@@ -204,13 +233,13 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandAutomationAccountIdentity(input []interface{}) (*automation.Identity, error) {
+func expandAutomationAccountIdentity(input []interface{}, newResource bool) (*automation.Identity, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	if expanded.Type == identity.TypeNone {
+	if newResource && expanded.Type == identity.TypeNone {
 		return nil, nil
 	}
 
