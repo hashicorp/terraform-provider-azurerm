@@ -120,7 +120,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -204,7 +204,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -311,7 +311,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			d.Set("outbound_network_access_restrited", outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {

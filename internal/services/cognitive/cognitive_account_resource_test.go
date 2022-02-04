@@ -538,7 +538,7 @@ resource "azurerm_cognitive_account" "test" {
 
   fqdns                             = ["foo.com", "bar.com"]
   public_network_access_enabled     = false
-  outbound_network_access_restrited = true
+  outbound_network_access_restricted = true
   local_auth_enabled                = false
 
   tags = {
