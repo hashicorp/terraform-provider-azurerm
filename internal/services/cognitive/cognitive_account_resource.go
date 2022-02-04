@@ -912,7 +912,8 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 	if !features.ThreePointOhBeta() {
-		schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
+		s := schema["network_acls"].Elem.(*pluginsdk.Resource)
+		s.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,

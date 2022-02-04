@@ -207,9 +207,14 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Default:       features.ThreePointOhBetaResources(),
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
 				Computed:      !features.ThreePointOhBetaResources(),
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
