@@ -126,7 +126,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -135,7 +135,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,

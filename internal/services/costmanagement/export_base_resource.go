@@ -163,7 +163,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 			}
 
 			metadata.ResourceData.Set("name", id.Name)
-			// lintignore:R001
+			//lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if schedule := resp.Schedule; schedule != nil {

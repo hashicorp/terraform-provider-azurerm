@@ -441,7 +441,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"policy": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,

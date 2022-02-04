@@ -176,7 +176,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 }
 
 func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -208,7 +208,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 }
 
 func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,

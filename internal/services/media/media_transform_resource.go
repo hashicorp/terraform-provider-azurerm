@@ -66,7 +66,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"output": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -81,7 +81,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								string(media.OnErrorTypeStopProcessingJob),
 							}, false),
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"builtin_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -108,7 +108,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"audio_analyzer_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -148,7 +148,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"video_analyzer_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -197,7 +197,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"face_detector_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

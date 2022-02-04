@@ -124,7 +124,7 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			// lintignore:R006
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
 				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
@@ -191,7 +191,7 @@ func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			// lintignore:R006
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
 				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
 			})
@@ -234,7 +234,7 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
-			// lintignore:R006
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
 				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
 			})

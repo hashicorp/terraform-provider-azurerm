@@ -74,7 +74,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

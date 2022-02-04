@@ -317,7 +317,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							},
 						},
 
-						// lintignore:XS003
+						//lintignore:XS003
 						"peering_addresses": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -367,7 +367,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"custom_route": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

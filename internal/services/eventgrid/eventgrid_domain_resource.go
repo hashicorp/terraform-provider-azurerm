@@ -69,7 +69,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -111,7 +111,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

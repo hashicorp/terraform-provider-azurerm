@@ -7,7 +7,7 @@ import (
 )
 
 func SchemaContainerGroupProbe() *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -25,7 +25,7 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 					},
 				},
 
-				// lintignore:XS003
+				//lintignore:XS003
 				"http_get": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,

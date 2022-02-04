@@ -395,7 +395,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							},
 						},
 
-						// lintignore:XS003
+						//lintignore:XS003
 						"resource_file": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

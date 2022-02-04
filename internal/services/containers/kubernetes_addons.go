@@ -51,7 +51,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,

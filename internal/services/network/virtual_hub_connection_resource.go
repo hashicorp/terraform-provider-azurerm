@@ -128,7 +128,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
-						// lintignore:XS003
+						//lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

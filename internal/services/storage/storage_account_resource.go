@@ -683,7 +683,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"static_website": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1694,10 +1694,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if props.AllowBlobPublicAccess != nil {
 				allowBlobPublicAccess = *props.AllowBlobPublicAccess
 			}
-			// lintignore:R001
+			//lintignore:R001
 			d.Set(allowPublicNestedItemsName, allowBlobPublicAccess)
 		} else {
-			// lintignore:R001
+			//lintignore:R001
 			d.Set(allowPublicNestedItemsName, props.AllowBlobPublicAccess)
 		}
 
@@ -3069,9 +3069,9 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 		host = u.Host
 	}
 
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
-	// lintignore: R001
+	//lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

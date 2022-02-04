@@ -90,7 +90,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						// lintignore:XS003
+						//lintignore:XS003
 						"playready_configuration_license": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -150,7 +150,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// lintignore:XS003
+									//lintignore:XS003
 									"play_right": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -240,7 +240,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"fairplay_configuration": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -265,7 +265,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									// lintignore:XS003
+									//lintignore:XS003
 									"offline_rental_configuration": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -303,7 +303,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
+						//lintignore:XS003
 						"token_restriction": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -357,7 +357,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									// lintignore:XS003
+									//lintignore:XS003
 									"required_claim": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,

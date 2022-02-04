@@ -68,7 +68,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// lintignore:XS003
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -241,7 +241,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// lintignore:XS003
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

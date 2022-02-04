@@ -39,7 +39,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 
 		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
 
-		// lintignore:S033
+		//lintignore:S033
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,

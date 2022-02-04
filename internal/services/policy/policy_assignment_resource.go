@@ -86,7 +86,7 @@ resources and will be removed in version 3.0 of the Azure Provider.
 
 			"location": azure.SchemaLocationOptional(),
 
-			// lintignore:XS003
+			//lintignore:XS003
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
