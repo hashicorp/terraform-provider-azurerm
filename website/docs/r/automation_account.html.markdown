@@ -40,26 +40,31 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) The SKU of the account - only `Basic` is supported at this time.
+* `sku_name` - (Required) The SKU of the account - only `Basic` is supported at this time.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+---
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-----
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the automation account. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
-* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+* `type` - (Required) The type of identity used for the automation account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-----
+* `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
+
+-> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Automation Account ID.
+* `id` - The ID of the Automation Account.
 
 * `dsc_server_endpoint` - The DSC Server Endpoint associated with this Automation Account.
 

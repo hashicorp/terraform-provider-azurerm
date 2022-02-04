@@ -173,7 +173,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	identity, err := flattenAutomationAccountIdentity(resp.Identity)
 	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
