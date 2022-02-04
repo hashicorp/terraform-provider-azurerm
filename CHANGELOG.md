@@ -15,9 +15,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.22.0` of `github.com/hashicorp/go-azure-helpers` [GH-15207]
+* dependencies: updating `backup` to API Version `2021-07-01` [GH-14980]
 * `azurerm_storage_account` - the `identity` block is no longer computed [GH-15207]
-* `azurerm_web_pubsub_hub` - the `managed_identity_id` property within the `auth` block now accepts UUIDs [GH-15183]
 * `azurerm_linux_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
+* `azurerm_recovery_services_vault` - support Zone Redundant storage [GH-14980]
+* `azurerm_web_pubsub_hub` - the `managed_identity_id` property within the `auth` block now accepts UUIDs [GH-15183]
 * `azurerm_windows_virtual_machine` - support for the `dedicated_host_group_id` property [GH-14936]
 
 BUG FIXES:
