@@ -126,7 +126,7 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
-						Type:                                    streamanalytics.TypeMicrosoftAzureFunction,
+						Type: streamanalytics.TypeMicrosoftAzureFunction,
 						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(model.FunctionApp),
 							FunctionName:    utils.String(model.FunctionName),
