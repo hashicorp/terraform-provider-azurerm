@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightKafkaClusterResource struct {
-}
+type HDInsightKafkaClusterResource struct{}
 
 func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")

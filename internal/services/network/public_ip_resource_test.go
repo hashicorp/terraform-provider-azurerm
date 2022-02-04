@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PublicIPResource struct {
-}
+type PublicIPResource struct{}
 
 func TestAccPublicIpStatic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")

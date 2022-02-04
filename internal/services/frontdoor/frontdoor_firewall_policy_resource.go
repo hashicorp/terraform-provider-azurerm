@@ -159,7 +159,6 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							MaxItems: 10,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// TODO - rename to "variable" for consistency
 									"match_variable": {
 										Type:     pluginsdk.TypeString,

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolResource struct {
-}
+type VirtualDesktopHostPoolResource struct{}
 
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")

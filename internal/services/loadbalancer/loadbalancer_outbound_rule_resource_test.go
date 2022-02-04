@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LoadBalancerOutboundRule struct {
-}
+type LoadBalancerOutboundRule struct{}
 
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")

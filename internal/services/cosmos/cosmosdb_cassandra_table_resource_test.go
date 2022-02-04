@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDBCassandraTableResource struct {
-}
+type CosmosDBCassandraTableResource struct{}
 
 func (t CosmosDBCassandraTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CassandraTableID(state.ID)
@@ -36,7 +35,6 @@ func TestAccCosmosDbCassandraTable_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -52,7 +50,6 @@ func TestAccCosmosDbCassandraTable_analyticalStorageTTL(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.analyticalStorageTTL(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

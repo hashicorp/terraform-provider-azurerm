@@ -642,7 +642,8 @@ func TestAccWindowsFunctionAppSlot_appStackJavaUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.appStackJava(data, SkuStandardPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

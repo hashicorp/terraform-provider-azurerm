@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceDisasterRecoveryConfigResource struct {
-}
+type EventHubNamespaceDisasterRecoveryConfigResource struct{}
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")

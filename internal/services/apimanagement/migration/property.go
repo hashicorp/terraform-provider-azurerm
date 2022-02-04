@@ -10,8 +10,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = ApiPropertyV0ToV1{}
 
-type ApiPropertyV0ToV1 struct {
-}
+type ApiPropertyV0ToV1 struct{}
 
 func (ApiPropertyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

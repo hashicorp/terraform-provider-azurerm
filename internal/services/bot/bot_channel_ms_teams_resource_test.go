@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelMsTeamsResource struct {
-}
+type BotChannelMsTeamsResource struct{}
 
 func testAccBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")

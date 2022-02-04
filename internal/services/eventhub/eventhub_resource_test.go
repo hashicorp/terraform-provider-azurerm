@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubResource struct {
-}
+type EventHubResource struct{}
 
 func TestAccEventHubPartitionCount_validation(t *testing.T) {
 	cases := []struct {

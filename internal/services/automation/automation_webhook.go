@@ -178,7 +178,6 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Automation Webhook %q does not exist - removing from state", d.Id())

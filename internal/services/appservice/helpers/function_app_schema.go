@@ -952,17 +952,20 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 				"minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Computed: true},
+					Computed: true,
+				},
 
 				"scm_minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Computed: true},
+					Computed: true,
+				},
 
 				"cors": CorsSettingsSchemaComputed(),
 
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
-					Computed: true},
+					Computed: true,
+				},
 
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,

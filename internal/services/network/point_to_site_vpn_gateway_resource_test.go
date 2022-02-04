@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PointToSiteVPNGatewayResource struct {
-}
+type PointToSiteVPNGatewayResource struct{}
 
 func TestAccPointToSiteVPNGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")

@@ -181,7 +181,6 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props.TLS != nil {
 			d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 		}
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

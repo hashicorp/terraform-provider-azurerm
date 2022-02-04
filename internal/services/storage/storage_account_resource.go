@@ -38,8 +38,10 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 )
 
-var storageAccountResourceName = "azurerm_storage_account"
-var allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
+var (
+	storageAccountResourceName = "azurerm_storage_account"
+	allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
+)
 
 func resourceStorageAccount() *pluginsdk.Resource {
 	upgraders := map[int]pluginsdk.StateUpgrade{

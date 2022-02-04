@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LogicAppActionHttpResource struct {
-}
+type LogicAppActionHttpResource struct{}
 
 func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")

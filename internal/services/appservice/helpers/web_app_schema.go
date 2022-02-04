@@ -928,7 +928,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"java_container": {Type: pluginsdk.TypeString,
+				"java_container": {
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
@@ -1019,7 +1020,8 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"java_container": {Type: pluginsdk.TypeString,
+				"java_container": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
@@ -1440,7 +1442,7 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					//ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
+					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
 		},
@@ -1504,7 +1506,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					//ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
+					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
 		},
@@ -1554,7 +1556,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time, // TODO should be hh:mm:ss - This is too loose, need to improve
+								// ValidateFunc: validation.IsRFC3339Time, // TODO should be hh:mm:ss - This is too loose, need to improve
 							},
 						},
 					},
@@ -1586,7 +1588,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"sub_status": {
@@ -1618,13 +1620,13 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"time_taken": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"count": {
@@ -1768,7 +1770,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time, // TODO should be hh:mm:ss - This is too loose, need to improve?
+								// ValidateFunc: validation.IsRFC3339Time, // TODO should be hh:mm:ss - This is too loose, need to improve?
 							},
 						},
 					},
@@ -1794,7 +1796,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"sub_status": {
@@ -1826,13 +1828,13 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"time_taken": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"interval": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
-								//ValidateFunc: validation.IsRFC3339Time,
+								// ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"count": {
@@ -2285,8 +2287,8 @@ func BackupSchema() *pluginsdk.Schema {
 								Optional:    true,
 								Computed:    true,
 								Description: "When the schedule should start working in RFC-3339 format.",
-								//DiffSuppressFunc: suppress.RFC3339Time,
-								//ValidateFunc:     validation.IsRFC3339Time,
+								// DiffSuppressFunc: suppress.RFC3339Time,
+								// ValidateFunc:     validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {

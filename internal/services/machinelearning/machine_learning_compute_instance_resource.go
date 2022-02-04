@@ -75,7 +75,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"assign_to_user": {Type: pluginsdk.TypeList,
+			"assign_to_user": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -297,7 +298,8 @@ func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinele
 		AssignedUser: &machinelearningservices.AssignedUser{
 			ObjectID: utils.String(value["object_id"].(string)),
 			TenantID: utils.String(value["tenant_id"].(string)),
-		}}
+		},
+	}
 }
 
 func expandComputeSSHSetting(input []interface{}) *machinelearningservices.ComputeInstanceSSHSettings {

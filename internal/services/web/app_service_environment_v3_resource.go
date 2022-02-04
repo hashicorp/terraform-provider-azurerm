@@ -58,8 +58,10 @@ type AppServiceV3InboundDependencies struct {
 
 type AppServiceEnvironmentV3Resource struct{}
 
-var _ sdk.Resource = AppServiceEnvironmentV3Resource{}
-var _ sdk.ResourceWithUpdate = AppServiceEnvironmentV3Resource{}
+var (
+	_ sdk.Resource           = AppServiceEnvironmentV3Resource{}
+	_ sdk.ResourceWithUpdate = AppServiceEnvironmentV3Resource{}
+)
 
 func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

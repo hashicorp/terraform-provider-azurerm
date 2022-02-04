@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkWatcherFlowLogResource struct {
-}
+type NetworkWatcherFlowLogResource struct{}
 
 func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")

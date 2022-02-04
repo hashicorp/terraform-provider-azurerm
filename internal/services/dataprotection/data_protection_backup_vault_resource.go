@@ -82,6 +82,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
@@ -117,7 +118,8 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 				{
 					DatastoreType: dataprotection.StorageSettingStoreTypes(d.Get("datastore_type").(string)),
 					Type:          dataprotection.StorageSettingTypes(d.Get("redundancy").(string)),
-				}},
+				},
+			},
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),

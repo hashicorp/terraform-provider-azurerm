@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceResource struct {
-}
+type EventHubNamespaceResource struct{}
 
 func TestAccEventHubNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")

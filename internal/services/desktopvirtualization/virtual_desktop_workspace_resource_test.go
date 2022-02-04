@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AzureRMDesktopVirtualizationWorkspaceResource struct {
-}
+type AzureRMDesktopVirtualizationWorkspaceResource struct{}
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")

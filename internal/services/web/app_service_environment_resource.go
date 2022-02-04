@@ -444,7 +444,6 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		read, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return "", "", err
 		}

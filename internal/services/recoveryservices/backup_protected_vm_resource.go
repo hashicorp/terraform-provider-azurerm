@@ -41,7 +41,6 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
@@ -305,7 +304,7 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	if v, ok := d.GetOk("include_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{
@@ -316,7 +315,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	}
 
 	if v, ok := d.GetOk("exclude_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{

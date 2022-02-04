@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultKeyResource struct {
-}
+type KeyVaultKeyResource struct{}
 
 func TestAccKeyVaultKey_basicEC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")

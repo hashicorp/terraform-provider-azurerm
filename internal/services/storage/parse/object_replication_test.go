@@ -24,7 +24,6 @@ func TestObjectReplicationID(t *testing.T) {
 		Error    bool
 		Expected *ObjectReplicationId
 	}{
-
 		{
 			// empty
 			Input: "",

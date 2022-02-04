@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RecoveryServicesVaultResource struct {
-}
+type RecoveryServicesVaultResource struct{}
 
 func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")

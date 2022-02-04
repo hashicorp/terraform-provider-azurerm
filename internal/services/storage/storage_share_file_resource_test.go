@@ -14,8 +14,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 )
 
-type StorageShareFileResource struct {
-}
+type StorageShareFileResource struct{}
 
 func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")

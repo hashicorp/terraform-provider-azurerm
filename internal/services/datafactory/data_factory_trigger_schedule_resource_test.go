@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TriggerScheduleResource struct {
-}
+type TriggerScheduleResource struct{}
 
 func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")

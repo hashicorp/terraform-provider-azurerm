@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LoadBalancerRule struct {
-}
+type LoadBalancerRule struct{}
 
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")

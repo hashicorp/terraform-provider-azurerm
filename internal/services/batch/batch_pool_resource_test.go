@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BatchPoolResource struct {
-}
+type BatchPoolResource struct{}
 
 func TestAccBatchPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")

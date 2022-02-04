@@ -7,8 +7,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/mssql"

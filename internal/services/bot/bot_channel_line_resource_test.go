@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelLineResource struct {
-}
+type BotChannelLineResource struct{}
 
 func testAccBotChannelLine_basic(t *testing.T) {
 	skipLineChannel(t)

@@ -7,8 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
 
-type AutomationAccountDataSource struct {
-}
+type AutomationAccountDataSource struct{}
 
 func TestAccDataSourceAutomationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")

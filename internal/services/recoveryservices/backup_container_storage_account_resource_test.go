@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectionContainerStorageAccountResource struct {
-}
+type BackupProtectionContainerStorageAccountResource struct{}
 
 func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")

@@ -206,7 +206,8 @@ func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

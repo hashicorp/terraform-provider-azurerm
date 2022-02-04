@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -343,7 +342,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -363,7 +363,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -372,7 +373,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"email_account_admins": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -386,7 +388,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 								// todo email validation in code
 							},
 							Set: pluginsdk.HashString,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -396,7 +399,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -407,7 +411,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -417,7 +422,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},

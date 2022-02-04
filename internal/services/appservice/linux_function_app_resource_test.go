@@ -731,7 +731,8 @@ func TestAccLinuxFunctionApp_appStackJavaUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.appStackJava(data, SkuBasicPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApplicationSecurityGroupResource struct {
-}
+type ApplicationSecurityGroupResource struct{}
 
 func TestAccApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")

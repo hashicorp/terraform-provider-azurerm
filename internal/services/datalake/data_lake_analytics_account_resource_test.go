@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataLakeAnalyticsAccountResource struct {
-}
+type DataLakeAnalyticsAccountResource struct{}
 
 func TestAccDataLakeAnalyticsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
