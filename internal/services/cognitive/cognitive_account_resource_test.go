@@ -536,10 +536,10 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "Face"
   sku_name            = "S0"
 
-  fqdns                             = ["foo.com", "bar.com"]
-  public_network_access_enabled     = false
+  fqdns                              = ["foo.com", "bar.com"]
+  public_network_access_enabled      = false
   outbound_network_access_restricted = true
-  local_auth_enabled                = false
+  local_auth_enabled                 = false
 
   tags = {
     Acceptance = "Test"
