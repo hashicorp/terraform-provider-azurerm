@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -305,7 +305,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 
 	AzureFileShareProtectionPolicyProperties := &backup.AzureFileShareProtectionPolicy{
 		TimeZone:             utils.String(d.Get("timezone").(string)),
-		BackupManagementType: backup.BackupManagementTypeAzureStorage,
+		BackupManagementType: backup.ManagementTypeBasicProtectionPolicyBackupManagementTypeAzureStorage,
 		WorkLoadType:         backup.WorkloadTypeAzureFileShare,
 		SchedulePolicy:       expandBackupProtectionPolicyFileShareSchedule(d, times),
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
@@ -422,7 +422,16 @@ func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, me
 
 	log.Printf("[DEBUG] Deleting Recovery Service Protection Policy %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	resp, err := future.Result(*client)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)

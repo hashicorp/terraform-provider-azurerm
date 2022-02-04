@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -134,6 +134,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backup.StorageTypeGeoRedundant),
 					string(backup.StorageTypeLocallyRedundant),
+					string(backup.StorageTypeZoneRedundant),
 				}, false),
 			},
 
@@ -247,8 +248,40 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if _, err = storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
-		return fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err)
+	err = pluginsdk.Retry(stateConf.Timeout, func() *pluginsdk.RetryError {
+		if resp, err := storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
+			}
+			if utils.ResponseWasBadRequest(resp.Response) {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
+			}
+
+			return pluginsdk.NonRetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	// storage type is not updated instantaneously, so we wait until storage type is correct
+	err = pluginsdk.Retry(stateConf.Timeout, func() *pluginsdk.RetryError {
+		if resp, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup); err == nil {
+			if resp.Properties == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
+			}
+			if resp.Properties.StorageType != storageCfg.Properties.StorageModelType {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
+			}
+		} else {
+			return pluginsdk.NonRetryableError(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.

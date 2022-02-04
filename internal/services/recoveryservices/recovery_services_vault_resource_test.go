@@ -32,6 +32,21 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_zrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zrs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRecoveryServicesVault_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
@@ -395,4 +410,27 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, enableInfraEncryptionState, keyIndex)
+}
+
+func (RecoveryServicesVaultResource) zrs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+  storage_mode_type   = "ZoneRedundant"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
