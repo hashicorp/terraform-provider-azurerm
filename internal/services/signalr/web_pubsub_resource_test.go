@@ -202,6 +202,28 @@ func TestAccWebPubsub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWebPubsub_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebPubsubID(state.ID)
 	if err != nil {
@@ -312,6 +334,74 @@ resource "azurerm_web_pubsub" "test" {
   local_auth_enabled      = false
   aad_auth_enabled        = false
   tls_client_cert_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WebPubsubResource) withIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku      = "Standard_S1"
+  capacity = 1
+
+  public_network_access_enabled = true
+
+  live_trace {
+    enabled                   = true
+    messaging_logs_enabled    = true
+    connectivity_logs_enabled = false
+    http_request_logs_enabled = false
+  }
+
+  local_auth_enabled = true
+  aad_auth_enabled   = true
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WebPubsubResource) identityUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku      = "Standard_S1"
+  capacity = 1
+
+  public_network_access_enabled = true
+
+  live_trace {
+    enabled                   = true
+    messaging_logs_enabled    = true
+    connectivity_logs_enabled = false
+    http_request_logs_enabled = false
+  }
+
+  local_auth_enabled = true
+  aad_auth_enabled   = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -2,6 +2,8 @@ package signalr
 
 import (
 	"fmt"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"log"
 	"strings"
 	"time"
@@ -125,6 +127,37 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(webpubsub.ManagedIdentityTypeUserAssigned),
+								string(webpubsub.ManagedIdentityTypeSystemAssigned),
+							}, false),
+						},
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							Optional:     true,
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"public_port": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -210,6 +243,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters := webpubsub.ResourceType{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Identity: expandManagedIdentity(d.Get("identity").([]interface{})),
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
 			PublicNetworkAccess:    utils.String(publicNetworkAcc),
@@ -303,6 +337,15 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
 			return fmt.Errorf("setting `live_trace`:%+v", err)
+		}
+
+		identity, err := flattenManagedIdentity(resp.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 	}
 
@@ -426,4 +469,62 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		"connectivity_logs_enabled": connectivityLogEnabled,
 		"http_request_logs_enabled": httpLogsEnabled,
 	}}
+}
+
+func expandManagedIdentity(input []interface{}) *webpubsub.ManagedIdentity {
+	if len(input) == 0 || input[0] == nil {
+		return &webpubsub.ManagedIdentity{
+			Type: webpubsub.ManagedIdentityTypeNone,
+		}
+	}
+
+	rawData := input[0].(map[string]interface{})
+
+	if webpubsub.ManagedIdentityType(rawData["type"].(string)) == webpubsub.ManagedIdentityTypeUserAssigned {
+		userAssignedIdentities := map[string]*webpubsub.UserAssignedIdentityProperty{
+			rawData["user_assigned_identity_id"].(string): {},
+		}
+		return &webpubsub.ManagedIdentity{
+			Type:                   webpubsub.ManagedIdentityType(rawData["type"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}
+	}
+
+	return &webpubsub.ManagedIdentity{
+		Type: webpubsub.ManagedIdentityType(rawData["type"].(string)),
+	}
+}
+
+func flattenManagedIdentity(input *webpubsub.ManagedIdentity) ([]interface{}, error) {
+	if input == nil || input.Type == webpubsub.ManagedIdentityTypeNone {
+		return []interface{}{}, nil
+	}
+
+	identity := make(map[string]interface{})
+
+	identity["principal_id"] = ""
+	if input.PrincipalID != nil {
+		identity["principal_id"] = *input.PrincipalID
+	}
+
+	identity["tenant_id"] = ""
+	if input.TenantID != nil {
+		identity["tenant_id"] = *input.TenantID
+	}
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
+		}
+	}
+	identity["type"] = string(input.Type)
+	return []interface{}{identity}, nil
 }
