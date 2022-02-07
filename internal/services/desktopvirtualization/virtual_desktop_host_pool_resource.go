@@ -145,9 +145,9 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"expiration_date": {
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsRFC3339Time,
-							Required:     true,
+							Type:       pluginsdk.TypeString,
+							Optional:   true,
+							Deprecated: "This property has been deprecated in favour of the `virtual_desktop_host_pool_registration_info` resource",
 						},
 
 						"reset_token": {
@@ -214,8 +214,14 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
 			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
-			RegistrationInfo:              expandVirtualDesktopHostPoolRegistrationInfo(d),
+			// Do not set RegistrationInfo as now Computed
+			// RegistrationInfo:              expandVirtualDesktopHostPoolRegistrationInfo(d),
 		},
+	}
+	// only process registration info if a registration_info block is present
+	// this prevents a null value being stored in state which will generate a diff if virtual_desktop_host_pool_registration_info is used
+	if _, ok := d.GetOk("registration_info"); ok {
+		context.HostPoolProperties.RegistrationInfo = expandVirtualDesktopHostPoolRegistrationInfo(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
@@ -270,14 +276,17 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("validate_environment", props.ValidationEnvironment)
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("custom_rdp_properties", props.CustomRdpProperty)
+		// only process registration info if a registration_info block is present
+		// this prevents a null value being stored in state which will generate a diff if virtual_desktop_host_pool_registration_info is used
+		if _, ok := d.GetOk("registration_info"); ok {
+			reginfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("retrieving Registration Token for %s: %+v", *id, err)
+			}
 
-		reginfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Registration Token for %s: %+v", *id, err)
-		}
-
-		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(&reginfo)); err != nil {
-			return fmt.Errorf("setting `registration_info`: %+v", err)
+			if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(&reginfo)); err != nil {
+				return fmt.Errorf("setting `registration_info`: %+v", err)
+			}
 		}
 	}
 

@@ -17,7 +17,7 @@ import (
 type VirtualDesktopHostPoolResource struct{}
 
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "hptest")
 	r := VirtualDesktopHostPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 }
 
 func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "hptest")
 	r := VirtualDesktopHostPoolResource{}
 	// Set the expiration time to be 1 day from now
 	timeNow := time.Now()
@@ -50,7 +50,7 @@ func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
 }
 
 func TestAccVirtualDesktopHostPool_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "hptest")
 	r := VirtualDesktopHostPoolResource{}
 
 	// Set the expiration time to be 1 day from now
@@ -84,7 +84,7 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 }
 
 func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "hptest")
 	r := VirtualDesktopHostPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -121,15 +121,15 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+resource "azurerm_resource_group" "hptest" {
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
-resource "azurerm_virtual_desktop_host_pool" "test" {
+resource "azurerm_virtual_desktop_host_pool" "hptest" {
   name                 = "acctestHP%s"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.hptest.location
+  resource_group_name  = azurerm_resource_group.hptest.name
   type                 = "Pooled"
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
@@ -143,15 +143,15 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+resource "azurerm_resource_group" "hptest" {
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
-resource "azurerm_virtual_desktop_host_pool" "test" {
+resource "azurerm_virtual_desktop_host_pool" "hptest" {
   name                     = "acctestHP%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.hptest.location
+  resource_group_name      = azurerm_resource_group.hptest.name
   type                     = "Pooled"
   friendly_name            = "A Friendly Name!"
   description              = "A Description!"
@@ -179,12 +179,12 @@ func (r VirtualDesktopHostPoolResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_virtual_desktop_host_pool" "import" {
-  name                 = azurerm_virtual_desktop_host_pool.test.name
-  location             = azurerm_virtual_desktop_host_pool.test.location
-  resource_group_name  = azurerm_virtual_desktop_host_pool.test.resource_group_name
-  validate_environment = azurerm_virtual_desktop_host_pool.test.validate_environment
-  type                 = azurerm_virtual_desktop_host_pool.test.type
-  load_balancer_type   = azurerm_virtual_desktop_host_pool.test.load_balancer_type
+  name                 = azurerm_virtual_desktop_host_pool.hptest.name
+  location             = azurerm_virtual_desktop_host_pool.hptest.location
+  resource_group_name  = azurerm_virtual_desktop_host_pool.hptest.resource_group_name
+  validate_environment = azurerm_virtual_desktop_host_pool.hptest.validate_environment
+  type                 = azurerm_virtual_desktop_host_pool.hptest.type
+  load_balancer_type   = azurerm_virtual_desktop_host_pool.hptest.load_balancer_type
 }
 `, r.basic(data))
 }
