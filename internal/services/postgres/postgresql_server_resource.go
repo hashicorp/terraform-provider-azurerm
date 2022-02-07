@@ -215,7 +215,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					}
 					return nil
 				}(),
-				Computed:      !features.ThreePointOhBetaResources(),
+				Computed:      !features.ThreePointOhBeta(),
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 

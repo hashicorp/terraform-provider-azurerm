@@ -428,7 +428,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 
 		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
 		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
-		if !features.ThreePointOhBetaResources() {
+		if !features.ThreePointOhBeta() {
 			properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
 		}
 
