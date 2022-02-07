@@ -876,6 +876,40 @@ func expandLogicAppWorkflowIdentity(input []interface{}) (*logic.ManagedServiceI
 	}, nil
 }
 
+func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) (*[]interface{}, error) {
+	var config *identity.SystemOrUserAssignedMap
+	if input != nil {
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
+
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = input.PrincipalID.String()
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = input.TenantID.String()
+		}
+
+		config = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+			IdentityIds: identityIds,
+		}
+	}
+	return identity.FlattenSystemOrUserAssignedMap(config)
+}
+
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
 	if input == nil {
 		return nil, nil
@@ -1000,38 +1034,4 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]logic.OpenAut
 	}
 
 	return results
-}
-
-func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) (*[]interface{}, error) {
-	var config *identity.SystemOrUserAssignedMap
-	if input != nil {
-		identityIds := map[string]identity.UserAssignedIdentityDetails{}
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
-		}
-
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = input.PrincipalID.String()
-		}
-
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = input.TenantID.String()
-		}
-
-		config = &identity.SystemOrUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
-			IdentityIds: identityIds,
-		}
-	}
-	return identity.FlattenSystemOrUserAssignedMap(config)
 }
