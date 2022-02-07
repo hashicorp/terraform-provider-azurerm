@@ -22,7 +22,7 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOhAppServiceResources() {
 		return []sdk.DataSource{
 			AppServiceSourceControlTokenDataSource{},
 			LinuxFunctionAppDataSource{},
@@ -36,7 +36,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOhAppServiceResources() {
 		return []sdk.Resource{
 			AppServiceSourceControlResource{},
 			AppServiceSourceControlTokenResource{},
