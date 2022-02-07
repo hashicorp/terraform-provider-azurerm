@@ -349,7 +349,7 @@ func flattenSearchServiceIdentity(input *search.Identity) []interface{} {
 
 	if input != nil {
 		transition = &identity.SystemAssigned{
-			Type: string(input.Type),
+			Type: identity.Type(string(input.Type)),
 		}
 		if input.PrincipalID != nil {
 			transition.PrincipalId = *input.PrincipalID
