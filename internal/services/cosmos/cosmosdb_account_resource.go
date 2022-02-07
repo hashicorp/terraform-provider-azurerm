@@ -14,9 +14,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -318,20 +320,24 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EnableAggregationPipeline",
-								"EnableCassandra",
-								"EnableGremlin",
-								"EnableTable",
-								"EnableServerless",
-								"EnableMongo",
-								"MongoDBv3.4",
-								"mongoEnableDocLevelTTL",
-								"DisableRateLimitingResponses",
-								"AllowSelfServeUpgradeToMongo36",
-								// TODO: Remove in 3.0 - doesn't do anything
-								"EnableAnalyticalStorage",
-							}, true),
+							ValidateFunc: func() schema.SchemaValidateFunc {
+								out := []string{
+									"EnableAggregationPipeline",
+									"EnableCassandra",
+									"EnableGremlin",
+									"EnableTable",
+									"EnableServerless",
+									"EnableMongo",
+									"MongoDBv3.4",
+									"mongoEnableDocLevelTTL",
+									"DisableRateLimitingResponses",
+									"AllowSelfServeUpgradeToMongo36",
+								}
+								if !features.ThreePointOhBeta() {
+									out = append(out, "EnableAnalyticalStorage")
+								}
+								return validation.StringInSlice(out, true)
+							}(),
 						},
 					},
 				},
