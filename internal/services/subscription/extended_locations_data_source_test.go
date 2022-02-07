@@ -29,11 +29,11 @@ provider "azurerm" {
 }
 
 data "azurerm_extended_locations" "test" {
-  location = "West US"
+  location = "%s"
 }
 
 output "extended_location" {
   value = data.azurerm_extended_locations.test.extended_locations[0]
 }
-`)
+`, data.Locations.Primary)
 }
