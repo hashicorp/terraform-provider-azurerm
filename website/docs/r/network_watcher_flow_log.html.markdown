@@ -50,7 +50,6 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
-  name                 = "example-log"
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
 
@@ -88,10 +87,6 @@ The following arguments are supported:
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
-
-* `name` - (Optional) The name of the Network Watcher Flow Log. Changing this forces a new resource to be created.
-
-~>**Note:** If the `name` is not specified, then the provider will generate a name for the user in the form of: `"Microsoft.Network" + <Resource Group Name> + <NSG Name>`. In case the length of the name exceeds 80, it will be truncated.
  
 * `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
@@ -138,5 +133,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Network Watcher Flow Logs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/flowLogs/log1
+terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/networkSecurityGroupId/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/group1
 ```

@@ -39,21 +39,6 @@ func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkWatcherFlowLog_basicWithName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-	r := NetworkWatcherFlowLogResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicConfigWithName(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func testAccNetworkWatcherFlowLog_disabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -302,6 +287,23 @@ func testAccNetworkWatcherFlowLog_longName(t *testing.T) {
 	})
 }
 
+// TODO 3.0: remove this test as we will validate the length for the `name` property, rather than truncate the name for the users.
+func testAccNetworkWatcherFlowLog_longName_end_hyphen(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.longName_end_hyphen(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("Microsoft.NetworkacctestRG-watcher-01234567890123456789012345678902acctestNSG01"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -364,12 +366,12 @@ func testAccNetworkWatcherFlowLog_tags(t *testing.T) {
 }
 
 func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlowLogIDShim(state.ID)
+	id, err := parse.FlowLogID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.FlowLogsClient.Get(ctx, id.ResourceGroup(), id.NetworkWatcherName(), id.Name())
+	resp, err := clients.Network.FlowLogsClient.Get(ctx, id.ResourceGroupName, id.NetworkWatcherName, id.Name())
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
 	}
@@ -431,27 +433,6 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, r.prerequisites(data))
-}
-
-func (r NetworkWatcherFlowLogResource) basicConfigWithName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_watcher_flow_log" "test" {
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  name                 = "flowlog-%d"
-
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
-
-  retention_policy {
-    enabled = false
-    days    = 0
-  }
-}
-`, r.prerequisites(data), data.RandomInteger)
 }
 
 func (r NetworkWatcherFlowLogResource) retentionPolicyConfig(data acceptance.TestData) string {
@@ -723,6 +704,58 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_network_security_group" "test" {
   #           		     01234567890123456789012345678901234567890123456789 = 40
   name                = "acctestNSG0123456789012345678901234567890123456789"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_watcher" "test" {
+  name                = "acctest-NW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsa%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  account_tier              = "Standard"
+  account_kind              = "StorageV2"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  enabled                   = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, data.RandomInteger%1000000)
+}
+
+func (r NetworkWatcherFlowLogResource) longName_end_hyphen(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  #           01234567890123456789012345678901234567890123456789 = 40
+  name     = "acctestRG-watcher-01234567890123456789012345678902"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  #           		     01234567890123456789012345678901234567890123456789 = 40
+  name                = "acctestNSG01-"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
