@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
-* `number_of_workers` - (Optional) The number of Workers (instances) to be allocated. 
+* `worker_count` - (Optional) The number of Workers (instances) to be allocated. 
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 
