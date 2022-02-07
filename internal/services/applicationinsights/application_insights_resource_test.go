@@ -327,7 +327,7 @@ resource "azurerm_application_insights" "test" {
   daily_data_cap_in_gb                  = 50
   daily_data_cap_notifications_disabled = true
   disable_ip_masking                    = true
-  force_customer_storage_for_profiler	= true
+  force_customer_storage_for_profiler   = true
   local_authentication_disabled         = true
 
   tags = {
