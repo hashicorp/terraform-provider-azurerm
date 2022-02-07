@@ -747,7 +747,8 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-	if !features.ThreePointOhBetaResources() {
+
+	if !features.ThreePointOhBeta() {
 		s := schema["threat_detection_policy"].Elem.(*pluginsdk.Resource)
 		s.Schema["use_server_default"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
