@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualMachineDataDiskAttachmentResource struct {
-}
+type VirtualMachineDataDiskAttachmentResource struct{}
 
 func TestAccVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
@@ -196,7 +195,6 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 	}
 
 	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
-
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
 	}

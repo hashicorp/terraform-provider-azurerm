@@ -78,7 +78,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentity(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,
@@ -115,14 +115,21 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	loc := location.Normalize(d.Get("location").(string))
 
+	skuName := d.Get("sku_size").(string)
+
 	identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/17525
+	if skuName == string(web.SkuNameFree) && identity != nil {
+		return fmt.Errorf("a Managed Identity cannot be used when tier is set to `Free`")
+	}
+
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
-			Name: utils.String(d.Get("sku_size").(string)),
+			Name: &skuName,
 			Tier: utils.String(d.Get("sku_tier").(string)),
 		},
 		StaticSite: &web.StaticSite{},
@@ -232,6 +239,10 @@ func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity,
 	config, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
+	}
+
+	if config.Type == identity.TypeNone {
+		return nil, nil
 	}
 
 	var identityIds map[string]*web.UserAssignedIdentity

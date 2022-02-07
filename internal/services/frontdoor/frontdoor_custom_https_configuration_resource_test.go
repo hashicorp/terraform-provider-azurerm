@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorCustomHttpsConfigurationResource struct {
-}
+type FrontDoorCustomHttpsConfigurationResource struct{}
 
 func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")

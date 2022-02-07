@@ -93,7 +93,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(redis.TLSVersionOneFullStopTwo)
 					}
 					return string(redis.TLSVersionOneFullStopZero)
@@ -868,6 +868,7 @@ func flattenTenantSettings(input map[string]*string) map[string]*string {
 	}
 	return output
 }
+
 func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
 	outputs := make(map[string]interface{}, len(input))
 

@@ -884,7 +884,6 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
 							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,

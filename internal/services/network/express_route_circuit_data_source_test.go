@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ExpressRouteCircuitDataSource struct {
-}
+type ExpressRouteCircuitDataSource struct{}
 
 func testAccDataSourceExpressRoute_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")

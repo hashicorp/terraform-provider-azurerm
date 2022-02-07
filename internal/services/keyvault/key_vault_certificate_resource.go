@@ -292,7 +292,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
@@ -305,7 +306,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
@@ -318,7 +320,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},

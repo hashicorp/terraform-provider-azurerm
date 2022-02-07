@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolRegistrationInfoResource struct {
-}
+type VirtualDesktopHostPoolRegistrationInfoResource struct{}
 
 func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
@@ -67,7 +66,6 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 }
 
 func (VirtualDesktopHostPoolRegistrationInfoResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	id, err := parse.HostPoolRegistrationInfoID(state.ID)
 	if err != nil {
 		return nil, err

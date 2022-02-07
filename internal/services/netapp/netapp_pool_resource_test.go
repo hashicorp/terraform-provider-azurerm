@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppPoolResource struct {
-}
+type NetAppPoolResource struct{}
 
 func TestAccNetAppPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")

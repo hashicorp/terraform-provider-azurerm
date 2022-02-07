@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HealthCareServiceResource struct {
-}
+type HealthCareServiceResource struct{}
 
 func TestAccHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")

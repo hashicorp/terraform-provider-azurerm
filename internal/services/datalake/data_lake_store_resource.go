@@ -119,7 +119,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentity(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},

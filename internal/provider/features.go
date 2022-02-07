@@ -160,7 +160,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		f := featuresMap["key_vault"].Elem.(*pluginsdk.Resource)
 		// TODO: Add this to 3.0 Upgrade guide
 		// `recover_soft_deleted_keys` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.
@@ -284,7 +284,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 			featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 				}

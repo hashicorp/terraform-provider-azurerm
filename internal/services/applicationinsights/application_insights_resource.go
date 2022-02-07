@@ -156,6 +156,11 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			"force_customer_storage_for_profiler": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -203,6 +208,8 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		internetQueryEnabled = insights.PublicNetworkAccessTypeEnabled
 	}
 
+	forceCustomerStorageForProfiler := d.Get("force_customer_storage_for_profiler").(bool)
+
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:                   &name,
 		ApplicationType:                 insights.ApplicationType(applicationType),
@@ -211,6 +218,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		DisableLocalAuth:                utils.Bool(localAuthenticationDisabled),
 		PublicNetworkAccessForIngestion: internetIngestionEnabled,
 		PublicNetworkAccessForQuery:     internetQueryEnabled,
+		ForceCustomerStorageForProfiler: utils.Bool(forceCustomerStorageForProfiler),
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
@@ -322,6 +330,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == insights.PublicNetworkAccessTypeEnabled)
 		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
+		d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 
 		if v := props.WorkspaceResourceID; v != nil {
 			d.Set("workspace_id", v)

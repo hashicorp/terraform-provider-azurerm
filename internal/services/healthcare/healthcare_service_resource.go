@@ -127,7 +127,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -140,7 +141,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -161,7 +163,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 									"PUT",
 								}, false),
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -170,7 +173,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -178,7 +182,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 						"allow_credentials": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},

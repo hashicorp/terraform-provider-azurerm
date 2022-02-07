@@ -125,8 +125,8 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_disk_encryption_set", id.ID())
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)

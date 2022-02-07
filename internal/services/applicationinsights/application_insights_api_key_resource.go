@@ -131,7 +131,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_application_insights_api_key", *existing.ID)
 	}
 

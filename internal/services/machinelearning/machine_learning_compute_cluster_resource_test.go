@@ -128,7 +128,6 @@ func TestAccComputeCluster_identity(t *testing.T) {
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeClusterID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}

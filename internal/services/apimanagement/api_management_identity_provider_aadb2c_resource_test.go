@@ -25,8 +25,7 @@ Accordingly, these tests rely on additional environment variables to be set (and
 * ARM_TEST_B2C_CLIENT_SECRET  - client secret for that application
 */
 
-type ApiManagementIdentityProviderAADB2CResource struct {
-}
+type ApiManagementIdentityProviderAADB2CResource struct{}
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceConfigurationResource struct {
-}
+type MaintenanceConfigurationResource struct{}
 
 func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")

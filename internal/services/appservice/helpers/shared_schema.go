@@ -63,18 +63,21 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 						validate.IPv4Address,
 						validate.CIDR,
 					),
+					Description: "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32`",
 				},
 
 				"service_tag": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The Service Tag used for this IP Restriction.",
 				},
 
 				"virtual_network_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: networkValidate.SubnetID,
+					Description:  "The Virtual Network Subnet ID used for this IP Restriction.",
 				},
 
 				"name": {
@@ -82,6 +85,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name which should be used for this `ip_restriction`.",
 				},
 
 				"priority": {
@@ -89,6 +93,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      65000,
 					ValidateFunc: validation.IntBetween(1, 2147483647),
+					Description:  "The priority value of this `ip_restriction`.",
 				},
 
 				"action": {
@@ -99,6 +104,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 						"Allow",
 						"Deny",
 					}, false),
+					Description: "The action to take. Possible values are `Allow` or `Deny`.",
 				},
 
 				"headers": IpRestrictionHeadersSchema(),
@@ -115,33 +121,39 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The CIDR notation of the IP or IP Range to match.",
 				},
 
 				"service_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Service Tag used for this IP Restriction.",
 				},
 
 				"virtual_network_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Virtual Network Subnet ID used for this IP Restriction.",
 				},
 
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name used for this `ip_restriction`.",
 				},
 
 				"priority": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The priority value of this `ip_restriction`.",
 				},
 
 				"action": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The action to take.",
 				},
 
 				"headers": IpRestrictionHeadersSchemaComputed(),
@@ -165,6 +177,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of Hosts for which matching should be applied.",
 				},
 
 				"x_forwarded_for": {
@@ -175,6 +188,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsCIDR,
 					},
+					Description: "Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.",
 				},
 
 				"x_azure_fdid": { // Front Door ID (UUID)
@@ -185,6 +199,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsUUID,
 					},
+					Description: "Specifies a list of Azure Front Door IDs.",
 				},
 
 				"x_fd_health_probe": { // 1 or absent
@@ -215,6 +230,7 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of Hosts for which matching will be applied.",
 				},
 
 				"x_forwarded_for": {
@@ -223,6 +239,7 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of addresses for which matching is applied.",
 				},
 
 				"x_azure_fdid": { // Front Door ID (UUID)
@@ -231,6 +248,7 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of Azure Front Door IDs.",
 				},
 
 				"x_fd_health_probe": { // 1 or absent
@@ -239,6 +257,7 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies if a Front Door Health Probe is expected.",
 				},
 			},
 		},
@@ -267,6 +286,7 @@ func IdentitySchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: msiValidate.UserAssignedIdentityID,
 					},
+					Description: "Specifies a list of User Assigned Identity IDs.",
 				},
 
 				"type": {
@@ -278,16 +298,19 @@ func IdentitySchema() *pluginsdk.Schema {
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
+					Description:      "The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.",
 				},
 
 				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Principal ID for the Service Principal associated with the Managed Service Identity.",
 				},
 
 				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Tenant ID for the Service Principal associated with the Managed Service Identity.",
 				},
 			},
 		},
@@ -306,21 +329,25 @@ func IdentitySchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of User Assigned Identity IDs.",
 				},
 
 				"type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The type of managed service identity.",
 				},
 
 				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Principal ID for the Service Principal associated with the Managed Service Identity.",
 				},
 
 				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Tenant ID for the Service Principal associated with the Managed Service Identity.",
 				},
 			},
 		},
@@ -345,12 +372,14 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of origins that should be allowed to make cross-origin calls.",
 				},
 
 				"support_credentials": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Are credentials allowed in CORS requests? Defaults to `false`.",
 				},
 			},
 		},
@@ -369,11 +398,13 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of origins that are allowed to make cross-origin calls.",
 				},
 
 				"support_credentials": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Are credentials allowed in CORS requests?",
 				},
 			},
 		},
@@ -400,14 +431,16 @@ func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Site Credentials Username used for publishing.",
 				},
 
 				"password": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The Site Credentials Password used for publishing.",
 				},
 			},
 		},
@@ -441,8 +474,9 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
+					Description: "Should the Authentication / Authorization feature be enabled?",
 				},
 
 				"additional_login_parameters": {
@@ -451,6 +485,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -461,6 +496,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					Description: "Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
 				},
 
 				"default_provider": {
@@ -475,30 +511,35 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						string(web.BuiltInAuthenticationProviderMicrosoftAccount),
 						string(web.BuiltInAuthenticationProviderTwitter),
 					}, false),
+					Description: "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
 
 				"issuer": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+					Description:  "The OpenID Connect Issuer URI that represents the entity which issues access tokens.",
 				},
 
 				"runtime_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true,
+					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
 				"token_refresh_extension_hours": {
-					Type:     pluginsdk.TypeFloat,
-					Optional: true,
-					Default:  72,
+					Type:        pluginsdk.TypeFloat,
+					Optional:    true,
+					Default:     72,
+					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
 				},
 
 				"token_store_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
 				},
 
 				"unauthenticated_client_action": {
@@ -509,6 +550,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						string(web.UnauthenticatedClientActionAllowAnonymous),
 						string(web.UnauthenticatedClientActionRedirectToLoginPage),
 					}, false),
+					Description: "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
 				},
 
 				"active_directory": AadAuthSettingsSchema(),
@@ -534,8 +576,9 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the Authentication / Authorization feature enabled?",
 				},
 
 				"additional_login_parameters": {
@@ -544,6 +587,7 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -552,36 +596,43 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
 				},
 
 				"default_provider": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The default authentication provider used when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
 
 				"issuer": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The OpenID Connect Issuer URI that represents the entity which issues access tokens.",
 				},
 
 				"runtime_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
 				"token_refresh_extension_hours": {
-					Type:     pluginsdk.TypeFloat,
-					Computed: true,
+					Type:        pluginsdk.TypeFloat,
+					Computed:    true,
+					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 				},
 
 				"token_store_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Are platform-specific security tokens that are obtained during login flows durably stored?",
 				},
 
 				"unauthenticated_client_action": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The action taken when an unauthenticated client attempts to access the app.",
 				},
 
 				"active_directory": AadAuthSettingsSchemaComputed(),
@@ -618,6 +669,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
 				"client_secret": {
@@ -629,6 +681,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.active_directory.0.client_secret",
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
 					},
+					Description: "The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.",
 				},
 
 				"client_secret_setting_name": {
@@ -639,6 +692,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.active_directory.0.client_secret",
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
 					},
+					Description: "The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.",
 				},
 
 				"allowed_audiences": {
@@ -647,6 +701,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -660,19 +715,22 @@ func AadAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The Client Secret for the Client ID.",
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
 				"allowed_audiences": {
@@ -681,6 +739,7 @@ func AadAuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of Allowed audience values considered when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -705,6 +764,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The App ID of the Facebook app used for login.",
 				},
 
 				"app_secret": {
@@ -716,6 +776,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
 					},
+					Description: "The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.",
 				},
 
 				"app_secret_setting_name": {
@@ -726,6 +787,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
 					},
+					Description: "The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.",
 				},
 
 				"oauth_scopes": {
@@ -734,6 +796,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -747,19 +810,22 @@ func FacebookAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The App ID of the Facebook app used for login.",
 				},
 
 				"app_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The App Secret of the Facebook app used for Facebook Login.",
 				},
 
 				"app_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
 				"oauth_scopes": {
@@ -768,6 +834,7 @@ func FacebookAuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of OAuth 2.0 scopes requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -792,6 +859,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The OpenID Connect Client ID for the Google web application.",
 				},
 
 				"client_secret": {
@@ -803,6 +871,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
 					},
+					Description: "The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.",
 				},
 
 				"client_secret_setting_name": {
@@ -813,6 +882,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
 					},
+					Description: "The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.",
 				},
 
 				"oauth_scopes": {
@@ -821,6 +891,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -834,19 +905,22 @@ func GoogleAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The OpenID Connect Client ID for the Google web application.",
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The client secret associated with the Google web application.",
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name that contains the `client_secret` value used for Google Login.",
 				},
 
 				"oauth_scopes": {
@@ -855,6 +929,7 @@ func GoogleAuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of OAuth 2.0 scopes that requested as part of Google Sign-In authentication.",
 				},
 			},
 		},
@@ -879,6 +954,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The OAuth 2.0 client ID that was created for the app used for authentication.",
 				},
 
 				"client_secret": {
@@ -890,6 +966,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
 					},
+					Description: "The OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret_setting_name`.",
 				},
 
 				"client_secret_setting_name": {
@@ -900,6 +977,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
 					},
+					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret`.",
 				},
 
 				"oauth_scopes": {
@@ -908,6 +986,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. If not specified, `wl.basic` is used as the default scope.",
 				},
 			},
 		},
@@ -921,19 +1000,22 @@ func MicrosoftAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The OAuth 2.0 client ID that was created for the app used for authentication.",
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"oauth_scopes": {
@@ -942,6 +1024,7 @@ func MicrosoftAuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of OAuth 2.0 scopes requested as part of Microsoft Account authentication.",
 				},
 			},
 		},
@@ -962,8 +1045,9 @@ func TwitterAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"consumer_key": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret": {
@@ -974,11 +1058,13 @@ func TwitterAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.twitter.0.consumer_secret",
 						"auth_settings.0.twitter.0.consumer_secret_setting_name",
 					},
+					Description: "The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.",
 				},
 
 				"consumer_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret`.",
 				},
 			},
 		},
@@ -992,19 +1078,22 @@ func TwitterAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"consumer_key": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 				},
 			},
 		},
@@ -1026,8 +1115,9 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Description: "The ID of the GitHub app used for login.",
 				},
 
 				"client_secret": {
@@ -1038,6 +1128,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.github.0.client_secret",
 						"auth_settings.0.github.0.client_secret_setting_name",
 					},
+					Description: "The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.",
 				},
 
 				"client_secret_setting_name": {
@@ -1047,6 +1138,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.github.0.client_secret",
 						"auth_settings.0.github.0.client_secret_setting_name",
 					},
+					Description: "The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.",
 				},
 
 				"oauth_scopes": {
@@ -1055,6 +1147,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1068,19 +1161,22 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The ID of the GitHub app used for login.",
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Computed:  true,
-					Sensitive: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The Client Secret of the GitHub app used for GitHub Login.",
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 				},
 
 				"oauth_scopes": {
@@ -1089,6 +1185,7 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "The list of OAuth 2.0 scopes requested as part of GitHub Login authentication.",
 				},
 			},
 		},

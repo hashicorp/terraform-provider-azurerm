@@ -145,6 +145,7 @@ func unmarshalBasicAuthCredentials(body []byte) (BasicAuthCredentials, error) {
 		return ac, err
 	}
 }
+
 func unmarshalBasicAuthCredentialsArray(body []byte) ([]BasicAuthCredentials, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -727,6 +728,7 @@ func unmarshalBasicAzureBackupRecoveryPoint(body []byte) (BasicAzureBackupRecove
 		return abrp, err
 	}
 }
+
 func unmarshalBasicAzureBackupRecoveryPointArray(body []byte) ([]BasicAzureBackupRecoveryPoint, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -806,6 +808,7 @@ func unmarshalBasicAzureBackupRecoveryPointBasedRestoreRequest(body []byte) (Bas
 		return abrpbrr, err
 	}
 }
+
 func unmarshalBasicAzureBackupRecoveryPointBasedRestoreRequestArray(body []byte) ([]BasicAzureBackupRecoveryPointBasedRestoreRequest, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -1329,6 +1332,7 @@ func unmarshalBasicAzureBackupRestoreRequest(body []byte) (BasicAzureBackupResto
 		return abrr, err
 	}
 }
+
 func unmarshalBasicAzureBackupRestoreRequestArray(body []byte) ([]BasicAzureBackupRestoreRequest, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -1794,6 +1798,7 @@ func unmarshalBasicBackupCriteria(body []byte) (BasicBackupCriteria, error) {
 		return bc, err
 	}
 }
+
 func unmarshalBasicBackupCriteriaArray(body []byte) ([]BasicBackupCriteria, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -2492,6 +2497,7 @@ func unmarshalBasicBackupParameters(body []byte) (BasicBackupParameters, error) 
 		return bp, err
 	}
 }
+
 func unmarshalBasicBackupParametersArray(body []byte) ([]BasicBackupParameters, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -2970,6 +2976,7 @@ func unmarshalBasicBaseBackupPolicy(body []byte) (BasicBaseBackupPolicy, error) 
 		return bbp, err
 	}
 }
+
 func unmarshalBasicBaseBackupPolicyArray(body []byte) ([]BasicBaseBackupPolicy, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -3296,6 +3303,7 @@ func unmarshalBasicBasePolicyRule(body []byte) (BasicBasePolicyRule, error) {
 		return bpr, err
 	}
 }
+
 func unmarshalBasicBasePolicyRuleArray(body []byte) ([]BasicBasePolicyRule, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -3663,6 +3671,7 @@ func unmarshalBasicCopyOption(body []byte) (BasicCopyOption, error) {
 		return co, err
 	}
 }
+
 func unmarshalBasicCopyOptionArray(body []byte) ([]BasicCopyOption, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -3839,6 +3848,7 @@ func unmarshalBasicDataStoreParameters(body []byte) (BasicDataStoreParameters, e
 		return dsp, err
 	}
 }
+
 func unmarshalBasicDataStoreParametersArray(body []byte) ([]BasicDataStoreParameters, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -3926,6 +3936,7 @@ func unmarshalBasicDeleteOption(body []byte) (BasicDeleteOption, error) {
 		return do, err
 	}
 }
+
 func unmarshalBasicDeleteOptionArray(body []byte) ([]BasicDeleteOption, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -4439,6 +4450,7 @@ func unmarshalBasicFeatureValidationRequestBase(body []byte) (BasicFeatureValida
 		return fvrb, err
 	}
 }
+
 func unmarshalBasicFeatureValidationRequestBaseArray(body []byte) ([]BasicFeatureValidationRequestBase, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -4555,6 +4567,7 @@ func unmarshalBasicFeatureValidationResponseBase(body []byte) (BasicFeatureValid
 		return fvrb, err
 	}
 }
+
 func unmarshalBasicFeatureValidationResponseBaseArray(body []byte) ([]BasicFeatureValidationResponseBase, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -4712,6 +4725,7 @@ func unmarshalBasicItemLevelRestoreCriteria(body []byte) (BasicItemLevelRestoreC
 		return ilrc, err
 	}
 }
+
 func unmarshalBasicItemLevelRestoreCriteriaArray(body []byte) ([]BasicItemLevelRestoreCriteria, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -4990,6 +5004,7 @@ func unmarshalBasicOperationExtendedInfo(body []byte) (BasicOperationExtendedInf
 		return oei, err
 	}
 }
+
 func unmarshalBasicOperationExtendedInfoArray(body []byte) ([]BasicOperationExtendedInfo, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -5838,6 +5853,7 @@ func unmarshalBasicRestoreTargetInfoBase(body []byte) (BasicRestoreTargetInfoBas
 		return rtib, err
 	}
 }
+
 func unmarshalBasicRestoreTargetInfoBaseArray(body []byte) ([]BasicRestoreTargetInfoBase, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)
@@ -6306,6 +6322,7 @@ func unmarshalBasicTriggerContext(body []byte) (BasicTriggerContext, error) {
 		return tc, err
 	}
 }
+
 func unmarshalBasicTriggerContextArray(body []byte) ([]BasicTriggerContext, error) {
 	var rawMessages []*json.RawMessage
 	err := json.Unmarshal(body, &rawMessages)

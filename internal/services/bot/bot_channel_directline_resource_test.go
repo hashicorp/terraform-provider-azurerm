@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelDirectlineResource struct {
-}
+type BotChannelDirectlineResource struct{}
 
 func testAccBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")

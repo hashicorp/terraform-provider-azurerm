@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetDelimitedTextResource struct {
-}
+type DatasetDelimitedTextResource struct{}
 
 func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")

@@ -84,7 +84,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"variable": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -170,14 +169,12 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"request_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -209,7 +206,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{

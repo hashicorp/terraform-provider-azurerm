@@ -172,8 +172,8 @@ func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData,
 				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_action_rule_suppression", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_action_rule_suppression", id.ID())
 		}
 	}
 

@@ -9,7 +9,8 @@ import (
 )
 
 func LongTermRetentionPolicySchema() *pluginsdk.Schema {
-	atLeastOneOf := []string{"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+	atLeastOneOf := []string{
+		"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
 	}
 	return &pluginsdk.Schema{

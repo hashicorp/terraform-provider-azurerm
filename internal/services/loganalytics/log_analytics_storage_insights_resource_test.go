@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsStorageInsightsResource struct {
-}
+type LogAnalyticsStorageInsightsResource struct{}
 
 func TestAccLogAnalyticsStorageInsights_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_storage_insights", "test")

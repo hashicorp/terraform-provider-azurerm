@@ -27,7 +27,6 @@ func dataSourceImage() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name_regex": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,

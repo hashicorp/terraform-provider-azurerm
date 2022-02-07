@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudCertificateResource struct {
-}
+type SpringCloudCertificateResource struct{}
 
 func TestAccSpringCloudCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")

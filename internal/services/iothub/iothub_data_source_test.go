@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type IotHubDataSource struct {
-}
+type IotHubDataSource struct{}
 
 func TestAccDataSourceIotHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub", "test")

@@ -76,6 +76,7 @@ func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient

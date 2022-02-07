@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallNatRuleCollectionResource struct {
-}
+type FirewallNatRuleCollectionResource struct{}
 
 func TestAccFirewallNatRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
@@ -224,7 +223,7 @@ func TestAccFirewallNatRuleCollection_noSource(t *testing.T) {
 }
 
 func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
+	id, err := parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +250,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 }
 
 func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
+	id, err := parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -270,7 +269,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, cli
 
 func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
-	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
+	id, err := parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
