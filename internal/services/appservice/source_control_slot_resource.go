@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"strings"
 	"time"
 
@@ -15,10 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SourceControlResource struct{}
+type SourceControlSlotResource struct{}
 
-type SourceControlModel struct {
-	AppID                     string                      `tfschema:"app_id"`
+type SourceControlSlotModel struct {
+	SlotID                    string                      `tfschema:"slot_id"`
 	SCMType                   string                      `tfschema:"scm_type"`
 	RepoURL                   string                      `tfschema:"repo_url"`
 	Branch                    string                      `tfschema:"branch"`
@@ -30,15 +31,15 @@ type SourceControlModel struct {
 	GithubActionConfiguration []GithubActionConfiguration `tfschema:"github_action_configuration"`
 }
 
-var _ sdk.Resource = SourceControlResource{}
+var _ sdk.Resource = SourceControlSlotResource{}
 
-func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
+func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"app_id": {
+		"slot_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WebAppID,
+			ValidateFunc: validate.WebAppSlotID,
 		},
 
 		"repo_url": {
@@ -104,7 +105,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
+func (r SourceControlSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scm_type": {
 			Type:     pluginsdk.TypeString,
@@ -118,32 +119,36 @@ func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlResource) ModelObject() interface{} {
-	return &SourceControlModel{}
+func (r SourceControlSlotResource) ModelObject() interface{} {
+	return &SourceControlSlotModel{}
 }
 
-func (r SourceControlResource) ResourceType() string {
-	return "azurerm_app_service_source_control" // TODO - Does this name fit the new convention?
+func (r SourceControlSlotResource) ResourceType() string {
+	return "azurerm_app_service_source_control_slot" // TODO - Does this name fit the new convention?
 }
 
-func (r SourceControlResource) Create() sdk.ResourceFunc {
+func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var appSourceControl SourceControlModel
+			var appSourceControlSlot SourceControlSlotModel
 
-			if err := metadata.Decode(&appSourceControl); err != nil {
+			if err := metadata.Decode(&appSourceControlSlot); err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppID(appSourceControl.AppID)
+			id, err := parse.WebAppSlotID(appSourceControlSlot.SlotID)
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			appId := parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID()
+			locks.ByID(appId)
+			defer locks.UnlockByID(appId)
+
+			existing, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil || existing.SiteConfig == nil {
 				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
 			}
@@ -151,7 +156,7 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if appSourceControl.LocalGitSCM {
+			if appSourceControlSlot.LocalGitSCM {
 				sitePatch := web.SitePatchResource{
 					SitePatchResourceProperties: &web.SitePatchResourceProperties{
 						SiteConfig: &web.SiteConfig{
@@ -160,13 +165,13 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 					},
 				}
 
-				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
+				if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatch, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 				}
 			} else {
-				app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				app, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil || app.Kind == nil {
-					return fmt.Errorf("reading site to determine O/S type for %s: %+v", id, err)
+					return fmt.Errorf("reading slot to determine O/S type for %s: %+v", id, err)
 				}
 
 				usesLinux := false
@@ -176,25 +181,25 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 
 				sourceControl := web.SiteSourceControl{
 					SiteSourceControlProperties: &web.SiteSourceControlProperties{
-						IsManualIntegration:       utils.Bool(appSourceControl.ManualIntegration),
-						DeploymentRollbackEnabled: utils.Bool(appSourceControl.RollbackEnabled),
-						IsMercurial:               utils.Bool(appSourceControl.UseMercurial),
+						IsManualIntegration:       utils.Bool(appSourceControlSlot.ManualIntegration),
+						DeploymentRollbackEnabled: utils.Bool(appSourceControlSlot.RollbackEnabled),
+						IsMercurial:               utils.Bool(appSourceControlSlot.UseMercurial),
 					},
 				}
 
-				if appSourceControl.RepoURL != "" {
-					sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControl.RepoURL)
+				if appSourceControlSlot.RepoURL != "" {
+					sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControlSlot.RepoURL)
 				}
 
-				if appSourceControl.Branch != "" {
-					sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControl.Branch)
+				if appSourceControlSlot.Branch != "" {
+					sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControlSlot.Branch)
 				}
 
-				if ghaConfig := expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux); ghaConfig != nil {
+				if ghaConfig := expandGithubActionConfig(appSourceControlSlot.GithubActionConfiguration, usesLinux); ghaConfig != nil {
 					sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, sourceControl)
+				_, err = client.UpdateSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, sourceControl, id.SlotName)
 				if err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
@@ -208,18 +213,18 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r SourceControlResource) Read() sdk.ResourceFunc {
+func (r SourceControlSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			appSourceControl, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+			appSourceControl, err := client.GetSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil || appSourceControl.SiteSourceControlProperties == nil {
 				if utils.ResponseWasNotFound(appSourceControl.Response) {
 					return metadata.MarkAsGone(id)
@@ -227,7 +232,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Source Control for %s: %v", id, err)
 			}
 
-			siteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			siteConfig, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading App for Source Control %s: %v", id, err)
 			}
@@ -239,8 +244,8 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 
 			props := *appSourceControl.SiteSourceControlProperties
 
-			state := SourceControlModel{
-				AppID:                     id.ID(),
+			state := SourceControlSlotModel{
+				SlotID:                    id.ID(),
 				SCMType:                   string(siteConfig.ScmType),
 				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
 				Branch:                    utils.NormalizeNilableString(props.Branch),
@@ -257,12 +262,12 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r SourceControlResource) Delete() sdk.ResourceFunc {
+func (r SourceControlSlotResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -274,11 +279,11 @@ func (r SourceControlResource) Delete() sdk.ResourceFunc {
 					},
 				},
 			}
-			if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
+			if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatch, id.SlotName); err != nil {
 				return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 			}
 
-			if _, err := client.DeleteSourceControl(ctx, id.ResourceGroup, id.SiteName, ""); err != nil {
+			if _, err := client.DeleteSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, ""); err != nil {
 				return fmt.Errorf("deleting Source Control for %s: %v", id, err)
 			}
 
@@ -287,7 +292,7 @@ func (r SourceControlResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r SourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	// This is a meta resource with a 1:1 relationship with the service it's pointed at so we use the same ID
-	return validate.WebAppID
+func (r SourceControlSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	// This is a meta resource with a 1:1 relationship with the slot it's pointed at, so we use the same ID
+	return validate.WebAppSlotID
 }

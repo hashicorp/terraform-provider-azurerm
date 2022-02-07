@@ -61,7 +61,7 @@ func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk
 }
 
 func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
-	return &AppServiceSourceControlModel{}
+	return &SourceControlModel{}
 }
 
 func (r AppServiceSourceControlTokenResource) ResourceType() string {
