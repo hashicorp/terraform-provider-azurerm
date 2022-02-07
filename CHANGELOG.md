@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS: 
 
+* dependencies: updating to `v0.23.0` of `github.com/hashicorp/go-azure-helpers` [GH-15287]
 * `azurerm_application_insights` - Add support for `force_customer_storage_for_profiler` [GH-15254]
 * `azurerm_automation_account` - Support for managed identity [GH-15072]
  
