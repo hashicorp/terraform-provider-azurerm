@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `protocols` - (Optional) A `protocols` block as defined below.
 
+* `public_ip_address_id` - (Optional) Public Standard SKU IP V4 based IP address to be associated with Virtual Network deployed service in the region. Supported only for Developer and Premium SKU.
+
 * `security` - (Optional) A `security` block as defined below.
 
 * `sign_in` - (Optional) A `sign_in` block as defined below.
