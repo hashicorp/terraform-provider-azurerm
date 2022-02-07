@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -246,10 +245,8 @@ func (r OutputFunctionResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-				if !response.WasNotFound(resp.Response) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
 		},
