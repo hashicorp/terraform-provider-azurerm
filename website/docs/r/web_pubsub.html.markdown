@@ -95,7 +95,7 @@ A `live_trace` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the web pubsub. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `type` - (Required) The type of identity used for the web pubsub. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
 
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
