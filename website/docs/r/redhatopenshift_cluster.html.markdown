@@ -32,11 +32,11 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                 = "master-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  name                                          = "master-subnet"
+  resource_group_name                           = azurerm_resource_group.example.name
+  virtual_network_name                          = azurerm_virtual_network.example.name
+  address_prefixes                              = ["10.0.0.0/23"]
+  service_endpoints                             = ["Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -52,7 +52,7 @@ resource "azurerm_redhatopenshift_cluster" "example" {
   name                = "example-redhatopenshift1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  
+
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
@@ -62,7 +62,7 @@ resource "azurerm_redhatopenshift_cluster" "example" {
     vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
-  
+
   worker_profile {
     vm_size   = "Standard_D4s_v3"
     subnet_id = azurerm_subnet.worker_subnet.id
