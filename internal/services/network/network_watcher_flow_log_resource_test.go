@@ -288,7 +288,7 @@ func (r NetworkWatcherFlowLogResource) basicConfig(data acceptance.TestData) str
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -309,9 +309,9 @@ func (r NetworkWatcherFlowLogResource) requiresImport(data acceptance.TestData) 
 resource "azurerm_network_watcher_flow_log" "import" {
   network_watcher_name = azurerm_network_watcher_flow_log.test.network_watcher_name
   resource_group_name  = azurerm_network_watcher_flow_log.test.resource_group_name
-  name = azurerm_network_watcher_flow_log.test.name
+  name                 = azurerm_network_watcher_flow_log.test.name
 
-  network_security_group_id = azurerm_network_watcher_flow_log.test.network_security_group_id 
+  network_security_group_id = azurerm_network_watcher_flow_log.test.network_security_group_id
   storage_account_id        = azurerm_network_watcher_flow_log.test.storage_account_id
   enabled                   = azurerm_network_watcher_flow_log.test.enabled
 
@@ -330,7 +330,7 @@ func (r NetworkWatcherFlowLogResource) retentionPolicyConfig(data acceptance.Tes
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -362,7 +362,7 @@ resource "azurerm_storage_account" "testb" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.testb.id
@@ -383,7 +383,7 @@ func (r NetworkWatcherFlowLogResource) disabledConfig(data acceptance.TestData) 
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -411,7 +411,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -446,7 +446,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -482,7 +482,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -517,7 +517,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -546,7 +546,7 @@ func (r NetworkWatcherFlowLogResource) location(data acceptance.TestData) string
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
   location             = azurerm_resource_group.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
@@ -568,7 +568,7 @@ func (r NetworkWatcherFlowLogResource) tags(data acceptance.TestData, v string) 
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  name = "flowlog-%d"
+  name                 = "flowlog-%d"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
