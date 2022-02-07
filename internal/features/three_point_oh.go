@@ -41,9 +41,9 @@ func ThreePointOhBeta() bool {
 	return ThreePointOh() || false
 }
 
-// ThreePointOhBetaResources returns whether this provider is opted into
+// ThreePointOhAppServiceResources returns whether this provider is opted into
 // the Beta Resources coming in v3.0 - or explicitly opted into v3.0.
-func ThreePointOhBetaResources() bool {
+func ThreePointOhAppServiceResources() bool {
 	if ThreePointOh() || ThreePointOhBeta() {
 		return true
 	}
