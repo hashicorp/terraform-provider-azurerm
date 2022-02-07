@@ -18,6 +18,12 @@ resource "azurerm_resource_group" "example" {
   location = "east us"
 }
 
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "tfex-uai"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
 resource "azurerm_web_pubsub" "example" {
   name                = "tfex-webpubsub"
   location            = azurerm_resource_group.example.location
@@ -32,6 +38,11 @@ resource "azurerm_web_pubsub" "example" {
     enabled                   = true
     messaging_logs_enabled    = true
     connectivity_logs_enabled = false
+  }
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.example.id
   }
 }
 ```
@@ -59,6 +70,8 @@ The following arguments are supported:
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
@@ -77,6 +90,14 @@ A `live_trace` block supports the following:
 * `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
 
 * `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
+
+---
+
+An `identity` block supports the following:
+
+* `type` - The type of identity used for the web pubsub. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
 ## Attributes Reference
 
