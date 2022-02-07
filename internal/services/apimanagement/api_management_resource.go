@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -746,7 +745,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	d.SetId(id.ID())
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
-	if features.ThreePointOh() && d.IsNewResource() {
+	if features.ThreePointOhBeta() && d.IsNewResource() {
 		apis := make([]apimanagement.APIContract, 0)
 
 		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
