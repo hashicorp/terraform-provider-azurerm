@@ -308,10 +308,6 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	nsgId, _ := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
-	locks.ByID(nsgId.ID())
-	defer locks.UnlockByID(nsgId.ID())
-
 	future, err := client.Delete(ctx, id.ResourceGroup(), id.NetworkWatcherName(), id.Name())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %v", id, err)
