@@ -50,6 +50,46 @@ func SystemOrUserAssignedIdentityRequired() *schema.Schema {
 	}
 }
 
+// SystemOrUserAssignedIdentityRequiredForceNew returns the System or User Assigned Identity schema where this is Required and ForceNew
+func SystemOrUserAssignedIdentityRequiredForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 // SystemOrUserAssignedIdentityOptional returns the System or User Assigned Identity schema where this is Optional
 func SystemOrUserAssignedIdentityOptional() *schema.Schema {
 	return &schema.Schema{
@@ -69,6 +109,46 @@ func SystemOrUserAssignedIdentityOptional() *schema.Schema {
 				"identity_ids": {
 					Type:     schema.TypeSet,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemOrUserAssignedIdentityOptionalForceNew returns the System or User Assigned Identity schema where this is Optional and ForceNew
+func SystemOrUserAssignedIdentityOptionalForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
