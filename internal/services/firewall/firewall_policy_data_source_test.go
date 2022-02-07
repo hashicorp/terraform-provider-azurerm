@@ -10,8 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 )
 
-type FirewallPolicyDataSource struct {
-}
+type FirewallPolicyDataSource struct{}
 
 func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")

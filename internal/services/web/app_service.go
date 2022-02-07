@@ -227,6 +227,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 }
 
 func schemaAppServiceIdentity() *pluginsdk.Schema {
+	// TODO: 3.0 - conditionally switch this out
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -915,7 +916,6 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
 							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
@@ -1011,7 +1011,6 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
 							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,

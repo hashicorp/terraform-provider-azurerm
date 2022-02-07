@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BastionHostResource struct {
-}
+type BastionHostResource struct{}
 
 func TestAccBastionHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")

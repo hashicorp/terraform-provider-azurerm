@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceResource struct {
-}
+type ServiceBusNamespaceResource struct{}
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
@@ -30,6 +29,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
@@ -43,6 +43,7 @@ func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}

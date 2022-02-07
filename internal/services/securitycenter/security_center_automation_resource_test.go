@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityCenterAutomationResource struct {
-}
+type SecurityCenterAutomationResource struct{}
 
 func TestAccSecurityCenterAutomation_logicApp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")

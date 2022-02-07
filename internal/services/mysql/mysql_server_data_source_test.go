@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MySQLServerDataSource struct {
-}
+type MySQLServerDataSource struct{}
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")

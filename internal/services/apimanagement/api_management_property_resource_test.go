@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementPropertyResource struct {
-}
+type ApiManagementPropertyResource struct{}
 
 func TestAccApiManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")

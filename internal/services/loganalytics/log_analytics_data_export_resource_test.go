@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataExportRuleResource struct {
-}
+type LogAnalyticsDataExportRuleResource struct{}
 
 func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")

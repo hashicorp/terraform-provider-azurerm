@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubFallbackRouteResource struct {
-}
+type IotHubFallbackRouteResource struct{}
 
 // NOTE: this resource intentionally doesn't support Requires Import
 //       since a fallback route is created by default

@@ -325,7 +325,6 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
 		subscriptionId = *props.SubscriptionID
 		resp, err := client.Get(ctx, subscriptionId)
-
 		if err != nil {
 			return fmt.Errorf("failed to read Subscription %q (Alias %q) for Tenant Information: %+v", subscriptionId, id.Name, err)
 		}

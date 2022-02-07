@@ -38,8 +38,10 @@ type ReadWriteEndpointFailurePolicyModel struct {
 	Mode         string `tfschema:"mode"`
 }
 
-var _ sdk.Resource = MsSqlFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+)
 
 type MsSqlFailoverGroupResource struct{}
 
@@ -400,6 +402,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input *[]sql.PartnerIn
 
 	return
 }
+
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) *[]sql.PartnerInfo {
 	var partnerServers []sql.PartnerInfo
 	if input == nil {

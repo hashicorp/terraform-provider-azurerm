@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,30 +123,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"job_id": {
 				Type:     pluginsdk.TypeString,
@@ -199,6 +178,11 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	expandedIdentity, err := expandStreamAnalyticsJobIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	props := streamanalytics.StreamingJob{
 		Name:     utils.String(id.Name),
 		Location: utils.String(location),
@@ -212,7 +196,8 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
 		},
-		Tags: tags.Expand(t),
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(t),
 	}
 
 	if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
@@ -227,10 +212,6 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if dataLocale, ok := d.GetOk("data_locale"); ok {
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
-	}
-
-	if identity, ok := d.GetOk("identity"); ok {
-		props.Identity = expandStreamAnalyticsJobIdentity(identity.([]interface{}))
 	}
 
 	if d.IsNewResource() {
@@ -294,7 +275,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenJobIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
@@ -349,14 +330,27 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandStreamAnalyticsJobIdentity(identity []interface{}) *streamanalytics.Identity {
-	b := identity[0].(map[string]interface{})
-	return &streamanalytics.Identity{
-		Type: utils.String(b["type"].(string)),
+func expandStreamAnalyticsJobIdentity(input []interface{}) (*streamanalytics.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
+
+	// Otherwise we get:
+	//   Code="BadRequest"
+	//   Message="The JSON provided in the request body is invalid. Cannot convert value 'None' to
+	//   type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17649
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	return &streamanalytics.Identity{
+		Type: utils.String(string(expanded.Type)),
+	}, nil
 }
 
-func flattenStreamAnalyticsJobIdentity(identity *streamanalytics.Identity) []interface{} {
+func flattenJobIdentity(identity *streamanalytics.Identity) []interface{} {
 	if identity == nil {
 		return nil
 	}

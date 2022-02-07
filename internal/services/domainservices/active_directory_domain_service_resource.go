@@ -297,7 +297,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			// Parse the replica sets and assume the first one returned to be the initial replica set
 			// This is a best effort and the user can choose any replica set if they structure their config accordingly
 			props := existing.DomainServiceProperties

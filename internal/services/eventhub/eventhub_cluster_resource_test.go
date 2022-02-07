@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubClusterResource struct {
-}
+type EventHubClusterResource struct{}
 
 func TestAccEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")

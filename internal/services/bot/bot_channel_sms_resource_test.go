@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelSMSResource struct {
-}
+type BotChannelSMSResource struct{}
 
 func testAccBotChannelSMS_basic(t *testing.T) {
 	skipSMSChannel(t)

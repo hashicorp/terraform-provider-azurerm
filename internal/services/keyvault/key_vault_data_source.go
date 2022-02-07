@@ -157,7 +157,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 
 				"tags": tags.SchemaDataSource(),
 			}
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				dsSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Computed:   true,
@@ -203,7 +203,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("vault_uri", props.VaultURI)
 
 		// TODO: remove in 3.0
-		if !features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
 			d.Set("soft_delete_enabled", true)
 		}
 

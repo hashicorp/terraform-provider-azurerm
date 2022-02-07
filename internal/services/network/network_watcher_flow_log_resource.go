@@ -52,8 +52,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 				// TODO 3.0: Make this required, and remove computed.
-				//Required: true,
-				//ValidateFunc: validate.NetworkWatcherFlowLogName,
+				// Required: true,
+				// ValidateFunc: validate.NetworkWatcherFlowLogName,
 			},
 
 			"network_security_group_id": {

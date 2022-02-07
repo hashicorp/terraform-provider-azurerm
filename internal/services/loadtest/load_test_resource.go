@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LoadTestResource struct {
-}
+type LoadTestResource struct{}
 
 var _ sdk.ResourceWithUpdate = LoadTestResource{}
 
@@ -107,7 +106,6 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.LoadTest.LoadTestsClient
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {
@@ -181,7 +179,6 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}

@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KubernetesClusterNodePoolResource struct {
-}
+type KubernetesClusterNodePoolResource struct{}
 
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")

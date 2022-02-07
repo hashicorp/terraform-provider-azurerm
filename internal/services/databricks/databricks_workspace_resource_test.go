@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabricksWorkspaceResource struct {
-}
+type DatabricksWorkspaceResource struct{}
 
 func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")

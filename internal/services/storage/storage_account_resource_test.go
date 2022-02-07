@@ -1899,7 +1899,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r StorageAccountResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account" "test" {
@@ -1912,6 +1913,27 @@ resource "azurerm_storage_account" "test" {
 
   identity {
     type = "SystemAssigned,UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, r.identityTemplate(data), data.RandomString)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotConnectionResource struct {
-}
+type BotConnectionResource struct{}
 
 func testAccBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")

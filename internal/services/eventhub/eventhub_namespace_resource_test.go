@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceResource struct {
-}
+type EventHubNamespaceResource struct{}
 
 func TestAccEventHubNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
@@ -592,6 +591,13 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = "2"
+  network_rulesets {
+    default_action = "Deny"
+    ip_rule {
+      ip_mask = "10.0.0.0/16"
+      action  = "Allow"
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

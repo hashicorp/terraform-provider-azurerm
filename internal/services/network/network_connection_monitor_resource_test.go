@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkConnectionMonitorResource struct {
-}
+type NetworkConnectionMonitorResource struct{}
 
 func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")

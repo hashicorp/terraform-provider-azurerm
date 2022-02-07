@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BatchApplicationResource struct {
-}
+type BatchApplicationResource struct{}
 
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")

@@ -6,10 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
@@ -75,12 +76,13 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": identity.SystemAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
 	}
 }
+
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
@@ -104,6 +106,11 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	expandedIdentity, err := expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := dataprotection.BackupVaultResource{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &dataprotection.BackupVault{
@@ -111,9 +118,10 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 				{
 					DatastoreType: dataprotection.StorageSettingStoreTypes(d.Get("datastore_type").(string)),
 					Type:          dataprotection.StorageSettingTypes(d.Get("redundancy").(string)),
-				}},
+				},
+			},
 		},
-		Identity: expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	future, err := client.CreateOrUpdate(ctx, id.Name, id.ResourceGroup, parameters)
@@ -182,15 +190,19 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandBackupVaultDppIdentityDetails(input []interface{}) *dataprotection.DppIdentityDetails {
-	config, _ := identity.SystemAssigned{}.Expand(input)
+func expandBackupVaultDppIdentityDetails(input []interface{}) (*dataprotection.DppIdentityDetails, error) {
+	config, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dataprotection.DppIdentityDetails{
 		Type: utils.String(string(config.Type)),
-	}
+	}, nil
 }
 
 func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetails) []interface{} {
-	var config *identity.ExpandedConfig
+	var config *identity.SystemAssigned
 	if input != nil {
 		principalId := ""
 		if input.PrincipalID != nil {
@@ -201,11 +213,11 @@ func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetai
 		if input.TenantID != nil {
 			tenantId = *input.TenantID
 		}
-		config = &identity.ExpandedConfig{
+		config = &identity.SystemAssigned{
 			Type:        identity.Type(*input.Type),
 			PrincipalId: principalId,
 			TenantId:    tenantId,
 		}
 	}
-	return identity.SystemAssigned{}.Flatten(config)
+	return identity.FlattenSystemAssigned(config)
 }

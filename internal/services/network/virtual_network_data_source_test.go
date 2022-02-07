@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualNetworkDataSource struct {
-}
+type VirtualNetworkDataSource struct{}
 
 func TestAccDataSourceVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")

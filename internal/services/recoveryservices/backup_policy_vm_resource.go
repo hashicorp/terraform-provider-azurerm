@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -44,7 +44,6 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -83,7 +82,6 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"frequency": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
@@ -330,7 +328,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 
 	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
 		TimeZone:             utils.String(d.Get("timezone").(string)),
-		BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
+		BackupManagementType: backup.ManagementTypeBasicProtectionPolicyBackupManagementTypeAzureIaasVM,
 		SchedulePolicy:       expandBackupProtectionPolicyVMSchedule(d, times),
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
@@ -451,7 +449,16 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 
 	log.Printf("[DEBUG] Deleting Azure Backup Protected Item %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	resp, err := future.Result(*client)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("issuing delete request for Azure Backup Protection Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)

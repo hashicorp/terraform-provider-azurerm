@@ -11,8 +11,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = NetworkAclV0ToV1{}
 
-type NetworkAclV0ToV1 struct {
-}
+type NetworkAclV0ToV1 struct{}
 
 func (n NetworkAclV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

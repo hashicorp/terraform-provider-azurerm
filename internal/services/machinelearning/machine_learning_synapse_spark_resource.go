@@ -124,7 +124,6 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
-
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}

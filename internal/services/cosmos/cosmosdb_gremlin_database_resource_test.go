@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosGremlinDatabaseResource struct {
-}
+type CosmosGremlinDatabaseResource struct{}
 
 func TestAccCosmosGremlinDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")

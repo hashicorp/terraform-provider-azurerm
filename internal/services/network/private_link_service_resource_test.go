@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateLinkServiceResource struct {
-}
+type PrivateLinkServiceResource struct{}
 
 func TestAccPrivateLinkService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")

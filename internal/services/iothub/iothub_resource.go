@@ -592,7 +592,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentity(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
@@ -618,8 +618,8 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iothub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iothub", id.ID())
 		}
 	}
 
@@ -648,7 +648,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
-	} else if features.ThreePointOh() {
+	} else if features.ThreePointOhBeta() {
 		// TODO update docs for 3.0
 		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
 			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),

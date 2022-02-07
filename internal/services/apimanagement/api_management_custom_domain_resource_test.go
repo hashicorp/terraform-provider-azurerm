@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementCustomDomainResource struct {
-}
+type ApiManagementCustomDomainResource struct{}
 
 func TestAccApiManagementCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
