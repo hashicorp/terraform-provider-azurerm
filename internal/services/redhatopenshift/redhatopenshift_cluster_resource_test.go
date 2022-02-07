@@ -117,11 +117,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                 = "master-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  name                                          = "master-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.0.0/23"]
+  service_endpoints                             = ["Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -137,16 +137,16 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   master_profile {
     subnet_id = azurerm_subnet.master_subnet.id
   }
-  
+
   worker_profile {
     subnet_id = azurerm_subnet.worker_subnet.id
   }
 
-	service_principal {
+  service_principal {
     client_id     = %q
     client_secret = %q
   }
@@ -173,11 +173,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                 = "master-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  name                                          = "master-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.0.0/23"]
+  service_endpoints                             = ["Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -193,11 +193,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   master_profile {
     subnet_id = azurerm_subnet.master_subnet.id
   }
-  
+
   worker_profile {
     subnet_id = azurerm_subnet.worker_subnet.id
   }
@@ -209,8 +209,8 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   ingress_profile {
     visibility = "Private"
   }
-	
-	service_principal {
+
+  service_principal {
     client_id     = %q
     client_secret = %q
   }
@@ -237,11 +237,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                 = "master-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  name                                          = "master-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.0.0/23"]
+  service_endpoints                             = ["Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -257,11 +257,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   master_profile {
     subnet_id = azurerm_subnet.master_subnet.id
   }
-  
+
   worker_profile {
     subnet_id = azurerm_subnet.worker_subnet.id
   }
@@ -270,10 +270,10 @@ resource "azurerm_redhatopenshift_cluster" "test" {
     domain = "foo.example.com"
   }
 
-	service_principal {
+  service_principal {
     client_id     = %q
     client_secret = %q
   }
- }
+}
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
