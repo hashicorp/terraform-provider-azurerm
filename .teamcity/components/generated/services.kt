@@ -78,6 +78,7 @@ var services = mapOf(
         "privatedns" to "Private DNS",
         "purview" to "Purview",
         "recoveryservices" to "Recovery Services",
+        "redhatopenshift" to "Red Hat Openshift",
         "redis" to "Redis",
         "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
