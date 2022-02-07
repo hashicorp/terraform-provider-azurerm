@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventGridSystemTopicEventSubscriptionResource struct {
-}
+type EventGridSystemTopicEventSubscriptionResource struct{}
 
 func TestAccEventGridSystemTopicEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CognitiveAccountCustomerManagedKeyResource struct {
-}
+type CognitiveAccountCustomerManagedKeyResource struct{}
 
 func TestAccCognitiveAccountCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")

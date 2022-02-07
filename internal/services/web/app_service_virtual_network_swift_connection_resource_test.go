@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceVirtualNetworkSwiftConnectionResource struct {
-}
+type AppServiceVirtualNetworkSwiftConnectionResource struct{}
 
 func TestAccAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")

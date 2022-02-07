@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallApplicationRuleCollectionResource struct {
-}
+type FirewallApplicationRuleCollectionResource struct{}
 
 func TestAccFirewallApplicationRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
@@ -384,7 +383,7 @@ func TestAccFirewallApplicationRuleCollection_noSource(t *testing.T) {
 }
 
 func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +410,7 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 }
 
 func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -430,7 +429,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Cont
 
 func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}

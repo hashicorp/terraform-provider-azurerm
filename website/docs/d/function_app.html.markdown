@@ -168,11 +168,13 @@ A `source_control` block exports the following:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal assigned to the function app.
+* `identity_ids` - A list of User Assigned Identity IDs assigned to the Function App.
 
-* `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the function app.
+* `principal_id` - The ID of the Managed Identity assigned to the Function App.
 
-* `type` - The identity type of the Managed Identity assigned to the function app.
+* `tenant_id` - The ID of the Tenant where the Managed Identity assigned to the Function App is located.
+
+* `type` - The identity type of the Managed Identity assigned to the Function App.
 
 ## Timeouts
 

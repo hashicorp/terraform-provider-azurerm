@@ -177,7 +177,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return "1.2"
 					}
 					return nil
@@ -241,12 +241,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id.String(), err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_mssql_server", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
 	}
 
 	props := sql.Server{

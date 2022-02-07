@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinuxVirtualMachineScaleSetResource struct {
-}
+type LinuxVirtualMachineScaleSetResource struct{}
 
 func (r LinuxVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineScaleSetID(state.ID)

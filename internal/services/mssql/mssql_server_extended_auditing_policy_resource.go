@@ -5,9 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/gofrs/uuid"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -194,7 +193,6 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
 		}
-
 	}
 
 	return nil

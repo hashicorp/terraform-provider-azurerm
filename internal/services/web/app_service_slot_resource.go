@@ -189,8 +189,8 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_slot", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
 		}
 	}
 

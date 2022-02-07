@@ -61,7 +61,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 
 	serverId, err := parse.ServerID(d.Get("server_id").(string))
-
 	if err != nil {
 		return err
 	}
@@ -95,7 +94,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 		// Set the encryption protector properties
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
-
 		if err != nil {
 			return fmt.Errorf("Unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
@@ -107,7 +105,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 			// Extract the vault name from the keyvault base url
 			idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseUrl)
-
 			if err != nil {
 				return fmt.Errorf("Unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
 			}
@@ -213,7 +210,6 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 	defer cancel()
 
 	id, err := parse.EncryptionProtectorID(d.Id())
-
 	if err != nil {
 		return err
 	}

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SiteRecoveryReplicatedVmResource struct {
-}
+type SiteRecoveryReplicatedVmResource struct{}
 
 func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")

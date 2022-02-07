@@ -141,8 +141,8 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 				return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_application_definition", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
 		}
 	}
 

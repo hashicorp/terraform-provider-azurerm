@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceDatabricksResource struct {
-}
+type LinkedServiceDatabricksResource struct{}
 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
@@ -75,6 +74,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_newClusterConfig(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 	r := LinkedServiceDatabricksResource{}

@@ -165,8 +165,8 @@ func resourcePacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_packet_capture", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_packet_capture", id.ID())
 	}
 
 	storageLocation, err := expandPacketCaptureStorageLocation(d)

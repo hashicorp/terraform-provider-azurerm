@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KubernetesClusterDataSource struct {
-}
+type KubernetesClusterDataSource struct{}
 
 func TestAccDataSourceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")

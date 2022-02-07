@@ -237,8 +237,8 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_service", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{

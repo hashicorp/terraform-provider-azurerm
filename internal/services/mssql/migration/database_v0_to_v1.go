@@ -14,8 +14,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = DatabaseV0ToV1{}
 
-type DatabaseV0ToV1 struct {
-}
+type DatabaseV0ToV1 struct{}
 
 func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

@@ -15,8 +15,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
-type VirtualMachineResource struct {
-}
+type VirtualMachineResource struct{}
 
 func TestAccVirtualMachine_winTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")

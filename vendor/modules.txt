@@ -63,7 +63,7 @@ github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
-github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation
+github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
 github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2019-06-01-preview/containerregistry
 github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry
@@ -93,7 +93,7 @@ github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
-github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup
+github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices
 github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis
 github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise
@@ -189,7 +189,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.21.0
+# github.com/hashicorp/go-azure-helpers v0.22.0
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates

@@ -7,7 +7,7 @@ import (
 
 func TestFirewallName(t *testing.T) {
 	// The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.
-	var validNames = []string{
+	validNames := []string{
 		"a",
 		"abc123",
 		"a_b_c",

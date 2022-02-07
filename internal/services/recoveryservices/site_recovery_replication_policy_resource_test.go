@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SiteRecoveryReplicationPolicyResource struct {
-}
+type SiteRecoveryReplicationPolicyResource struct{}
 
 func TestAccSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")

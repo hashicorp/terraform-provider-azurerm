@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ContainerRegistryResource struct {
-}
+type ContainerRegistryResource struct{}
 
 func TestAccContainerRegistryName_validation(t *testing.T) {
 	cases := []struct {
@@ -903,6 +902,7 @@ resource "azurerm_container_registry" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VPNGatewayDataSource struct {
-}
+type VPNGatewayDataSource struct{}
 
 func TestAccVPNGatewayDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_vpn_gateway", "test")

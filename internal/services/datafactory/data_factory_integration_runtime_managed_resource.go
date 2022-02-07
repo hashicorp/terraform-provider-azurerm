@@ -222,8 +222,8 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_managed", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_managed", id.ID())
 		}
 	}
 

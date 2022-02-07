@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogicAppWorkflowResource struct {
-}
+type LogicAppWorkflowResource struct{}
 
 func TestAccLogicAppWorkflow_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")

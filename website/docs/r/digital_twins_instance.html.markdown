@@ -6,7 +6,7 @@ description: |-
   Manages a Digital Twins instance.
 ---
 
-# azurerm__digital_twins_instance
+# azurerm_digital_twins_instance
 
 Manages a Digital Twins instance.
 

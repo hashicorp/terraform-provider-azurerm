@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubnetResource struct {
-}
+type SubnetResource struct{}
 
 func TestAccSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")

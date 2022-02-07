@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ServiceBusTopicAuthorizationRuleDataSource struct {
-}
+type ServiceBusTopicAuthorizationRuleDataSource struct{}
 
 func TestAccDataSourceServiceBusTopicAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_topic_authorization_rule", "test")

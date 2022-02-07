@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SiteRecoveryProtectionContainerResource struct {
-}
+type SiteRecoveryProtectionContainerResource struct{}
 
 func TestAccSiteRecoveryProtectionContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container", "test")

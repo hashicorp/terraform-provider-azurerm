@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationModuleResource struct {
-}
+type AutomationModuleResource struct{}
 
 func TestAccAutomationModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
@@ -178,6 +177,7 @@ resource "azurerm_automation_module" "import" {
 }
 `, template)
 }
+
 func (AutomationModuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

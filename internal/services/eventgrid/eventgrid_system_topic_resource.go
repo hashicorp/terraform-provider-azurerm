@@ -99,8 +99,8 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_eventgrid_system_topic", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_eventgrid_system_topic", id.ID())
 		}
 	}
 
