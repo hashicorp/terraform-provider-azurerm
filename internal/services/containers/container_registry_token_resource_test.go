@@ -61,6 +61,9 @@ func TestAccContainerRegistryToken_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("password.#").HasValue("2"),
+				check.That(data.ResourceName).Key("password.0.value").IsSet(),
+				check.That(data.ResourceName).Key("password.1.value").IsSet(),
 			),
 		},
 		data.ImportStep("password"),
