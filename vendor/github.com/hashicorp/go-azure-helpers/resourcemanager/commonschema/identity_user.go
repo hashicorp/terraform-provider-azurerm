@@ -35,6 +35,37 @@ func UserAssignedIdentityRequired() *schema.Schema {
 	}
 }
 
+// UserAssignedIdentityRequiredForceNew returns the User Assigned Identity schema where this is Required and ForceNew
+func UserAssignedIdentityRequiredForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Required: true,
+					ForceNew: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
+		},
+	}
+}
+
 // UserAssignedIdentityOptional returns the User Assigned Identity schema where this is Optional
 func UserAssignedIdentityOptional() *schema.Schema {
 	return &schema.Schema{
@@ -53,6 +84,37 @@ func UserAssignedIdentityOptional() *schema.Schema {
 				"identity_ids": {
 					Type:     schema.TypeSet,
 					Required: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
+		},
+	}
+}
+
+// UserAssignedIdentityOptionalForceNew returns the User Assigned Identity schema where this is Optional and ForceNew
+func UserAssignedIdentityOptionalForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Required: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
