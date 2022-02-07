@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinuxVirtualMachineScaleSetResource struct {
-}
+type LinuxVirtualMachineScaleSetResource struct{}
 
 func (r LinuxVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineScaleSetID(state.ID)
@@ -20,7 +19,7 @@ func (r LinuxVirtualMachineScaleSetResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Linux Virtual Machine Scale Set %q: %+v", id, err)
 	}

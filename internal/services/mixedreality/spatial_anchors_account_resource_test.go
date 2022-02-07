@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpatialAnchorsAccountResource struct {
-}
+type SpatialAnchorsAccountResource struct{}
 
 func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")

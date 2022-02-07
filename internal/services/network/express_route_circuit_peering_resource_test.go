@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteCircuitPeeringResource struct {
-}
+type ExpressRouteCircuitPeeringResource struct{}
 
 func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
@@ -173,17 +172,14 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testin
 }
 
 func (t ExpressRouteCircuitPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ExpressRouteCircuitPeeringID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	peeringType := id.Path["peerings"]
 
-	resp, err := clients.Network.ExpressRoutePeeringsClient.Get(ctx, resourceGroup, circuitName, peeringType)
+	resp, err := clients.Network.ExpressRoutePeeringsClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Express Route Circuit Peering (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

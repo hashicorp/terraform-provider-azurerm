@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_recovery_services_vault" "vault" {
-  name                = "example_recovery_vault"
+  name                = "example-recovery-vault"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
@@ -32,7 +32,7 @@ resource "azurerm_recovery_services_vault" "vault" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Recovery Services Vault. Recovery Service Vault name must be 2 - 50 characters long, start with a letter, contain only letters, numbers and hyphens. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Vault. Changing this forces a new resource to be created.
 
@@ -44,13 +44,31 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
+* `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.
+
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
+
+* `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
+
+!> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
 
 ---
 
 An `identity` block supports the following:
 
 * `type` - (Required) The Type of Identity which should be used for this Recovery Services Vault. At this time the only possible value is `SystemAssigned`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_id` - (Required) The Key Vault key id used to encrypt this vault. Key managed by Vault Managed Hardware Security Module is also supported.
+
+* `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
+
+* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. At this time the only possible value is `true`. Defaults to `true`.
+
+!> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 
 ---
 

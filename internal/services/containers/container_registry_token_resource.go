@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,27 +99,21 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token creation.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
-
-	id := parse.NewContainerRegistryTokenID(subscriptionId, resourceGroup, containerRegistryName, name)
+	id := parse.NewContainerRegistryTokenID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing token %q: %s", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry_token", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_registry_token", id.ID())
 		}
 	}
 
@@ -140,11 +134,11 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating token %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of token %q: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -195,11 +189,11 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating token %q: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of token %q: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	if d.HasChange("password") {
@@ -233,7 +227,6 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Token %q was not found in Container Registry %q in Resource Group %q", id.TokenName, id.RegistryName, id.ResourceGroup)

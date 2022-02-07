@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorAADDiagnosticSettingResource struct {
-}
+type MonitorAADDiagnosticSettingResource struct{}
 
 func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
@@ -208,7 +207,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -306,7 +304,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     }
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 

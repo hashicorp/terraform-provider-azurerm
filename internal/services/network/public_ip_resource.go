@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,7 +64,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"availability_zone": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				//Default:  "Zone-Redundant",
+				// Default:  "Zone-Redundant",
 				Computed: true,
 				ForceNew: true,
 				ConflictsWith: []string{

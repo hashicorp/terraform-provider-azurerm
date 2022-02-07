@@ -70,6 +70,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 Virtual Desktop Workspaces can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_desktop_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/myGroup1/providers/Microsoft.DesktopVirtualization/workspaces/myworkspace
 ```

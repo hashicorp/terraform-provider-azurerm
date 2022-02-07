@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,6 +50,12 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"stream_analytics_cluster_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -56,9 +64,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 					// values found in the other API the portal uses
 					string(streamanalytics.OneFullStopZero),
 					"1.1",
-					// TODO: support for 1.2 when this is fixed:
-					// https://github.com/Azure/azure-rest-api-specs/issues/5604
-					// "1.2",
+					"1.2",
 				}, false),
 			},
 
@@ -117,30 +123,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"job_id": {
 				Type:     pluginsdk.TypeString,
@@ -155,24 +138,24 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Job %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_job", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_job", id.ID())
 		}
 	}
 
@@ -195,8 +178,13 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	expandedIdentity, err := expandStreamAnalyticsJobIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	props := streamanalytics.StreamingJob{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		StreamingJobProperties: &streamanalytics.StreamingJobProperties{
 			Sku: &streamanalytics.StreamingJobSku{
@@ -208,51 +196,50 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
 		},
-		Tags: tags.Expand(t),
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(t),
+	}
+
+	if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
+		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+			ID: utils.String(streamAnalyticsCluster.(string)),
+		}
+	} else {
+		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+			ID: nil,
+		}
 	}
 
 	if dataLocale, ok := d.GetOk("data_locale"); ok {
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
 
-	if identity, ok := d.GetOk("identity"); ok {
-		props.Identity = expandStreamAnalyticsJobIdentity(identity.([]interface{}))
-	}
-
 	if d.IsNewResource() {
 		props.StreamingJobProperties.Transformation = &transformation
 
-		future, err := client.CreateOrReplace(ctx, props, resourceGroup, name, "", "")
+		future, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.Name, "", "")
 		if err != nil {
-			return fmt.Errorf("Creating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return err
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Job %q (Resource Group %q)", name, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
+		d.SetId(id.ID())
 	} else {
-		if _, err := client.Update(ctx, props, resourceGroup, name, ""); err != nil {
-			return fmt.Errorf("Updating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := client.Update(ctx, props, id.ResourceGroup, id.Name, ""); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		job, err := client.Get(ctx, resourceGroup, name, "transformation")
+		job, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 		if err != nil {
 			return err
 		}
 
 		if readTransformation := job.Transformation; readTransformation != nil {
-			if _, err := transformationsClient.Update(ctx, transformation, resourceGroup, name, *readTransformation.Name, ""); err != nil {
-				return fmt.Errorf("Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if _, err := transformationsClient.Update(ctx, transformation, id.ResourceGroup, id.Name, *readTransformation.Name, ""); err != nil {
+				return fmt.Errorf("updating transformation for %s: %+v", id, err)
 			}
 		}
 	}
@@ -273,12 +260,12 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -288,7 +275,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenJobIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
@@ -300,6 +287,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if props.EventsOutOfOrderMaxDelayInSeconds != nil {
 			d.Set("events_out_of_order_max_delay_in_seconds", int(*props.EventsOutOfOrderMaxDelayInSeconds))
+		}
+		if props.Cluster != nil {
+			d.Set("stream_analytics_cluster_id", props.Cluster.ID)
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
@@ -330,24 +320,37 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandStreamAnalyticsJobIdentity(identity []interface{}) *streamanalytics.Identity {
-	b := identity[0].(map[string]interface{})
-	return &streamanalytics.Identity{
-		Type: utils.String(b["type"].(string)),
+func expandStreamAnalyticsJobIdentity(input []interface{}) (*streamanalytics.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
+
+	// Otherwise we get:
+	//   Code="BadRequest"
+	//   Message="The JSON provided in the request body is invalid. Cannot convert value 'None' to
+	//   type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17649
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	return &streamanalytics.Identity{
+		Type: utils.String(string(expanded.Type)),
+	}, nil
 }
 
-func flattenStreamAnalyticsJobIdentity(identity *streamanalytics.Identity) []interface{} {
+func flattenJobIdentity(identity *streamanalytics.Identity) []interface{} {
 	if identity == nil {
 		return nil
 	}

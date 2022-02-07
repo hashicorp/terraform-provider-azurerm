@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DataLakeStoreDataSource struct {
-}
+type DataLakeStoreDataSource struct{}
 
 func TestAccDataLakeStoreDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")

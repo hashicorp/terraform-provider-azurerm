@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
@@ -218,7 +219,12 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(mysql.TLSEnforcementDisabled),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return string(mysql.TLS12)
+					}
+					return string(mysql.TLSEnforcementDisabled)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.TLSEnforcementDisabled),
 					string(mysql.TLS10),
@@ -233,7 +239,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
-					validation.IntBetween(5120, 4194304),
+					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
 				),
 			},
@@ -287,7 +293,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							ConflictsWith: []string{"storage_mb"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
+								validation.IntBetween(5120, 16777216),
 								validation.IntDivisibleBy(1024),
 							),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
@@ -305,7 +311,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -325,7 +332,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -334,7 +342,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 						"email_account_admins": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -348,7 +357,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 								// todo email validation in code
 							},
 							Set: pluginsdk.HashString,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -358,7 +368,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -369,7 +380,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -379,7 +391,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},

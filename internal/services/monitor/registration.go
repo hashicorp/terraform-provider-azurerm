@@ -1,10 +1,17 @@
 package monitor
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/monitor"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -41,6 +48,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_diagnostic_setting":          resourceMonitorDiagnosticSetting(),
 		"azurerm_monitor_log_profile":                 resourceMonitorLogProfile(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),
+		"azurerm_monitor_private_link_scope":          resourceMonitorPrivateLinkScope(),
+		"azurerm_monitor_private_link_scoped_service": resourceMonitorPrivateLinkScopedService(),
 		"azurerm_monitor_scheduled_query_rules_alert": resourceMonitorScheduledQueryRulesAlert(),
 		"azurerm_monitor_scheduled_query_rules_log":   resourceMonitorScheduledQueryRulesLog(),
 		"azurerm_monitor_smart_detector_alert_rule":   resourceMonitorSmartDetectorAlertRule(),

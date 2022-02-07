@@ -1,10 +1,17 @@
 package mysql
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/mysql"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -21,7 +28,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_server": dataSourceMySqlServer(),
+		"azurerm_mysql_server":          dataSourceMySqlServer(),
+		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
 	}
 }
 
@@ -32,6 +40,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mysql_database":                       resourceMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                  resourceMySqlFirewallRule(),
 		"azurerm_mysql_flexible_server":                resourceMysqlFlexibleServer(),
+		"azurerm_mysql_flexible_database":              resourceMySqlFlexibleDatabase(),
+		"azurerm_mysql_flexible_server_configuration":  resourceMySQLFlexibleServerConfiguration(),
+		"azurerm_mysql_flexible_server_firewall_rule":  resourceMySqlFlexibleServerFirewallRule(),
 		"azurerm_mysql_server":                         resourceMySqlServer(),
 		"azurerm_mysql_server_key":                     resourceMySQLServerKey(),
 		"azurerm_mysql_virtual_network_rule":           resourceMySQLVirtualNetworkRule(),

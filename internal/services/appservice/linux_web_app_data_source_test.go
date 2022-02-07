@@ -32,6 +32,5 @@ data azurerm_linux_web_app test {
   name                = azurerm_linux_web_app.test.name
   resource_group_name = azurerm_linux_web_app.test.resource_group_name
 }
-
 `, LinuxWebAppResource{}.basic(data)) // TODO - Update this to l.complete when that config is written
 }

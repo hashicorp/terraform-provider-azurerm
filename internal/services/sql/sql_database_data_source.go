@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -76,39 +78,29 @@ func dataSourceSqlDatabase() *pluginsdk.Resource {
 
 func dataSourceArmSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", name, serverName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving SQL Database %q (server %q / resource group %q): %s", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
-
-	if id := resp.ID; id != nil {
-		d.SetId(*id)
-	}
+	d.SetId(id.ID())
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("collation", props.Collation)
-
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)
-
 		d.Set("edition", string(props.Edition))
-
 		d.Set("elastic_pool_name", props.ElasticPoolName)
-
 		d.Set("failover_group_id", props.FailoverGroupID)
-
 		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 	}
 

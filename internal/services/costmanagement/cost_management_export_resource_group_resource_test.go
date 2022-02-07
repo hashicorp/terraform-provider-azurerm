@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CostManagementExportResourceGroupResource struct {
-}
+type CostManagementExportResourceGroupResource struct{}
 
 func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
@@ -67,7 +66,7 @@ func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name)
+	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Cost Management Export ResourceGroup %q (resource group: %q) does not exist", id.Name, id.ResourceId)
 	}

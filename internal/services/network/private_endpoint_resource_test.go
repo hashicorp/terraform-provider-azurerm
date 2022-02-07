@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateEndpointResource struct {
-}
+type PrivateEndpointResource struct{}
 
 func TestAccPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
@@ -458,7 +457,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -538,7 +537,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -613,7 +612,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -698,7 +697,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true

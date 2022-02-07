@@ -73,7 +73,6 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -81,7 +80,6 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -365,7 +363,6 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   send                = true
   manage              = true
 }
-
 `, r.template(data), data.RandomInteger)
 }
 

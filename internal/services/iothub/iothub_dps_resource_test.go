@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubDPSResource struct {
-}
+type IotHubDPSResource struct{}
 
 func TestAccIotHubDPS_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
@@ -84,6 +83,7 @@ func TestAccIotHubDPS_linkedHubs(t *testing.T) {
 			Config: r.linkedHubs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allocation_policy").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -240,9 +240,10 @@ resource "azurerm_iothub_dps" "test" {
   }
 
   linked_hub {
-    connection_string = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
-    location          = azurerm_resource_group.test.location
-    allocation_weight = 150
+    connection_string       = "HostName=test3.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
+    location                = azurerm_resource_group.test.location
+    allocation_weight       = 150
+    apply_allocation_policy = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

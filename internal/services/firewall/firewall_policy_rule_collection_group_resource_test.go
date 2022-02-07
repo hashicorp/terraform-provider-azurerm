@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyRuleCollectionGroupResource struct {
-}
+type FirewallPolicyRuleCollectionGroupResource struct{}
 
 func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
@@ -135,7 +134,7 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 }
 
 func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyRuleCollectionGroupID(state.ID)
+	id, err := parse.FirewallPolicyRuleCollectionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +300,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_address = "192.168.1.1"
       destination_ports   = ["80"]
       translated_address  = "192.168.0.1"
+      translated_port     = "8080"
+    }
+    rule {
+      name                = "nat_rule_collection1_rule3"
+      protocols           = ["TCP", "UDP"]
+      source_addresses    = ["10.0.0.1", "10.0.0.2"]
+      destination_address = "192.168.1.1"
+      destination_ports   = ["80"]
+      translated_fqdn     = "time.microsoft.com"
       translated_port     = "8080"
     }
   }

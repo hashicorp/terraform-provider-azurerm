@@ -15,7 +15,7 @@ type ListKeysResponse struct {
 }
 
 // ListKeys ...
-func (c HybridConnectionsClient) ListKeys(ctx context.Context, id AuthorizationRuleId) (result ListKeysResponse, err error) {
+func (c HybridConnectionsClient) ListKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId) (result ListKeysResponse, err error) {
 	req, err := c.preparerForListKeys(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "ListKeys", nil, "Failure preparing request")
@@ -38,7 +38,7 @@ func (c HybridConnectionsClient) ListKeys(ctx context.Context, id AuthorizationR
 }
 
 // preparerForListKeys prepares the ListKeys request.
-func (c HybridConnectionsClient) preparerForListKeys(ctx context.Context, id AuthorizationRuleId) (*http.Request, error) {
+func (c HybridConnectionsClient) preparerForListKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

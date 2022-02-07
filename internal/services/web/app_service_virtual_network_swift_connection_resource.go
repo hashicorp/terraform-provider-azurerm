@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -80,7 +80,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 			}
 		}
 
-		if existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
+		if existing.SwiftVirtualNetworkProperties != nil && existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
 			return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", *existing.ID)
 		}
 	}

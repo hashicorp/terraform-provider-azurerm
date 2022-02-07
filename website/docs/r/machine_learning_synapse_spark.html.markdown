@@ -3,12 +3,12 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_synapse_spark"
 description: |-
-  Manages a Machine Learning Synapse Spark.
+  Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 ---
 
 # azurerm_machine_learning_synapse_spark
 
-Manages a Machine Learning Synapse Spark.
+Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 
 ## Example Usage
 
@@ -109,7 +109,9 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
+
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Synapse Spark to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 
@@ -150,5 +152,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Machine Learning Synapse Sparks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_machine_learning_synapse_spark.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
+terraform import azurerm_machine_learning_synapse_spark.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
 ```

@@ -62,7 +62,7 @@ resource "azurerm_mysql_flexible_server" "example" {
   name                   = "example-fs"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
-  administrator_login    = "psqladminun"
+  administrator_login    = "psqladmin"
   administrator_password = "H@Sh1CoR3!"
   backup_retention_days  = 7
   delegated_subnet_id    = azurerm_subnet.example.id
@@ -143,7 +143,7 @@ A `maintenance_window` block supports the following:
 
 * `day_of_week` - (Optional) The day of week for maintenance window. Defaults to `0`.
 
-* `start_hour` - (Optional) The day of week for maintenance window. Defaults to `0`.
+* `start_hour` - (Optional) The start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 

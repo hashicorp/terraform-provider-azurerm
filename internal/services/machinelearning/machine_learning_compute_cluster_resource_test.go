@@ -128,7 +128,6 @@ func TestAccComputeCluster_identity(t *testing.T) {
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeClusterID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +153,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_priority                   = "LowPriority"
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  local_auth_enabled            = false
 
   scale_settings {
     min_node_count                       = 0
@@ -183,7 +183,10 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   subnet_resource_id            = azurerm_subnet.test.id
-
+  description                   = "Machine Learning"
+  tags = {
+    environment = "test"
+  }
   scale_settings {
     min_node_count                       = 0
     max_node_count                       = 1
@@ -228,7 +231,6 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
     type = "SystemAssigned"
   }
 }
-
 `, template)
 }
 

@@ -16,9 +16,9 @@ func ModifyResponseHeader() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.Append),
-					string(cdn.Delete),
-					string(cdn.Overwrite),
+					string(cdn.HeaderActionAppend),
+					string(cdn.HeaderActionDelete),
+					string(cdn.HeaderActionOverwrite),
 				}, false),
 			},
 
@@ -42,7 +42,7 @@ func ExpandArmCdnEndpointActionModifyResponseHeader(input []interface{}) (*[]cdn
 		item := v.(map[string]interface{})
 
 		requestHeaderAction := cdn.DeliveryRuleResponseHeaderAction{
-			Name: cdn.NameModifyResponseHeader,
+			Name: cdn.NameBasicDeliveryRuleActionNameModifyResponseHeader,
 			Parameters: &cdn.HeaderActionParameters{
 				OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters"),
 				HeaderAction: cdn.HeaderAction(item["action"].(string)),

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DigitalTwinsEndpointId struct {
@@ -42,7 +42,7 @@ func (id DigitalTwinsEndpointId) ID() string {
 
 // DigitalTwinsEndpointID parses a DigitalTwinsEndpoint ID into an DigitalTwinsEndpointId struct
 func DigitalTwinsEndpointID(input string) (*DigitalTwinsEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

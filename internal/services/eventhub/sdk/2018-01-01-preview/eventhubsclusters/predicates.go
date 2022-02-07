@@ -8,6 +8,7 @@ type ClusterPredicate struct {
 }
 
 func (p ClusterPredicate) Matches(input Cluster) bool {
+
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

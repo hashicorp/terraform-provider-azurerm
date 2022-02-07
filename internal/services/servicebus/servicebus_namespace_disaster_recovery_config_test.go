@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceDisasterRecoveryConfigResource struct {
-}
+type ServiceBusNamespaceDisasterRecoveryConfigResource struct{}
 
 func TestAccAzureRMServiceBusNamespacePairing_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_disaster_recovery_config", "pairing_test")
@@ -81,6 +80,5 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
   primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
   partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

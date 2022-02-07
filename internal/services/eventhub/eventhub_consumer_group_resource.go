@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,11 +24,13 @@ type ConsumerGroupObject struct {
 	UserMetadata      string `tfschema:"user_metadata"`
 }
 
-var _ sdk.Resource = ConsumerGroupResource{}
-var _ sdk.ResourceWithUpdate = ConsumerGroupResource{}
+var (
+	_ sdk.Resource                   = ConsumerGroupResource{}
+	_ sdk.ResourceWithUpdate         = ConsumerGroupResource{}
+	_ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
+)
 
-type ConsumerGroupResource struct {
-}
+type ConsumerGroupResource struct{}
 
 func (r ConsumerGroupResource) ResourceType() string {
 	return "azurerm_eventhub_consumer_group"
@@ -83,7 +86,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := consumergroups.NewConsumergroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
+			id := consumergroups.NewConsumerGroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
@@ -113,7 +116,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -128,7 +131,7 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(id.Name),
+				Name: utils.String(id.ConsumerGroupName),
 				Properties: &consumergroups.ConsumerGroupProperties{
 					UserMetadata: utils.String(state.UserMetadata),
 				},
@@ -148,12 +151,12 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Consumer Group %q..", id.Name)
+			metadata.Logger.Infof("retrieving Consumer Group %q..", id.ConsumerGroupName)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -163,10 +166,10 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ConsumerGroupObject{
-				Name:              id.Name,
+				Name:              id.ConsumerGroupName,
 				NamespaceName:     id.NamespaceName,
-				EventHubName:      id.EventhubName,
-				ResourceGroupName: id.ResourceGroup,
+				EventHubName:      id.EventHubName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil && model.Properties != nil {
@@ -183,12 +186,12 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Consumer Group %q..", id.Name)
+			metadata.Logger.Infof("deleting Consumer Group %q..", id.ConsumerGroupName)
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)
@@ -206,5 +209,14 @@ func (r ConsumerGroupResource) ModelObject() interface{} {
 }
 
 func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.EventHubConsumerGroupID
+	return consumergroups.ValidateConsumerGroupID
+}
+
+func (r ConsumerGroupResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ConsumerGroupsV0ToV1{},
+		},
+	}
 }

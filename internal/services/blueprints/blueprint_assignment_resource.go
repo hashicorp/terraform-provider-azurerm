@@ -100,6 +100,15 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				},
 			},
 
+			"lock_exclude_actions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 200,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -160,6 +169,11 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {
 				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+			}
+
+			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
+			if len(excludedActionsRaw) != 0 {
+				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
 		assignment.AssignmentProperties.Locks = assignmentLockSettings
@@ -281,6 +295,9 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("lock_mode", locks.Mode)
 			if locks.ExcludedPrincipals != nil {
 				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
+			}
+			if locks.ExcludedActions != nil {
+				d.Set("lock_exclude_actions", locks.ExcludedActions)
 			}
 		}
 	}

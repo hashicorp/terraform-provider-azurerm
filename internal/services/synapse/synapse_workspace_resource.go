@@ -9,12 +9,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -79,6 +85,21 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"linking_allowed_for_aad_tenant_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"compute_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
+
 			"data_exfiltration_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -92,11 +113,41 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"aad_admin": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+				ConflictsWith: []string{"customer_managed_key"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"login": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"object_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
+			"sql_aad_admin": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+				ConflictsWith: []string{"customer_managed_key"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"login": {
@@ -127,28 +178,14 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+			"identity": func() *schema.Schema {
+				// TODO: update the docs and tests to account for this
+				if features.ThreePointOh() {
+					return commonschema.SystemAssignedIdentityRequired()
+				}
 
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+				return commonschema.SystemAssignedIdentityComputed()
+			}(),
 
 			"managed_resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
@@ -167,6 +204,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 						"branch_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"last_commit_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"project_name": {
@@ -216,6 +258,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
+						"last_commit_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 						"repository_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -230,15 +277,28 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"purview_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: purviewValidate.AccountID,
+			},
+
 			"sql_identity_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"customer_managed_key": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"aad_admin", "sql_aad_admin"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
@@ -265,21 +325,21 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_synapse_workspace", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_synapse_workspace", id.ID())
 	}
 
 	managedVirtualNetwork := ""
@@ -287,21 +347,48 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		managedVirtualNetwork = "default"
 	}
 
+	publicNetworkAccess := synapse.WorkspacePublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled
+	}
+
 	workspaceInfo := synapse.Workspace{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		WorkspaceProperties: &synapse.WorkspaceProperties{
 			DefaultDataLakeStorage:           expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
 			ManagedVirtualNetwork:            utils.String(managedVirtualNetwork),
+			PublicNetworkAccess:              publicNetworkAccess,
 			SQLAdministratorLogin:            utils.String(d.Get("sql_administrator_login").(string)),
 			SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
 			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
 		},
-		Identity: &synapse.ManagedIdentity{
-			Type: synapse.ResourceIdentityTypeSystemAssigned,
-		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if features.ThreePointOh() {
+		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		workspaceInfo.Identity = expandedIdentity
+	} else {
+		workspaceInfo.Identity = &synapse.ManagedIdentity{
+			Type: synapse.ResourceIdentityTypeSystemAssigned,
+		}
+	}
+
+	if purviewId, ok := d.GetOk("purview_id"); ok {
+		workspaceInfo.WorkspaceProperties.PurviewConfiguration = &synapse.PurviewConfiguration{
+			PurviewResourceID: utils.String(purviewId.(string)),
+		}
+	}
+
+	if computeSubnetId, ok := d.GetOk("compute_subnet_id"); ok {
+		workspaceInfo.WorkspaceProperties.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
+			ComputeSubnetID: utils.String(computeSubnetId.(string)),
+		}
 	}
 
 	dataExfiltrationProtectionEnabled := d.Get("data_exfiltration_protection_enabled").(bool)
@@ -312,42 +399,63 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, workspaceInfo)
+	if allowedLinkingTenantIds, ok := d.GetOk("linking_allowed_for_aad_tenant_ids"); ok {
+		if workspaceInfo.ManagedVirtualNetworkSettings == nil {
+			workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
+		}
+		workspaceInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = utils.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, workspaceInfo)
 	if err != nil {
-		return fmt.Errorf("creating Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation for Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	aadAdmin := expandArmWorkspaceAadAdmin(d.Get("aad_admin").([]interface{}))
+	aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 	if aadAdmin != nil {
-		workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *aadAdmin)
+		future, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
 		if err != nil {
-			return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("configuring AzureAD Admin for %s: %+v", id, err)
 		}
 
-		if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for configuration of AzureAD Admin for %s: %+v", id, err)
+		}
+	}
+
+	sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
+	if sqlAdmin != nil {
+		future, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
+		if err != nil {
+			return fmt.Errorf("configuring Sql Admin for %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for configuration of Sql Admin for %s: %+v", id, err)
 		}
 	}
 
 	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-	if _, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings); err != nil {
-		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
+	future2, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+	if err != nil {
+		return fmt.Errorf("configuring Sql Identity Control for %s: %+v", id, err)
+	}
+	if err = future2.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for configuration of Sql Identity Control for %s: %+v", id, err)
 	}
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewWorkspaceID(subscriptionId, resourceGroup, name)
 	d.SetId(id.ID())
-
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
 func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,29 +468,36 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	aadAdmin, err := aadAdminClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(aadAdmin.Response) {
-			return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving AzureAD Admin for %s: %+v", *id, err)
+		}
+	}
+	sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(sqlAdmin.Response) {
+			return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
 		}
 	}
 
 	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving workspace identity control for SQL pool: %+v", err)
+		return fmt.Errorf("retrieving Sql Identity Control for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if err := d.Set("identity", flattenArmWorkspaceManagedIdentity(resp.Identity)); err != nil {
+
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {
@@ -391,6 +506,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			managedVirtualNetworkEnabled = true
 			if props.ManagedVirtualNetworkSettings != nil {
 				d.Set("data_exfiltration_protection_enabled", props.ManagedVirtualNetworkSettings.PreventDataExfiltration)
+				d.Set("linking_allowed_for_aad_tenant_ids", utils.FlattenStringSlice(props.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking))
 			}
 		}
 		d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
@@ -398,6 +514,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
 		cmk := flattenEncryptionDetails(props.Encryption)
 		if err := d.Set("customer_managed_key", cmk); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
@@ -413,9 +530,19 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `github_repo`: %+v", err)
 			}
 		}
+
+		if props.VirtualNetworkProfile != nil {
+			d.Set("compute_subnet_id", props.VirtualNetworkProfile.ComputeSubnetID)
+		}
+		if props.PurviewConfiguration != nil {
+			d.Set("purview_id", props.PurviewConfiguration.PurviewResourceID)
+		}
 	}
 	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
 		return fmt.Errorf("setting `aad_admin`: %+v", err)
+	}
+	if err := d.Set("sql_aad_admin", flattenArmWorkspaceAadAdmin(sqlAdmin.AadAdminProperties)); err != nil {
+		return fmt.Errorf("setting `sql_aad_admin`: %+v", err)
 	}
 	if err := d.Set("sql_identity_control_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
 		return fmt.Errorf("setting `sql_identity_control_enabled`: %+v", err)
@@ -427,6 +554,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -437,13 +565,31 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key_versionless_id") {
+		publicNetworkAccess := synapse.WorkspacePublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled
+		}
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
 				SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
 				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 				Encryption:                       expandEncryptionDetails(d),
+				PublicNetworkAccess:              publicNetworkAccess,
 			},
+		}
+
+		if allowedLinkingTenantIds, ok := d.GetOk("linking_allowed_for_aad_tenant_ids"); ok {
+			if workspacePatchInfo.ManagedVirtualNetworkSettings == nil {
+				workspacePatchInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
+			}
+			workspacePatchInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = utils.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+		}
+
+		if purviewId, ok := d.GetOk("purview_id"); ok {
+			workspacePatchInfo.PurviewConfiguration = &synapse.PurviewConfiguration{
+				PurviewResourceID: utils.String(purviewId.(string)),
+			}
 		}
 
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
@@ -457,7 +603,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("aad_admin") {
-		aadAdmin := expandArmWorkspaceAadAdmin(d.Get("aad_admin").([]interface{}))
+		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 		if aadAdmin != nil {
 			workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
 			if err != nil {
@@ -474,6 +620,29 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+		}
+	}
+
+	if d.HasChange("sql_aad_admin") {
+		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
+		if sqlAdmin != nil {
+			workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
+			if err != nil {
+				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+		} else {
+			workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
@@ -522,7 +691,7 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 	}
 }
 
-func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminInfo {
+func expandArmWorkspaceAadAdminInfo(input []interface{}) *synapse.WorkspaceAadAdminInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -544,6 +713,7 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 			Type:                utils.String(workspaceVSTSConfiguration),
 			AccountName:         utils.String(azdo["account_name"].(string)),
 			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
+			LastCommitID:        utils.String(azdo["last_commit_id"].(string)),
 			ProjectName:         utils.String(azdo["project_name"].(string)),
 			RepositoryName:      utils.String(azdo["repository_name"].(string)),
 			RootFolder:          utils.String(azdo["root_folder"].(string)),
@@ -561,6 +731,7 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 			AccountName:         utils.String(github["account_name"].(string)),
 			CollaborationBranch: utils.String(github["branch_name"].(string)),
 			HostName:            utils.String(github["git_url"].(string)),
+			LastCommitID:        utils.String(github["last_commit_id"].(string)),
 			RepositoryName:      utils.String(github["repository_name"].(string)),
 			RootFolder:          utils.String(github["root_folder"].(string)),
 		}
@@ -600,28 +771,6 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 	}
 
 	return nil
-}
-
-func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var principalId string
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-	var tenantId string
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
 }
 
 func flattenArmWorkspaceDataLakeStorageAccountDetails(input *synapse.DataLakeStorageAccountDetails) string {
@@ -687,6 +836,9 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 		if config.RootFolder != nil {
 			repo["root_folder"] = *config.RootFolder
 		}
+		if config.LastCommitID != nil {
+			repo["last_commit_id"] = *config.LastCommitID
+		}
 
 		return *repoType, []interface{}{repo}
 	}
@@ -725,4 +877,35 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface
 	}
 
 	return make([]interface{}, 0)
+}
+
+func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := synapse.ManagedIdentity{
+		Type: synapse.ResourceIdentityType(string(expanded.Type)),
+	}
+	return &out, nil
+}
+
+func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
+	var config *identity.SystemAssigned
+
+	if input != nil {
+		config = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			config.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			config.TenantId = input.TenantID.String()
+		}
+	}
+
+	return identity.FlattenSystemAssigned(config)
 }

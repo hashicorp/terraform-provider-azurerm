@@ -134,6 +134,21 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.aadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -148,7 +163,7 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.aadAdminUpdate(data),
+			Config: r.aadAdminWithAADAuthOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -156,6 +171,21 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdminWithAADAuthOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -592,7 +622,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
 }
 
-func (MsSqlServerResource) aadAdminUpdate(data acceptance.TestData) string {
+func (MsSqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -618,8 +648,9 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
 
   azuread_administrator {
-    login_username = "AzureAD Admin2"
-    object_id      = data.azuread_service_principal.test.id
+    login_username              = "AzureAD Admin2"
+    object_id                   = data.azuread_service_principal.test.id
+    azuread_authentication_only = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))

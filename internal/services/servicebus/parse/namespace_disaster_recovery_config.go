@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NamespaceDisasterRecoveryConfigId struct {
@@ -42,7 +42,7 @@ func (id NamespaceDisasterRecoveryConfigId) ID() string {
 
 // NamespaceDisasterRecoveryConfigID parses a NamespaceDisasterRecoveryConfig ID into an NamespaceDisasterRecoveryConfigId struct
 func NamespaceDisasterRecoveryConfigID(input string) (*NamespaceDisasterRecoveryConfigId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

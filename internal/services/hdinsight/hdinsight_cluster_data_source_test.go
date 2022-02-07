@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type HDInsightClusterDataSourceResource struct {
-}
+type HDInsightClusterDataSourceResource struct{}
 
 func TestAccDataSourceHDInsightCluster_hadoop(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")

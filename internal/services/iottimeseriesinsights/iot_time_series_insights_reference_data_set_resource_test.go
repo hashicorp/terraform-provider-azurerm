@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTTimeSeriesInsightsReferenceDataSetResource struct {
-}
+type IoTTimeSeriesInsightsReferenceDataSetResource struct{}
 
 func TestAccIoTTimeSeriesInsightsReferenceDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")
@@ -52,6 +51,21 @@ func TestAccIoTTimeSeriesInsightsReferenceDataSet_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTTimeSeriesInsightsReferenceDataSet_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")
+	r := IoTTimeSeriesInsightsReferenceDataSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -135,4 +149,35 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IoTTimeSeriesInsightsReferenceDataSetResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-tsi-%[1]d"
+  location = "%[2]s"
+}
+resource "azurerm_iot_time_series_insights_standard_environment" "test" {
+  name                = "accTEst_tsie%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "S1_1"
+  data_retention_time = "P30D"
+}
+
+resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
+  name                                = "accTEsttsd%[1]d"
+  time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
+  location                            = azurerm_resource_group.test.location
+  data_string_comparison_behavior     = "OrdinalIgnoreCase"
+
+  key_property {
+    name = "keyProperty1"
+    type = "String"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

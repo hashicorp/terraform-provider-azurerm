@@ -134,7 +134,9 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
-* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
+* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Conflicts with `dedicated_host_group_id`.
+
+* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group that this Linux Virtual Machine should be run within. Conflicts with `dedicated_host_id`.
 
 * `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -152,6 +154,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Linux Virtual Machine. Possible values are `AutomaticByPlatform` and `ImageDefault`. Defaults to `ImageDefault`.
+
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for this Virtual Machine, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machine will be evicted using the `eviction_policy`. Defaults to `-1`, which means that the Virtual Machine should not be evicted for price reasons.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
@@ -168,6 +172,8 @@ The following arguments are supported:
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
+* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
+
 * `source_image_id` - (Optional) The ID of the Image which this Virtual Machine should be created from. Changing this forces a new resource to be created.
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
@@ -177,6 +183,10 @@ The following arguments are supported:
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
+
+* `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
 

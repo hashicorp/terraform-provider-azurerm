@@ -71,6 +71,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Hub.
 
+* `default_route_table_id` - The ID of the default Route Table in the Virtual Hub.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

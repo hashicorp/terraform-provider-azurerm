@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -255,6 +256,21 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"queue_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"table_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -262,22 +278,21 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.GetProperties(ctx, resourceGroup, name, "")
+	id := parse.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading the state of AzureRM Storage Account %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	// handle the user not having permissions to list the keys
 	d.Set("primary_connection_string", "")
@@ -287,7 +302,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, storage.Kerb)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, storage.ListKeyExpandKerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -300,7 +315,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for Storage Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("listing Keys for %s: %+v", id, err)
 		}
 	}
 
@@ -368,6 +383,29 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
+
+		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
+		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+		var (
+			queueEncryptionKeyType = string(storage.KeyTypeService)
+			tableEncryptionKeyType = string(storage.KeyTypeService)
+		)
+		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
+			if encryption.Services.Queue != nil {
+				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+			}
+			if encryption.Services.Table != nil {
+				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
+			}
+		}
+		d.Set("table_encryption_key_type", tableEncryptionKeyType)
+		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+
+		infrastructure_encryption := false
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
+			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
+		}
+		d.Set("infrastructure_encryption_enabled", infrastructure_encryption)
 	}
 
 	if accessKeys := accountKeys; accessKeys != nil {

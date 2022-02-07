@@ -8,6 +8,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/manicminer/hamilton/auth"
+	"github.com/manicminer/hamilton/environments"
 )
 
 // Config is the configuration structure used to instantiate a
@@ -20,12 +22,15 @@ type Config struct {
 	Environment        string
 	MetadataHost       string
 
-	GetAuthenticatedObjectID         func(context.Context) (string, error)
+	GetAuthenticatedObjectID         func(context.Context) (*string, error)
 	AuthenticatedAsAServicePrincipal bool
 
 	// A Custom Resource Manager Endpoint
 	// at this time this should only be applicable for Azure Stack.
 	CustomResourceManagerEndpoint string
+
+	// Beta opt-in for Microsoft Graph
+	UseMicrosoftGraph bool
 
 	authMethod authMethod
 }
@@ -54,7 +59,7 @@ func (c Config) GetOAuthConfig(activeDirectoryEndpoint string) (*adal.OAuthConfi
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauth == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
+		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
 	return oauth, nil
@@ -70,7 +75,7 @@ func (c Config) GetMultiTenantOAuthConfig(activeDirectoryEndpoint string) (*adal
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauth == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s (auxiliary tenants %v)", c.TenantID, c.AuxiliaryTenantIDs)
+		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s (auxiliary tenants %v)", c.TenantID, c.AuxiliaryTenantIDs)
 	}
 
 	return &oauth, nil
@@ -96,30 +101,55 @@ func (c Config) BuildOAuthConfig(activeDirectoryEndpoint string) (*OAuthConfig, 
 	return &multiAuth, nil
 }
 
-// BearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
+// ADALBearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
 // this signs a request using the AccessToken returned from the primary Resource Manager authorizer
-func (c Config) BearerAuthorizerCallback(sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
+func (c Config) ADALBearerAuthorizerCallback(ctx context.Context, sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
 	return autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		// a BearerAuthorizer is only valid for the primary tenant
 		newAuthConfig := &OAuthConfig{
 			OAuth: oauthConfig.OAuth,
 		}
 
-		storageSpt, err := c.GetAuthorizationToken(sender, newAuthConfig, resource)
+		storageSpt, err := c.GetADALToken(ctx, sender, newAuthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
 
 		cast, ok := storageSpt.(*autorest.BearerAuthorizer)
 		if !ok {
-			return nil, fmt.Errorf("Error converting %+v to a BearerAuthorizer", storageSpt)
+			return nil, fmt.Errorf("converting %+v to a BearerAuthorizer", storageSpt)
 		}
 
 		return cast, nil
 	})
 }
 
-// GetAuthorizationToken returns an authorization token for the authentication method defined in the Config
-func (c Config) GetAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
-	return c.authMethod.getAuthorizationToken(sender, oauth, endpoint)
+// MSALBearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
+// this signs a request using the AccessToken returned from the primary Resource Manager authorizer
+func (c Config) MSALBearerAuthorizerCallback(ctx context.Context, api environments.Api, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) *autorest.BearerAuthorizerCallback {
+	authorizer, err := c.GetMSALToken(ctx, api, sender, oauthConfig, endpoint)
+	if err != nil {
+		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return nil, fmt.Errorf("failed to acquire MSAL token for %s", api.Endpoint)
+		})
+	}
+
+	cast, ok := authorizer.(*auth.CachedAuthorizer)
+	if !ok {
+		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return nil, fmt.Errorf("authorizer was not an auth.CachedAuthorizer for %s", api.Endpoint)
+		})
+	}
+
+	return cast.BearerAuthorizerCallback()
+}
+
+// GetADALToken returns an autorest.Authorizer using an ADAL token via the authentication method defined in the Config
+func (c Config) GetADALToken(ctx context.Context, sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	return c.authMethod.getADALToken(ctx, sender, oauth, endpoint)
+}
+
+// GetMSALToken returns an autorest.Authorizer using an MSAL token via the authentication method defined in the Config
+func (c Config) GetMSALToken(ctx context.Context, api environments.Api, sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	return c.authMethod.getMSALToken(ctx, api, sender, oauth, endpoint)
 }

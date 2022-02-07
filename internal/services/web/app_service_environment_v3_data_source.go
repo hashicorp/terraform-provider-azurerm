@@ -230,7 +230,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 			}
 			model.InboundNetworkDependencies = *inboundNetworkDependencies
 
-			model.Tags = tags.Flatten(existing.Tags)
+			model.Tags = tags.ToTypedObject(existing.Tags)
 
 			metadata.SetID(id)
 			return metadata.Encode(&model)

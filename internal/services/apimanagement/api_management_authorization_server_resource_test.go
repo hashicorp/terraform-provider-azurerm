@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementAuthorizationServerResource struct {
-}
+type ApiManagementAuthorizationServerResource struct{}
 
 func TestAccApiManagementAuthorizationServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
@@ -62,18 +61,14 @@ func TestAccApiManagementAuthorizationServer_complete(t *testing.T) {
 }
 
 func (ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AuthorizationServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["authorizationServers"]
-
-	resp, err := clients.ApiManagement.AuthorizationServersClient.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := clients.ApiManagement.AuthorizationServersClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Authorization Server (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

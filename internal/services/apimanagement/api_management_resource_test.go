@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementResource struct {
-}
+type ApiManagementResource struct{}
 
 func TestAccApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
@@ -505,7 +504,7 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 
 	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -1068,8 +1067,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 
@@ -1186,8 +1186,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 
@@ -1652,6 +1653,7 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
+
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

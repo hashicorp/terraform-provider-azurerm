@@ -355,7 +355,7 @@ A `scale_action` block supports the following:
 
 * `direction` - (Required) The scale direction. Possible values are `Increase` and `Decrease`.
 
-* `type` - (Required) The type of action that should occur. Possible values are `ChangeCount`, `ExactCount` and `PercentChangeCount`.
+* `type` - (Required) The type of action that should occur. Possible values are `ChangeCount`, `ExactCount`, `PercentChangeCount` and `ServiceAllowedNextValue`.
 
 * `value` - (Required) The number of instances involved in the scaling action. Defaults to `1`.
 

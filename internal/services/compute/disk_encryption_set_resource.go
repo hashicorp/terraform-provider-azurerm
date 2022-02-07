@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -60,6 +60,22 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
+			"auto_key_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"encryption_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
+				}, false),
+			},
+
 			"identity": {
 				Type: pluginsdk.TypeList,
 				// whilst the API Documentation shows optional - attempting to send nothing returns:
@@ -97,20 +113,20 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_disk_encryption_set", id.ID())
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
@@ -126,6 +142,8 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
+	encryptionType := d.Get("encryption_type").(string)
 	identityRaw := d.Get("identity").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -138,27 +156,22 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 					ID: utils.String(keyVaultDetails.keyVaultId),
 				},
 			},
+			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
+			EncryptionType:                    compute.DiskEncryptionSetType(encryptionType),
 		},
 		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Disk Encryption Set %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDiskEncryptionSetRead(d, meta)
 }
@@ -195,6 +208,13 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			keyVaultKeyId = *props.ActiveKey.KeyURL
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId)
+		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
+
+		encryptionType := string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
+		if props.EncryptionType != "" {
+			encryptionType = string(props.EncryptionType)
+		}
+		d.Set("encryption_type", encryptionType)
 	}
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
@@ -241,6 +261,14 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 				},
 			},
 		}
+	}
+
+	if d.HasChange("auto_key_rotation_enabled") {
+		if update.DiskEncryptionSetUpdateProperties == nil {
+			update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{}
+		}
+
+		update.DiskEncryptionSetUpdateProperties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)

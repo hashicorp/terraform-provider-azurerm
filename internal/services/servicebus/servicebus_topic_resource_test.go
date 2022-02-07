@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusTopicResource struct {
-}
+type ServiceBusTopicResource struct{}
 
 func TestAccServiceBusTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
@@ -23,6 +22,21 @@ func TestAccServiceBusTopic_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusTopic_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -134,6 +148,21 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusTopic_maxMessageSizePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
@@ -229,11 +258,37 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusTopicResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  support_ordering    = true
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
@@ -241,9 +296,8 @@ func (r ServiceBusTopicResource) requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_servicebus_topic" "import" {
-  name                = azurerm_servicebus_topic.test.name
-  namespace_name      = azurerm_servicebus_topic.test.namespace_name
-  resource_group_name = azurerm_servicebus_topic.test.resource_group_name
+  name         = azurerm_servicebus_topic.test.name
+  namespace_id = azurerm_servicebus_topic.test.namespace_id
 }
 `, r.basic(data))
 }
@@ -267,10 +321,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  status              = "disabled"
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+  status       = "disabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -295,8 +348,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                      = "acctestservicebustopic-%d"
-  namespace_name            = azurerm_servicebus_namespace.test.name
-  resource_group_name       = azurerm_resource_group.test.name
+  namespace_id              = azurerm_servicebus_namespace.test.id
   enable_batched_operations = true
   enable_express            = true
 }
@@ -324,9 +376,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_id        = azurerm_servicebus_namespace.test.id
   enable_partitioning = false
+
+  max_message_size_in_kilobytes = 102400
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -351,8 +404,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
-  namespace_name        = azurerm_servicebus_namespace.test.name
-  resource_group_name   = azurerm_resource_group.test.name
+  namespace_id          = azurerm_servicebus_namespace.test.id
   enable_partitioning   = true
   max_size_in_megabytes = 5120
 }
@@ -380,8 +432,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
-  namespace_name        = azurerm_servicebus_namespace.test.name
-  resource_group_name   = azurerm_resource_group.test.name
+  namespace_id          = azurerm_servicebus_namespace.test.id
   enable_partitioning   = false
   max_size_in_megabytes = 81920
 }
@@ -408,8 +459,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                         = "acctestservicebustopic-%d"
-  namespace_name               = azurerm_servicebus_namespace.test.name
-  resource_group_name          = azurerm_resource_group.test.name
+  namespace_id                 = azurerm_servicebus_namespace.test.id
   requires_duplicate_detection = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -435,8 +485,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                                    = "acctestservicebustopic-%d"
-  namespace_name                          = azurerm_servicebus_namespace.test.name
-  resource_group_name                     = azurerm_resource_group.test.name
+  namespace_id                            = azurerm_servicebus_namespace.test.id
   auto_delete_on_idle                     = "PT10M"
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true

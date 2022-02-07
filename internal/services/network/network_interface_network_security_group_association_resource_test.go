@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/azuresdkhacks"
@@ -16,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceNetworkSecurityGroupAssociationResource struct {
-}
+type NetworkInterfaceNetworkSecurityGroupAssociationResource struct{}
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
@@ -97,17 +95,14 @@ func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx cont
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
 	}
 
-	nicID, err := azure.ParseAzureResourceID(splitId[0])
+	nicID, err := parse.NetworkInterfaceID(splitId[0])
 	if err != nil {
 		return nil, err
 	}
 
-	name := nicID.Path["networkInterfaces"]
-	resourceGroup := nicID.ResourceGroup
-
-	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, name, "")
+	read, err := clients.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	found := false

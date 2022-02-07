@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallApplicationRuleCollectionResource struct {
-}
+type FirewallApplicationRuleCollectionResource struct{}
 
 func TestAccFirewallApplicationRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
@@ -37,6 +36,21 @@ func TestAccFirewallApplicationRuleCollection_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.protocol.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.protocol.0.port").HasValue("443"),
 				check.That(data.ResourceName).Key("rule.0.protocol.0.type").HasValue("Https"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallApplicationRuleCollection_fqdnTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
+	r := FirewallApplicationRuleCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fqdnTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -369,7 +383,7 @@ func TestAccFirewallApplicationRuleCollection_noSource(t *testing.T) {
 }
 
 func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +410,7 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 }
 
 func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -415,7 +429,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Cont
 
 func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
-	var id, err = parse.FirewallApplicationRuleCollectionID(state.ID)
+	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -463,7 +477,8 @@ resource "azurerm_firewall_application_rule_collection" "test" {
   action              = "Allow"
 
   rule {
-    name = "rule1"
+    name        = "rule1"
+    description = "test description"
 
     source_addresses = [
       "10.0.0.0/16",
@@ -477,6 +492,30 @@ resource "azurerm_firewall_application_rule_collection" "test" {
       port = 443
       type = "Https"
     }
+  }
+}
+`, template)
+}
+
+func (FirewallApplicationRuleCollectionResource) fqdnTags(data acceptance.TestData) string {
+	template := FirewallResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "acctestarc"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name        = "rule1"
+    description = "test description"
+    fqdn_tags   = ["WindowsDiagnostics"]
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
   }
 }
 `, template)

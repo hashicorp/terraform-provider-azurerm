@@ -28,6 +28,8 @@ const (
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
+var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
+
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,
@@ -64,7 +66,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
 			"administrator_password": {
@@ -100,7 +102,15 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": azure.SchemaZoneComputed(),
+			"zone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
+			},
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -181,6 +191,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
+			"geo_redundant_backup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"high_availability": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -194,7 +211,16 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 								string(postgresqlflexibleservers.HighAvailabilityModeZoneRedundant),
 							}, false),
 						},
-						"standby_availability_zone": azure.SchemaZoneComputed(),
+
+						"standby_availability_zone": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"1",
+								"2",
+								"3",
+							}, false),
+						},
 					},
 				},
 			},
@@ -219,6 +245,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
@@ -281,7 +308,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			Network:          expandArmServerNetwork(d),
 			Version:          postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			Storage:          expandArmServerStorage(d),
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 		},
 		Sku:  sku,
@@ -394,6 +421,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 		if backup := props.Backup; backup != nil {
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
+			d.Set("geo_redundant_backup_enabled", backup.GeoRedundantBackup == postgresqlflexibleservers.GeoRedundantBackupEnumEnabled)
 		}
 
 		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
@@ -426,6 +454,35 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		ServerPropertiesForUpdate: &postgresqlflexibleservers.ServerPropertiesForUpdate{},
 	}
 
+	var requireFailover bool
+	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` is exchanged
+	switch {
+	case d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone"):
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if props := resp.ServerProperties; props != nil {
+			zone := d.Get("zone").(string)
+			standbyZone := d.Get("high_availability.0.standby_availability_zone").(string)
+
+			if props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
+				if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
+					requireFailover = true
+				} else {
+					return fmt.Errorf("failover only supports exchange between `zone` and `high_availability.0.standby_availability_zone`")
+				}
+			} else {
+				return fmt.Errorf("`high_availability.0.standby_availability_zone` cannot be added after PostgreSQL Flexible Server is created")
+			}
+		}
+	case !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
+		requireFailover = false
+	default:
+		return fmt.Errorf("`zone` and `high_availability.0.standby_availability_zone` should only be either exchanged with each other or unchanged")
+	}
+
 	if d.HasChange("administrator_password") {
 		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
 	}
@@ -455,7 +512,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("high_availability") {
-		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
+		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), false)
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -466,6 +523,23 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	if requireFailover {
+		restartParameters := &postgresqlflexibleservers.RestartParameter{
+			RestartWithFailover: utils.Bool(true),
+			FailoverMode:        postgresqlflexibleservers.FailoverModePlannedFailover,
+		}
+
+		future, err := client.Restart(ctx, id.ResourceGroup, id.Name, restartParameters)
+		if err != nil {
+			return fmt.Errorf("failing over %s: %+v", *id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for failover of %s: %+v", *id, err)
+		}
+	}
+
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
@@ -538,6 +612,12 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *postgresqlflexibleservers
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
 		backup.BackupRetentionDays = utils.Int32(int32(v.(int)))
+	}
+
+	if geoRedundantBackupEnabled := d.Get("geo_redundant_backup_enabled").(bool); geoRedundantBackupEnabled {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumEnabled
+	} else {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumDisabled
 	}
 
 	return &backup
@@ -613,7 +693,7 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *postgresqlflexibleservers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &postgresqlflexibleservers.HighAvailability{
 			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
@@ -626,8 +706,11 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexi
 		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
+	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
+	if isCreate {
+		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
+			result.StandbyAvailabilityZone = utils.String(v.(string))
+		}
 	}
 
 	return &result

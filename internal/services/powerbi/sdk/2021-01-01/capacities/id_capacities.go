@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = CapacitiesId{}
+
+// CapacitiesId is a struct representing the Resource ID for a Capacities
 type CapacitiesId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	CapacityName   string
+	SubscriptionId        string
+	ResourceGroupName     string
+	DedicatedCapacityName string
 }
 
-func NewCapacitiesID(subscriptionId, resourceGroup, capacityName string) CapacitiesId {
+// NewCapacitiesID returns a new CapacitiesId struct
+func NewCapacitiesID(subscriptionId string, resourceGroupName string, dedicatedCapacityName string) CapacitiesId {
 	return CapacitiesId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		CapacityName:   capacityName,
+		SubscriptionId:        subscriptionId,
+		ResourceGroupName:     resourceGroupName,
+		DedicatedCapacityName: dedicatedCapacityName,
 	}
 }
 
-func (id CapacitiesId) String() string {
-	segments := []string{
-		fmt.Sprintf("Capacity Name %q", id.CapacityName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseCapacitiesID parses 'input' into a CapacitiesId
+func ParseCapacitiesID(input string) (*CapacitiesId, error) {
+	parser := resourceids.NewParserFromResourceIdType(CapacitiesId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Capacities", segmentsStr)
+
+	var ok bool
+	id := CapacitiesId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.DedicatedCapacityName, ok = parsed.Parsed["dedicatedCapacityName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dedicatedCapacityName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseCapacitiesIDInsensitively parses 'input' case-insensitively into a CapacitiesId
+// note: this method should only be used for API response data and not user input
+func ParseCapacitiesIDInsensitively(input string) (*CapacitiesId, error) {
+	parser := resourceids.NewParserFromResourceIdType(CapacitiesId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := CapacitiesId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.DedicatedCapacityName, ok = parsed.Parsed["dedicatedCapacityName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dedicatedCapacityName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateCapacitiesID checks that 'input' can be parsed as a Capacities ID
+func ValidateCapacitiesID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseCapacitiesID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Capacities ID
 func (id CapacitiesId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.PowerBIDedicated/capacities/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CapacityName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DedicatedCapacityName)
 }
 
-// ParseCapacitiesID parses a Capacities ID into an CapacitiesId struct
-func ParseCapacitiesID(input string) (*CapacitiesId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Capacities ID
+func (id CapacitiesId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftPowerBIDedicated", "Microsoft.PowerBIDedicated", "Microsoft.PowerBIDedicated"),
+		resourceids.StaticSegment("capacities", "capacities", "capacities"),
+		resourceids.UserSpecifiedSegment("dedicatedCapacityName", "dedicatedCapacityValue"),
 	}
-
-	resourceId := CapacitiesId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.CapacityName, err = id.PopSegment("capacities"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseCapacitiesIDInsensitively parses an Capacities ID into an CapacitiesId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseCapacitiesID method should be used instead for validation etc.
-func ParseCapacitiesIDInsensitively(input string) (*CapacitiesId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Capacities ID
+func (id CapacitiesId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Dedicated Capacity Name: %q", id.DedicatedCapacityName),
 	}
-
-	resourceId := CapacitiesId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'capacities' segment
-	capacitiesKey := "capacities"
-	for key := range id.Path {
-		if strings.EqualFold(key, capacitiesKey) {
-			capacitiesKey = key
-			break
-		}
-	}
-	if resourceId.CapacityName, err = id.PopSegment(capacitiesKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Capacities (%s)", strings.Join(components, "\n"))
 }

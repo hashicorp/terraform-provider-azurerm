@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceAzureTableStorageResource struct {
-}
+type LinkedServiceAzureTableStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureTableStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_table_storage", "test")
@@ -95,7 +94,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_table_storage" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -121,7 +120,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_table_storage" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"

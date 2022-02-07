@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataFactoryResource struct {
-}
+type DataFactoryResource struct{}
 
 func TestAccDataFactory_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
@@ -675,13 +674,13 @@ resource "azurerm_data_factory" "test" {
   global_parameter {
     name  = "arrayVal"
     type  = "Array"
-    value = "[\"a\", \"b\", \"c\"]"
+    value = jsonencode(["a", "b", "c"])
   }
 
   global_parameter {
     name  = "objectVal"
     type  = "Object"
-    value = "{'name': 'value'}"
+    value = jsonencode({ name : "value" })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

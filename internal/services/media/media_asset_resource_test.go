@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MediaAssetResource struct {
-}
+type MediaAssetResource struct{}
 
 func TestAccMediaAsset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
@@ -122,7 +121,6 @@ resource "azurerm_media_asset" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
 }
-
 `, template)
 }
 
@@ -136,7 +134,6 @@ resource "azurerm_media_asset" "import" {
   resource_group_name         = azurerm_media_asset.test.resource_group_name
   media_services_account_name = azurerm_media_asset.test.media_services_account_name
 }
-
 `, template)
 }
 
@@ -154,7 +151,6 @@ resource "azurerm_media_asset" "test" {
   alternate_id                = "Asset-alternateid"
   container                   = "asset-container"
 }
-
 `, template)
 }
 

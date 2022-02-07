@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -40,6 +41,7 @@ func TestAccStreamAnalyticsJob_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("compatibility_level").HasValue("1.2"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
 			),
@@ -102,15 +104,17 @@ func TestAccStreamAnalyticsJob_identity(t *testing.T) {
 }
 
 func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := parse.StreamingJobID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, resourceGroup, name, "")
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), err
 		}
-		return nil, fmt.Errorf("retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -153,22 +157,29 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%d"
+  name                                     = "acctestjob-%[1]d"
   resource_group_name                      = azurerm_resource_group.test.name
   location                                 = azurerm_resource_group.test.location
   data_locale                              = "en-GB"
-  compatibility_level                      = "1.0"
+  compatibility_level                      = "1.2"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
   streaming_units                          = 3
-
+  stream_analytics_cluster_id              = azurerm_stream_analytics_cluster.test.id
   tags = {
     environment = "Test"
   }
@@ -180,7 +191,7 @@ resource "azurerm_stream_analytics_job" "test" {
 QUERY
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StreamAnalyticsJobResource) requiresImport(data acceptance.TestData) string {

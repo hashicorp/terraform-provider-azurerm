@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CosmosDBAccountDataSourceResource struct {
-}
+type CosmosDBAccountDataSourceResource struct{}
 
 func TestAccDataSourceCosmosDBAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")

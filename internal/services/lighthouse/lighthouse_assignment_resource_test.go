@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LighthouseAssignmentResource struct {
-}
+type LighthouseAssignmentResource struct{}
 
 func TestAccLighthouseAssignment_basic(t *testing.T) {
 	// Multiple tenants are needed to test this acceptance.
@@ -134,7 +133,6 @@ resource "azurerm_lighthouse_assignment" "test" {
   scope                    = data.azurerm_subscription.primary.id
   lighthouse_definition_id = azurerm_lighthouse_definition.test.id
 }
-
 `, data.RandomInteger, secondTenantID, principalID, id)
 }
 

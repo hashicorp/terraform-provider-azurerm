@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolResource struct {
-}
+type VirtualDesktopHostPoolResource struct{}
 
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
@@ -160,7 +159,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   }
   lifecycle {
     ignore_changes = [
-      registration_info[0].expiration_date,
+      registration_info,
     ]
   }
 
@@ -168,7 +167,6 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
     Purpose = "Acceptance-Testing"
   }
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 

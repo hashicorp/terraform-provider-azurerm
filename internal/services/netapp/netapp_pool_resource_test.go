@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppPoolResource struct {
-}
+type NetAppPoolResource struct{}
 
 func TestAccNetAppPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
@@ -62,6 +61,7 @@ func TestAccNetAppPool_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
 		},
 		data.ImportStep(),
@@ -177,6 +177,7 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_level       = "Standard"
   size_in_tb          = 15
+  qos_type            = "Auto"
 
   tags = {
     "FoO" = "BaR"

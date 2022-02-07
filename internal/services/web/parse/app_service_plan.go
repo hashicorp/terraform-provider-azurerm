@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AppServicePlanId struct {
@@ -39,7 +39,7 @@ func (id AppServicePlanId) ID() string {
 
 // AppServicePlanID parses a AppServicePlan ID into an AppServicePlanId struct
 func AppServicePlanID(input string) (*AppServicePlanId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

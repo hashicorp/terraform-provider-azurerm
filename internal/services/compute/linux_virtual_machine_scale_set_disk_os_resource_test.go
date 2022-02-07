@@ -19,27 +19,21 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCaching(data, "ReadWrite"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -55,18 +49,14 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksOSDiskCustomSize(data, 30),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
 			Config: r.disksOSDiskCustomSize(data, 60),
@@ -74,9 +64,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -91,9 +79,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -108,9 +94,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -125,9 +109,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -142,9 +124,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSD
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -159,9 +139,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -176,9 +154,7 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *te
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

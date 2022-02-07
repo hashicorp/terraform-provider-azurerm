@@ -70,6 +70,43 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 				Set: set.HashStringIgnoreCase,
 			},
 
+			"additional_workspace": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"data_types": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(security.Alerts),
+									string(security.RawEvents),
+								}, false),
+							},
+						},
+
+						"workspace_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+						},
+					},
+				},
+			},
+
+			"disabled_data_sources": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(security.TwinData),
+					}, false),
+				},
+			},
+
 			"log_analytics_workspace_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -272,6 +309,14 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("additional_workspace"); ok {
+		solution.IoTSecuritySolutionProperties.AdditionalWorkspaces = expandIotSecuritySolutionAdditionalWorkspace(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("disabled_data_sources"); ok {
+		solution.IoTSecuritySolutionProperties.DisabledDataSources = expandIotSecuritySolutionDisabledDataSources(v.(*pluginsdk.Set).List())
+	}
+
 	logAnalyticsWorkspaceId := d.Get("log_analytics_workspace_id").(string)
 	if logAnalyticsWorkspaceId != "" {
 		solution.IoTSecuritySolutionProperties.Workspace = utils.String(logAnalyticsWorkspaceId)
@@ -337,6 +382,12 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("query_for_resources", prop.UserDefinedResources.Query)
 			d.Set("query_subscription_ids", utils.FlattenStringSlice(prop.UserDefinedResources.QuerySubscriptions))
 		}
+		if err := d.Set("additional_workspace", flattenIotSecuritySolutionAdditionalWorkspace(prop.AdditionalWorkspaces)); err != nil {
+			return fmt.Errorf("setting `additional_workspace`: %+v", err)
+		}
+		if err := d.Set("disabled_data_sources", flattenIotSecuritySolutionDisabledDataSources(prop.DisabledDataSources)); err != nil {
+			return fmt.Errorf("setting `disabled_data_sources`: %s", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -389,6 +440,40 @@ func expandIotSecuritySolutionRecommendation(input []interface{}) *[]security.Re
 	return &result
 }
 
+func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]security.AdditionalWorkspacesProperties {
+	results := make([]security.AdditionalWorkspacesProperties, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		dataTypes := make([]security.AdditionalWorkspaceDataType, 0)
+		for _, item := range *(utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List())) {
+			dataTypes = append(dataTypes, (security.AdditionalWorkspaceDataType)(item))
+		}
+
+		results = append(results, security.AdditionalWorkspacesProperties{
+			Workspace: utils.String(v["workspace_id"].(string)),
+			Type:      security.Sentinel,
+			DataTypes: &dataTypes,
+		})
+	}
+
+	return &results
+}
+
+func expandIotSecuritySolutionDisabledDataSources(input []interface{}) *[]security.DataSource {
+	if len(input) == 0 {
+		return nil
+	}
+
+	disabledDataSources := make([]security.DataSource, 0)
+	for _, item := range *(utils.ExpandStringSlice(input)) {
+		disabledDataSources = append(disabledDataSources, (security.DataSource)(item))
+	}
+
+	return &disabledDataSources
+}
+
 func flattenIotSecuritySolutionExport(input *[]security.ExportData) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
@@ -411,6 +496,46 @@ func flattenIotSecuritySolutionRecommendation(input *[]security.RecommendationCo
 		}
 	}
 	return []interface{}{result}
+}
+
+func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalWorkspacesProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		rawDataTypes := make([]string, 0)
+		for _, item := range *item.DataTypes {
+			rawDataTypes = append(rawDataTypes, (string)(item))
+		}
+		dataTypes := utils.FlattenStringSlice(&rawDataTypes)
+
+		var workspaceId string
+		if item.Workspace != nil {
+			workspaceId = *item.Workspace
+		}
+
+		results = append(results, map[string]interface{}{
+			"data_types":   dataTypes,
+			"workspace_id": workspaceId,
+		})
+	}
+
+	return results
+}
+
+func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource) []interface{} {
+	if input == nil || len(*input) == 0 {
+		return nil
+	}
+
+	results := make([]string, 0)
+	for _, v := range *input {
+		results = append(results, (string)(v))
+	}
+
+	return utils.FlattenStringSlice(&results)
 }
 
 func getRecommendationSchemaMap() map[security.RecommendationType]string {

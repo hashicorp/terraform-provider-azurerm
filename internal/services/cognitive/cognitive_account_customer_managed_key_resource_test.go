@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CognitiveAccountCustomerManagedKeyResource struct {
-}
+type CognitiveAccountCustomerManagedKeyResource struct{}
 
 func TestAccCognitiveAccountCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")
@@ -92,21 +90,21 @@ func TestAccCognitiveAccountCustomerManagedKey_update(t *testing.T) {
 }
 
 func (r CognitiveAccountCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cognitive.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cognitive.AccountsClient.AccountsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	if resp.Properties == nil || resp.Properties.Encryption == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil || resp.Model.Properties.Encryption.KeySource == nil {
 		return utils.Bool(false), nil
 	}
 
-	if resp.Properties.Encryption.KeySource == cognitiveservices.KeySourceMicrosoftCognitiveServices {
+	if *resp.Model.Properties.Encryption.KeySource == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return utils.Bool(false), nil
 	}
 

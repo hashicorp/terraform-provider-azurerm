@@ -91,7 +91,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_self_hosted", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_self_hosted", id.ID())
 		}
 	}
 

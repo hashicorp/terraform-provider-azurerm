@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct {
-}
+type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct{}
 
 func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
@@ -155,7 +154,6 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "test
   workspace_id         = azurerm_virtual_desktop_workspace.test.id
   application_group_id = azurerm_virtual_desktop_application_group.test.id
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
@@ -223,7 +221,6 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "pers
   workspace_id         = azurerm_virtual_desktop_workspace.test.id
   application_group_id = azurerm_virtual_desktop_application_group.personal.id
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 

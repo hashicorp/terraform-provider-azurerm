@@ -15,8 +15,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
-type VirtualMachineResource struct {
-}
+type VirtualMachineResource struct{}
 
 func TestAccVirtualMachine_winTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
@@ -194,7 +193,8 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 	name := vmID.Name
 	resourceGroup := vmID.ResourceGroup
 
-	future, err := client.Compute.VMClient.Deallocate(ctx, resourceGroup, name)
+	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+	future, err := client.Compute.VMClient.Deallocate(ctx, resourceGroup, name, utils.Bool(false))
 	if err != nil {
 		return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
 	}

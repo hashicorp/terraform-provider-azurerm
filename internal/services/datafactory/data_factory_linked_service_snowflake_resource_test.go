@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceSnowflakeResource struct {
-}
+type LinkedServiceSnowflakeResource struct{}
 
 func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
@@ -99,7 +98,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
   name                = "acctestlssnowflake%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
@@ -137,7 +136,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
   name                = "acctestlssnowflake%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
@@ -192,7 +191,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
   name                = "linksnowflake"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   key_vault_password {

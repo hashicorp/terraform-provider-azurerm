@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -48,7 +49,6 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
-
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -74,12 +74,19 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			"storage_account_subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsUUID,
+			},
 		},
 	}
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -114,6 +121,14 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
+	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
+		u, err := uuid.FromString(v.(string))
+		if err != nil {
+			return fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
+		}
+		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
+	}
+
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
 		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
@@ -132,11 +147,12 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("retrieving MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
 	}
 
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("reading MsSql Server %q Extended Auditing Policy (Resource Group %q) ID is empty or nil", serverId.Name, serverId.ResourceGroup)
+	if read.Name == nil || *read.Name == "" {
+		return fmt.Errorf("reading MsSql Server %q Extended Auditing Policy (Resource Group %q) Name is empty or nil", serverId.Name, serverId.ResourceGroup)
 	}
+	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroup, serverId.Name, *read.Name)
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlServerExtendedAuditingPolicyRead(d, meta)
 }
@@ -173,6 +189,10 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+
+		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
+			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+		}
 	}
 
 	return nil

@@ -85,7 +85,7 @@ A `link` block supports the following:
 
 * `ip_address` - (Optional) The IP address of this VPN Site Link.
 
--> **NOTE**: Either `fqdn` or `ip_address` should be specified.
+-> **NOTE:** Either `fqdn` or `ip_address` should be specified.
 
 * `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 

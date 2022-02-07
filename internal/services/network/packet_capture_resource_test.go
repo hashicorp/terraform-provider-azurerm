@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PacketCaptureResource struct {
-}
+type PacketCaptureResource struct{}
 
 func testAccPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
@@ -95,17 +94,14 @@ func testAccPacketCapture_withFilters(t *testing.T) {
 }
 
 func (t PacketCaptureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PacketCaptureID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	watcherName := id.Path["networkWatchers"]
-	name := id.Path["packetCaptures"]
 
-	resp, err := clients.Network.PacketCapturesClient.Get(ctx, resourceGroup, watcherName, name)
+	resp, err := clients.Network.PacketCapturesClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Packet Capture (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

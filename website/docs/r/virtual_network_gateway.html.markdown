@@ -152,9 +152,10 @@ The following arguments are supported:
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
-* `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
-    An active-standby gateway requires exactly one `ip_configuration` block whereas
-    an active-active gateway requires exactly two `ip_configuration` blocks.
+* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+    An active-standby gateway requires exactly one `ip_configuration` block,
+    an active-active gateway requires exactly two `ip_configuration` blocks whereas
+    an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
     is documented below. In this block the Virtual Network Gateway can be configured
@@ -299,6 +300,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 Virtual Network Gateways can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/virtualNetworkGateways/myGateway1
 ```

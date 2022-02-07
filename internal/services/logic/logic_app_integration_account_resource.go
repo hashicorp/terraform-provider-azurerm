@@ -59,6 +59,13 @@ func resourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"integration_service_environment_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -66,21 +73,21 @@ func resourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 
 func resourceLogicAppIntegrationAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIntegrationAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Integration Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_logic_app_integration_account", id.ID())
 		}
 	}
 
@@ -93,20 +100,17 @@ func resourceLogicAppIntegrationAccountCreateUpdate(d *pluginsdk.ResourceData, m
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, account); err != nil {
-		return fmt.Errorf("creating Integration Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if v, ok := d.GetOk("integration_service_environment_id"); ok {
+		account.IntegrationAccountProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Integration Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Integration Account %q (Resource Group %q): ID is empty or nil", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceLogicAppIntegrationAccountRead(d, meta)
 }
@@ -129,6 +133,14 @@ func resourceLogicAppIntegrationAccountRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("sku_name", string(resp.Sku.Name))
+
+	if props := resp.IntegrationAccountProperties; props != nil {
+		iseId := ""
+		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
+			iseId = *props.IntegrationServiceEnvironment.ID
+		}
+		d.Set("integration_service_environment_id", iseId)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

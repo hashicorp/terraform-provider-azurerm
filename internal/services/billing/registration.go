@@ -1,8 +1,17 @@
 package billing
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/billing"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -20,6 +29,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_billing_enrollment_account_scope": dataSourceBillingEnrollmentAccountScope(),
 		"azurerm_billing_mca_account_scope":        dataSourceBillingMCAAccountScope(),
+		"azurerm_billing_mpa_account_scope":        dataSourceBillingMPAAccountScope(),
 	}
 }
 

@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterResource struct {
-}
+type KustoClusterResource struct{}
 
 func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -298,6 +298,84 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("Skipping since 3.0 mode is enabled")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_external_tenants"),
+		{
+			Config: r.trustedExternalTenants(data, "[\"*\"]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[\"MyTenantOnly\"]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[data.azurerm_client_config.current.tenant_id]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[\"*\"]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[data.azurerm_client_config.current.tenant_id]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -334,6 +412,35 @@ resource "azurerm_kusto_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) trustedExternalTenants(data acceptance.TestData, tenantConfig string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  trusted_external_tenants = %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantConfig)
 }
 
 func (KustoClusterResource) doubleEncryption(data acceptance.TestData) string {
@@ -724,6 +831,26 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Kusto/clusters"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+    }
+  }
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestkc%s-rt"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -734,7 +861,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
   name                        = "AllowAzureDataExplorerManagement"
-  priority                    = 100
+  priority                    = 106
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -782,8 +909,13 @@ resource "azurerm_kusto_cluster" "test" {
     engine_public_ip_id          = azurerm_public_ip.engine_pip.id
     data_management_public_ip_id = azurerm_public_ip.management_pip.id
   }
+
+  depends_on = [
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test,
+  ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (KustoClusterResource) engineV3(data acceptance.TestData) string {

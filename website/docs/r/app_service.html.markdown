@@ -81,9 +81,11 @@ The following arguments are supported:
 
 * `client_cert_enabled` - (Optional) Does the App Service require client certificates for incoming requests? Defaults to `false`.
 
+* `client_cert_mode` - (Optional) Mode of client certificates for this App Service. Possible values are `Required`, `Optional` and `OptionalInteractiveUser`. If this parameter is set, `client_cert_enabled` must be set to `true`, otherwise this parameter is ignored.
+
 * `enabled` - (Optional) Is the App Service Enabled?
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 

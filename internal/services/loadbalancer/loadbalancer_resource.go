@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
@@ -59,6 +60,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
+					string(network.LoadBalancerSkuNameGateway),
 				}, true),
 				// TODO - 3.0 remove this property
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -90,7 +92,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"availability_zone": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							//Default:  "Zone-Redundant",
+							// Default:  "Zone-Redundant",
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"No-Zone",
@@ -152,6 +154,13 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.LoadBalancerFrontendIpConfigurationID,
 						},
 
 						"load_balancer_rules": {
@@ -255,12 +264,12 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Load Balancer %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_lb", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_lb", id.ID())
 		}
 	}
 
@@ -298,11 +307,10 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("creating/updating Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating/Updating Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -323,11 +331,11 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
-			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.Name)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer By ID: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -381,11 +389,11 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -402,6 +410,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		properties := network.FrontendIPConfigurationPropertiesFormat{
 			PrivateIPAllocationMethod: network.IPAllocationMethod(privateIpAllocationMethod),
+		}
+
+		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
+			properties.GatewayLoadBalancer = &network.SubResource{
+				ID: utils.String(v),
+			}
 		}
 
 		if v := data["private_ip_address"].(string); v != "" {
@@ -456,7 +470,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 				zones = &[]string{}
 			}
 		}
-		if !strings.EqualFold(sku, string(network.LoadBalancerSkuNameStandard)) {
+		if strings.EqualFold(sku, string(network.LoadBalancerSkuNameBasic)) {
 			if zonesSet && len(*zones) > 0 {
 				return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 			}
@@ -513,6 +527,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+
+			if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.ID != nil {
+				ipConfig["gateway_load_balancer_frontend_ip_configuration_id"] = *props.GatewayLoadBalancer.ID
+			}
 
 			if subnet := props.Subnet; subnet != nil {
 				ipConfig["subnet_id"] = *subnet.ID

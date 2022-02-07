@@ -106,7 +106,6 @@ func TestAccComputeInstance_identity(t *testing.T) {
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +130,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
+  local_auth_enabled            = false
 }
 `, template, data.RandomIntOfLength(8))
 }

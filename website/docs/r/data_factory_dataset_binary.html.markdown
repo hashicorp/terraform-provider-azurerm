@@ -27,7 +27,7 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_sftp" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
 
   authentication_type = "Basic"
   host                = "http://www.bing.com"
@@ -39,7 +39,7 @@ resource "azurerm_data_factory_linked_service_sftp" "example" {
 resource "azurerm_data_factory_dataset_binary" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_sftp.example.name
 
   sftp_server_location {
@@ -55,7 +55,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Binary Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Binary Dataset with. Changing this forces a new resource.
+* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+
+* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+
+-> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
+
+-> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Binary Dataset with.
 

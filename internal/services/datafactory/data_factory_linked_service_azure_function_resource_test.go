@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceAzureFunctionResource struct {
-}
+type LinkedServiceAzureFunctionResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureFunction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
@@ -112,7 +111,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "foo"
   key                 = "bar"
 }
@@ -139,7 +138,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "foo"
   key                 = "bar"
   annotations         = ["test1", "test2", "test3"]
@@ -234,7 +233,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
   name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = "foo"
   key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name

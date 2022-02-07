@@ -21,9 +21,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -31,9 +29,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
@@ -41,9 +37,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -59,9 +53,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -69,9 +61,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
@@ -79,9 +69,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -96,9 +84,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -127,7 +113,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
 		),
 		{
 			Config: r.otherCustomData(data, "/bin/zsh"),
@@ -137,7 +122,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
 		),
 		{
 			// removed
@@ -148,7 +132,45 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
+		),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherUserData(data, "Hello World"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"user_data",
+		),
+		{
+			Config: r.otherUserData(data, "Goodbye Wolrd"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"user_data",
+		),
+		{
+			// removed
+			Config: r.authPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"user_data",
 		),
 	})
 }
@@ -164,9 +186,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherForceDelete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -181,9 +201,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -198,9 +216,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -216,18 +232,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherPrioritySpotMaxBidPrice(data, "-1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -242,9 +254,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -277,9 +287,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// update
 			Config: r.otherSecretUpdated(data),
@@ -287,9 +295,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 
 		{
 			// removed
@@ -298,9 +304,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -315,9 +319,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// add one
 			Config: r.otherTagsUpdated(data),
@@ -325,9 +327,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// remove all
 			Config: r.authPassword(data),
@@ -335,9 +335,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -352,9 +350,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -369,9 +365,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -407,9 +401,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -427,9 +419,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn terminate notification off
 		{
 			Config: r.otherTerminateNotification(data, false),
@@ -439,9 +429,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn terminate notification on again
 		{
 			Config: r.otherTerminateNotification(data, true),
@@ -451,9 +439,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -469,9 +455,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn automatic repair off
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, false),
@@ -479,9 +463,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn automatic repair on again
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, true),
@@ -489,9 +471,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -506,9 +486,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -597,18 +575,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherRollingUpgradePolicyUpdate(data, 20, 20, 20, "PT1S"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -623,18 +597,44 @@ func TestAccLinuxVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherHealthProbeUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_otherSecureBootEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSecureBootEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_otherVTpmEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherVTpmEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -914,6 +914,48 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, customData)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  user_data           = base64encode(%q)
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, userData)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.TestData) string {
@@ -2462,6 +2504,100 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_B1ls"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18_04-lts-gen2"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  secure_boot_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_B1ls"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18_04-lts-gen2"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  vtpm_enabled = true
 }
 `, r.template(data), data.RandomInteger)
 }
