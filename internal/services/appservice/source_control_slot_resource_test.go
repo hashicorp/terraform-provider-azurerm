@@ -58,7 +58,7 @@ func TestAccSourceControlSlotResource_windowsLocalGit(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
-				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%[1]d-acctestwas-%[1]d.scm.azurewebsites.net", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -128,7 +128,7 @@ func TestAccSourceControlSlotResource_linuxLocalGit(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
-				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%[1]d-acctestwas-%[1]d.scm.azurewebsites.net", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -216,10 +216,10 @@ func (r SourceControlSlotResource) requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_app_service_source_control_slot" "import" {
-  slot_id                = azurerm_app_service_source_control.test.slot_id
-  repo_url               = azurerm_app_service_source_control.test.repo_url
-  branch                 = azurerm_app_service_source_control.test.branch
-  use_manual_integration = azurerm_app_service_source_control.test.use_manual_integration
+  slot_id                = azurerm_app_service_source_control_slot.test.slot_id
+  repo_url               = azurerm_app_service_source_control_slot.test.repo_url
+  branch                 = azurerm_app_service_source_control_slot.test.branch
+  use_manual_integration = azurerm_app_service_source_control_slot.test.use_manual_integration
 }
 `, r.windowsExternalGit(data))
 }

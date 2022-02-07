@@ -40,6 +40,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppSlotID,
+			Description:  "The ID of the Web App Slot or Function App Slot.",
 		},
 
 		"repo_url": {
@@ -51,6 +52,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{
 				"branch",
 			},
+			Description: "The branch name to use for deployments.",
 		},
 
 		"branch": {
@@ -62,6 +64,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{
 				"repo_url",
 			},
+			Description: "The URL for the repository",
 		},
 
 		"use_local_git": {
@@ -78,29 +81,33 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 				"use_mercurial",
 				"rollback_enabled",
 			},
+			Description: "Should the Slot use local Git configuration.",
 		},
 
 		"use_manual_integration": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "Should code be deployed manually. Set to `true` to disable continuous integration, such as webhooks into online repos such as GitHub. Defaults to `false`",
 		},
 
 		"github_action_configuration": githubActionConfigSchema(),
 
 		"use_mercurial": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "The repository specified is Mercurial. Defaults to `false`.",
 		},
 
 		"rollback_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "Should the Deployment Rollback be enabled? Defaults to `false`",
 		},
 	}
 }
@@ -108,13 +115,15 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 func (r SourceControlSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scm_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The SCM Type in use. This value is decoded by the service from the repository information supplied.",
 		},
 
 		"uses_github_action": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
 		},
 	}
 }
