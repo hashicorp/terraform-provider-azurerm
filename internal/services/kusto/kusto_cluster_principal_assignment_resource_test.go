@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterPrincipalAssignmentResource struct {
-}
+type KustoClusterPrincipalAssignmentResource struct{}
 
 func TestAccKustoClusterPrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_principal_assignment", "test")

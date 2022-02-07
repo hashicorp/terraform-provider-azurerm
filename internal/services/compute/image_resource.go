@@ -141,7 +141,6 @@ func resourceImage() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"lun": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
@@ -208,8 +207,8 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_image", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_image", id.ID())
 		}
 	}
 

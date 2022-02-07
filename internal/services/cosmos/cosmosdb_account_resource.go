@@ -634,8 +634,8 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_account", id.ID())
 		}
 	}
 
@@ -795,7 +795,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// get existing locations (if exists)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		return fmt.Errorf("making Read request on %s: %s", id, err)
 	}
@@ -1586,11 +1585,12 @@ func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedService
 		tenantID = *identity.TenantID
 	}
 
-	return []interface{}{map[string]interface{}{
-		"type":         string(identity.Type),
-		"principal_id": principalID,
-		"tenant_id":    tenantID,
-	},
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(identity.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
 	}
 }
 

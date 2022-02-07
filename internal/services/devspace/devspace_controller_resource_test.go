@@ -16,11 +16,13 @@ import (
 
 // temporarily works around the unused test, since the tests are skipped
 var _ interface{} = DevSpaceControllerResource{}
-var _ interface{} = DevSpaceControllerResource{}.basic(acceptance.TestData{}, "", "")
-var _ interface{} = DevSpaceControllerResource{}.requiresImport(acceptance.TestData{}, "", "")
 
-type DevSpaceControllerResource struct {
-}
+var (
+	_ interface{} = DevSpaceControllerResource{}.basic(acceptance.TestData{}, "", "")
+	_ interface{} = DevSpaceControllerResource{}.requiresImport(acceptance.TestData{}, "", "")
+)
+
+type DevSpaceControllerResource struct{}
 
 func TestAccDevSpaceController_basic(t *testing.T) {
 	t.Skip("A breaking API change has means new DevSpace Controllers cannot be provisioned, so skipping..")

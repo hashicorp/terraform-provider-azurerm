@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagedDiskResource struct {
-}
+type ManagedDiskResource struct{}
 
 func TestAccManagedDisk_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")

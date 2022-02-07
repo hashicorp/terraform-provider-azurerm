@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultResource struct {
-}
+type KeyVaultResource struct{}
 
 func TestAccKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
@@ -188,7 +187,8 @@ func TestAccKeyVault_upgradeSKU(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.basicPremiumSKU(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

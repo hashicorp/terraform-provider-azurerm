@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorSmartDetectorAlertRuleResource struct {
-}
+type MonitorSmartDetectorAlertRuleResource struct{}
 
 func TestAccMonitorSmartDetectorAlertRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")

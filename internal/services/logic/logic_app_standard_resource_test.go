@@ -410,6 +410,7 @@ func TestAccLogicAppStandard_ftpsState(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccLogicAppStandard_preWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}

@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct {
-}
+type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct{}
 
 func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")

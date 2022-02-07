@@ -33,7 +33,6 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {

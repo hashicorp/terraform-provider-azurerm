@@ -131,7 +131,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"correlation_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -139,7 +140,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"message_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -147,7 +149,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"to": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -155,7 +158,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"reply_to": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -163,7 +167,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"label": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -171,7 +176,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"session_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -179,7 +185,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"reply_to_session_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -187,7 +194,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"content_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -198,7 +206,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},

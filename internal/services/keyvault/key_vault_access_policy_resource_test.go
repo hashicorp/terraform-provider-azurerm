@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultAccessPolicyResource struct {
-}
+type KeyVaultAccessPolicyResource struct{}
 
 func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")

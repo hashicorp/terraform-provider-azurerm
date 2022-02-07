@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VmwareClusterResource struct {
-}
+type VmwareClusterResource struct{}
 
 func TestAccVmwareCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")

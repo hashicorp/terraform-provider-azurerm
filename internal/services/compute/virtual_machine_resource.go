@@ -181,7 +181,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -424,7 +424,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -460,7 +460,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -547,7 +547,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -646,8 +646,8 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
 		}
 	}
 

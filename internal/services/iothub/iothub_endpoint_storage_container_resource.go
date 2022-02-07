@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -98,16 +99,42 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(10485760, 524288000),
 			},
 
+			"authentication_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(devices.AuthenticationTypeKeyBased),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(devices.AuthenticationTypeKeyBased),
+					string(devices.AuthenticationTypeIdentityBased),
+				}, false),
+			},
+
+			"identity_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  msivalidate.UserAssignedIdentityID,
+				ConflictsWith: []string{"connection_string"},
+			},
+
+			"endpoint_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"endpoint_uri", "connection_string"},
+			},
+
 			"connection_string": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
 
 					maskedNew := accountKeyRegex.ReplaceAllString(new, "AccountKey=****")
 					return (new == d.Get(k).(string)) && (maskedNew == old)
 				},
-				Sensitive: true,
+				Sensitive:     true,
+				ConflictsWith: []string{"identity_id"},
+				ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 			},
 
 			"encoding": {
@@ -160,7 +187,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
-	connectionStr := d.Get("connection_string").(string)
+	authenticationType := devices.AuthenticationType(d.Get("authentication_type").(string))
 	containerName := d.Get("container_name").(string)
 	fileNameFormat := d.Get("file_name_format").(string)
 	batchFrequencyInSeconds := int32(d.Get("batch_frequency_in_seconds").(int))
@@ -168,7 +195,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	encoding := d.Get("encoding").(string)
 
 	storageContainerEndpoint := devices.RoutingStorageContainerProperties{
-		ConnectionString:        &connectionStr,
+		AuthenticationType:      authenticationType,
 		Name:                    &id.EndpointName,
 		SubscriptionID:          &subscriptionID,
 		ResourceGroup:           &endpointRG,
@@ -177,6 +204,26 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		BatchFrequencyInSeconds: &batchFrequencyInSeconds,
 		MaxChunkSizeInBytes:     &maxChunkSizeInBytes,
 		Encoding:                devices.Encoding(encoding),
+	}
+
+	if authenticationType == devices.AuthenticationTypeKeyBased {
+		if v, ok := d.GetOk("connection_string"); ok {
+			storageContainerEndpoint.ConnectionString = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+		}
+	} else {
+		if v, ok := d.GetOk("endpoint_uri"); ok {
+			storageContainerEndpoint.EndpointURI = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
+		}
+
+		if v, ok := d.GetOk("identity_id"); ok {
+			storageContainerEndpoint.Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: utils.String(v.(string)),
+			}
+		}
 	}
 
 	routing := iothub.Properties.Routing
@@ -261,13 +308,36 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					d.Set("connection_string", endpoint.ConnectionString)
 					d.Set("container_name", endpoint.ContainerName)
 					d.Set("file_name_format", endpoint.FileNameFormat)
 					d.Set("batch_frequency_in_seconds", endpoint.BatchFrequencyInSeconds)
 					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
 					d.Set("encoding", endpoint.Encoding)
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+
+					authenticationType := string(devices.AuthenticationTypeKeyBased)
+					if string(endpoint.AuthenticationType) != "" {
+						authenticationType = string(endpoint.AuthenticationType)
+					}
+					d.Set("authentication_type", authenticationType)
+
+					connectionStr := ""
+					if endpoint.ConnectionString != nil {
+						connectionStr = *endpoint.ConnectionString
+					}
+					d.Set("connection_string", connectionStr)
+
+					endpointUri := ""
+					if endpoint.EndpointURI != nil {
+						endpointUri = *endpoint.EndpointURI
+					}
+					d.Set("endpoint_uri", endpointUri)
+
+					identityId := ""
+					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
+						identityId = *endpoint.Identity.UserAssignedIdentity
+					}
+					d.Set("identity_id", identityId)
 				}
 			}
 		}

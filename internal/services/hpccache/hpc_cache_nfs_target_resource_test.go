@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HPCCacheNFSTargetResource struct {
-}
+type HPCCacheNFSTargetResource struct{}
 
 func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")

@@ -397,7 +397,7 @@ func (br consumptionBudgetBaseResource) readFunc(scopeFieldName string) sdk.Reso
 			}
 
 			metadata.ResourceData.Set("name", id.Name)
-			// lintignore:R001
+			//lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			amount := 0.0

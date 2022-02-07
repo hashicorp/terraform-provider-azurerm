@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyResource struct {
-}
+type FirewallPolicyResource struct{}
 
 func TestAccFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
@@ -194,7 +193,7 @@ func TestAccFirewallPolicy_insights(t *testing.T) {
 }
 
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyID(state.ID)
+	id, err := parse.FirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

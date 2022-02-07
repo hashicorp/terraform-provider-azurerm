@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var hostpoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -194,6 +197,9 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	locks.ByName(name, hostpoolResourceType)
+	defer locks.UnlockByName(name, hostpoolResourceType)
+
 	context := desktopvirtualization.HostPool{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -279,6 +285,10 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id, err := parse.HostPoolID(d.Id())
+
+	locks.ByName(id.Name, hostpoolResourceType)
+	defer locks.UnlockByName(id.Name, hostpoolResourceType)
+
 	if err != nil {
 		return err
 	}

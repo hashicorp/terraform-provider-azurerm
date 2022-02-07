@@ -60,7 +60,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 		},
 	}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -260,7 +260,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 		}
 	}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -346,7 +346,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -452,7 +452,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 		// so we should be covered via this test alone
 	}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -645,7 +645,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 		SetOfFloats   []float64          `tfschema:"set_of_floats"`
 	}
 
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -863,7 +863,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	resourceName := "validator_computed.test"
-	// lintignore:AT001
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam

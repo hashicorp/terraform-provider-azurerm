@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CassandraDatacenterResource struct {
-}
+type CassandraDatacenterResource struct{}
 
 func TestAccCassandraDatacenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")

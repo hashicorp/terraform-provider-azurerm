@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.Resource = BackendAddressPoolAddressResource{}
-var _ sdk.ResourceWithUpdate = BackendAddressPoolAddressResource{}
+var (
+	_ sdk.Resource           = BackendAddressPoolAddressResource{}
+	_ sdk.ResourceWithUpdate = BackendAddressPoolAddressResource{}
+)
 
 type BackendAddressPoolAddressResource struct{}
 
