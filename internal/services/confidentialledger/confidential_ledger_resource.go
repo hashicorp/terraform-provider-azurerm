@@ -3,7 +3,6 @@ package confidentialledger
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +22,7 @@ import (
 func resourceConfidentialLedger() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceConfidentialLedgerCreate,
-		// Read:   resourceConfidentialLedgerRead,
+		Read:   resourceConfidentialLedgerRead,
 		// Update: resourceConfidentialLedgerUpdate,
 		// Delete: resourceConfidentialLedgerDelete,
 
@@ -102,9 +102,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// the API changed and now returns the rg in lowercase
-			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -132,43 +130,16 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_confidential_ledger", resourceId.ID())
 	}
 
-	numAadBasedUsers, err := strconv.Atoi(d.Get("aad_based_security_principals.#").(string))
-	if err != nil {
-		return fmt.Errorf("Could not convert 'aad_based_security_principals.#' = '%s' to integer", d.Get("aad_based_security_principals.#"))
-	}
-
-	aadBasedUsers := make([]confidentialledger.AADBasedSecurityPrincipal, numAadBasedUsers)
-	for i := 0; i < numAadBasedUsers; i++ {
-		tempData := d.Get(fmt.Sprintf("aad_based_security_principals.%d", i)).(pluginsdk.ResourceData)
-		ledgerRoleName := tempData.Get("ledger_role_name").(confidentialledger.LedgerRoleName)
-
-		aadBasedUsers = append(aadBasedUsers, confidentialledger.AADBasedSecurityPrincipal{
-			LedgerRoleName: &ledgerRoleName,
-			PrincipalId:    nil,
-			TenantId:       nil,
-		})
-	}
-
-	numCertBasedUsers, err := strconv.Atoi(d.Get("cert_based_security_principals.#").(string))
-	if err != nil {
-		return fmt.Errorf("Could not convert 'aad_based_security_principals.#' = '%s' to integer", d.Get("aad_based_security_principals.#"))
-	}
-
-	certBasedUsers := make([]confidentialledger.CertBasedSecurityPrincipal, numCertBasedUsers)
-	for i := 0; i < numAadBasedUsers; i++ {
-		certBasedUsers = append(certBasedUsers, confidentialledger.CertBasedSecurityPrincipal{
-			Cert:           nil,
-			LedgerRoleName: nil,
-		})
-	}
+	aadBasedUsers := expandConfidentialLedgerAADBasedSecurityPrincipal(d.Get("aad_based_security_principals").([]interface{}))
+	certBasedUsers := expandConfidentialLedgerCertBasedSecurityPrincipal(d.Get("cert_based_security_principals").([]interface{}))
 
 	// TODO: Insert ledger properties..?
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
 		Properties: &confidentialledger.LedgerProperties{
-			AadBasedSecurityPrincipals:  &aadBasedUsers,
-			CertBasedSecurityPrincipals: &certBasedUsers,
+			AadBasedSecurityPrincipals:  aadBasedUsers,
+			CertBasedSecurityPrincipals: certBasedUsers,
 			LedgerType:                  d.Get("ledger_type").(*confidentialledger.LedgerType),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -179,7 +150,50 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(resourceId.ID())
-	// TODO
-	// return resourceAppConfigurationRead(d, meta)
+	return resourceConfidentialLedgerRead(d, meta)
+}
+
+func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := confidentialledger.ParseLedgerID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.LedgerGet(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error retrieving %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.LedgerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("ledger_type", model.Properties.LedgerType)
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("tags", model.Tags)
+
+		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
+		if err != nil {
+			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", *id, err)
+		}
+
+		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
+		if err != nil {
+			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", *id, err)
+		}
+
+		d.Set("aad_based_security_principals", aadBasedUsers)
+		d.Set("cert_based_security_principals", certBasedUsers)
+	}
+
 	return nil
 }
