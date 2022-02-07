@@ -199,6 +199,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				"orchestrator_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
