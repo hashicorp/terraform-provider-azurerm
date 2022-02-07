@@ -5,8 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -46,38 +48,11 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 				ValidateFunc: validate.LogAnalyticsClusterName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(operationalinsights.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			// Per the documentation cluster capacity must start at 1000 GB and can go above 3000 GB with an exception by Microsoft
 			// so I am not limiting the upperbound here by design
@@ -123,9 +98,13 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", id.ID())
 	}
 
+	expandedIdentity, err := expandLogAnalyticsClusterIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	parameters := operationalinsights.Cluster{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Identity: expandLogAnalyticsClusterIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Sku: &operationalinsights.ClusterSku{
 			Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
 			Name:     operationalinsights.CapacityReservation,
@@ -146,8 +125,10 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	createWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutCreate), id.ResourceGroup, id.ClusterName)
-
+	createWait, err := logAnalyticsClusterWaitForState(ctx, meta, id.ResourceGroup, id.ClusterName)
+	if err != nil {
+		return err
+	}
 	if _, err := createWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
@@ -227,7 +208,10 @@ func resourceLogAnalyticsClusterUpdate(d *pluginsdk.ResourceData, meta interface
 	// since the service returns a 200 instantly while it's still updating in the background
 	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
 
-	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), id.ResourceGroup, id.ClusterName)
+	updateWait, err := logAnalyticsClusterWaitForState(ctx, meta, id.ResourceGroup, id.ClusterName)
+	if err != nil {
+		return err
+	}
 
 	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
@@ -258,38 +242,31 @@ func resourceLogAnalyticsClusterDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandLogAnalyticsClusterIdentity(input []interface{}) *operationalinsights.Identity {
-	if len(input) == 0 {
-		return nil
+func expandLogAnalyticsClusterIdentity(input []interface{}) (*operationalinsights.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	v := input[0].(map[string]interface{})
+
 	return &operationalinsights.Identity{
-		Type: operationalinsights.IdentityType(v["type"].(string)),
-	}
+		Type: operationalinsights.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenLogAnalyticsIdentity(input *operationalinsights.Identity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
 	}
 
-	var t operationalinsights.IdentityType
-	if input.Type != "" {
-		t = input.Type
-	}
-	var principalId string
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-	var tenantId string
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         t,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+	return identity.FlattenSystemAssigned(transform)
 }
