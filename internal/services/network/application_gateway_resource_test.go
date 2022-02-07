@@ -18,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApplicationGatewayResource struct {
-}
+type ApplicationGatewayResource struct{}
 
 func TestAccApplicationGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,6 +33,11 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 			_, err := parse.DataSourceID(id)
 			return err
 		}, importLogAnalyticsDataSource(operationalinsights.WindowsEvent)),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsEventV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

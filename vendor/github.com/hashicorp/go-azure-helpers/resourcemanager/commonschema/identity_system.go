@@ -7,7 +7,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func SystemAssignedIdentity() *schema.Schema {
+// SystemAssignedIdentityRequired returns the System Assigned Identity schema where this is Required
+func SystemAssignedIdentityRequired() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemAssignedIdentityOptional returns the System Assigned Identity schema where this is Optional
+func SystemAssignedIdentityOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -34,7 +63,8 @@ func SystemAssignedIdentity() *schema.Schema {
 	}
 }
 
-func SystemAssignedIdentityDataSource() *schema.Schema {
+// SystemAssignedIdentityOptional returns the System Assigned Identity schema where this is Computed
+func SystemAssignedIdentityComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

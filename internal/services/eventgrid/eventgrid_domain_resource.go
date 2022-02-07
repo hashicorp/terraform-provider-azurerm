@@ -194,8 +194,8 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_eventgrid_domain", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
 		}
 	}
 

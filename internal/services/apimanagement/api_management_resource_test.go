@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementResource struct {
-}
+type ApiManagementResource struct{}
 
 func TestAccApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
@@ -1654,6 +1653,7 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
+
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

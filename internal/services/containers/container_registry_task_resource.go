@@ -23,8 +23,10 @@ import (
 
 type ContainerRegistryTaskResource struct{}
 
-var _ sdk.ResourceWithUpdate = ContainerRegistryTaskResource{}
-var _ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ContainerRegistryTaskResource{}
+	_ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
+)
 
 type AgentConfig struct {
 	CPU int `tfschema:"cpu"`
@@ -82,8 +84,7 @@ type Auth struct {
 	ExpireInSec  int    `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct {
-}
+type SourceSetting struct{}
 
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`

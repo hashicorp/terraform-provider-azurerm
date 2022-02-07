@@ -49,6 +49,7 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 		},
 	}
 }
+
 func dataSourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

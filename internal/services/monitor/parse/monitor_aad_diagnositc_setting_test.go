@@ -22,7 +22,6 @@ func TestMonitorAADDiagnosticSettingID(t *testing.T) {
 		Error    bool
 		Expected *MonitorAADDiagnosticSettingId
 	}{
-
 		{
 			// empty
 			Input: "",

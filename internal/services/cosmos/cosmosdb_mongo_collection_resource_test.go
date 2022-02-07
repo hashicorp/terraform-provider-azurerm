@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosMongoCollectionResource struct {
-}
+type CosmosMongoCollectionResource struct{}
 
 func TestAccCosmosDbMongoCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MapsAccountResource struct {
-}
+type MapsAccountResource struct{}
 
 func TestAccMapsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")

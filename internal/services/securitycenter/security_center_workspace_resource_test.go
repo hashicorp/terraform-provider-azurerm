@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityCenterWorkspaceResource struct {
-}
+type SecurityCenterWorkspaceResource struct{}
 
 func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")

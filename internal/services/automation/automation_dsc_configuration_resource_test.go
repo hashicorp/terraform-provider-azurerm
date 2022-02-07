@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationDscConfigurationResource struct {
-}
+type AutomationDscConfigurationResource struct{}
 
 func TestAccAutomationDscConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
@@ -128,6 +127,7 @@ resource "azurerm_automation_dsc_configuration" "import" {
 }
 `, template)
 }
+
 func (AutomationDscConfigurationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

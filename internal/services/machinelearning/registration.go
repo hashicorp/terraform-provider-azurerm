@@ -1,10 +1,17 @@
 package machinelearning
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/machine-learning"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

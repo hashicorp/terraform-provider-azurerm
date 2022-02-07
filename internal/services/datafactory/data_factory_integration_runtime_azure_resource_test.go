@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeAzureResource struct {
-}
+type IntegrationRuntimeAzureResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeAzure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")

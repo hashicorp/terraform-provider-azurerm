@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceOdbcResource struct {
-}
+type LinkedServiceOdbcResource struct{}
 
 func TestAccDataFactoryLinkedServiceODBC_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")

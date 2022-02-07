@@ -71,8 +71,8 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_proximity_placement_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_proximity_placement_group", id.ID())
 		}
 	}
 

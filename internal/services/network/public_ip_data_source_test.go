@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PublicIPDataSource struct {
-}
+type PublicIPDataSource struct{}
 
 func TestAccDataSourcePublicIP_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")

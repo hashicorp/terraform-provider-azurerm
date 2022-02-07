@@ -87,8 +87,8 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", id.ID())
 	}
 
 	parameters := network.SecurityPartnerProvider{

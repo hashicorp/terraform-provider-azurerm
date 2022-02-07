@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WebApplicationFirewallResource struct {
-}
+type WebApplicationFirewallResource struct{}
 
 func TestAccWebApplicationFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")

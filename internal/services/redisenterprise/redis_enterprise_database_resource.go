@@ -191,6 +191,7 @@ func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
@@ -223,7 +224,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 			ClusteringPolicy: &clusteringPolicy,
 			EvictionPolicy:   &evictionPolicy,
 			Modules:          expandArmDatabaseModuleArray(d.Get("module").([]interface{})),
-			//Persistence:      expandArmDatabasePersistence(d.Get("persistence").([]interface{})),
+			// Persistence:      expandArmDatabasePersistence(d.Get("persistence").([]interface{})),
 			Port: utils.Int64(int64(d.Get("port").(int))),
 		},
 	}

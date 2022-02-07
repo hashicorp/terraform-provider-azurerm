@@ -297,6 +297,7 @@ func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sq
 		FailoverPolicy: mode,
 	}
 }
+
 func expandSqlInstanceFailoverGroupManagedInstanceId(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
 	instanceId := d.Get("partner_managed_instance_id").(string)
 	partners := make([]sql.ManagedInstancePairInfo, 0)

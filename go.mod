@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-azure-helpers v0.21.0
+	github.com/hashicorp/go-azure-helpers v0.22.0
 	github.com/hashicorp/go-getter v1.5.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-plugin v1.4.2 // indirect
@@ -29,6 +29,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
+	github.com/manicminer/hamilton v0.37.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1

@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,8 +53,8 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.ProfileStatusEnabled),
-					string(trafficmanager.ProfileStatusDisabled),
+					string(profiles.ProfileStatusEnabled),
+					string(profiles.ProfileStatusDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -62,12 +63,12 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.TrafficRoutingMethodGeographic),
-					string(trafficmanager.TrafficRoutingMethodWeighted),
-					string(trafficmanager.TrafficRoutingMethodPerformance),
-					string(trafficmanager.TrafficRoutingMethodPriority),
-					string(trafficmanager.TrafficRoutingMethodSubnet),
-					string(trafficmanager.TrafficRoutingMethodMultiValue),
+					string(profiles.TrafficRoutingMethodGeographic),
+					string(profiles.TrafficRoutingMethodWeighted),
+					string(profiles.TrafficRoutingMethodPerformance),
+					string(profiles.TrafficRoutingMethodPriority),
+					string(profiles.TrafficRoutingMethodSubnet),
+					string(profiles.TrafficRoutingMethodMultiValue),
 				}, false),
 			},
 
@@ -128,9 +129,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(trafficmanager.MonitorProtocolHTTP),
-								string(trafficmanager.MonitorProtocolHTTPS),
-								string(trafficmanager.MonitorProtocolTCP),
+								string(profiles.MonitorProtocolHTTP),
+								string(profiles.MonitorProtocolHTTPS),
+								string(profiles.MonitorProtocolTCP),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -186,7 +187,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -199,57 +200,60 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 
 	log.Printf("[INFO] preparing arguments for Traffic Manager Profile creation.")
 
-	resourceId := parse.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+	id := profiles.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Traffic Manager Profile %q (Resource Group %q)", resourceId.Name, resourceId.ResourceGroup)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s", id)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", id.ID())
 	}
 
+	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	// No existing profile - start from a new struct.
-	profile := trafficmanager.Profile{
-		Name:     utils.String(resourceId.Name),
+	profile := profiles.Profile{
+		Name:     utils.String(id.ProfileName),
 		Location: utils.String("global"), // must be provided in request
-		ProfileProperties: &trafficmanager.ProfileProperties{
-			TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string)),
-			DNSConfig:            expandArmTrafficManagerDNSConfig(d),
+		Properties: &profiles.ProfileProperties{
+			TrafficRoutingMethod: &trafficRoutingMethod,
+			DnsConfig:            expandArmTrafficManagerDNSConfig(d),
 			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
-		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		profile.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
-		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+		profileStatus := profiles.ProfileStatus(status.(string))
+		profile.Properties.ProfileStatus = &profileStatus
 	}
 
 	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+		profile.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
-	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.TrafficRoutingMethodMultiValue &&
-		profile.ProfileProperties.MaxReturn == nil {
+	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
+	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&
+		profile.Properties.MaxReturn == nil {
 		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
-	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
-		*profile.ProfileProperties.MonitorConfig.TimeoutInSeconds == int64(10) {
+	if *profile.Properties.MonitorConfig.IntervalInSeconds == int64(10) &&
+		*profile.Properties.MonitorConfig.TimeoutInSeconds == int64(10) {
 		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, profile); err != nil {
-		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, profile); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -258,38 +262,53 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TrafficManagerProfileID(d.Id())
+	id, err := profiles.ParseTrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ProfileName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if profile := resp.ProfileProperties; profile != nil {
-		d.Set("profile_status", profile.ProfileStatus)
-		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
-		d.Set("max_return", profile.MaxReturn)
+	if model := resp.Model; model != nil {
+		if profile := model.Properties; profile != nil {
+			profileStatus := ""
+			if profile.ProfileStatus != nil {
+				profileStatus = string(*profile.ProfileStatus)
+			}
+			d.Set("profile_status", profileStatus)
+			trafficRoutingMethod := ""
+			if profile.TrafficRoutingMethod != nil {
+				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
+			}
+			d.Set("traffic_routing_method", trafficRoutingMethod)
+			d.Set("max_return", profile.MaxReturn)
 
-		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
-		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
-		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
+			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
+			d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+			trafficViewEnabled := false
+			if profile.TrafficViewEnrollmentStatus != nil {
+				trafficViewEnabled = *profile.TrafficViewEnrollmentStatus == profiles.TrafficViewEnrollmentStatusEnabled
+			}
+			d.Set("traffic_view_enabled", trafficViewEnabled)
 
-		// fqdn is actually inside DNSConfig, inlined for simpler reference
-		if dns := profile.DNSConfig; dns != nil {
-			d.Set("fqdn", dns.Fqdn)
+			// fqdn is actually inside DNSConfig, inlined for simpler reference
+			if dns := profile.DnsConfig; dns != nil {
+				d.Set("fqdn", dns.Fqdn)
+			}
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -297,48 +316,50 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TrafficManagerProfileID(d.Id())
+	id, err := profiles.ParseTrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	update := trafficmanager.Profile{
-		ProfileProperties: &trafficmanager.ProfileProperties{},
+	update := profiles.Profile{
+		Properties: &profiles.ProfileProperties{},
 	}
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("profile_status") {
-		update.ProfileProperties.ProfileStatus = trafficmanager.ProfileStatus(d.Get("profile_status").(string))
+		status := profiles.ProfileStatus(d.Get("profile_status").(string))
+		update.Properties.ProfileStatus = &status
 	}
 
 	if d.HasChange("traffic_routing_method") {
-		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
+		routingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
+		update.Properties.TrafficRoutingMethod = &routingMethod
 	}
 
 	if d.HasChange("max_return") {
 		if maxReturn, ok := d.GetOk("max_return"); ok {
-			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+			update.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
 		}
 	}
 
 	if d.HasChange("dns_config") {
-		update.ProfileProperties.DNSConfig = expandArmTrafficManagerDNSConfig(d)
+		update.Properties.DnsConfig = expandArmTrafficManagerDNSConfig(d)
 	}
 
 	if d.HasChange("monitor_config") {
-		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+		update.Properties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
 	}
 
 	if d.HasChange("traffic_view_enabled") {
 		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-			update.ProfileProperties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+			update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 		}
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
-		return fmt.Errorf("updating Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceArmTrafficManagerProfileRead(d, meta)
@@ -349,14 +370,14 @@ func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TrafficManagerProfileID(d.Id())
+	id, err := profiles.ParseTrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return err
 		}
 	}
@@ -364,14 +385,15 @@ func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *trafficmanager.MonitorConfig {
+func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.MonitorConfig {
 	monitorSets := d.Get("monitor_config").([]interface{})
 	monitor := monitorSets[0].(map[string]interface{})
 
 	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
-	cfg := trafficmanager.MonitorConfig{
-		Protocol:                  trafficmanager.MonitorProtocol(monitor["protocol"].(string)),
+	protocol := profiles.MonitorProtocol(monitor["protocol"].(string))
+	cfg := profiles.MonitorConfig{
+		Protocol:                  &protocol,
 		CustomHeaders:             customHeaders,
 		Port:                      utils.Int64(int64(monitor["port"].(int))),
 		Path:                      utils.String(monitor["path"].(string)),
@@ -381,14 +403,14 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *trafficman
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
-		ranges := make([]trafficmanager.MonitorConfigExpectedStatusCodeRangesItem, 0)
+		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesInlined, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
-			ranges = append(ranges, trafficmanager.MonitorConfigExpectedStatusCodeRangesItem{
-				Min: utils.Int32(int32(min)),
-				Max: utils.Int32(int32(max)),
+			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
+				Min: utils.Int64(int64(min)),
+				Max: utils.Int64(int64(max)),
 			})
 		}
 		cfg.ExpectedStatusCodeRanges = &ranges
@@ -397,16 +419,16 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *trafficman
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]trafficmanager.MonitorConfigCustomHeadersItem {
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersInlined {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
 
-	customHeaders := make([]trafficmanager.MonitorConfigCustomHeadersItem, len(d))
+	customHeaders := make([]profiles.MonitorConfigCustomHeadersInlined, len(d))
 
 	for i, v := range d {
 		ch := v.(map[string]interface{})
-		customHeaders[i] = trafficmanager.MonitorConfigCustomHeadersItem{
+		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
 			Name:  utils.String(ch["name"].(string)),
 			Value: utils.String(ch["value"].(string)),
 		}
@@ -415,7 +437,7 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]trafficmanag
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.MonitorConfigCustomHeadersItem) []interface{} {
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -436,39 +458,44 @@ func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.Monitor
 	return result
 }
 
-func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *trafficmanager.DNSConfig {
+func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *profiles.DnsConfig {
 	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
 	name := dns["relative_name"].(string)
 	ttl := int64(dns["ttl"].(int))
 
-	return &trafficmanager.DNSConfig{
+	return &profiles.DnsConfig{
 		RelativeName: &name,
-		TTL:          &ttl,
+		Ttl:          &ttl,
 	}
 }
 
-func expandArmTrafficManagerTrafficView(s bool) trafficmanager.TrafficViewEnrollmentStatus {
+func expandArmTrafficManagerTrafficView(s bool) *profiles.TrafficViewEnrollmentStatus {
+	enabled := profiles.TrafficViewEnrollmentStatusDisabled
 	if s {
-		return trafficmanager.TrafficViewEnrollmentStatusEnabled
+		enabled = profiles.TrafficViewEnrollmentStatusEnabled
 	}
-	return trafficmanager.TrafficViewEnrollmentStatusDisabled
+	return &enabled
 }
 
-func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig) []interface{} {
+func flattenAzureRMTrafficManagerProfileDNSConfig(dns *profiles.DnsConfig) []interface{} {
 	result := make(map[string]interface{})
 
 	result["relative_name"] = *dns.RelativeName
-	result["ttl"] = int(*dns.TTL)
+	result["ttl"] = int(*dns.Ttl)
 
 	return []interface{}{result}
 }
 
-func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.MonitorConfig) []interface{} {
+func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *profiles.MonitorConfig) []interface{} {
 	result := make(map[string]interface{})
 
-	result["protocol"] = string(cfg.Protocol)
+	protocol := ""
+	if cfg.Protocol != nil {
+		protocol = string(*cfg.Protocol)
+	}
+	result["protocol"] = protocol
 	result["port"] = int(*cfg.Port)
 	result["custom_header"] = flattenArmTrafficManagerCustomHeadersConfig(cfg.CustomHeaders)
 

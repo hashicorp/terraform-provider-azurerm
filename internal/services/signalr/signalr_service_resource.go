@@ -262,7 +262,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 }
 
 func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -330,7 +330,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -423,7 +423,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -495,7 +495,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

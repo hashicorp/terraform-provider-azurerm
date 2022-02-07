@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudCustomDomainResource struct {
-}
+type SpringCloudCustomDomainResource struct{}
 
 func TestAccSpringCloudCustomDomain_basic(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {

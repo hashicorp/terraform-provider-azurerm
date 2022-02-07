@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataFactoryResource struct {
-}
+type DataFactoryResource struct{}
 
 func TestAccDataFactory_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")

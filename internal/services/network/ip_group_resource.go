@@ -77,8 +77,8 @@ func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_ip_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
 		}
 	}
 

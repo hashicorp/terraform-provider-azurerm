@@ -162,7 +162,6 @@ func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)

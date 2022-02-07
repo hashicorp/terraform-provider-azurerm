@@ -77,6 +77,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
