@@ -1222,10 +1222,6 @@ func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIde
 		return nil, err
 	}
 
-	//if expanded.Type == identity.TypeNone {
-	//	return nil, nil
-	//}
-	//
 	return &web.ManagedServiceIdentity{
 		Type: web.ManagedServiceIdentityType(expanded.Type),
 	}, nil
