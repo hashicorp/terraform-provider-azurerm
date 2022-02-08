@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -22,51 +23,7 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ContainerRegistryName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"location": azure.SchemaLocationForDataSource(),
-
-			"admin_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"admin_password": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"admin_username": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"login_server": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			// TODO 3.0 - remove this attribute
-			"storage_account_id": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-			},
-
-			"tags": tags.SchemaDataSource(),
-		},
+		Schema: dataSourceContainerRegistrySchema(),
 	}
 }
 
@@ -120,4 +77,54 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ContainerRegistryName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+		"location": azure.SchemaLocationForDataSource(),
+
+		"admin_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"admin_password": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"admin_username": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"login_server": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": tags.SchemaDataSource(),
+	}
+	if !features.ThreePointOhBeta() {
+		out["storage_account_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
+		}
+	}
+
+	return out
 }
