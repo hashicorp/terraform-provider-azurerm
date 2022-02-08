@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -106,6 +106,28 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"license_type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"LicenseIncluded",
+				"BasePrice",
+			}, true),
+		},
+
+		"storage_size_in_gb": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(32, 8192),
+		},
+
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
+
 		"vcores": {
 			Type:     schema.TypeInt,
 			Required: true,
@@ -121,28 +143,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}),
 		},
 
-		"storage_size_in_gb": {
-			Type:         schema.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(32, 8192),
-		},
-
-		"license_type": {
-			Type:     schema.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"LicenseIncluded",
-				"BasePrice",
-			}, true),
-		},
-
-		"subnet_id": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
-		},
-
 		"collation": {
 			Type:         schema.TypeString,
 			Optional:     true,
@@ -154,7 +154,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_zone_partner_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: validate.ManagedInstanceID,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityOptional(),

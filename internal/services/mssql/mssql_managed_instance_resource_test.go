@@ -1028,6 +1028,21 @@ func TestAccMsSqlManagedInstance_update(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.premium(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlManagedInstance_backupRedundancyLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
@@ -1190,16 +1205,49 @@ func (r MsSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_G8IM"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1219,17 +1267,19 @@ func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, stor
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-  storage_account_type         = "%[3]s"
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type         = "BasePrice"
+  sku_name             = "GP_Gen5"
+  storage_account_type = "%[3]s"
+  storage_size_in_gb   = 32
+  subnet_id            = azurerm_subnet.test.id
+  vcores               = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1249,16 +1299,18 @@ func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string 
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1282,20 +1334,22 @@ func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
   license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 8
-  storage_size_in_gb           = 64
-  public_data_endpoint_enabled = true
-  proxy_override               = "Proxy"
-  timezone_id                  = "Pacific Standard Time"
   minimum_tls_version          = "1.0"
+  proxy_override               = "Proxy"
+  public_data_endpoint_enabled = true
+  sku_name                     = "GP_Gen5"
+  storage_size_in_gb           = 64
+  subnet_id                    = azurerm_subnet.test.id
+  timezone_id                  = "Pacific Standard Time"
+  vcores                       = 8
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1314,16 +1368,18 @@ func (r MsSqlManagedInstanceResource) multiple(data acceptance.TestData) string 
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1337,16 +1393,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 }
 
 resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "acctestsqlserver2%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.test.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver2%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -1374,17 +1432,19 @@ func (r MsSqlManagedInstanceResource) dnsZonePartner(data acceptance.TestData) s
 %[2]s
 
 resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "acctestsqlserver2%[3]d"
-  resource_group_name          = azurerm_resource_group.secondary.name
-  location                     = azurerm_resource_group.secondary.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-  dns_zone_partner_id          = azurerm_mssql_managed_instance.test.id
+  name                = "acctestsqlserver2%[3]d"
+  resource_group_name = azurerm_resource_group.secondary.name
+  location            = azurerm_resource_group.secondary.location
+
+  dns_zone_partner_id = azurerm_mssql_managed_instance.test.id
+  license_type        = "BasePrice"
+  sku_name            = "GP_Gen5"
+  storage_size_in_gb  = 32
+  subnet_id           = azurerm_subnet.secondary.id
+  vcores              = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
@@ -1405,16 +1465,18 @@ func (r MsSqlManagedInstanceResource) emptyDnsZonePartner(data acceptance.TestDa
 %[2]s
 
 resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "acctestsqlserver2%[3]d"
-  resource_group_name          = azurerm_resource_group.secondary.name
-  location                     = azurerm_resource_group.secondary.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver2%[3]d"
+  resource_group_name = azurerm_resource_group.secondary.name
+  location            = azurerm_resource_group.secondary.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.secondary.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
@@ -1444,17 +1506,19 @@ func (r MsSqlManagedInstanceResource) dnsZonePartners(data acceptance.TestData) 
 %[3]s
 
 resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "acctestsqlserver2%[4]d"
-  resource_group_name          = azurerm_resource_group.secondary.name
-  location                     = azurerm_resource_group.secondary.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-  dns_zone_partner_id          = azurerm_mssql_managed_instance.test.id
+  name                = "acctestsqlserver2%[4]d"
+  resource_group_name = azurerm_resource_group.secondary.name
+  location            = azurerm_resource_group.secondary.location
+
+  dns_zone_partner_id = azurerm_mssql_managed_instance.test.id
+  license_type        = "BasePrice"
+  sku_name            = "GP_Gen5"
+  storage_size_in_gb  = 32
+  subnet_id           = azurerm_subnet.secondary.id
+  vcores              = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
@@ -1468,17 +1532,19 @@ resource "azurerm_mssql_managed_instance" "secondary" {
 }
 
 resource "azurerm_mssql_managed_instance" "secondary_2" {
-  name                         = "acctestsqlserver3%[4]d"
-  resource_group_name          = azurerm_resource_group.secondary_2.name
-  location                     = azurerm_resource_group.secondary_2.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary_2.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-  dns_zone_partner_id          = azurerm_mssql_managed_instance.test.id
+  name                = "acctestsqlserver3%[4]d"
+  resource_group_name = azurerm_resource_group.secondary_2.name
+  location            = azurerm_resource_group.secondary_2.location
+
+  dns_zone_partner_id = azurerm_mssql_managed_instance.test.id
+  license_type        = "BasePrice"
+  sku_name            = "GP_Gen5"
+  storage_size_in_gb  = 32
+  subnet_id           = azurerm_subnet.secondary_2.id
+  vcores              = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary_2,
@@ -1500,16 +1566,18 @@ func (r MsSqlManagedInstanceResource) emptyDnsZonePartners(data acceptance.TestD
 %[3]s
 
 resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "acctestsqlserver2%[4]d"
-  resource_group_name          = azurerm_resource_group.secondary.name
-  location                     = azurerm_resource_group.secondary.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver2%[4]d"
+  resource_group_name = azurerm_resource_group.secondary.name
+  location            = azurerm_resource_group.secondary.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.secondary.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
@@ -1523,16 +1591,18 @@ resource "azurerm_mssql_managed_instance" "secondary" {
 }
 
 resource "azurerm_mssql_managed_instance" "secondary_2" {
-  name                         = "acctestsqlserver3%[4]d"
-  resource_group_name          = azurerm_resource_group.secondary_2.name
-  location                     = azurerm_resource_group.secondary_2.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary_2.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
+  name                = "acctestsqlserver3%[4]d"
+  resource_group_name = azurerm_resource_group.secondary_2.name
+  location            = azurerm_resource_group.secondary_2.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.secondary_2.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary_2,
