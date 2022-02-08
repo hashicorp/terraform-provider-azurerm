@@ -78,18 +78,63 @@ At a high level, version 3.0 to includes the following changes:
 Each of these topics is covered in more detail below.
 
 ## New Resources and Data Sources for App Service
-TODO
+
+While it’s possible to provision App Services and Function Apps in Terraform today, the design and behavior of the App Service platform has changed over the years. These resources require some refinement.
+
+Similar to the changes for Virtual Machines in v2.0 of the Azure Provider, we've introduced more granular resources for App Service to better represent the functionality available in Azure.
+
+The following new **Data Sources** will be available:
+* azurerm_linux_web_app
+* azurerm_service_plan
+* azurerm_source_control_token
+* azurerm_windows_web_app
+
+The following new **Resources** will be available:
+* azurerm_app_service_source_control
+* azurerm_linux_function_app
+* azurerm_linux_web_app
+* azurerm_service_plan
+* azurerm_source_control_token
+* azurerm_windows_web_app
 
 ## Soft Delete for Key Vault
-TODO
+
+Previously, soft delete has only been available for a Key Vault resource as a whole. Now, you’ll be able to soft delete the nested items within a Key Vault: certificates, keys, and secrets.
 
 ## Switching to MSAL
-TODO
+
+Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
 
 ## Behavioural updates
 
+**All Resources:** The Resource ID will now be validated at import time to ensure the correct resource is being imported, and return the expected format upon a mismatch. This ensures that, for example, a Virtual Machine ID is specified rather than the VM Extension ID (which is nested under a Virtual Machine ID).
+
+**Resources with a `min_tls_version` field:** The default minimum TLS version will be `1.2`.
+
+**Resource with a (Availability) `zones` field:** 
+* Availability Zones will be represented across all resources which support it using the field zones - in addition the values No-Zone and ZoneRedundant will be removed in favour of being explicit.
+* Where this field is Optional and Computed - this field will no longer be Computed. This means that if you wish to use the Availability Zone defaulted by Azure, you will need to use [Terraform’s `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to this field.
+* Where this field is Optional (and isn’t defaulted by Azure) - omitting this field (or specifying a value of null) will deploy this without any Zones.
+* Where this field is Required, there are no changes.
+* Zone Redundant resources can be provisioned by specifying all the Availability Zones for that particular Azure Region. We’ll also introduce a new azurerm_availability_zones data source to provide this information.
+
+**Resource with a (Managed) `identity` block:** The presence of an identity block means a Managed Identity should be assigned to this Resource - and the omission of an identity block (or a null value) means that no Managed Identity should be assigned to this Resource.
+
+**Application Gateway:** The behavior of the nested items will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+**API Management:** Terraform will now remove the Default API and Products for API Management when creating a new API Management instance, which is consistent with the behavior for other Terraform Providers.
+
+**Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behavior is configurable in the features block, but was previously disabled by default. In 3.0, this behavior will be enabled by default.
+
+**Storage:**
+* We’ll switch to using Resource Manager (management plane) for all resources.
+* Switching to use AzureAD / Resource Manager for nested item configuration - this allows provisioning these when Private Link is enabled, however requires different permissions which are not granted by default.
+* The field `allow_blob_public_access` will be renamed to `allow_nested_items_to_be_public` to resolve confusion about what this field does. This field specifies whether items within the Storage Account (such as Containers and Blobs) can opt-in to being made public (for example at the Container or Blob level) - and not that all resources within this Storage Account are public by default.
+
+**Other Individual Resources:**
 * `azurerm_iothub` - When creating a new `azurerm_iothub` resource, a Fallback Route will be enabled by default.
 * `azurerm_mssql_database` - The new field `transparent_data_encryption_enabled` will be set to `true` and can not be disabled on servers with SKUs other than ones starting with `DW`.
+* `azurerm_database_migration_service` - The provider will now delete this resource even if it still contains running tasks.
 
 ## Removal of Deprecated Fields, Data Sources and Resources
 
@@ -97,7 +142,7 @@ Since version 3.0 is a major version - we intend to take this opportunity to rem
 
 Below we'll cover each of the Data Sources and Resources which will be affected by the 3.0 upgrade.
 
--> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 2.0 of the AzureRM Provider is released.
+-> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
 
 ### Data Source: `azurerm_batch_pool`
 
@@ -186,6 +231,8 @@ The deprecated field `max_task_retry_count` will be removed in favour of the `ta
 ### Resource: `azurerm_cognitive_account`
 
 The deprecated field `network_acls.virtual_network_subnet_ids` will be removed in favour of the `network_acls.virtual_network_rules` property.
+
+The field `outbound_network_access_restrited` will be removed in favour of the `outbound_network_access_restricted` property.
 
 ### Resource: `azurerm_container_registry`
 
@@ -581,6 +628,10 @@ The deprecated field `storage_profile.auto_grow` will be removed in favour of th
 
 The deprecated field `storage_profile.geo_redundant_backup` will be removed in favour of the `geo_redundant_backup_enabled` property.
 
+### Resource: `azurerm_monitor_scheduled_query_rules_alert`
+
+The field `custom_webhook_payload` will not longer be computed and populated with the default value `"{}"`.
+
 ### Resource: `azurerm_mssql_database`
 
 The deprecated field `use_server_default` will be removed since it is now non-functional.
@@ -715,6 +766,8 @@ The deprecated field `storage_profile.geo_redundant_backup` has been moved to th
 
 The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
 
+The field `version` will become case-sensitive.
+
 ### Resource: `azurerm_purview_account`
 
 The deprecated field `sku_name` will be removed since this property can no longer be specified on create/update.
@@ -726,6 +779,10 @@ The default value for the field `minimum_tls_version` will change from `1.0` to 
 ### Resource: `azurerm_redis_enterprise_cluster`
 
 The deprecated field `version` will be removed since it is not returned by the Azure API.
+
+### Resource: `azurerm_redis_linked_server`
+
+The field `server_role` will become case-sensitive.
 
 ### Resource: `azurerm_template_deployment`
 
