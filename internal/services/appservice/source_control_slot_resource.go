@@ -3,11 +3,11 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -258,10 +258,10 @@ func (r SourceControlSlotResource) Read() sdk.ResourceFunc {
 				SCMType:                   string(siteConfig.ScmType),
 				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
 				Branch:                    utils.NormalizeNilableString(props.Branch),
-				ManualIntegration:         *props.IsManualIntegration,
-				UseMercurial:              *props.IsMercurial,
-				RollbackEnabled:           *props.DeploymentRollbackEnabled,
-				UsesGithubAction:          *props.IsGitHubAction,
+				ManualIntegration:         utils.NormaliseNilableBool(props.IsManualIntegration),
+				UseMercurial:              utils.NormaliseNilableBool(props.IsMercurial),
+				RollbackEnabled:           utils.NormaliseNilableBool(props.DeploymentRollbackEnabled),
+				UsesGithubAction:          utils.NormaliseNilableBool(props.IsGitHubAction),
 				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
 				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
 			}

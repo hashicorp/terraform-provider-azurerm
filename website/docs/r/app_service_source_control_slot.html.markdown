@@ -3,7 +3,7 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
 description: |-
-	Manages an App Service Source Control Slot.
+  Manages an App Service Source Control Slot.
 ---
 
 # azurerm_app_service_source_control_slot
@@ -16,42 +16,42 @@ Manages an App Service Source Control Slot.
 
 ```hcl
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "example" {
-	name     = "example-resources"
-	location = "West Europe"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_service_plan" "example" {
-	name                = "example-plan"
-	resource_group_name = azurerm_resource_group.example.name
-	location            = "West Europe"
-	os_type             = "Linux"
-	sku_name            = "P1V2"
+  name                = "example-plan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "West Europe"
+  os_type             = "Linux"
+  sku_name            = "P1V2"
 }
 
 resource "azurerm_linux_web_app" "example" {
-	name                = "example-web-app"
-	resource_group_name = azurerm_resource_group.example.name
-	location            = azurerm_service_plan.example.location
-	service_plan_id     = azurerm_service_plan.example.id
+  name                = "example-web-app"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
 
-	site_config {}
+  site_config {}
 }
 
 resource "azurerm_linux_web_app_slot" "example" {
-	name           = "example-slot"
-	app_service_id = azurerm_linux_web_app.example.id
+  name           = "example-slot"
+  app_service_id = azurerm_linux_web_app.example.id
 
-	site_config {}
+  site_config {}
 }
 
 resource "azurerm_app_service_source_control_slot" "example" {
-	slot_id  = azurerm_linux_web_app_slot.example.id
-	repo_url = "https://github.com/Azure-Samples/python-docs-hello-world"
-	branch   = "master"
+  slot_id  = azurerm_linux_web_app_slot.example.id
+  repo_url = "https://github.com/Azure-Samples/python-docs-hello-world"
+  branch   = "master"
 }
 
 ```
