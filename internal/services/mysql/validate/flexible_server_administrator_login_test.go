@@ -33,18 +33,18 @@ func TestFlexibleServerAdministratorLogin(t *testing.T) {
 		},
 		{
 			input: "test_",
-			valid: false,
-		},
-		{
-			input: strings.Repeat("s", 62),
 			valid: true,
 		},
 		{
-			input: strings.Repeat("s", 63),
+			input: strings.Repeat("s", 31),
 			valid: true,
 		},
 		{
-			input: strings.Repeat("s", 64),
+			input: strings.Repeat("s", 32),
+			valid: true,
+		},
+		{
+			input: strings.Repeat("s", 33),
 			valid: false,
 		},
 	}
