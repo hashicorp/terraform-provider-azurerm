@@ -7,10 +7,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -246,41 +249,48 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ResourceIdentityTypeNone),
-								string(network.ResourceIdentityTypeUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"user_assigned_identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
+			"identity": func() *schema.Schema {
+				// TODO: document that Principal ID and Tenant ID will be going away and user_assigned_identity_ids -> identity_ids
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.ResourceIdentityTypeNone),
+										string(network.ResourceIdentityTypeUserAssigned),
+									}, false),
+								},
+								"principal_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"tenant_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_ids": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: msiValidate.UserAssignedIdentityID,
+									},
+								},
 							},
 						},
-					},
-				},
-			},
+					}
+				}
+
+				return commonschema.UserAssignedIdentityOptional()
+			}(),
 
 			"tls_certificate": {
 				Type:     pluginsdk.TypeList,
@@ -402,6 +412,10 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
+	expandedIdentity, err := expandFirewallPolicyIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	props := network.FirewallPolicy{
 		FirewallPolicyPropertiesFormat: &network.FirewallPolicyPropertiesFormat{
 			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
@@ -411,7 +425,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
 			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
 		},
-		Identity: expandFirewallPolicyIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -523,9 +537,12 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := d.Set("identity", flattenFirewallPolicyIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Firewall Policy %q (Resource Group %q): %+v",
-			id.Name, id.ResourceGroup, err)
+	flattenedIdentity, err := flattenFirewallPolicyIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -641,29 +658,56 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *network.Firewal
 	}
 }
 
-func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandFirewallPolicyIdentity(input []interface{}) (*network.ManagedServiceIdentity, error) {
+	if !features.ThreePointOhBeta() {
+		if len(input) == 0 {
+			return nil, nil
+		}
+
+		v := input[0].(map[string]interface{})
+
+		var identityIDSet []interface{}
+		if identityIds, exists := v["user_assigned_identity_ids"]; exists {
+			identityIDSet = identityIds.(*pluginsdk.Set).List()
+		}
+
+		userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for _, id := range identityIDSet {
+			userAssignedIdentities[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+		}
+
+		return &network.ManagedServiceIdentity{
+			Type:                   network.ResourceIdentityType(v["type"].(string)),
+			PrincipalID:            utils.String(v["principal_id"].(string)),
+			TenantID:               utils.String(v["tenant_id"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}, nil
 	}
 
-	v := input[0].(map[string]interface{})
-
-	var identityIDSet []interface{}
-	if identityIds, exists := v["user_assigned_identity_ids"]; exists {
-		identityIDSet = identityIds.(*pluginsdk.Set).List()
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
-	for _, id := range identityIDSet {
-		userAssignedIdentities[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
 	}
 
-	return &network.ManagedServiceIdentity{
-		Type:                   network.ResourceIdentityType(v["type"].(string)),
-		PrincipalID:            utils.String(v["principal_id"].(string)),
-		TenantID:               utils.String(v["tenant_id"].(string)),
-		UserAssignedIdentities: userAssignedIdentities,
+	out := network.ManagedServiceIdentity{
+		PrincipalID:            nil,
+		TenantID:               nil,
+		Type:                   network.ResourceIdentityType(string(expanded.Type)),
+		UserAssignedIdentities: nil,
 	}
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
 }
 
 func expandFirewallPolicyInsights(input []interface{}) *network.FirewallPolicyInsights {
@@ -841,35 +885,54 @@ func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTranspo
 	}
 }
 
-func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []interface{} {
-	if identity == nil {
-		return []interface{}{}
+func flattenFirewallPolicyIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
+	if !features.ThreePointOhBeta() {
+		if input == nil {
+			return &[]interface{}{}, nil
+		}
+
+		principalID := ""
+		if input.PrincipalID != nil {
+			principalID = *input.PrincipalID
+		}
+
+		tenantID := ""
+		if input.TenantID != nil {
+			tenantID = *input.TenantID
+		}
+
+		userAssignedIdentities := make([]string, 0)
+
+		for id := range input.UserAssignedIdentities {
+			userAssignedIdentities = append(userAssignedIdentities, id)
+		}
+
+		return &[]interface{}{
+			map[string]interface{}{
+				"type":                       string(input.Type),
+				"principal_id":               principalID,
+				"tenant_id":                  tenantID,
+				"user_assigned_identity_ids": userAssignedIdentities,
+			},
+		}, nil
 	}
 
-	principalID := ""
-	if identity.PrincipalID != nil {
-		principalID = *identity.PrincipalID
+	var transition *identity.UserAssignedMap
+
+	if input != nil {
+		transition = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transition.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	tenantID := ""
-	if identity.TenantID != nil {
-		tenantID = *identity.TenantID
-	}
-
-	userAssignedIdentities := make([]string, 0)
-
-	for id := range identity.UserAssignedIdentities {
-		userAssignedIdentities = append(userAssignedIdentities, id)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":                       string(identity.Type),
-			"principal_id":               principalID,
-			"tenant_id":                  tenantID,
-			"user_assigned_identity_ids": userAssignedIdentities,
-		},
-	}
+	return identity.FlattenUserAssignedMap(transition)
 }
 
 func flattenFirewallPolicyInsights(input *network.FirewallPolicyInsights) []interface{} {
