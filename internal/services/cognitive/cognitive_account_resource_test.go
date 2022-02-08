@@ -522,7 +522,7 @@ resource "azurerm_cognitive_account" "import" {
 func (CognitiveAccountResource) complete(data acceptance.TestData) string {
 	outboundNetworkAccessRestrictedName := "outbound_network_access_restricted"
 	if !features.ThreePointOhBeta() {
-		outboundNetworkAccessRestrictedName = "outbound_network_access_resticted"
+		outboundNetworkAccessRestrictedName = "outbound_network_access_restrited"
 	}
 
 	return fmt.Sprintf(`
