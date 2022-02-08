@@ -142,11 +142,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.SnapshotProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
-	if v, ok := d.GetOk("encryption_settings"); ok {
-		encryptionSettings := v.([]interface{})
-		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
-	}
+	properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {

@@ -13,15 +13,15 @@ func encryptionSettingsSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				// TODO: remove in 3.0
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-
-					// Azure can change enabled from false to true, but not the other way around, so
-					//   to keep idempotency, we'll conservatively set this to ForceNew=true
-					ForceNew: true,
+					Type:       pluginsdk.TypeBool,
+					Optional:   true,
+					Default:    true,
+					Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block",
 				},
 
+				// TODO: make this Required in 3.0
 				"disk_encryption_key": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -63,10 +63,15 @@ func encryptionSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compute.EncryptionSettingsCollection {
-	enabled := settings["enabled"].(bool)
+func expandManagedDiskEncryptionSettings(settingsList []interface{}) *compute.EncryptionSettingsCollection {
+	if len(settingsList) == 0 {
+		return &compute.EncryptionSettingsCollection{}
+	}
+	settings := settingsList[0].(map[string]interface{})
+
 	config := &compute.EncryptionSettingsCollection{
-		Enabled: utils.Bool(enabled),
+		// TODO: update to `Enabled: utils.Bool(true),` in 3.0
+		Enabled: utils.Bool(settings["enabled"].(bool)),
 	}
 
 	var diskEncryptionKey *compute.KeyVaultAndSecretReference
@@ -112,11 +117,6 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 		return []interface{}{}
 	}
 
-	enabled := false
-	if encryptionSettings.Enabled != nil {
-		enabled = *encryptionSettings.Enabled
-	}
-
 	diskEncryptionKeys := make([]interface{}, 0)
 	keyEncryptionKeys := make([]interface{}, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
@@ -158,11 +158,16 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":             enabled,
-			"disk_encryption_key": diskEncryptionKeys,
-			"key_encryption_key":  keyEncryptionKeys,
-		},
+	if len(diskEncryptionKeys) > 0 {
+		return []interface{}{
+			map[string]interface{}{
+				// TODO: remove `enabled` assignment in 3.0
+				"enabled":             true,
+				"disk_encryption_key": diskEncryptionKeys,
+				"key_encryption_key":  keyEncryptionKeys,
+			},
+		}
+	} else {
+		return []interface{}{}
 	}
 }

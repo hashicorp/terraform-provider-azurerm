@@ -60,6 +60,20 @@ func TestAccSnapshot_encryption(t *testing.T) {
 			),
 		},
 		data.ImportStep("source_uri"),
+		{
+			Config: r.encryptionDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
+		{
+			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
 	})
 }
 
@@ -217,7 +231,7 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (SnapshotResource) encryption(data acceptance.TestData) string {
+func (SnapshotResource) encryptionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -293,6 +307,12 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "szechuan"
   key_vault_id = azurerm_key_vault.test.id
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (r SnapshotResource) encryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
@@ -303,8 +323,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = "${azurerm_key_vault_secret.test.id}"
       source_vault_id = "${azurerm_key_vault.test.id}"
@@ -316,7 +334,22 @@ resource "azurerm_snapshot" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.encryptionTemplate(data), data.RandomInteger)
+}
+
+func (r SnapshotResource) encryptionDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  create_option       = "Copy"
+  source_uri          = "${azurerm_managed_disk.test.id}"
+  disk_size_gb        = "20"
+}
+`, r.encryptionTemplate(data), data.RandomInteger)
 }
 
 func (SnapshotResource) extendingManagedDisk(data acceptance.TestData) string {

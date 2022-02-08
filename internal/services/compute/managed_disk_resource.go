@@ -372,9 +372,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
-		encryptionSettings := v.([]interface{})
-		settings := encryptionSettings[0].(map[string]interface{})
-		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(v.([]interface{}))
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
@@ -597,6 +595,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
+	}
+
+	if d.HasChange("encryption_settings") {
+		diskUpdate.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 	}
 
 	if d.HasChange("disk_encryption_set_id") {

@@ -173,8 +173,6 @@ The `disk_encryption_key` block supports:
 
 The `encryption_settings` block supports:
 
-* `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
-
 * `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.

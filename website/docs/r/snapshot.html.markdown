@@ -59,7 +59,17 @@ The following arguments are supported:
 
 * `disk_size_gb` - (Optional) The size of the Snapshotted Disk in GB.
 
+* `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `encryption_settings` block supports:
+
+* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
+
+* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
 ## Attributes Reference
 
