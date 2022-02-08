@@ -3,9 +3,8 @@
 FEATURES: 
 
 * **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
-* **New Resource:** - `azurerm_sentinel_watchlist_item` [GH-14366]
-* **New Resource:** - `azurerm_stream_analytics_output_function` [GH-15162]
-
+* **New Resource:** `azurerm_sentinel_watchlist_item` [GH-14366]
+* **New Resource:** `azurerm_stream_analytics_output_function` [GH-15162]
 
 ENHANCEMENTS: 
 
@@ -24,13 +23,13 @@ FEATURES:
 
 * **New Data Source:** `azurerm_container_group` ([#14946](https://github.com/hashicorp/terraform-provider-azurerm/issues/14946))
 * **New Data Source:** `azurerm_logic_app_standard` ([#15199](https://github.com/hashicorp/terraform-provider-azurerm/issues/15199))
-* **New Beta Resource:** - `azurerm_disk_pool_iscsi_target` ([#14975](https://github.com/hashicorp/terraform-provider-azurerm/issues/14975))
-* **New Beta Resource:** - `azurerm_linux_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
-* **New Beta Resource:** - `azurerm_traffic_manager_azure_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
-* **New Beta Resource:** - `azurerm_traffic_manager_external_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
-* **New Beta Resource:** - `azurerm_traffic_manager_nested_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
-* **New Beta Resource:** - `azurerm_windows_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
-* **New Beta Resource:** - `azurerm_windows_web_app_slot` ([#14613](https://github.com/hashicorp/terraform-provider-azurerm/issues/14613))
+* **New Resource:** `azurerm_disk_pool_iscsi_target` ([#14975](https://github.com/hashicorp/terraform-provider-azurerm/issues/14975))
+* **New Beta Resource:** `azurerm_linux_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
+* **New Resource:** `azurerm_traffic_manager_azure_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
+* **New Resource:** `azurerm_traffic_manager_external_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
+* **New Resource:** `azurerm_traffic_manager_nested_endpoint` ([#15178](https://github.com/hashicorp/terraform-provider-azurerm/issues/15178))
+* **New Beta Resource:** `azurerm_windows_function_app_slot` ([#14940](https://github.com/hashicorp/terraform-provider-azurerm/issues/14940))
+* **New Beta Resource:** `azurerm_windows_web_app_slot` ([#14613](https://github.com/hashicorp/terraform-provider-azurerm/issues/14613))
 
 ENHANCEMENTS:
 
