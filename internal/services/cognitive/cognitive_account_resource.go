@@ -311,6 +311,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
+			//lintignore:R001
 			d.Set(outboundNetworkAccessRestrictedName(), outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
@@ -853,7 +854,6 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-
 		outboundNetworkAccessRestrictedName(): {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
