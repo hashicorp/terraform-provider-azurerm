@@ -574,8 +574,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     linux_configuration {
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
+      admin_username = "myadmin"
+      admin_password = "Passwword1234"
 
       disable_password_authentication = false
     }
