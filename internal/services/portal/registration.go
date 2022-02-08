@@ -27,7 +27,9 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_dashboard": dataSourceDashboard(), // TODO 3.0 rename to azurerm_portal_dashboard
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
