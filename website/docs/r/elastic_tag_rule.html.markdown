@@ -32,7 +32,7 @@ resource "azurerm_elastic_monitor" "test" {
   }
 }
 resource "azurerm_elastic_tag_rule" "test" {
-  monitor_id        = azurerm_elastic_monitor.test.id
+  monitor_id = azurerm_elastic_monitor.test.id
   log_rules {
     send_subscription_logs = true
     send_activity_logs     = true
