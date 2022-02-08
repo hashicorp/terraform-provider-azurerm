@@ -120,7 +120,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -204,7 +204,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -311,7 +311,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
+			d.Set(outboundNetworkAccessRestrictedName(), outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -854,7 +854,7 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"outbound_network_access_restricted": {
+		outboundNetworkAccessRestrictedName(): {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -923,4 +923,11 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 		}
 	}
 	return schema
+}
+
+func outboundNetworkAccessRestrictedName() string {
+	if !features.ThreePointOhBeta() {
+		return "outbound_network_access_restrited"
+	}
+	return "outbound_network_access_restricted"
 }
