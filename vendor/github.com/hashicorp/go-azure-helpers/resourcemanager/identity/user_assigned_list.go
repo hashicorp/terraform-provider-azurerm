@@ -65,7 +65,13 @@ func ExpandUserAssignedList(input []interface{}) (*UserAssignedList, error) {
 
 // FlattenUserAssignedList turns a UserAssignedList into a []interface{}
 func FlattenUserAssignedList(input *UserAssignedList) (*[]interface{}, error) {
-	if input == nil || input.Type != TypeUserAssigned {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 

@@ -66,7 +66,13 @@ func ExpandUserAssignedMap(input []interface{}) (*UserAssignedMap, error) {
 
 // FlattenUserAssignedMap turns a UserAssignedMap into a []interface{}
 func FlattenUserAssignedMap(input *UserAssignedMap) (*[]interface{}, error) {
-	if input == nil || input.Type != TypeUserAssigned {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 
