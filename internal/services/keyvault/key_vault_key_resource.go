@@ -16,7 +16,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -109,7 +108,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return features.ThreePointOhBeta() && old == "SECP256K1" && new == string(keyvault.P256K)
 				},
-				ValidateFunc: func() schema.SchemaValidateFunc {
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
 						string(keyvault.P256),
 						string(keyvault.P256K),

@@ -884,7 +884,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				}
 				return string(sql.CurrentBackupStorageRedundancyGeo)
 			}(),
-			ValidateFunc: func() schema.SchemaValidateFunc {
+			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 				if !features.ThreePointOhBeta() {
 					return validation.StringInSlice([]string{
 						"GRS",

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -199,7 +198,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "2.4",
-				ValidateFunc: func() schema.SchemaValidateFunc {
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
 						"2.4",
 						"3.1",

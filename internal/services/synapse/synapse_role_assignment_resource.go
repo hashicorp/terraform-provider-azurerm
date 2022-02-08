@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol"
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -76,7 +75,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
 				},
-				ValidateFunc: func() schema.SchemaValidateFunc {
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
 						"Apache Spark Administrator",
 						"Synapse Administrator",
