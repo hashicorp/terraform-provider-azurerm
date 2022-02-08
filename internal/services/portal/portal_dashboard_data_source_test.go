@@ -11,7 +11,7 @@ import (
 type PortalDashboardDataSource struct{}
 
 func TestAccDataSourcePortalDashboard_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_dashboard", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_portal_dashboard", "test")
 	r := PortalDashboardDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -25,7 +25,7 @@ func TestAccDataSourcePortalDashboard_basic(t *testing.T) {
 }
 
 func TestAccDataSourcePortalDashboard_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_dashboard", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_portal_dashboard", "test")
 	r := PortalDashboardDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func (PortalDashboardDataSource) basic(data acceptance.TestData) string {
 
 %s
 
-data "azurerm_dashboard" "test" {
+data "azurerm_portal_dashboard" "test" {
   name                = azurerm_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -58,7 +58,7 @@ func (PortalDashboardDataSource) complete(data acceptance.TestData) string {
 
 %s
 
-data "azurerm_dashboard" "test" {
+data "azurerm_portal_dashboard" "test" {
   name                = azurerm_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }

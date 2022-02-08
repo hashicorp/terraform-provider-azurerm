@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func dataSourceDashboard() *pluginsdk.Resource {
+func dataSourcePortalDashboard() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDashboardRead,
+		Read: dataSourcePortalDashboardRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -42,7 +42,7 @@ func dataSourceDashboard() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	name := d.Get("name").(string)
@@ -54,9 +54,9 @@ func dataSourceDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("dashboard %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+			return fmt.Errorf("portal dashboard %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 		}
-		return fmt.Errorf("retrieving Dashboard %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Portal Dashboard %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())
@@ -69,7 +69,7 @@ func dataSourceDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {
-		return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
+		return fmt.Errorf("parsing JSON for Portal Dashboard Properties: %+v", jsonErr)
 	}
 	d.Set("dashboard_properties", string(props))
 
