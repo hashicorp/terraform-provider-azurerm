@@ -520,9 +520,9 @@ resource "azurerm_cognitive_account" "import" {
 }
 
 func (CognitiveAccountResource) complete(data acceptance.TestData) string {
-	outboundNetworkAccessRestrictedName := "outbound_network_access_restricted"
+	outboundNetworkAccessRestrictedName := "outbound_network_access_restricted = true"
 	if !features.ThreePointOhBeta() {
-		outboundNetworkAccessRestrictedName = "outbound_network_access_restrited"
+		outboundNetworkAccessRestrictedName = "outbound_network_access_restrited = true"
 	}
 
 	return fmt.Sprintf(`
@@ -542,10 +542,10 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "Face"
   sku_name            = "S0"
 
-  fqdns                              = ["foo.com", "bar.com"]
-  public_network_access_enabled      = false
-  %s                                 = true
-  local_auth_enabled                 = false
+  fqdns                         = ["foo.com", "bar.com"]
+  public_network_access_enabled = false
+  local_auth_enabled            = false
+  %s
 
   tags = {
     Acceptance = "Test"
