@@ -68,6 +68,7 @@ func TestAccNetworkWatcher(t *testing.T) {
 		},
 		"FlowLog": {
 			"basic":                testAccNetworkWatcherFlowLog_basic,
+			"requiresImport":       testAccNetworkWatcherFlowLog_requiresImport,
 			"disabled":             testAccNetworkWatcherFlowLog_disabled,
 			"reenabled":            testAccNetworkWatcherFlowLog_reenabled,
 			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
