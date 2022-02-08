@@ -69,11 +69,11 @@ provider "azurerm" {
 ## What's available in Version 3.0 of the AzureRM Provider?
 
 At a high level, version 3.0 to includes the following changes:
-* [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service).
-* [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault).
-* [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal) - instead of Azure Active Directory Authentication Library (ADAL), and migrating away from the deprecated Azure Active Directory Graph API.
-* [Updates to existing behaviors for Application Gateway, API Management, Resource Groups, Storage among others](#behavioural-updates).
-* [Removal of Deprecated Fields, Data Sources, and Resources](#removal-of-deprecated-fields-data-sources-and-resources).
+* [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
+* [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
+* [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal)
+* [Updates to existing behaviors for Application Gateway, API Management, Resource Groups, Storage, among others](#behavioural-updates)
+* [Removal of Deprecated Fields, Data Sources, and Resources](#removal-of-deprecated-fields-data-sources-and-resources)
 
 Each of these topics is covered in more detail below.
 
@@ -111,14 +111,14 @@ Authentication to APIs such as Resource Manager was previously performed using t
 
 **Resources with a `min_tls_version` field:** The default minimum TLS version will be `1.2`.
 
-**Resource with a (Availability) `zones` field:** 
-* Availability Zones will be represented across all resources which support it using the field zones - in addition the values No-Zone and ZoneRedundant will be removed in favour of being explicit.
+**Resources with a (Availability) `zones` field:** 
+* Availability Zones will be represented across all resources which support it using the field `zones` - in addition the values `No-Zone` and `ZoneRedundant` will be removed in favour of being explicit.
 * Where this field is Optional and Computed - this field will no longer be Computed. This means that if you wish to use the Availability Zone defaulted by Azure, you will need to use [Terraform’s `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to this field.
 * Where this field is Optional (and isn’t defaulted by Azure) - omitting this field (or specifying a value of null) will deploy this without any Zones.
 * Where this field is Required, there are no changes.
-* Zone Redundant resources can be provisioned by specifying all the Availability Zones for that particular Azure Region. We’ll also introduce a new azurerm_availability_zones data source to provide this information.
+* Zone Redundant resources can be provisioned by specifying all the Availability Zones for that particular Azure Region. We’ll also introduce a new `azurerm_availability_zones` data source to provide this information.
 
-**Resource with a (Managed) `identity` block:** The presence of an identity block means a Managed Identity should be assigned to this Resource - and the omission of an identity block (or a null value) means that no Managed Identity should be assigned to this Resource.
+**Resources with a (Managed) `identity` block:** The presence of an `identity` block means a Managed Identity should be assigned to this Resource - and the omission of an `identity` block (or a null value) means that no Managed Identity should be assigned to this Resource.
 
 **Application Gateway:** The behavior of the nested items will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
