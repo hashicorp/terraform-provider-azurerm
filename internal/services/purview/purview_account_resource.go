@@ -256,9 +256,9 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 				"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"public_network_enabled": {
 			Type:     pluginsdk.TypeBool,
