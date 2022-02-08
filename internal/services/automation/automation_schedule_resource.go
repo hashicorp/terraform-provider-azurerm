@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,7 +106,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      "UTC", // TODO 3.0 Change the default to Etc/UTC
+				Default:      getDefaultTimezone(),
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
@@ -428,4 +429,11 @@ func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.Advanc
 		}
 	}
 	return flattenedMonthlyOccurrences
+}
+
+func getDefaultTimezone() string {
+	if features.ThreePointOhBeta() {
+		return "Etc/UTC"
+	}
+	return "UTC"
 }

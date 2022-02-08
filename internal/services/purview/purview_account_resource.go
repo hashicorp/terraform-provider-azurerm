@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -37,113 +38,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
-					"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			// TODO 3.0 - Remove sku_name property.
-			//            https://github.com/Azure/azure-rest-api-specs/issues/15675
-			"sku_name": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
-			},
-
-			"public_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"managed_resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceGroupName,
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"managed_resources": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"resource_group_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"storage_account_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"event_hub_namespace_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"catalog_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"guardian_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"scan_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"atlas_kafka_endpoint_primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"atlas_kafka_endpoint_secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourcePurviewSchema(),
 	}
 }
 
@@ -328,4 +223,117 @@ func flattenPurviewAccountManagedResources(managedResources *purview.AccountProp
 			"event_hub_namespace_id": eventHubNamespace,
 		},
 	}
+}
+
+func resourcePurviewSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
+				"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"public_network_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"managed_resource_group_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceGroupName,
+		},
+
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"principal_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"managed_resources": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"resource_group_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"storage_account_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"event_hub_namespace_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"catalog_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"guardian_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"scan_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"atlas_kafka_endpoint_primary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"atlas_kafka_endpoint_secondary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+
+		schema["sku_name"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
+		}
+	}
+
+	return schema
 }

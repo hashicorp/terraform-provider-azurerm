@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -71,9 +72,15 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 

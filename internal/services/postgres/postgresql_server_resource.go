@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -126,7 +127,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
 				}, true),
-				DiffSuppressFunc: suppress.CaseDifference, // TODO: make case sensitive in 3.0
+				DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+					if !features.ThreePointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
 			},
 
 			"storage_profile": {
@@ -201,9 +207,15 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
+				Computed:      !features.ThreePointOhBeta(),
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
