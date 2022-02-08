@@ -989,7 +989,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 
-	if features.ThreePointOhBeta() {
+	if !features.ThreePointOhBeta() {
 		s := out["threat_detection_policy"].Elem.(*schema.Resource)
 		s.Schema["use_server_default"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
