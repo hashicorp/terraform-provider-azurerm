@@ -1334,11 +1334,12 @@ resource "azurerm_cosmosdb_account" "test" {
     allowed_methods    = ["GET", "PUT"]
     max_age_in_seconds = "500"
   }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+
   tags = {
     ENV = "Test"
   }
-  access_key_metadata_writes_enabled    = false
-  network_acl_bypass_for_azure_services = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
