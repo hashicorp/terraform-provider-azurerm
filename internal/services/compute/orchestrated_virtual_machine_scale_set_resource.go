@@ -423,7 +423,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("identity"); ok {
-			identity, err := ExpandVirtualMachineScaleSetIdentity(v.([]interface{}))
+			identity, err := expandVirtualMachineScaleSetIdentity(v.([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}

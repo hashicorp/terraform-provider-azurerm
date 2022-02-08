@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -157,7 +158,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"identity": VirtualMachineScaleSetIdentitySchema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -351,8 +352,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+	identity, err := expandVirtualMachineScaleSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -881,7 +881,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
-		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+		identity, err := expandVirtualMachineScaleSetIdentity(identityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -989,7 +989,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	d.Set("instances", instances)
 	d.Set("sku", skuName)
 
-	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
