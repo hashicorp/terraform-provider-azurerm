@@ -305,7 +305,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
-			if len(*vmssOsProfile.ComputerNamePrefix) == 0 {
+			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
 				_, errs := computeValidate.LinuxComputerNamePrefix(id.Name, "computer_name_prefix")
 				if len(errs) > 0 {
