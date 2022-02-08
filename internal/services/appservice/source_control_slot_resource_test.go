@@ -16,11 +16,11 @@ import (
 
 // (@jackofallops) Note: Some tests require a valid GitHub token for ARM_GITHUB_ACCESS_TOKEN. This token needs the `repo` and `workflow` permissions to be applicable on the referenced repositories.
 
-type AppServiceSourceControlResource struct{}
+type SourceControlSlotResource struct{}
 
-func TestAccSourceControlResource_windowsExternalGit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+func TestAccSourceControlSlotResource_windowsExternalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccSourceControlResource_windowsExternalGit(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+func TestAccSourceControlSlotResource_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,9 +48,9 @@ func TestAccSourceControlResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_windowsLocalGit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+func TestAccSourceControlSlotResource_windowsLocalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,20 +58,20 @@ func TestAccSourceControlResource_windowsLocalGit(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
-				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%[1]d-acctestwas-%[1]d.scm.azurewebsites.net", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccSourceControlResource_windowsGitHubAction(t *testing.T) {
+func TestAccSourceControlSlotResource_windowsGitHubAction(t *testing.T) {
 	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,13 +84,13 @@ func TestAccSourceControlResource_windowsGitHubAction(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_windowsGitHub(t *testing.T) {
+func TestAccSourceControlSlotResource_windowsGitHub(t *testing.T) {
 	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,9 +103,9 @@ func TestAccSourceControlResource_windowsGitHub(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_linuxExternalGit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+func TestAccSourceControlSlotResource_linuxExternalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -118,9 +118,9 @@ func TestAccSourceControlResource_linuxExternalGit(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_linuxLocalGit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+func TestAccSourceControlSlotResource_linuxLocalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -128,20 +128,20 @@ func TestAccSourceControlResource_linuxLocalGit(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
-				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%[1]d-acctestwas-%[1]d.scm.azurewebsites.net", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccSourceControlResource_linuxGitHubAction(t *testing.T) {
+func TestAccSourceControlSlotResource_linuxGitHubAction(t *testing.T) {
 	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,13 +155,13 @@ func TestAccSourceControlResource_linuxGitHubAction(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
+func TestAccSourceControlSlotResource_linuxGitHub(t *testing.T) {
 	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
+	r := SourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -174,13 +174,13 @@ func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
 	})
 }
 
-func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppID(state.ID)
+func (r SourceControlSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.WebAppSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.WebAppsClient.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.AppService.WebAppsClient.GetSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -194,7 +194,7 @@ func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *cli
 	return utils.Bool(true), nil
 }
 
-func (r AppServiceSourceControlResource) windowsExternalGit(data acceptance.TestData) string {
+func (r SourceControlSlotResource) windowsExternalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,8 +202,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id                 = azurerm_windows_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id                = azurerm_windows_web_app_slot.test.id
   repo_url               = "https://github.com/Azure-Samples/app-service-web-dotnet-get-started.git"
   branch                 = "master"
   use_manual_integration = true
@@ -211,20 +211,20 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseWindowsAppTemplate(data))
 }
 
-func (r AppServiceSourceControlResource) requiresImport(data acceptance.TestData) string {
+func (r SourceControlSlotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_source_control" "import" {
-  app_id                 = azurerm_app_service_source_control.test.app_id
-  repo_url               = azurerm_app_service_source_control.test.repo_url
-  branch                 = azurerm_app_service_source_control.test.branch
-  use_manual_integration = azurerm_app_service_source_control.test.use_manual_integration
+resource "azurerm_app_service_source_control_slot" "import" {
+  slot_id                = azurerm_app_service_source_control_slot.test.slot_id
+  repo_url               = azurerm_app_service_source_control_slot.test.repo_url
+  branch                 = azurerm_app_service_source_control_slot.test.branch
+  use_manual_integration = azurerm_app_service_source_control_slot.test.use_manual_integration
 }
 `, r.windowsExternalGit(data))
 }
 
-func (r AppServiceSourceControlResource) linuxExternalGit(data acceptance.TestData) string {
+func (r SourceControlSlotResource) linuxExternalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -232,8 +232,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id                 = azurerm_linux_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id                = azurerm_linux_web_app_slot.test.id
   repo_url               = "https://github.com/Azure-Samples/python-docs-hello-world.git"
   branch                 = "master"
   use_manual_integration = true
@@ -241,7 +241,7 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseLinuxAppTemplate(data))
 }
 
-func (r AppServiceSourceControlResource) windowsLocalGit(data acceptance.TestData) string {
+func (r SourceControlSlotResource) windowsLocalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,14 +249,14 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id        = azurerm_windows_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id       = azurerm_windows_web_app_slot.test.id
   use_local_git = true
 }
 `, r.baseWindowsAppTemplate(data))
 }
 
-func (r AppServiceSourceControlResource) linuxLocalGit(data acceptance.TestData) string {
+func (r SourceControlSlotResource) linuxLocalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,14 +264,14 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id        = azurerm_linux_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id       = azurerm_linux_web_app_slot.test.id
   use_local_git = true
 }
 `, r.baseLinuxAppTemplate(data))
 }
 
-func (r AppServiceSourceControlResource) windowsGitHubAction(data acceptance.TestData) string {
+func (r SourceControlSlotResource) windowsGitHubAction(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -285,9 +285,9 @@ resource azurerm_source_control_token test {
   token = "%s"
 }
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_windows_web_app.test.id
-  repo_url = "https://github.com/jackofallops/app-service-web-dotnet-get-started.git"
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id  = azurerm_windows_web_app.test.id
+  repo_url = "https://github.com/Azure-Samples/app-service-web-dotnet-get-started.git"
   branch   = "master"
 
   github_action_configuration {
@@ -302,7 +302,7 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseWindowsAppTemplate(data), token)
 }
 
-func (r AppServiceSourceControlResource) windowsGitHub(data acceptance.TestData) string {
+func (r SourceControlSlotResource) windowsGitHub(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -316,8 +316,8 @@ resource azurerm_source_control_token test {
   token = "%s"
 }
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_windows_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id  = azurerm_windows_web_app_slot.test.id
   repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
   branch   = "main"
 
@@ -328,7 +328,7 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseWindowsAppTemplate(data), token)
 }
 
-func (r AppServiceSourceControlResource) linuxGitHubAction(data acceptance.TestData) string {
+func (r SourceControlSlotResource) linuxGitHubAction(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -342,8 +342,8 @@ resource azurerm_source_control_token test {
   token = "%s"
 }
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_linux_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id  = azurerm_linux_web_app_slot.test.id
   repo_url = "https://github.com/jackofallops/app-service-web-dotnet-get-started.git"
   branch   = "master"
 
@@ -359,7 +359,7 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseLinuxAppTemplate(data), token)
 }
 
-func (r AppServiceSourceControlResource) linuxGitHub(data acceptance.TestData) string {
+func (r SourceControlSlotResource) linuxGitHub(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -373,8 +373,8 @@ resource "azurerm_source_control_token" "test" {
   token = "%s"
 }
 
-resource "azurerm_app_service_source_control" "test" {
-  app_id                 = azurerm_linux_web_app.test.id
+resource "azurerm_app_service_source_control_slot" "test" {
+  slot_id                = azurerm_linux_web_app_slot.test.id
   repo_url               = "https://github.com/Azure-Samples/python-docs-hello-world.git"
   branch                 = "master"
   use_manual_integration = true
@@ -386,7 +386,7 @@ resource "azurerm_app_service_source_control" "test" {
 `, r.baseLinuxAppTemplate(data), token)
 }
 
-func (r AppServiceSourceControlResource) baseWindowsAppTemplate(data acceptance.TestData) string {
+func (r SourceControlSlotResource) baseWindowsAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -414,10 +414,17 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {}
 }
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%[1]d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {}
+}
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AppServiceSourceControlResource) baseLinuxAppTemplate(data acceptance.TestData) string {
+func (r SourceControlSlotResource) baseLinuxAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -443,6 +450,17 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_app_service_plan.test.id
+
+  site_config {
+    application_stack {
+      python_version = "3.8"
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[1]d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
