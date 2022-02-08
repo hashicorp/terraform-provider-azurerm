@@ -171,6 +171,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			// TODO: support User Assigned https://github.com/hashicorp/terraform-provider-azurerm/issues/15277
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"storage_account_type": {

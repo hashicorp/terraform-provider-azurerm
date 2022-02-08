@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,11 +70,21 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	account := purview.Account{
 		AccountProperties: &purview.AccountProperties{},
-		Identity: &purview.Identity{
+		Location:          &location,
+		Tags:              tags.Expand(t),
+	}
+
+	if features.ThreePointOhBeta() {
+		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		account.Identity = expandedIdentity
+	} else {
+		account.Identity = &purview.Identity{
 			Type: purview.TypeSystemAssigned,
-		},
-		Location: &location,
-		Tags:     tags.Expand(t),
+		}
 	}
 
 	if d.Get("public_network_enabled").(bool) {
@@ -121,7 +134,7 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 
@@ -177,26 +190,33 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {
-	if identity == nil || identity.Type == "None" {
-		return make([]interface{}, 0)
+func expandIdentity(input []interface{}) (*purview.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
+	return &purview.Identity{
+		Type: purview.Type(string(expanded.Type)),
+	}, nil
+}
+
+func flattenIdentity(input *purview.Identity) interface{} {
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transition.TenantId = *input.TenantID
+		}
 	}
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+
+	return identity.FlattenSystemAssigned(transition)
 }
 
 func flattenPurviewAccountManagedResources(managedResources *purview.AccountPropertiesManagedResources) interface{} {
@@ -236,9 +256,9 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 				"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"public_network_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -254,26 +274,14 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azure.ValidateResourceGroupName,
 		},
 
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
+		"identity": func() *schema.Schema {
+			// TODO: document that this will become required in 3.0
+			if features.ThreePointOhBeta() {
+				return commonschema.SystemAssignedIdentityRequired()
+			}
+
+			return commonschema.SystemAssignedIdentityComputed()
+		}(),
 
 		"managed_resources": {
 			Type:     pluginsdk.TypeList,
