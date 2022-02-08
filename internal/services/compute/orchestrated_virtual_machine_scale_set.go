@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -432,7 +433,7 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 }
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	out := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -495,23 +496,24 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
-
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_iops_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_mbps_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
 			},
 		},
 	}
+
+	o := out.Elem.(*pluginsdk.Resource).Schema
+	keys := []string{"disk_iops_read_write", "disk_mbps_read_write"}
+	if !features.ThreePointOhBeta() {
+		keys = []string{"ultra_ssd_disk_iops_read_write", "ultra_ssd_mbps_read_write"}
+	}
+	for _, k := range keys {
+		o[k] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return out
 }
 
 func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
@@ -1156,16 +1158,22 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 			}
 		}
 
-		if iops := raw["disk_iops_read_write"].(int); iops != 0 {
+		iopsRW := "ultra_ssd_disk_iops_read_write"
+		mbpsRW := "ultra_ssd_mbps_read_write"
+		if !features.ThreePointOhBeta() {
+			iopsRW = "disk_iops_read_write"
+			mbpsRW = "disk_mbps_read_write"
+		}
+		if iops := raw[iopsRW].(int); iops != 0 {
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`disk_iops_read_write` are only available for UltraSSD disks")
+				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", iopsRW)
 			}
 			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
-		if mbps := raw["disk_mbps_read_write"].(int); mbps != 0 {
+		if mbps := raw[mbpsRW].(int); mbps != 0 {
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`disk_mbps_read_write` are only available for UltraSSD disks")
+				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", mbpsRW)
 			}
 			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
@@ -1710,6 +1718,13 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
+		iopsRW := "ultra_ssd_disk_iops_read_write"
+		mbpsRW := "ultra_ssd_mbps_read_write"
+		if !features.ThreePointOhBeta() {
+			iopsRW = "disk_iops_read_write"
+			mbpsRW = "disk_mbps_read_write"
+		}
+
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
@@ -1718,8 +1733,8 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_iops_read_write":      iops,
-			"disk_mbps_read_write":      mbps,
+			iopsRW:                      iops,
+			mbpsRW:                      mbps,
 		})
 	}
 
