@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,11 +53,11 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": IdentitySchema(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"source_arm_resource_id": {
 				Type:         pluginsdk.TypeString,
@@ -166,17 +168,19 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SystemTopicProperties; props != nil {
+		d.Set("metric_arm_resource_id", props.MetricResourceID)
 		d.Set("source_arm_resource_id", props.Source)
 		d.Set("topic_type", props.TopicType)
-		d.Set("metric_arm_resource_id", props.MetricResourceID)
 	}
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenedIdentity, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
