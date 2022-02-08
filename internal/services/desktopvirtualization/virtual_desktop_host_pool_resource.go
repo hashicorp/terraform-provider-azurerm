@@ -214,8 +214,6 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
 			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
-			// Do not set RegistrationInfo as now Computed
-			// RegistrationInfo:              expandVirtualDesktopHostPoolRegistrationInfo(d),
 		},
 	}
 	// only process registration info if a registration_info block is present
