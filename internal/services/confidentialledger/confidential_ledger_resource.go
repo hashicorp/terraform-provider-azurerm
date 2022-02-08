@@ -23,8 +23,8 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceConfidentialLedgerCreate,
 		Read:   resourceConfidentialLedgerRead,
-		// Update: resourceConfidentialLedgerUpdate,
-		// Delete: resourceConfidentialLedgerDelete,
+		Update: resourceConfidentialLedgerUpdate,
+		Delete: resourceConfidentialLedgerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -115,7 +115,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration creation.")
+	log.Printf("[INFO] Preparing arguments for Azure Confidential Ledger creation.")
 
 	ledgerName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -123,7 +123,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	existing, err := client.LedgerGet(ctx, resourceId)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", resourceId.ID(), err)
+			return fmt.Errorf("Resource %s exists: %+v", resourceId.ID(), err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
@@ -133,7 +133,6 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	aadBasedUsers := expandConfidentialLedgerAADBasedSecurityPrincipal(d.Get("aad_based_security_principals").([]interface{}))
 	certBasedUsers := expandConfidentialLedgerCertBasedSecurityPrincipal(d.Get("cert_based_security_principals").([]interface{}))
 
-	// TODO: Insert ledger properties..?
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
@@ -146,7 +145,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.LedgerCreateThenPoll(ctx, resourceId, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceId, err)
+		return fmt.Errorf("Error creating %s: %+v", resourceId, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -158,23 +157,23 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := confidentialledger.ParseLedgerID(d.Id())
+	resourceId, err := confidentialledger.ParseLedgerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.LedgerGet(ctx, *id)
+	resp, err := client.LedgerGet(ctx, *resourceId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *resourceId)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving %s: %+v", *id, err)
+		return fmt.Errorf("Error retrieving %s: %+v", *resourceId, err)
 	}
 
-	d.Set("name", id.LedgerName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", resourceId.LedgerName)
+	d.Set("resource_group_name", resourceId.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("ledger_type", model.Properties.LedgerType)
@@ -183,16 +182,73 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 
 		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", *id, err)
+			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", *resourceId, err)
 		}
 
 		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", *id, err)
+			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", *resourceId, err)
 		}
 
 		d.Set("aad_based_security_principals", aadBasedUsers)
 		d.Set("cert_based_security_principals", certBasedUsers)
+	}
+
+	return nil
+}
+
+func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] Preparing arguments for Azure Confidential Ledger update.")
+	resourceId, err := confidentialledger.ParseLedgerID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// At this time we do not support ledger type or location updates.
+	if !d.HasChange("aad_based_security_principals") &&
+		!d.HasChange("cert_based_security_principals") &&
+		!d.HasChange("tags") {
+		log.Printf("[DEBUG] Skipping Azure Confidential Ledger update as no fields were changed.")
+		return resourceConfidentialLedgerRead(d, meta)
+	}
+
+	aadBasedUsers := expandConfidentialLedgerAADBasedSecurityPrincipal(d.Get("aad_based_security_principals").([]interface{}))
+	certBasedUsers := expandConfidentialLedgerCertBasedSecurityPrincipal(d.Get("cert_based_security_principals").([]interface{}))
+
+	parameters := confidentialledger.ConfidentialLedger{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Name:     &resourceId.LedgerName,
+		Properties: &confidentialledger.LedgerProperties{
+			AadBasedSecurityPrincipals:  aadBasedUsers,
+			CertBasedSecurityPrincipals: certBasedUsers,
+			LedgerType:                  d.Get("ledger_type").(*confidentialledger.LedgerType),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if err := client.LedgerUpdateThenPoll(ctx, *resourceId, parameters); err != nil {
+		return fmt.Errorf("Error updating %s: %+v", *resourceId, err)
+	}
+
+	return resourceConfidentialLedgerRead(d, meta)
+}
+
+func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	resourceId, err := confidentialledger.ParseLedgerID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := client.LedgerDeleteThenPoll(ctx, *resourceId); err != nil {
+		return fmt.Errorf("Error deleting %s: %+v", *resourceId, err)
 	}
 
 	return nil
