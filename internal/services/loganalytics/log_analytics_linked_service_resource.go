@@ -364,7 +364,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 
-	if features.ThreePointOhBeta() {
+	if !features.ThreePointOhBeta() {
 
 		out["workspace_name"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
