@@ -38,6 +38,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 			return err
 		}),
 
+		// This should match the Schema in dataSourceConfidentialLedger
 		Schema: map[string]*pluginsdk.Schema{
 			"aad_based_security_principals": {
 				Type:     pluginsdk.TypeList,
@@ -145,7 +146,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.LedgerCreateThenPoll(ctx, resourceId, parameters); err != nil {
-		return fmt.Errorf("Error creating %s: %+v", resourceId, err)
+		return fmt.Errorf("Error creating %s: %+v", resourceId.ID(), err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -165,11 +166,11 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.LedgerGet(ctx, *resourceId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *resourceId)
+			log.Printf("[DEBUG] %s was not found - removing from state!", resourceId.ID())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving %s: %+v", *resourceId, err)
+		return fmt.Errorf("Error retrieving %s: %+v", resourceId.ID(), err)
 	}
 
 	d.Set("name", resourceId.LedgerName)
@@ -182,12 +183,12 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 
 		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", *resourceId, err)
+			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", *resourceId, err)
+			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		d.Set("aad_based_security_principals", aadBasedUsers)
@@ -231,7 +232,7 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.LedgerUpdateThenPoll(ctx, *resourceId, parameters); err != nil {
-		return fmt.Errorf("Error updating %s: %+v", *resourceId, err)
+		return fmt.Errorf("Error updating %s: %+v", resourceId.ID(), err)
 	}
 
 	return resourceConfidentialLedgerRead(d, meta)
@@ -248,7 +249,7 @@ func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.LedgerDeleteThenPoll(ctx, *resourceId); err != nil {
-		return fmt.Errorf("Error deleting %s: %+v", *resourceId, err)
+		return fmt.Errorf("Error deleting %s: %+v", resourceId.ID(), err)
 	}
 
 	return nil
