@@ -51,14 +51,8 @@ func resourceFrontdoorProfileRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -66,14 +60,8 @@ func resourceFrontdoorProfileRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -204,7 +192,7 @@ func resourceFrontdoorProfileRuleUpdate(d *pluginsdk.ResourceData, meta interfac
 	matchProcessingBehaviorValue := rules.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	props := rules.RuleUpdateParameters{
 		Properties: &rules.RuleUpdatePropertiesParameters{
-			Actions:                 expandRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
+			Actions:                 expandRuleDeliveryRuleActionArrayPtr(d.Get("actions").([]interface{})),
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
 			MatchProcessingBehavior: &matchProcessingBehaviorValue,
 			Order:                   utils.Int64(int64(d.Get("order").(int))),
@@ -247,42 +235,52 @@ func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]rules.Delivery
 	return &results
 }
 
-func expandRuleDeliveryRuleActionArray(input []interface{}) *[]rules.DeliveryRuleAction {
+func expandRuleDeliveryRuleActionArray(input []interface{}) []rules.DeliveryRuleAction {
 	results := make([]rules.DeliveryRuleAction, 0)
+
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		nameValue := rules.DeliveryRuleAction(v["name"].(string))
-		results = append(results, rules.DeliveryRuleAction{
-			Name: nameValue,
-		})
+		nameValue := rules.DeliveryRuleAction(item.(string))
+		results = append(results, nameValue)
 	}
+
+	return results
+}
+
+func expandRuleDeliveryRuleActionArrayPtr(input []interface{}) *[]rules.DeliveryRuleAction {
+	results := make([]rules.DeliveryRuleAction, 0)
+
+	for _, item := range input {
+		nameValue := rules.DeliveryRuleAction(item.(string))
+		results = append(results, nameValue)
+	}
+
 	return &results
 }
 
-func flattenRuleDeliveryRuleConditionArray(inputs *[]rules.DeliveryRuleCondition) []interface{} {
+func flattenRuleDeliveryRuleConditionArray(input *[]rules.DeliveryRuleCondition) []interface{} {
 	results := make([]interface{}, 0)
-	if inputs == nil {
+	if input == nil {
 		return results
 	}
 
-	for _, input := range *inputs {
+	for _, item := range *input {
 		result := make(map[string]interface{})
-		result["name"] = input.Name
+		result["name"] = item.Name
 		results = append(results, result)
 	}
 
 	return results
 }
 
-func flattenRuleDeliveryRuleActionArray(inputs *[]rules.DeliveryRuleAction) []interface{} {
+func flattenRuleDeliveryRuleActionArray(input *[]rules.DeliveryRuleAction) []interface{} {
 	results := make([]interface{}, 0)
-	if inputs == nil {
+	if input == nil {
 		return results
 	}
 
-	for _, input := range *inputs {
+	for _, item := range *input {
 		result := make(map[string]interface{})
-		result["name"] = input.Name
+		result["name"] = string(item)
 		results = append(results, result)
 	}
 

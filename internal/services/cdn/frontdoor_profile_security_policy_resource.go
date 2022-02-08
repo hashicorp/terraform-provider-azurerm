@@ -7,9 +7,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/securitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -39,16 +41,11 @@ func resourceFrontdoorProfileSecurityPolicy() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"cdn_profile_id": {
+			"frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: profiles.ValidateProfileID,
-			},
-
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"parameters": {
@@ -58,21 +55,53 @@ func resourceFrontdoorProfileSecurityPolicy() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"type": {
 							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "WebApplicationFirewall",
+						},
+
+						"waf_policy_id": {
+							Type:     pluginsdk.TypeString,
 							Required: true,
+						},
+
+						"association": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MaxItems: 500,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"domain_id": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									"is_active": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"patterns_to_match": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MaxItems: 25,
+
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
+			"frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -85,15 +114,17 @@ func resourceFrontdoorProfileSecurityPolicyCreate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := profiles.ParseProfileID(d.Get("cdn_profile_id").(string))
+	profileId, err := profiles.ParseProfileID(d.Get("frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := securitypolicies.NewSecurityPoliciesID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
+	securityPolicyName := d.Get("name").(string)
+	sdkId := securitypolicies.NewSecurityPoliciesID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
+	id := parse.NewFrontdoorProfileSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, sdkId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -101,7 +132,7 @@ func resourceFrontdoorProfileSecurityPolicyCreate(d *pluginsdk.ResourceData, met
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_security_policy", id.ID())
+			return tf.ImportAsExistsError("azurerm_frontdoor_profile_security_policy", id.ID())
 		}
 	}
 
@@ -110,7 +141,7 @@ func resourceFrontdoorProfileSecurityPolicyCreate(d *pluginsdk.ResourceData, met
 			Parameters: expandSecurityPoliciesSecurityPolicyParameters(d.Get("parameters").([]interface{})),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
+	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -124,12 +155,17 @@ func resourceFrontdoorProfileSecurityPolicyRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := securitypolicies.ParseSecurityPoliciesID(d.Id())
+	sdkId, err := securitypolicies.ParseSecurityPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	id, err := parse.FrontdoorProfileSecurityPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *sdkId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -139,18 +175,23 @@ func resourceFrontdoorProfileSecurityPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.SecurityPolicyName)
-
-	d.Set("cdn_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("deployment_status", props.DeploymentStatus)
 
-			if err := d.Set("parameters", flattenSecurityPoliciesSecurityPolicyParameters(props.Parameters)); err != nil {
+			// If it is not Type WebApplicationFirewall ignore this for now
+			switch props.Parameters.(type) {
+			case securitypolicies.SecurityPolicyWebApplicationFirewallParameters:
+				if err := d.Set("parameters", flattenSecurityPoliciesSecurityPolicyParameters(&props.Parameters)); err != nil {
+					return fmt.Errorf("setting `parameters`: %+v", err)
+				}
+			default:
+				// Unknown Security Policy Type
 				return fmt.Errorf("setting `parameters`: %+v", err)
 			}
+
 			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
 		}
 	}
 	return nil
@@ -166,8 +207,8 @@ func resourceFrontdoorProfileSecurityPolicyUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	props := securitypolicies.SecurityPolicyProperties{
-		Parameters: expandSecurityPoliciesSecurityPolicyParameters(d.Get("parameters").([]interface{})),
+	props := securitypolicies.SecurityPolicyUpdateParameters{
+		Properties: expandSecurityPoliciesSecurityPolicyUpdateParameters(d.Get("parameters").([]interface{})),
 	}
 	if err := client.PatchThenPoll(ctx, *id, props); err != nil {
 
@@ -194,7 +235,7 @@ func resourceFrontdoorProfileSecurityPolicyDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func expandSecurityPoliciesSecurityPolicyParameters(input []interface{}) *securitypolicies.SecurityPolicyPropertiesParameters {
+func expandSecurityPoliciesSecurityPolicyParameters(input []interface{}) securitypolicies.SecurityPolicyPropertiesParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -202,8 +243,19 @@ func expandSecurityPoliciesSecurityPolicyParameters(input []interface{}) *securi
 	v := input[0].(map[string]interface{})
 
 	typeValue := securitypolicies.SecurityPolicyType(v["type"].(string))
-	return &securitypolicies.SecurityPolicyPropertiesParameters{
-		Type: typeValue,
+	return securitypolicies.SecurityPolicyPropertiesParameters(typeValue)
+}
+
+func expandSecurityPoliciesSecurityPolicyUpdateParameters(input []interface{}) *securitypolicies.SecurityPolicyUpdateProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	typeValue := securitypolicies.SecurityPolicyType(v["type"].(string))
+	return &securitypolicies.SecurityPolicyUpdateProperties{
+		Parameters: typeValue,
 	}
 }
 
@@ -213,7 +265,27 @@ func flattenSecurityPoliciesSecurityPolicyParameters(input *securitypolicies.Sec
 		return results
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = input.Type
-	return append(results, result)
+	// if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
+	var result map[string]interface{}
+	result["type"] = "WebApplicationFirewall"
+
+	// var temp map[string]interface{}
+	// if err := json.Unmarshal(input, &temp); err != nil {
+	// 	return nil, fmt.Errorf("unmarshaling SecurityPolicyPropertiesParameters into map[string]interface: %+v", err)
+	// }
+
+	// value, ok := temp["type"].(string)
+	// if !ok {
+	// 	return nil, nil
+	// }
+
+	// if strings.EqualFold(value, "WebApplicationFirewall") {
+	// 	var out SecurityPolicyWebApplicationFirewallParameters
+	// 	if err := json.Unmarshal(input, &out); err != nil {
+	// 		return nil, fmt.Errorf("unmarshaling into SecurityPolicyWebApplicationFirewallParameters: %+v", err)
+	// 	}
+	// 	return out, nil
+	// }
+
+	return results
 }

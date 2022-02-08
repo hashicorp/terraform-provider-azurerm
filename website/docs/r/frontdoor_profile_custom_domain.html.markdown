@@ -1,14 +1,14 @@
 ---
 subcategory: "Cdn"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_afd_custom_domain"
+page_title: "Azure Resource Manager: azurerm_frontdoor_profile_custom_domain"
 description: |-
-  Manages a cdn AFDCustomDomain.
+  Manages a Frontdoor Profile Custom Domain.
 ---
 
-# azurerm_cdn_afd_custom_domain
+# azurerm_frontdoor_profile_custom_domain
 
-Manages a cdn AFDCustomDomain.
+Manages a Frontdoor Profile Custom Domain.
 
 ## Example Usage
 
@@ -23,22 +23,20 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cdn_afd_custom_domain" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_cdn_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  host_name = ""
+resource "azurerm_frontdoor_profile_custom_domain" "test" {
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_cdn_profile.test.id
+  dns_zone_id          = ""
+  host_name            = ""
+
   pre_validated_custom_domain_resource_id {
     id = ""
   }
+
   tls_settings {
     certificate_type    = ""
     minimum_tls_version = ""
-    secret {
-      id = ""
-    }
+    secret_id           = ""
   }
 }
 ```
@@ -47,23 +45,17 @@ resource "azurerm_cdn_afd_custom_domain" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Cdn AFDCustomDomain. Changing this forces a new Cdn AFDCustomDomain to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Profile Custom Domain. Changing this forces a new Frontdoor Profile Custom Domain to be created.
 
-* `cdn_profile_id` - (Required) The ID of the cdn AFDCustomDomain. Changing this forces a new cdn AFDCustomDomain to be created.
+* `frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
-* `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new cdn AFDCustomDomain to be created.
+* `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new Frontdoor Profile Custom Domain to be created.
 
-* `azure_dns_zone` - (Optional) An `azure_dns_zone` block as defined below.
+* `dns_zone_id` - (Optional) Resource ID.
 
 * `pre_validated_custom_domain_resource_id` - (Optional) A `pre_validated_custom_domain_resource_id` block as defined below.
 
 * `tls_settings` - (Optional) A `tls_settings` block as defined below.
-
----
-
-An `azure_dns_zone` block supports the following:
-
-* `id` - (Optional) Resource ID.
 
 ---
 
@@ -79,19 +71,15 @@ A `tls_settings` block supports the following:
 
 * `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https
 
-* `secret` - (Optional) A `secret` block as defined below.
+* `secret_id` - (Optional) Resource ID.
 
 ---
-
-A `secret` block supports the following:
-
-* `id` - (Optional) Resource ID.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the cdn AFDCustomDomain.
+* `id` - The ID of the Frontdoor Profile Custom Domain.
 
 * `deployment_status` - 
 
@@ -115,15 +103,15 @@ A `validation_properties` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the cdn AFDCustomDomain.
-* `read` - (Defaults to 5 minutes) Used when retrieving the cdn AFDCustomDomain.
-* `update` - (Defaults to 30 minutes) Used when updating the cdn AFDCustomDomain.
-* `delete` - (Defaults to 30 minutes) Used when deleting the cdn AFDCustomDomain.
+* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Profile Custom Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Profile Custom Domain.
+* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Profile Custom Domain.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Profile Custom Domain.
 
 ## Import
 
-cdn AFDCustomDomains can be imported using the `resource id`, e.g.
+Frontdoor Profile Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_afd_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CDN/profiles/profile1/customDomains/customDomain1
+terraform import azurerm_frontdoor_profile_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
 ```

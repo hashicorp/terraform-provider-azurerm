@@ -118,20 +118,9 @@ func resourceFrontdoorProfileRoute() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"origin_group": {
-				Type:     pluginsdk.TypeList,
+			"origin_group_id": {
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
 			},
 
 			"origin_path": {
@@ -153,18 +142,12 @@ func resourceFrontdoorProfileRoute() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"rule_sets": {
+			"rule_set_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -172,8 +155,8 @@ func resourceFrontdoorProfileRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
@@ -220,7 +203,7 @@ func resourceFrontdoorProfileRouteCreate(d *pluginsdk.ResourceData, meta interfa
 			OriginGroup:         *expandRouteResourceReference(d.Get("origin_group").([]interface{})),
 			OriginPath:          utils.String(d.Get("origin_path").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_sets").([]interface{})),
+			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
@@ -280,7 +263,7 @@ func resourceFrontdoorProfileRouteRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("patterns_to_match", props.PatternsToMatch)
 			d.Set("provisioning_state", props.ProvisioningState)
 
-			if err := d.Set("rule_sets", flattenRouteResourceReferenceArray(props.RuleSets)); err != nil {
+			if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
 				return fmt.Errorf("setting `rule_sets`: %+v", err)
 			}
 
@@ -358,13 +341,29 @@ func expandRouteResourceReference(input []interface{}) *routes.ResourceReference
 	}
 }
 
+func expandRouteResourceReferenceArray(input []interface{}) *[]routes.ResourceReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	results := make([]routes.ResourceReference, 0)
+
+	for _, item := range input {
+		results = append(results, routes.ResourceReference{
+			Id: utils.String(item.(string)),
+		})
+	}
+
+	return &results
+}
+
 func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]routes.AFDEndpointProtocols {
 	results := make([]routes.AFDEndpointProtocols, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
 
-		results = append(results, routes.AFDEndpointProtocols{})
+	for _, item := range input {
+		results = append(results, routes.AFDEndpointProtocols(item.(string)))
 	}
+
 	return &results
 }
 
@@ -430,16 +429,30 @@ func flattenRouteResourceReference(input *routes.ResourceReference) []interface{
 	return append(results, result)
 }
 
-func flattenRouteAFDEndpointProtocolsArray(inputs *[]routes.AFDEndpointProtocols) []interface{} {
+func flattenRouteResourceReferenceArry(input *[]routes.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
-	if inputs == nil {
+	if input == nil {
 		return results
 	}
 
-	for _, input := range *inputs {
-		result := make(map[string]interface{})
+	for _, item := range *input {
 
-		results = append(results, result)
+		if item.Id != nil {
+			results = append(results, *item.Id)
+		}
+	}
+
+	return results
+}
+
+func flattenRouteAFDEndpointProtocolsArray(input *[]routes.AFDEndpointProtocols) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, item)
 	}
 
 	return results

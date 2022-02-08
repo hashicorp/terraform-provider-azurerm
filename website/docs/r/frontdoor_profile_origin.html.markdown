@@ -1,20 +1,20 @@
 ---
 subcategory: "Cdn"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_afd_origin"
+page_title: "Azure Resource Manager: azurerm_frontdoor_profile_origin"
 description: |-
-  Manages a cdn AFDOrigin.
+  Manages a Frontdoor Profile Origin.
 ---
 
-# azurerm_cdn_afd_origin
+# azurerm_frontdoor_profile_origin
 
-Manages a cdn AFDOrigin.
+Manages a Frontdoor Profile Origin.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+  name     = "example-frontdoor-profile"
   location = "West Europe"
 }
 
@@ -23,17 +23,16 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cdn_afd_origin_group" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_cdn_profile.test.id
+resource "azurerm_frontdoor_profile_origin_group" "test" {
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
 
-resource "azurerm_cdn_afd_origin" "test" {
-  name                    = "acctest-c-%d"
-  cdn_afd_origin_group_id = azurerm_cdn_afd_origin_group.test.id
-  azure_origin {
-    id = ""
-  }
+resource "azurerm_frontdoor_profile_origin" "test" {
+  name                              = "acctest-c-%d"
+  frontdoor_profile_origin_group_id = azurerm_frontdoor_profile_origin_group.test.id
+  azure_origin_id                   = ""
+
   enabled_state                  = ""
   enforce_certificate_name_check = false
   host_name                      = ""
@@ -49,13 +48,13 @@ resource "azurerm_cdn_afd_origin" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Cdn AFDOrigin. Changing this forces a new Cdn AFDOrigin to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Profile Origin. Changing this forces a new Frontdoor Profile Origin to be created.
 
-* `cdn_origin_group_id` - (Required) The ID of the cdn AFDOrigin. Changing this forces a new cdn AFDOrigin to be created.
+* `frontdoor_profile_origin_group_id` - (Required) The ID of the Frontdoor Profile Origin Group. Changing this forces a new Frontdoor Profile Origin Group to be created.
 
 * `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported.This should be unique across all origins in an endpoint.
 
-* `azure_origin` - (Optional) An `azure_origin` block as defined below.
+* `azure_origin_id` - (Optional) Resource ID..
 
 * `enabled_state` - (Optional) Whether to enable health probes to be made against backends defined under backendPools. Health probes can only be disabled if there is a single enabled backend in single enabled backend pool.
 
@@ -73,15 +72,11 @@ The following arguments are supported:
 
 ---
 
-An `azure_origin` block supports the following:
-
-* `id` - (Optional) Resource ID.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the cdn AFDOrigin.
+* `id` - The ID of the Frontdoor Profile Origin.
 
 * `deployment_status` - 
 
@@ -93,15 +88,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the cdn AFDOrigin.
-* `read` - (Defaults to 5 minutes) Used when retrieving the cdn AFDOrigin.
-* `update` - (Defaults to 30 minutes) Used when updating the cdn AFDOrigin.
-* `delete` - (Defaults to 30 minutes) Used when deleting the cdn AFDOrigin.
+* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Profile Origin.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Profile Origin.
+* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Profile Origin.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Profile Origin.
 
 ## Import
 
-cdn AFDOrigins can be imported using the `resource id`, e.g.
+Frontdoor Profile Origins can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_afd_origin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CDN/profiles/profile1/originGroups/originGroup1/origins/origin1
+terraform import azurerm_frontdoor_profile_origin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1/origins/origin1
 ```
