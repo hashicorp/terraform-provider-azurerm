@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights_api_key` - prevent panic by checking for the id of an existing API Key [GH-15297]
 * `azurerm_app_service_active_slot` - fix regression in ID set in creation of new resource [GH-15291]
 
 ## 2.95.0 (February 04, 2022)
