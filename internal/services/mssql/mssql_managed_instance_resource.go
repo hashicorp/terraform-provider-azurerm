@@ -83,8 +83,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				"GP_Gen4",
 				"GP_Gen5",
+				"GP_G8IM",
+				"GP_G8IH",
 				"BC_Gen4",
 				"BC_Gen5",
+				"BC_G8IM",
+				"BC_G8IH",
 			}, false),
 		},
 
