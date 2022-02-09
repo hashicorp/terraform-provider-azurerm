@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -507,7 +508,8 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&subnetNamesToLock, SubnetResourceName)
 	defer locks.UnlockMultipleByName(&subnetNamesToLock, SubnetResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
+	// Change this back to using the SDK method once https://github.com/Azure/azure-sdk-for-go/issues/17013 is addressed.
+	future, err := azuresdkhacks.DeleteFirewall(ctx, client, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		return fmt.Errorf("deleting Azure Firewall %s : %+v", *id, err)
 	}
