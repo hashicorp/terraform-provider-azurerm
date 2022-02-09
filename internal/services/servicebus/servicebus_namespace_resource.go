@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -65,6 +67,8 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"identity": identity.SystemAssignedUserAssigned{}.Schema(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -158,6 +162,12 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags: tags.Expand(t),
 	}
 
+	identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	parameters.Identity = identity
+
 	if capacity := d.Get("capacity"); capacity != nil {
 		if !strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) > 0 {
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
@@ -205,6 +215,12 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	identity, err := flattenServiceBusNamespaceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", strings.ToLower(string(sku.Name)))
 		d.Set("capacity", sku.Capacity)
@@ -249,4 +265,64 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandServiceBusNamespaceIdentity(input []interface{}) (*servicebus.Identity, error) {
+	if len(input) == 0 || input[0] == nil {
+		return &servicebus.Identity{
+			Type: servicebus.ManagedServiceIdentityTypeNone,
+		}, nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	config := &servicebus.Identity{
+		Type: servicebus.ManagedServiceIdentityType(v["type"].(string)),
+	}
+
+	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
+
+	if len(identityIds) != 0 {
+		if config.Type != servicebus.ManagedServiceIdentityTypeSystemAssignedUserAssigned && config.Type != servicebus.ManagedServiceIdentityTypeUserAssigned {
+			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+		}
+		config.UserAssignedIdentities = map[string]*servicebus.UserAssignedIdentity{}
+		for _, id := range identityIds {
+			config.UserAssignedIdentities[id.(string)] = &servicebus.UserAssignedIdentity{}
+		}
+	}
+
+	return config, nil
+}
+
+func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) ([]interface{}, error) {
+	if input == nil || input.Type == servicebus.ManagedServiceIdentityTypeNone {
+		return []interface{}{}, nil
+	}
+
+	coalesce := func(input *string) string {
+		if input == nil {
+			return ""
+		}
+
+		return *input
+	}
+
+	var identityIds []string
+	for id := range input.UserAssignedIdentities {
+		parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(id)
+		if err != nil {
+			return nil, err
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         input.Type,
+			"identity_ids": identityIds,
+			"principal_id": coalesce(input.PrincipalID),
+			"tenant_id":    coalesce(input.TenantID),
+		},
+	}, nil
 }
