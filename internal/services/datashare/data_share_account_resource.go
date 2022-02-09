@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,34 +46,11 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(datashare.SystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			// the api will save and return the tag keys in lowercase, so an extra validation of the key is all in lowercase is added
 			// issue has been created https://github.com/Azure/azure-rest-api-specs/issues/9280
@@ -100,10 +77,15 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_data_share_account", id.ID())
 	}
 
+	expandedIdentity, err := expandAzureRmDataShareAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	account := datashare.Account{
 		Name:     utils.String(id.Name),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Identity: expandAzureRmDataShareAccountIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -143,7 +125,8 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if err := d.Set("identity", flattenAzureRmDataShareAccountIdentity(resp.Identity)); err != nil {
+
+	if err := d.Set("identity", flattenAccountIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -194,32 +177,36 @@ func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandAzureRmDataShareAccountIdentity(input []interface{}) *datashare.Identity {
-	identity := input[0].(map[string]interface{})
-	return &datashare.Identity{
-		Type: datashare.Type(identity["type"].(string)),
+func expandAzureRmDataShareAccountIdentity(input []interface{}) (*datashare.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
+
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	return &datashare.Identity{
+		Type: datashare.Type(string(expanded.Type)),
+	}, nil
 }
 
-func flattenAzureRmDataShareAccountIdentity(identity *datashare.Identity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
+func flattenAccountIdentity(input *datashare.Identity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
 	}
 
-	var principalId, tenantId string
-
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+	return identity.FlattenSystemAssigned(transform)
 }

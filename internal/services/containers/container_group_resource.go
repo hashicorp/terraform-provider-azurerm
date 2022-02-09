@@ -10,14 +10,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -121,39 +121,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
-								"SystemAssigned, UserAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 
@@ -569,11 +537,17 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	expandedIdentity, err := expandContainerGroupIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     utils.String(id.Name),
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Identity: expandContainerGroupIdentity(d),
+		Identity: expandedIdentity,
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -678,7 +652,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	identity, err := flattenContainerGroupIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -1050,29 +1024,25 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	return &output
 }
 
-func expandContainerGroupIdentity(d *pluginsdk.ResourceData) *containerinstance.ContainerGroupIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	if len(identities) == 0 {
-		return nil
-	}
-	identity := identities[0].(map[string]interface{})
-	identityType := containerinstance.ResourceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{}
+func expandContainerGroupIdentity(input []interface{}) (*containerinstance.ContainerGroupIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	cgIdentity := containerinstance.ContainerGroupIdentity{
-		Type: identityType,
+	out := containerinstance.ContainerGroupIdentity{
+		Type: containerinstance.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
 	}
 
-	if cgIdentity.Type == containerinstance.ResourceIdentityTypeUserAssigned || cgIdentity.Type == containerinstance.ResourceIdentityTypeSystemAssignedUserAssigned {
-		cgIdentity.UserAssignedIdentities = identityIds
-	}
-
-	return &cgIdentity
+	return &out, nil
 }
 
 func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]containerinstance.ImageRegistryCredential {
@@ -1264,38 +1234,29 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
+func flattenContainerGroupIdentity(input *containerinstance.ContainerGroupIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		/*
-			"userAssignedIdentities": {
-			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
-				"principalId": "00000000-0000-0000-0000-000000000000",
-				"clientId": "00000000-0000-0000-0000-000000000000"
-			  }
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-		*/
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
