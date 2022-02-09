@@ -9,9 +9,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
@@ -51,189 +56,207 @@ func resourceDataFactory() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.DataFactoryName(),
+				},
 
-			"location": azure.SchemaLocation(),
+				"location": azure.SchemaLocation(),
 
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+				// There's a bug in the Azure API where this is returned in lower-case
+				// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+				"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(datafactory.FactoryIdentityTypeSystemAssigned),
-								string(datafactory.FactoryIdentityTypeUserAssigned),
-								string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-
-						"identity_ids": {
+				"identity": func() *schema.Schema {
+					if !features.ThreePointOhBeta() {
+						return &schema.Schema{
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &pluginsdk.Schema{
+							Computed: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"type": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(datafactory.FactoryIdentityTypeSystemAssigned),
+											string(datafactory.FactoryIdentityTypeUserAssigned),
+											string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned),
+										}, false),
+									},
+
+									"identity_ids": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: msiValidate.UserAssignedIdentityID,
+										},
+									},
+
+									"principal_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"tenant_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						}
+					}
+
+					return commonschema.SystemAssignedUserAssignedIdentityOptional()
+				}(),
+
+				"github_configuration": {
+					Type:          pluginsdk.TypeList,
+					Optional:      true,
+					MaxItems:      1,
+					ConflictsWith: []string{"vsts_configuration"},
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"account_name": {
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"branch_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"git_url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"repository_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"root_folder": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+					},
+				},
 
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+				"vsts_configuration": {
+					Type:          pluginsdk.TypeList,
+					Optional:      true,
+					MaxItems:      1,
+					ConflictsWith: []string{"github_configuration"},
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"account_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"branch_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"project_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"repository_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"root_folder": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"tenant_id": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.IsUUID,
+							},
 						},
 					},
 				},
-			},
 
-			"github_configuration": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"vsts_configuration"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"account_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"branch_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"git_url": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"repository_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"root_folder": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+				"global_parameter": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"type": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Array",
+									"Bool",
+									"Float",
+									"Int",
+									"Object",
+									"String",
+								}, false),
+							},
+
+							"value": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 					},
 				},
-			},
 
-			"vsts_configuration": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"github_configuration"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"account_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"branch_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"project_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"repository_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"root_folder": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
+				"managed_virtual_network_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
 				},
-			},
 
-			"global_parameter": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Array",
-								"Bool",
-								"Float",
-								"Int",
-								"Object",
-								"String",
-							}, false),
-						},
-
-						"value": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
+				"public_network_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
 				},
-			},
 
-			"managed_virtual_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
+				"customer_managed_key_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVaultValidate.NestedItemId,
+				},
 
-			"public_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+				"tags": tags.Schema(),
+			}
 
-			"customer_managed_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
-				RequiredWith: []string{"identity.0.identity_ids"},
-			},
-
-			"tags": tags.Schema(),
-		},
+			if features.ThreePointOhBeta() {
+				// TODO: 3.0 - update the docs/guide to account for this breaking change
+				s["customer_managed_key_identity_id"] = &schema.Schema{
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					RequiredWith: []string{"customer_managed_key_id"},
+				}
+			}
+			return s
+		}(),
 	}
 }
 
@@ -258,37 +281,25 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dataFactory := datafactory.Factory{
-		Location:          &location,
-		FactoryProperties: &datafactory.FactoryProperties{},
-		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	dataFactory.PublicNetworkAccess = datafactory.PublicNetworkAccessEnabled
+	publicNetworkAccess := datafactory.PublicNetworkAccessEnabled
 	enabled := d.Get("public_network_enabled").(bool)
 	if !enabled {
-		dataFactory.FactoryProperties.PublicNetworkAccess = datafactory.PublicNetworkAccessDisabled
+		publicNetworkAccess = datafactory.PublicNetworkAccessDisabled
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		identityType := v.(string)
-		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type: datafactory.FactoryIdentityType(identityType),
-		}
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
-		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
-		if len(identityIdsRaw) > 0 {
-			if !(identityType == string(datafactory.FactoryIdentityTypeUserAssigned) || identityType == string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned)) {
-				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s` or `%s`", string(datafactory.FactoryIdentityTypeUserAssigned), string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned))
-			}
-
-			identityIds := make(map[string]interface{})
-			for _, v := range identityIdsRaw {
-				identityIds[v.(string)] = make(map[string]string)
-			}
-			dataFactory.Identity.UserAssignedIdentities = identityIds
-		}
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	dataFactory := datafactory.Factory{
+		Location: utils.String(location),
+		FactoryProperties: &datafactory.FactoryProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		},
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
@@ -297,14 +308,20 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
-		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
+		userAssignedIdentityId := ""
+		if features.ThreePointOhBeta() {
+			userAssignedIdentityId = d.Get("customer_managed_key_identity_id").(string)
+		} else {
+			identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
+			userAssignedIdentityId = identityIdsRaw[0].(string)
+		}
 
 		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
 			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      &keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &datafactory.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(identityIdsRaw[0].(string)),
+				UserAssignedIdentity: utils.String(userAssignedIdentityId),
 			},
 		}
 	}
@@ -380,13 +397,26 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if factoryProps := resp.FactoryProperties; factoryProps != nil {
+		customerManagedKeyId := ""
+		customerManagedKeyIdentityId := ""
+
 		if enc := factoryProps.Encryption; enc != nil {
 			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
-				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
-				if err := d.Set("customer_managed_key_id", versionedKey); err != nil {
-					return fmt.Errorf("setting `customer_managed_key_id`: %+v", err)
-				}
+				customerManagedKeyId = fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
 			}
+
+			if enc.Identity != nil && enc.Identity.UserAssignedIdentity != nil {
+				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*enc.Identity.UserAssignedIdentity)
+				if err != nil {
+					return fmt.Errorf("parsing %q: %+v", *enc.Identity.UserAssignedIdentity, err)
+				}
+				customerManagedKeyIdentityId = parsed.ID()
+			}
+		}
+
+		d.Set("customer_managed_key_id", customerManagedKeyId)
+		if features.ThreePointOhBeta() {
+			d.Set("customer_managed_key_identity_id", customerManagedKeyIdentityId)
 		}
 
 		if err := d.Set("global_parameter", flattenDataFactoryGlobalParameters(factoryProps.GlobalParameters)); err != nil {
@@ -412,7 +442,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("github_configuration", repo)
 	}
 
-	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -571,38 +601,121 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 	return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration, result
 }
 
-func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interface{}, error) {
-	if identity == nil {
-		return []interface{}{}, nil
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = identity.PrincipalID.String()
-	}
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = identity.TenantID.String()
-	}
-	var identityIds []string
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			id, err := msiParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, id.ID())
+func expandIdentity(input []interface{}) (*datafactory.FactoryIdentity, error) {
+	if !features.ThreePointOhBeta() {
+		if len(input) == 0 {
+			return nil, nil
 		}
+
+		vs := input[0].(map[string]interface{})
+		out := datafactory.FactoryIdentity{
+			Type: datafactory.FactoryIdentityType(vs["type"].(string)),
+		}
+		if out.Type == datafactory.FactoryIdentityTypeUserAssigned || out.Type == datafactory.FactoryIdentityTypeSystemAssignedUserAssigned {
+			identityIdsRaw := vs["identity_ids"].([]interface{})
+			identityIds := make(map[string]interface{})
+			for _, v := range identityIdsRaw {
+				identityIds[v.(string)] = make(map[string]string)
+			}
+			out.UserAssignedIdentities = identityIds
+		}
+
+		return &out, nil
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-			"identity_ids": identityIds,
-		},
-	}, nil
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	out := datafactory.FactoryIdentity{
+		Type: datafactory.FactoryIdentityType(string(expanded.Type)),
+	}
+
+	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
+	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.Type = datafactory.FactoryIdentityTypeSystemAssignedUserAssigned
+	}
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]interface{})
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = make(map[string]interface{})
+		}
+		out.UserAssignedIdentities = userAssignedIdentities
+	}
+
+	return &out, nil
+}
+
+func flattenIdentity(input *datafactory.FactoryIdentity) (interface{}, error) {
+	if !features.ThreePointOhBeta() {
+		if input == nil {
+			return []interface{}{}, nil
+		}
+
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = input.PrincipalID.String()
+		}
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = input.TenantID.String()
+		}
+		var identityIds []string
+		if input.UserAssignedIdentities != nil {
+			for key := range input.UserAssignedIdentities {
+				id, err := msiParse.UserAssignedIdentityIDInsensitively(key)
+				if err != nil {
+					return nil, err
+				}
+				identityIds = append(identityIds, id.ID())
+			}
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"principal_id": principalId,
+				"tenant_id":    tenantId,
+				"type":         string(input.Type),
+				"identity_ids": identityIds,
+			},
+		}, nil
+	}
+
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: nil,
+		}
+
+		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
+		if input.Type == datafactory.FactoryIdentityTypeSystemAssignedUserAssigned {
+			transform.Type = identity.TypeSystemAssignedUserAssigned
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		for k := range input.UserAssignedIdentities {
+			identityIds[k] = identity.UserAssignedIdentityDetails{
+				// since v is an `interface{}` there's no guarantee this is returned
+			}
+		}
+
+		transform.IdentityIds = identityIds
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalParameterSpecification) []interface{} {
