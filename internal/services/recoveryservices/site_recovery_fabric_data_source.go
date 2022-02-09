@@ -25,6 +25,7 @@ func dataSourceSiteRecoveryFabric() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
