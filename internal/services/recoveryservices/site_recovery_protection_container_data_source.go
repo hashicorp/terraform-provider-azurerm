@@ -26,7 +26,6 @@ func dataSourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
