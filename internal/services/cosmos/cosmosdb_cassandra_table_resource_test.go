@@ -61,13 +61,13 @@ func TestAccCosmosDbCassandraTable_complete(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbCassandraTable_complete_max_throughput(t *testing.T) {
+func TestAccCosmosDbCassandraTable_autoScaleSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
 	r := CosmosDBCassandraTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeMaxThroughput(data, 4000),
+			Config: r.autoScaleSetting(data, 4000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -148,7 +148,7 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
 `, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosDBCassandraTableResource) completeMaxThroughput(data acceptance.TestData, maxThroughput int) string {
+func (CosmosDBCassandraTableResource) autoScaleSetting(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
