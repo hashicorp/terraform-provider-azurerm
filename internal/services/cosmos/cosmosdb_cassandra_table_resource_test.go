@@ -67,7 +67,7 @@ func TestAccCosmosDbCassandraTable_autoScaleSetting(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoScaleSetting(data, 4000),
+			Config: r.autoScaleSetting(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -148,7 +148,7 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
 `, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosDBCassandraTableResource) autoScaleSetting(data acceptance.TestData, maxThroughput int) string {
+func (CosmosDBCassandraTableResource) autoScaleSetting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -156,7 +156,7 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
   name                  = "acctest-CCASST-%[2]d"
   cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
   autoscale_settings {
-    max_throughput = %[3]d
+    max_throughput = 4000
   }
 
   schema {
@@ -175,7 +175,7 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
     }
   }
 }
-`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger, maxThroughput)
+`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
 }
 
 func (CosmosDBCassandraTableResource) analyticalStorageTTLTemplate(data acceptance.TestData) string {
