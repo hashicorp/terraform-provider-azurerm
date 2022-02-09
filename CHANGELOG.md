@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
+* **New Data Source:** `azurerm_portal_dashboard` [GH-15326]
 * **New Resource:** `azurerm_sentinel_watchlist_item` [GH-14366]
 * **New Resource:** `azurerm_stream_analytics_output_function` [GH-15162]
 * **New Resource:** `azurerm_web_pubsub_network_acl` [GH-14827]
