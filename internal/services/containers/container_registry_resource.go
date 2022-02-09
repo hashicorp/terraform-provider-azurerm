@@ -958,7 +958,7 @@ func expandRegistryIdentity(input []interface{}) (*containerregistry.IdentityPro
 	out := containerregistry.IdentityProperties{
 		Type: containerregistry.ResourceIdentityType(string(expanded.Type)),
 	}
-	if out.Type == identity.TypeUserAssigned || out.Type == identity.TypeSystemAssignedUserAssigned {
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
 		out.UserAssignedIdentities = make(map[string]*containerregistry.UserIdentityProperties)
 		for k := range expanded.IdentityIds {
 			out.UserAssignedIdentities[k] = &containerregistry.UserIdentityProperties{
