@@ -44,12 +44,14 @@ resource "azurerm_resource_group_policy_assignment" "example" {
   policy_definition_id = azurerm_policy_definition.example.id
 
   parameters = <<PARAMS
+    {
       "tagName": {
         "value": "Business Unit"
       },
       "tagValue": {
         "value": "BU"
       }
+    }
 PARAMS
 }
 ```
