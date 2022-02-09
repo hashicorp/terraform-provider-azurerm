@@ -206,7 +206,7 @@ resource "azurerm_mssql_managed_instance" "example" {
 
 The following arguments are supported:
 
-* `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
+* `administrator_login` - (Required) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
@@ -216,19 +216,19 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance.
 
 * `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `GP_G8IM`, `GP_G8IH`, `BC_Gen4`, `BC_Gen5`, `BC_G8IM` or `BC_G8IH`.
 
-* `storage_size_in_gb` - (Required) Maximum storage space for your instance. It should be a multiple of 32GB.
+* `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
 
-* `vcores` - (Required) Number of cores that should be assigned to your instance. Values can be `8`, `16`, or `24` if `sku_name` is `GP_Gen4`, or `8`, `16`, `24`, `32`, or `40` if `sku_name` is `GP_Gen5`.
+* `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `8`, `16`, `24`, `32`, or `40` for Gen5 SKUs.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
+* `dns_zone_partner_id` - (Optional) The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -266,9 +266,18 @@ The following attributes are exported:
 
  * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 24 hours) Used when creating the Microsoft SQL Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Managed Instance.
+* `delete` - (Defaults to 24 hours) Used when deleting the Microsoft SQL Managed Instance.
+
 ## Import
 
-SQL Servers can be imported using the `resource id`, e.g.
+Microsoft SQL Managed Instances can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_mssql_managed_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/managedInstances/myserver
