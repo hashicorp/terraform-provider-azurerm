@@ -108,6 +108,8 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, resp.VirtualMachineProperties)
 	err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
 	if err != nil {
@@ -125,11 +127,10 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID())
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)

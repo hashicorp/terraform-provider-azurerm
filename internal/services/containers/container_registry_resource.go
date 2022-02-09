@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -17,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	identityParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -155,43 +155,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerregistry.ResourceIdentityTypeSystemAssigned),
-								string(containerregistry.ResourceIdentityTypeUserAssigned),
-								string(containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: identityValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"encryption": {
 				Type:       pluginsdk.TypeList,
@@ -476,8 +440,10 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity := expandIdentityProperties(identityRaw)
+	identity, err := expandRegistryIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -595,8 +561,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity := expandIdentityProperties(identityRaw)
+	identity, err := expandRegistryIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
@@ -762,7 +730,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `network_rule_set`: %+v", err)
 	}
 
-	identity, _ := flattenIdentityProperties(resp.Identity)
+	identity, _ := flattenRegistryIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -981,22 +949,24 @@ func expandReplications(p []interface{}) []containerregistry.Replication {
 	return replications
 }
 
-func expandIdentityProperties(e []interface{}) *containerregistry.IdentityProperties {
-	identityProperties := containerregistry.IdentityProperties{}
-	identityProperties.Type = containerregistry.ResourceIdentityTypeNone
-	if len(e) > 0 {
-		v := e[0].(map[string]interface{})
-		identityPropertType := containerregistry.ResourceIdentityType(v["type"].(string))
-		identityProperties.Type = identityPropertType
-		if identityPropertType == containerregistry.ResourceIdentityTypeUserAssigned || identityPropertType == containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned {
-			identityIds := make(map[string]*containerregistry.UserIdentityProperties)
-			for _, id := range v["identity_ids"].([]interface{}) {
-				identityIds[id.(string)] = &containerregistry.UserIdentityProperties{}
+func expandRegistryIdentity(input []interface{}) (*containerregistry.IdentityProperties, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := containerregistry.IdentityProperties{
+		Type: containerregistry.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerregistry.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerregistry.UserIdentityProperties{
+				// intentionally empty
 			}
-			identityProperties.UserAssignedIdentities = identityIds
 		}
 	}
-	return &identityProperties
+	return &out, nil
 }
 
 func expandEncryption(e []interface{}) *containerregistry.EncryptionProperty {
@@ -1034,30 +1004,29 @@ func flattenEncryption(encryptionProperty *containerregistry.EncryptionProperty)
 	return []interface{}{encryption}
 }
 
-func flattenIdentityProperties(identityProperties *containerregistry.IdentityProperties) ([]interface{}, error) {
-	if identityProperties == nil {
-		return make([]interface{}, 0), nil
-	}
-	identity := make(map[string]interface{})
-	identity["type"] = string(identityProperties.Type)
-	if identityProperties.UserAssignedIdentities != nil {
-		identityIds := make([]string, 0)
-		for key := range identityProperties.UserAssignedIdentities {
-			parsedId, err := identityParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+func flattenRegistryIdentity(input *containerregistry.IdentityProperties) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		identity["identity_ids"] = identityIds
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
-	if identityProperties.PrincipalID != nil {
-		identity["principal_id"] = *identityProperties.PrincipalID
-	}
-	if identityProperties.TenantID != nil {
-		identity["tenant_id"] = *identityProperties.TenantID
-	}
-	return []interface{}{identity}, nil
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {

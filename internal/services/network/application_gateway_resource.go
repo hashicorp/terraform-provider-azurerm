@@ -10,12 +10,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -134,39 +132,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(network.ResourceIdentityTypeUserAssigned),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(network.ResourceIdentityTypeUserAssigned),
-									}, false),
-								},
-								"identity_ids": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MinItems: 1,
-									MaxItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.NoZeroValues,
-									},
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.UserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			// Required
 			"backend_address_pool": {

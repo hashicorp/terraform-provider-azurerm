@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -189,7 +190,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -408,13 +409,15 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandVirtualMachineIdentity(identityRaw)
+
+	identity, err := expandVirtualMachineIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
+
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	size := d.Get("size").(string)
@@ -658,7 +661,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
