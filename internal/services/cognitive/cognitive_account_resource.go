@@ -7,21 +7,20 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	identityHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
+	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -127,8 +126,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	identity, err := expandCognitiveAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -472,41 +470,26 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	return &results
 }
 
-func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	if len(vs) == 0 {
-		return &identity.SystemUserAssignedIdentityMap{
-			Type: identity.Type(identityHelper.TypeNone),
-		}, nil
+func expandCognitiveAccountIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-
-	config := &identity.ExpandedConfig{
-		Type: identity.Type(v["type"].(string)),
+	intermediate := legacyIdentity.ExpandedConfig{
+		Type: legacyIdentity.Type(string(expanded.Type)),
 	}
 
-	managedServiceIdentity := identity.SystemUserAssignedIdentityMap{}
-
-	var identityIdSet []interface{}
-	if identityIds, ok := v["identity_ids"]; ok {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if string(config.Type) == string(identityHelper.TypeUserAssigned) || string(config.Type) == string(identityHelper.TypeSystemAssignedUserAssigned) {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		intermediate.UserAssignedIdentityIds = make([]string, 0)
+		for k := range expanded.IdentityIds {
+			intermediate.UserAssignedIdentityIds = append(intermediate.UserAssignedIdentityIds, k)
 		}
-
-		config.UserAssignedIdentityIds = *utils.ExpandStringSlice(identityIdSet)
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
 
-	managedServiceIdentity.FromExpandedConfig(*config)
-
-	return &managedServiceIdentity, nil
+	out := legacyIdentity.SystemUserAssignedIdentityMap{}
+	out.FromExpandedConfig(intermediate)
+	return &out, nil
 }
 
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
@@ -609,35 +592,25 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 	return results
 }
 
-func flattenCognitiveAccountIdentity(identity *identity.SystemUserAssignedIdentityMap) ([]interface{}, error) {
-	if identity == nil || string(identity.Type) == string(identityHelper.TypeNone) {
-		return make([]interface{}, 0), nil
-	}
+func flattenCognitiveAccountIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalId != nil {
-		result["principal_id"] = *identity.PrincipalId
-	}
-
-	if identity.TenantId != nil {
-		result["tenant_id"] = *identity.TenantId
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if input != nil {
+		expanded := input.ToExpandedConfig()
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(expanded.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+			TenantId:    expanded.TenantId,
+			PrincipalId: expanded.PrincipalId,
 		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+		for _, k := range expanded.UserAssignedIdentityIds {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				// TODO: populate me once the SDK is updated
+			}
+		}
 	}
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
@@ -718,46 +691,7 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(identityHelper.TypeNone),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(identityHelper.TypeNone),
-							string(identityHelper.TypeSystemAssigned),
-							string(identityHelper.TypeUserAssigned),
-							string(identityHelper.TypeSystemAssignedUserAssigned),
-						}, false),
-					},
-
-					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"identity_ids": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
-						},
-					},
-				},
-			},
-		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"local_auth_enabled": {
 			Type:     pluginsdk.TypeBool,

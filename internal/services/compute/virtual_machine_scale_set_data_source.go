@@ -95,9 +95,9 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
