@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -497,6 +500,26 @@ func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_removeSamples(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.removeSamples(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				r.testCheckHasNoProductsOrApis(data.ResourceName),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
@@ -511,6 +534,52 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
+	return func(state *terraform.State) error {
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
+		ctx := client.StopContext
+
+		rs, ok := state.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("%q was not found in the state", resourceName)
+		}
+
+		id, err := parse.ApiManagementID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		for apis, err := client.ApiManagement.ApiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apis.NotDone(); err = apis.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if apis.Response().IsEmpty() {
+				break
+			}
+			if count := len(apis.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated APIs", id, count)
+			}
+		}
+
+		for products, err := client.ApiManagement.ProductsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); products.NotDone(); err = products.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if products.Response().IsEmpty() {
+				break
+			}
+			if count := len(products.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated Products", id, count)
+			}
+		}
+
+		return nil
+	}
 }
 
 func TestAccApiManagement_identityUserAssigned(t *testing.T) {
@@ -2097,6 +2166,28 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementResource) removeSamples(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ApiManagementResource) tenantAccess(data acceptance.TestData) string {
