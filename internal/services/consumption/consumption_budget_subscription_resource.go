@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
@@ -35,13 +34,13 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: func() schema.SchemaValidateFunc {
+			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 				if !features.ThreePointOhBeta() {
 					return nil
 				}
 				return commonids.ValidateSubscriptionID
 			}(),
-			DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+			DiffSuppressFunc: func() pluginsdk.SchemaDiffSuppressFunc {
 				if !features.ThreePointOh() {
 					return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 						n := strings.Split(old, "/")
