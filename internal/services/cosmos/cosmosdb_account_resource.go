@@ -320,7 +320,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-
 								out := []string{
 									"EnableAggregationPipeline",
 									"EnableCassandra",
