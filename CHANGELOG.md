@@ -2,8 +2,8 @@
 
 FEATURES: 
 
-* **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
 * **New Data Source:** `azurerm_portal_dashboard` [GH-15326]
+* **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
 * **New Resource:** `azurerm_sentinel_watchlist_item` [GH-14366]
 * **New Resource:** `azurerm_stream_analytics_output_function` [GH-15162]
 * **New Resource:** `azurerm_web_pubsub_network_acl` [GH-14827]
@@ -18,6 +18,7 @@ BUG FIXES:
 
 * `azurerm_application_insights_api_key` - prevent panic by checking for the id of an existing API Key [GH-15297]
 * `azurerm_app_service_active_slot` - fix regression in ID set in creation of new resource [GH-15291]
+* `azurerm_firewall` - working around an Azure API issue when deleting the Firewall [GH-15330]
 * `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the `computer_name_prefix` wasn't specified [GH-15312]
 * `azurerm_recovery_services_vault` - fixing an issue where the subscription couldn't be found when running in Azure Government [GH-15316]
 
