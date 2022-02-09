@@ -81,7 +81,7 @@ func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailabilityPrepa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,11 +162,12 @@ func (client IotDpsResourceClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	iotDpsDescription.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -196,6 +197,104 @@ func (client IotDpsResourceClient) CreateOrUpdateSender(req *http.Request) (futu
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client IotDpsResourceClient) CreateOrUpdateResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// CreateOrUpdatePrivateEndpointConnection create or update the status of a private endpoint connection with the
+// specified name
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+// privateEndpointConnectionName - the name of the private endpoint connection
+// privateEndpointConnection - the private endpoint connection with updated properties
+func (client IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnection(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string, privateEndpointConnection PrivateEndpointConnection) (result IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.CreateOrUpdatePrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: privateEndpointConnection,
+			Constraints: []validation.Constraint{{Target: "privateEndpointConnection.Properties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "privateEndpointConnection.Properties.PrivateLinkServiceConnectionState", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "privateEndpointConnection.Properties.PrivateLinkServiceConnectionState.Description", Name: validation.Null, Rule: true, Chain: nil}}},
+				}}}}}); err != nil {
+		return result, validation.NewError("iothub.IotDpsResourceClient", "CreateOrUpdatePrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.CreateOrUpdatePrivateEndpointConnectionPreparer(ctx, resourceGroupName, resourceName, privateEndpointConnectionName, privateEndpointConnection)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "CreateOrUpdatePrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CreateOrUpdatePrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "CreateOrUpdatePrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CreateOrUpdatePrivateEndpointConnectionPreparer prepares the CreateOrUpdatePrivateEndpointConnection request.
+func (client IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string, privateEndpointConnection PrivateEndpointConnection) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"resourceName":                  autorest.Encode("path", resourceName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	privateEndpointConnection.ID = nil
+	privateEndpointConnection.Name = nil
+	privateEndpointConnection.Type = nil
+	privateEndpointConnection.SystemData = nil
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(privateEndpointConnection),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CreateOrUpdatePrivateEndpointConnectionSender sends the CreateOrUpdatePrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnectionSender(req *http.Request) (future IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// CreateOrUpdatePrivateEndpointConnectionResponder handles the response to the CreateOrUpdatePrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -243,7 +342,7 @@ func (client IotDpsResourceClient) DeletePreparer(ctx context.Context, provision
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,6 +379,87 @@ func (client IotDpsResourceClient) DeleteResponder(resp *http.Response) (result 
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// DeletePrivateEndpointConnection delete private endpoint connection with the specified name
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+// privateEndpointConnectionName - the name of the private endpoint connection
+func (client IotDpsResourceClient) DeletePrivateEndpointConnection(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (result IotDpsResourceDeletePrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.DeletePrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DeletePrivateEndpointConnectionPreparer(ctx, resourceGroupName, resourceName, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "DeletePrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DeletePrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "DeletePrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DeletePrivateEndpointConnectionPreparer prepares the DeletePrivateEndpointConnection request.
+func (client IotDpsResourceClient) DeletePrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"resourceName":                  autorest.Encode("path", resourceName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeletePrivateEndpointConnectionSender sends the DeletePrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) DeletePrivateEndpointConnectionSender(req *http.Request) (future IotDpsResourceDeletePrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DeletePrivateEndpointConnectionResponder handles the response to the DeletePrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -328,7 +508,7 @@ func (client IotDpsResourceClient) GetPreparer(ctx context.Context, provisioning
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,7 +589,7 @@ func (client IotDpsResourceClient) GetOperationResultPreparer(ctx context.Contex
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 		"asyncinfo":   autorest.Encode("query", asyncinfo),
@@ -432,6 +612,162 @@ func (client IotDpsResourceClient) GetOperationResultSender(req *http.Request) (
 // GetOperationResultResponder handles the response to the GetOperationResult request. The method always
 // closes the http.Response Body.
 func (client IotDpsResourceClient) GetOperationResultResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateEndpointConnection get private endpoint connection properties
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+// privateEndpointConnectionName - the name of the private endpoint connection
+func (client IotDpsResourceClient) GetPrivateEndpointConnection(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.GetPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetPrivateEndpointConnectionPreparer(ctx, resourceGroupName, resourceName, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateEndpointConnectionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateEndpointConnection", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateEndpointConnectionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPrivateEndpointConnectionPreparer prepares the GetPrivateEndpointConnection request.
+func (client IotDpsResourceClient) GetPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"resourceName":                  autorest.Encode("path", resourceName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateEndpointConnectionSender sends the GetPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) GetPrivateEndpointConnectionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateEndpointConnectionResponder handles the response to the GetPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateLinkResources get the specified private link resource for the given provisioning service
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+// groupID - the name of the private link resource
+func (client IotDpsResourceClient) GetPrivateLinkResources(ctx context.Context, resourceGroupName string, resourceName string, groupID string) (result GroupIDInformation, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.GetPrivateLinkResources")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetPrivateLinkResourcesPreparer(ctx, resourceGroupName, resourceName, groupID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateLinkResources", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateLinkResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateLinkResources", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateLinkResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPrivateLinkResourcesPreparer prepares the GetPrivateLinkResources request.
+func (client IotDpsResourceClient) GetPrivateLinkResourcesPreparer(ctx context.Context, resourceGroupName string, resourceName string, groupID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"groupId":           autorest.Encode("path", groupID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateLinkResources/{groupId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateLinkResourcesSender sends the GetPrivateLinkResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) GetPrivateLinkResourcesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateLinkResourcesResponder handles the response to the GetPrivateLinkResources request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) GetPrivateLinkResourcesResponder(resp *http.Response) (result GroupIDInformation, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -489,7 +825,7 @@ func (client IotDpsResourceClient) ListByResourceGroupPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -602,7 +938,7 @@ func (client IotDpsResourceClient) ListBySubscriptionPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -720,7 +1056,7 @@ func (client IotDpsResourceClient) ListKeysPreparer(ctx context.Context, provisi
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -835,7 +1171,7 @@ func (client IotDpsResourceClient) ListKeysForKeyNamePreparer(ctx context.Contex
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -857,6 +1193,158 @@ func (client IotDpsResourceClient) ListKeysForKeyNameSender(req *http.Request) (
 // ListKeysForKeyNameResponder handles the response to the ListKeysForKeyName request. The method always
 // closes the http.Response Body.
 func (client IotDpsResourceClient) ListKeysForKeyNameResponder(resp *http.Response) (result SharedAccessSignatureAuthorizationRuleAccessRightsDescription, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListPrivateEndpointConnections list private endpoint connection properties
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+func (client IotDpsResourceClient) ListPrivateEndpointConnections(ctx context.Context, resourceGroupName string, resourceName string) (result ListPrivateEndpointConnection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.ListPrivateEndpointConnections")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListPrivateEndpointConnectionsPreparer(ctx, resourceGroupName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateEndpointConnections", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListPrivateEndpointConnectionsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateEndpointConnections", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListPrivateEndpointConnectionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateEndpointConnections", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListPrivateEndpointConnectionsPreparer prepares the ListPrivateEndpointConnections request.
+func (client IotDpsResourceClient) ListPrivateEndpointConnectionsPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateEndpointConnections", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListPrivateEndpointConnectionsSender sends the ListPrivateEndpointConnections request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) ListPrivateEndpointConnectionsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListPrivateEndpointConnectionsResponder handles the response to the ListPrivateEndpointConnections request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) ListPrivateEndpointConnectionsResponder(resp *http.Response) (result ListPrivateEndpointConnection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Value),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListPrivateLinkResources list private link resources for the given provisioning service
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the provisioning service.
+// resourceName - the name of the provisioning service.
+func (client IotDpsResourceClient) ListPrivateLinkResources(ctx context.Context, resourceGroupName string, resourceName string) (result PrivateLinkResources, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.ListPrivateLinkResources")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListPrivateLinkResourcesPreparer(ctx, resourceGroupName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateLinkResources", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListPrivateLinkResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateLinkResources", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListPrivateLinkResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListPrivateLinkResources", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListPrivateLinkResourcesPreparer prepares the ListPrivateLinkResources request.
+func (client IotDpsResourceClient) ListPrivateLinkResourcesPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-10-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/provisioningServices/{resourceName}/privateLinkResources", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListPrivateLinkResourcesSender sends the ListPrivateLinkResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDpsResourceClient) ListPrivateLinkResourcesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListPrivateLinkResourcesResponder handles the response to the ListPrivateLinkResources request. The method always
+// closes the http.Response Body.
+func (client IotDpsResourceClient) ListPrivateLinkResourcesResponder(resp *http.Response) (result PrivateLinkResources, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -916,7 +1404,7 @@ func (client IotDpsResourceClient) ListValidSkusPreparer(ctx context.Context, pr
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1023,7 +1511,7 @@ func (client IotDpsResourceClient) UpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -1,4 +1,4 @@
-// Package iothub implements the Azure ARM Iothub service API version 2018-01-22.
+// Package iothub implements the Azure ARM Iothub service API version 2021-10-15.
 //
 // API for using the Azure IoT Hub Device Provisioning Service features.
 package iothub

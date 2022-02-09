@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2021-10-15/iothub"
 
 // AsyncOperationResult result of a long running operation.
 type AsyncOperationResult struct {
@@ -33,6 +33,8 @@ type AsyncOperationResult struct {
 type CertificateBodyDescription struct {
 	// Certificate - Base-64 representation of the X509 leaf certificate .cer file or just .pem file content.
 	Certificate *string `json:"certificate,omitempty"`
+	// IsVerified - True indicates that the certificate will be created in verified state and proof of possession will not be required.
+	IsVerified *bool `json:"isVerified,omitempty"`
 }
 
 // CertificateListDescription the JSON-serialized array of Certificate objects.
@@ -52,6 +54,8 @@ type CertificateProperties struct {
 	Thumbprint *string `json:"thumbprint,omitempty"`
 	// IsVerified - READ-ONLY; Determines whether certificate has been verified.
 	IsVerified *bool `json:"isVerified,omitempty"`
+	// Certificate - READ-ONLY; base-64 representation of X509 certificate .cer file or just .pem file content.
+	Certificate *[]byte `json:"certificate,omitempty"`
 	// Created - READ-ONLY; The certificate's creation date and time.
 	Created *date.TimeRFC1123 `json:"created,omitempty"`
 	// Updated - READ-ONLY; The certificate's last update date and time.
@@ -77,6 +81,8 @@ type CertificateResponse struct {
 	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CertificateResponse.
@@ -96,7 +102,7 @@ type DefinitionDescription struct {
 	AllocationWeight *int32 `json:"allocationWeight,omitempty"`
 	// Name - READ-ONLY; Host name of the IoT hub.
 	Name *string `json:"name,omitempty"`
-	// ConnectionString - Connection string og the IoT hub.
+	// ConnectionString - Connection string of the IoT hub.
 	ConnectionString *string `json:"connectionString,omitempty"`
 	// Location - ARM region of the IoT hub.
 	Location *string `json:"location,omitempty"`
@@ -148,16 +154,54 @@ type ErrorMesssage struct {
 	Details *string `json:"details,omitempty"`
 }
 
+// GroupIDInformation the group information for creating a private endpoint on a provisioning service
+type GroupIDInformation struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Properties - The properties for a group information object
+	Properties *GroupIDInformationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupIDInformation.
+func (gii GroupIDInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gii.Properties != nil {
+		objectMap["properties"] = gii.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// GroupIDInformationProperties the properties for a group information object
+type GroupIDInformationProperties struct {
+	// GroupID - The group id
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The required members for a specific group id
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The required DNS zones for a specific group id
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
 // IotDpsPropertiesDescription the service specific properties of a provisioning service, including keys,
 // linked iot hubs, current state, and system generated properties such as hostname and idScope
 type IotDpsPropertiesDescription struct {
-	// State - Current state of the provisioning service. Possible values include: 'Activating', 'Active', 'Deleting', 'Deleted', 'ActivationFailed', 'DeletionFailed', 'Transitioning', 'Suspending', 'Suspended', 'Resuming', 'FailingOver', 'FailoverFailed'
+	// State - Current state of the provisioning service. Possible values include: 'StateActivating', 'StateActive', 'StateDeleting', 'StateDeleted', 'StateActivationFailed', 'StateDeletionFailed', 'StateTransitioning', 'StateSuspending', 'StateSuspended', 'StateResuming', 'StateFailingOver', 'StateFailoverFailed'
 	State State `json:"state,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// IPFilterRules - The IP filter rules.
+	IPFilterRules *[]IPFilterRule `json:"ipFilterRules,omitempty"`
+	// PrivateEndpointConnections - Private endpoint connections created on this IotHub
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// ProvisioningState - The ARM provisioning state of the provisioning service.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// IotHubs - List of IoT hubs associated with this provisioning service.
 	IotHubs *[]DefinitionDescription `json:"iotHubs,omitempty"`
-	// AllocationPolicy - Allocation policy to be used by this provisioning service. Possible values include: 'Hashed', 'GeoLatency', 'Static'
+	// AllocationPolicy - Allocation policy to be used by this provisioning service. Possible values include: 'AllocationPolicyHashed', 'AllocationPolicyGeoLatency', 'AllocationPolicyStatic'
 	AllocationPolicy AllocationPolicy `json:"allocationPolicy,omitempty"`
 	// ServiceOperationsHostName - READ-ONLY; Service endpoint for provisioning service.
 	ServiceOperationsHostName *string `json:"serviceOperationsHostName,omitempty"`
@@ -167,6 +211,9 @@ type IotDpsPropertiesDescription struct {
 	IDScope *string `json:"idScope,omitempty"`
 	// AuthorizationPolicies - List of authorization keys for a provisioning service.
 	AuthorizationPolicies *[]SharedAccessSignatureAuthorizationRuleAccessRightsDescription `json:"authorizationPolicies,omitempty"`
+	// EnableDataResidency - Optional.
+	// Indicates if the DPS instance has Data Residency enabled, removing the cross geo-pair disaster recovery.
+	EnableDataResidency *bool `json:"enableDataResidency,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotDpsPropertiesDescription.
@@ -174,6 +221,15 @@ func (idpd IotDpsPropertiesDescription) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if idpd.State != "" {
 		objectMap["state"] = idpd.State
+	}
+	if idpd.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = idpd.PublicNetworkAccess
+	}
+	if idpd.IPFilterRules != nil {
+		objectMap["ipFilterRules"] = idpd.IPFilterRules
+	}
+	if idpd.PrivateEndpointConnections != nil {
+		objectMap["privateEndpointConnections"] = idpd.PrivateEndpointConnections
 	}
 	if idpd.ProvisioningState != nil {
 		objectMap["provisioningState"] = idpd.ProvisioningState
@@ -186,6 +242,9 @@ func (idpd IotDpsPropertiesDescription) MarshalJSON() ([]byte, error) {
 	}
 	if idpd.AuthorizationPolicies != nil {
 		objectMap["authorizationPolicies"] = idpd.AuthorizationPolicies
+	}
+	if idpd.EnableDataResidency != nil {
+		objectMap["enableDataResidency"] = idpd.EnableDataResidency
 	}
 	return json.Marshal(objectMap)
 }
@@ -233,6 +292,49 @@ func (future *IotDpsResourceCreateOrUpdateFuture) result(client IotDpsResourceCl
 	return
 }
 
+// IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IotDpsResourceClient) (PrivateEndpointConnection, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture.Result.
+func (future *IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture) result(client IotDpsResourceClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		pec.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.CreateOrUpdatePrivateEndpointConnectionResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdatePrivateEndpointConnectionFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // IotDpsResourceDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type IotDpsResourceDeleteFuture struct {
@@ -267,6 +369,49 @@ func (future *IotDpsResourceDeleteFuture) result(client IotDpsResourceClient) (a
 		return
 	}
 	ar.Response = future.Response()
+	return
+}
+
+// IotDpsResourceDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type IotDpsResourceDeletePrivateEndpointConnectionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IotDpsResourceClient) (PrivateEndpointConnection, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *IotDpsResourceDeletePrivateEndpointConnectionFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for IotDpsResourceDeletePrivateEndpointConnectionFuture.Result.
+func (future *IotDpsResourceDeletePrivateEndpointConnectionFuture) result(client IotDpsResourceClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		pec.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceDeletePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.DeletePrivateEndpointConnectionResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceDeletePrivateEndpointConnectionFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
 	return
 }
 
@@ -315,7 +460,7 @@ func (future *IotDpsResourceUpdateFuture) result(client IotDpsResourceClient) (p
 
 // IotDpsSkuDefinition available SKUs of tier and units.
 type IotDpsSkuDefinition struct {
-	// Name - Sku name. Possible values include: 'S1'
+	// Name - Sku name. Possible values include: 'IotDpsSkuS1'
 	Name IotDpsSku `json:"name,omitempty"`
 }
 
@@ -490,7 +635,7 @@ func NewIotDpsSkuDefinitionListResultPage(cur IotDpsSkuDefinitionListResult, get
 
 // IotDpsSkuInfo list of possible provisioning service SKUs.
 type IotDpsSkuInfo struct {
-	// Name - Sku name. Possible values include: 'S1'
+	// Name - Sku name. Possible values include: 'IotDpsSkuS1'
 	Name IotDpsSku `json:"name,omitempty"`
 	// Tier - READ-ONLY; Pricing tier name of the provisioning service.
 	Tier *string `json:"tier,omitempty"`
@@ -510,18 +655,36 @@ func (idsi IotDpsSkuInfo) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// IPFilterRule the IP filter rules for a provisioning Service.
+type IPFilterRule struct {
+	// FilterName - The name of the IP filter rule.
+	FilterName *string `json:"filterName,omitempty"`
+	// Action - The desired action for requests captured by this rule. Possible values include: 'IPFilterActionTypeAccept', 'IPFilterActionTypeReject'
+	Action IPFilterActionType `json:"action,omitempty"`
+	// IPMask - A string that contains the IP address range in CIDR notation for the rule.
+	IPMask *string `json:"ipMask,omitempty"`
+	// Target - Target for requests captured by this rule. Possible values include: 'IPFilterTargetTypeAll', 'IPFilterTargetTypeServiceAPI', 'IPFilterTargetTypeDeviceAPI'
+	Target IPFilterTargetType `json:"target,omitempty"`
+}
+
+// ListPrivateEndpointConnection ...
+type ListPrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	Value             *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
 // NameAvailabilityInfo description of name availability.
 type NameAvailabilityInfo struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - specifies if a name is available or not
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - specifies the reason a name is unavailable. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - specifies the reason a name is unavailable. Possible values include: 'NameUnavailabilityReasonInvalid', 'NameUnavailabilityReasonAlreadyExists'
 	Reason NameUnavailabilityReason `json:"reason,omitempty"`
 	// Message - message containing a detailed reason name is unavailable
 	Message *string `json:"message,omitempty"`
 }
 
-// Operation ioT Hub REST API operation.
+// Operation provisioning Service REST API operation.
 type Operation struct {
 	// Name - READ-ONLY; Operation name: {provider}/{resource}/{read | write | action | delete}
 	Name *string `json:"name,omitempty"`
@@ -560,11 +723,11 @@ type OperationInputs struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// OperationListResult result of the request to list IoT Hub operations. It contains a list of operations
-// and a URL link to get the next set of results.
+// OperationListResult result of the request to list provisioning service operations. It contains a list of
+// operations and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY; List of IoT Hub operations supported by the Microsoft.Devices resource provider.
+	// Value - READ-ONLY; Provisioning service operations supported by the Microsoft.Devices resource provider.
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
@@ -726,6 +889,67 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// PrivateEndpoint the private endpoint property of a private endpoint connection
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnection the private endpoint connection of a provisioning service
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Properties - The properties of a private endpoint connection
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.Properties != nil {
+		objectMap["properties"] = pec.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionProperties the properties of a private endpoint connection
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The private endpoint property of a private endpoint connection
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - The current state of a private endpoint connection
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// PrivateLinkResources the available private link resources for a provisioning service
+type PrivateLinkResources struct {
+	autorest.Response `json:"-"`
+	// Value - The list of available private link resources for a provisioning service
+	Value *[]GroupIDInformation `json:"value,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState the current state of a private endpoint connection
+type PrivateLinkServiceConnectionState struct {
+	// Status - The status of a private endpoint connection. Possible values include: 'PrivateLinkServiceConnectionStatusPending', 'PrivateLinkServiceConnectionStatusApproved', 'PrivateLinkServiceConnectionStatusRejected', 'PrivateLinkServiceConnectionStatusDisconnected'
+	Status PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The description for the current state of a private endpoint connection
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - Actions required for a private endpoint connection
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // ProvisioningServiceDescription the description of the provisioning service.
 type ProvisioningServiceDescription struct {
 	autorest.Response `json:"-"`
@@ -735,6 +959,8 @@ type ProvisioningServiceDescription struct {
 	Properties *IotDpsPropertiesDescription `json:"properties,omitempty"`
 	// Sku - Sku info for a provisioning Service.
 	Sku *IotDpsSkuInfo `json:"sku,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The resource name.
@@ -972,7 +1198,7 @@ type SharedAccessSignatureAuthorizationRuleAccessRightsDescription struct {
 	PrimaryKey *string `json:"primaryKey,omitempty"`
 	// SecondaryKey - Secondary SAS key value.
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
-	// Rights - Rights that this key has. Possible values include: 'ServiceConfig', 'EnrollmentRead', 'EnrollmentWrite', 'DeviceConnect', 'RegistrationStatusRead', 'RegistrationStatusWrite'
+	// Rights - Rights that this key has. Possible values include: 'AccessRightsDescriptionServiceConfig', 'AccessRightsDescriptionEnrollmentRead', 'AccessRightsDescriptionEnrollmentWrite', 'AccessRightsDescriptionDeviceConnect', 'AccessRightsDescriptionRegistrationStatusRead', 'AccessRightsDescriptionRegistrationStatusWrite'
 	Rights AccessRightsDescription `json:"rights,omitempty"`
 }
 
@@ -1146,6 +1372,22 @@ func NewSharedAccessSignatureAuthorizationRuleListResultPage(cur SharedAccessSig
 	}
 }
 
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on a
 // Provisioning Service instance.
 type TagsResource struct {
@@ -1203,6 +1445,8 @@ type VerificationCodeResponseProperties struct {
 	Thumbprint *string `json:"thumbprint,omitempty"`
 	// IsVerified - Indicate if the certificate is verified by owner of private key.
 	IsVerified *bool `json:"isVerified,omitempty"`
+	// Certificate - base-64 representation of X509 certificate .cer file or just .pem file content.
+	Certificate *[]byte `json:"certificate,omitempty"`
 	// Created - Certificate created time.
 	Created *string `json:"created,omitempty"`
 	// Updated - Certificate updated time.
