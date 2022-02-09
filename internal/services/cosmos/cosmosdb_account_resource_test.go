@@ -1339,7 +1339,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   tags = {
     ENV = "Test"
-
   }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
