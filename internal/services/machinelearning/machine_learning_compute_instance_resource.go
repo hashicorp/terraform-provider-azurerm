@@ -109,7 +109,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"identity": func() *schema.Schema {
 				// TODO: 3.0 - document this in the upgrade guide
 				if features.ThreePointOhBeta() {
-					return commonschema.SystemAssignedUserAssignedIdentityOptional()
+					return commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew()
 				}
 
 				return identityLegacySchema()

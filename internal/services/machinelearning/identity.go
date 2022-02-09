@@ -16,12 +16,14 @@ func identityLegacySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeUserAssigned),
 						string(identity.TypeSystemAssigned),
@@ -38,6 +40,7 @@ func identityLegacySchema() *schema.Schema {
 				"identity_ids": {
 					Type:     schema.TypeSet,
 					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
