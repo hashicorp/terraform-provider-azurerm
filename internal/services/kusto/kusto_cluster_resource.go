@@ -147,6 +147,11 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"enable_auto_stop": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"enable_disk_encryption": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -282,6 +287,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:     optimizedAutoScale,
+		EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
 		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
 		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
@@ -418,6 +424,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
+		d.Set("enable_auto_stop", props.EnableAutoStop)
 		d.Set("enable_disk_encryption", props.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", props.EnableStreamingIngest)
 		d.Set("enable_purge", props.EnablePurge)
