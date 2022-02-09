@@ -3,7 +3,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -20,10 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-/*
- TODO - Should this resource be split into the O/S variants for clarity of purpose?
-*/
 
 type ServicePlanResource struct{}
 
@@ -50,8 +46,6 @@ type ServicePlanModel struct {
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
 	Tags                      map[string]string `tfschema:"tags"`
-	// TODO properties
-	// KubernetesID string `tfschema:"kubernetes_id"` // AKS Cluster resource ID?
 }
 
 func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
@@ -89,7 +83,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_service_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: webValidate.AppServiceEnvironmentID, // TODO - Bring over to this service
+			ValidateFunc: webValidate.AppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {

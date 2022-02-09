@@ -126,15 +126,22 @@ func PlanTypeFromSku(input string) string {
 }
 
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
-func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData) (osType *string, planSku *string, err error) {
+func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id interface{}) (osType *string, planSku *string, err error) {
 	client := metadata.Client.AppService.WebAppsClient
 	servicePlanClient := metadata.Client.AppService.ServicePlanClient
+	var rg, siteName string
 
-	id, err := parse.WebAppID(metadata.ResourceData.Id())
-	if err != nil {
-		return nil, nil, err
+	if appId, ok := id.(parse.WebAppId); ok {
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
 	}
-	site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+
+	if appId, ok := id.(parse.FunctionAppId); ok {
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
+	}
+
+	site, err := client.Get(ctx, rg, siteName)
 	if err != nil || site.SiteProperties == nil {
 		return nil, nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
@@ -153,7 +160,7 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData) (
 	}
 
 	osType = utils.String("windows")
-	if strings.Contains(*sp.Kind, "linux") || strings.Contains(*sp.Kind, "Linux") {
+	if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
 		osType = utils.String("linux")
 	}
 
