@@ -10,6 +10,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -89,43 +89,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(apimanagement.ApimIdentityTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.ApimIdentityTypeNone),
-								string(apimanagement.ApimIdentityTypeSystemAssigned),
-								string(apimanagement.ApimIdentityTypeUserAssigned),
-								string(apimanagement.ApimIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"virtual_network_type": {
 				Type:     pluginsdk.TypeString,
@@ -673,7 +637,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
+	identity, err := expandIdentity(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -844,9 +808,9 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -1305,72 +1269,49 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.ServiceIdentity, error) {
-	if len(vs) == 0 {
-		return &apimanagement.ServiceIdentity{
-			Type: apimanagement.ApimIdentityTypeNone,
-		}, nil
+func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-	managedServiceIdentity := apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(v["type"].(string)),
+	out := apimanagement.ServiceIdentity{
+		Type: apimanagement.ApimIdentityType(string(expanded.Type)),
 	}
-
-	var identityIdSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if managedServiceIdentity.Type == apimanagement.ApimIdentityTypeUserAssigned || managedServiceIdentity.Type == apimanagement.ApimIdentityTypeSystemAssignedUserAssigned {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*apimanagement.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &apimanagement.UserIdentityProperties{
+				// intentionally empty
+			}
 		}
-
-		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
-		}
-
-		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
-
-	return &managedServiceIdentity, nil
+	return &out, nil
 }
 
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
+func flattenIdentity(input *apimanagement.ServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
