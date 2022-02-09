@@ -14,9 +14,9 @@ Use this data source to access information about an existing Azure Site Recovery
 
 ```hcl
 data "azurerm_site_recovery_replication_policy" "policy" {
-  name                 = "replication-policy"
-  recovery_vault_name  = "tfex-recovery_vault"
-  resource_group_name  = "tfex-resource_group"
+  name                = "replication-policy"
+  recovery_vault_name = "tfex-recovery_vault"
+  resource_group_name = "tfex-resource_group"
 }
 ```
 

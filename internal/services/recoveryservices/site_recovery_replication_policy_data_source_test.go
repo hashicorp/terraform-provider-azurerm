@@ -33,9 +33,9 @@ func (SiteRecoveryReplicationPolicyDataSource) basic(data acceptance.TestData, r
 %s
 
 data "azurerm_site_recovery_replication_policy" "test" {
-	name                = azurerm_site_recovery_replication_policy.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	recovery_vault_name = azurerm_recovery_services_vault.test.name
-  }
+  name                = azurerm_site_recovery_replication_policy.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+}
 `, SiteRecoveryReplicationPolicyResource{}.basic(data, retentionInMinutes, snapshotFrequencyInMinutes))
 }
