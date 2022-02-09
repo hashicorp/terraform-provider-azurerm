@@ -1228,7 +1228,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
@@ -1241,7 +1241,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   location            = azurerm_resource_group.test.location
 
   license_type       = "BasePrice"
-  sku_name           = "GP_G8IM"
+  sku_name           = "GP_Gen8IM"
   storage_size_in_gb = 32
   subnet_id          = azurerm_subnet.test.id
   vcores             = 4
@@ -1259,7 +1259,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Secondary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, storageAccountType string) string {
@@ -1291,7 +1291,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger, storageAccountType)
+`, r.template(data, data.Locations.Primary), data.RandomInteger, storageAccountType)
 }
 
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
@@ -1326,7 +1326,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
@@ -1360,7 +1360,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     environment = "production"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) multiple(data acceptance.TestData) string {
@@ -1416,7 +1416,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) dnsZonePartnerPrep(data acceptance.TestData) string {
@@ -1617,7 +1617,7 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
 `, r.basic(data), r.templateSecondary(data), r.templateExtraSecondary(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedInstanceResource) template(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1-sql-%[1]d"
@@ -1849,7 +1849,7 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
-  `, data.RandomInteger, data.Locations.Primary, managedInstanceStaticRoutes)
+  `, data.RandomInteger, location, managedInstanceStaticRoutes)
 }
 
 func (r MsSqlManagedInstanceResource) templateSecondary(data acceptance.TestData) string {

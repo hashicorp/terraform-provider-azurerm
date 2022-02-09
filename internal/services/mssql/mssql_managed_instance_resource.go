@@ -83,12 +83,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				"GP_Gen4",
 				"GP_Gen5",
-				"GP_G8IM",
-				"GP_G8IH",
+				"GP_Gen8IH",
+				"GP_Gen8IM",
 				"BC_Gen4",
 				"BC_Gen5",
-				"BC_G8IM",
-				"BC_G8IH",
+				"BC_Gen8IH",
+				"BC_Gen8IM",
 			}, false),
 		},
 
@@ -414,7 +414,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			}
 
 			if sku := existing.Sku; sku != nil && sku.Name != nil {
-				model.SkuName = *sku.Name
+				model.SkuName = r.normalizeSku(*sku.Name)
 			}
 
 			if props := existing.ManagedInstanceProperties; props != nil {
@@ -539,4 +539,19 @@ func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, e
 		Tier:   utils.String(tier),
 		Family: utils.String(parts[1]),
 	}, nil
+}
+
+func (r MsSqlManagedInstanceResource) normalizeSku(sku string) string {
+	switch sku {
+	case "MIBC64G8IH":
+		return "BC_Gen8IH"
+	case "MIBC64G8IM":
+		return "BC_Gen8IM"
+	case "MIGP4G8IH":
+		return "GP_Gen8IH"
+	case "MIGP4G8IM":
+		return "GP_Gen8IM"
+	}
+
+	return sku
 }
