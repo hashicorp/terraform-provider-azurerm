@@ -90,9 +90,9 @@ resource "azurerm_disk_pool_iscsi_target" "example" {
 }
 
 resource "azurerm_disk_pool_iscsi_target_lun" "example" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.example.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.example.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.example.id
-  name                       = "example-disk"
+  name                                 = "example-disk"
 }
 ```
 

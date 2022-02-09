@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -164,9 +163,10 @@ func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *c
 		},
 	}
 
-	err = pluginsdk.Retry(30*time.Minute, func() *resource.RetryError {
-		m := disks.DiskPoolIscsiTargetLunModel{}
-		return m.RetryError("waiting for delete DisksPool iscsi target", id.ID(), client.UpdateThenPoll(ctx, iscsiTargetId, patch))
+	m := disks.DiskPoolIscsiTargetLunModel{}
+
+	err = m.RetryError(30*time.Minute, "waiting for delete DisksPool iscsi target", id.ID(), func() error {
+		return client.UpdateThenPoll(ctx, iscsiTargetId, patch)
 	})
 	if err != nil {
 		return nil, err
@@ -179,9 +179,9 @@ func (r DisksPoolIscsiTargetLunResource) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_disk_pool_iscsi_target_lun" "test" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.test.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[0].id
-  name                       = "test-0"
+  name                                 = "test-0"
 }
 `, r.template(data, 1))
 }
@@ -191,9 +191,9 @@ func (r DisksPoolIscsiTargetLunResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_disk_pool_iscsi_target_lun" "import" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.test.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[0].id
-  name                       = "test-0"
+  name                                 = "test-0"
 }
 `, r.basic(data))
 }
@@ -203,9 +203,9 @@ func (r DisksPoolIscsiTargetLunResource) updateName(data acceptance.TestData) st
 %s
 
 resource "azurerm_disk_pool_iscsi_target_lun" "test" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.test.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[0].id
-  name                       = "updated-test-0"
+  name                                 = "updated-test-0"
 }
 `, r.template(data, 1))
 }

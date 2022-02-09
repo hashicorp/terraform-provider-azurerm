@@ -126,14 +126,14 @@ func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 				},
 			}
 
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
-				err := d.RetryError("waiting for creation DisksPool iscsi target", id.ID(), client.UpdateThenPoll(ctx, *iscsiTargetId, patch))
-				if err != nil {
-					return err
-				}
-				metadata.SetID(id)
-				return nil
+			err = d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), "waiting for creation DisksPool iscsi target", id.ID(), func() error {
+				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
+			if err != nil {
+				return err
+			}
+			metadata.SetID(id)
+			return nil
 		},
 	}
 }
@@ -240,8 +240,8 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
-				return d.RetryError("waiting for delete DisksPool iscsi target lun", id.ID(), client.UpdateThenPoll(ctx, *iscsiTargetId, patch))
+			return d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
+				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
 		},
 	}
@@ -251,20 +251,22 @@ func (d DiskPoolIscsiTargetLunModel) IDValidationFunc() pluginsdk.SchemaValidate
 	return validate.DiskPoolIscsiTargetLunId
 }
 
-func (DiskPoolIscsiTargetLunModel) RetryError(action string, id string, err error) *resource.RetryError {
-	if err == nil {
-		return nil
-	}
-
-	// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-enabling-iscsi-on-disk-pools the errors below are retryable.
-	retryableErrors := []string{
-		"GoalStateApplicationTimeoutError",
-		"OngoingOperationInProgress",
-	}
-	for _, retryableError := range retryableErrors {
-		if strings.Contains(err.Error(), retryableError) {
-			return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+func (DiskPoolIscsiTargetLunModel) RetryError(timeout time.Duration, action string, id string, retryFunc func() error) error {
+	return pluginsdk.Retry(timeout, func() *resource.RetryError {
+		err := retryFunc()
+		if err == nil {
+			return nil
 		}
-	}
-	return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+		// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-enabling-iscsi-on-disk-pools the errors below are retryable.
+		retryableErrors := []string{
+			"GoalStateApplicationTimeoutError",
+			"OngoingOperationInProgress",
+		}
+		for _, retryableError := range retryableErrors {
+			if strings.Contains(err.Error(), retryableError) {
+				return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+			}
+		}
+		return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+	})
 }
