@@ -157,6 +157,7 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
   cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
   autoscale_settings {
     max_throughput = 4000
+
   }
 
   schema {
