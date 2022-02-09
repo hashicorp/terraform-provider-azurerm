@@ -352,6 +352,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"identity": func() *schema.Schema {
+				// TODO: 3.0 - document this in the upgrade guide
 				if features.ThreePointOhBeta() {
 					return commonschema.SystemAssignedUserAssignedIdentityOptional()
 				}
