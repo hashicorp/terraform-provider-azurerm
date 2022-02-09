@@ -50,7 +50,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Schema: nil,
+		Schema: resourceFrontDoorSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(frontDoorCustomizeDiff),
 	}
