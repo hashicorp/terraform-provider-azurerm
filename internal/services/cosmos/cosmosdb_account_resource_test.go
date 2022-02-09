@@ -442,8 +442,8 @@ func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithResourcesMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			Check:  acceptance.ComposeAggregateTestCheckFunc(
+			// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -486,8 +486,8 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 		data.ImportStep(),
 		{
 			Config: r.basicWithResources(data, kind, documentdb.DefaultConsistencyLevelEventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			Check:  acceptance.ComposeAggregateTestCheckFunc(
+			// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
