@@ -4597,7 +4597,7 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
 		}
 		if v, ok := m["firewall_policy_id"]; ok {
-			buf.WriteString(v.(string))
+			buf.WriteString(strings.ToLower(v.(string)))
 		}
 		if v, ok := m["ssl_profile_name"]; ok {
 			buf.WriteString(v.(string))
@@ -4679,7 +4679,7 @@ func applicationGatewaySSLCertificate(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["key_vault_secret_id"]; ok {
-			buf.WriteString(v.(string))
+			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}
 
