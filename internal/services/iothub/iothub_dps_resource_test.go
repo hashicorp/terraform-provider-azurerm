@@ -303,12 +303,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub_dps" "test" {
-  name                			= "acctestIoTDPS-%d"
-  resource_group_name 			= azurerm_resource_group.test.name
-  location           			= azurerm_resource_group.test.location
+  name                          = "acctestIoTDPS-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
   public_network_access_enabled = true
 
-    ip_filter_rule {
+  ip_filter_rule {
     name    = "test"
     ip_mask = "10.0.0.0/31"
     action  = "Accept"
@@ -348,12 +348,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub_dps" "test" {
-  name                			= "acctestIoTDPS-%d"
-  resource_group_name 			= azurerm_resource_group.test.name
-  location           			= azurerm_resource_group.test.location
+  name                          = "acctestIoTDPS-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
   public_network_access_enabled = true
 
-    ip_filter_rule {
+  ip_filter_rule {
     name    = "test"
     ip_mask = "10.0.0.0/31"
     action  = "Reject"
