@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,33 +63,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"notification_sender_email": {
 				Type:     pluginsdk.TypeString,
@@ -237,9 +211,9 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenApiManagementDataSourceIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -361,37 +335,6 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	return results
-}
-
-func flattenApiManagementDataSourceIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-		result["identity_ids"] = identityIds
-	}
-
-	return []interface{}{result}, nil
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
