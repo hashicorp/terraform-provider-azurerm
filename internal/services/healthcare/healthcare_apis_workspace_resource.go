@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	workspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -44,7 +45,7 @@ func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// todo: add the validation function
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
