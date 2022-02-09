@@ -5,10 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
