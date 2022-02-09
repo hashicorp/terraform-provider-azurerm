@@ -315,7 +315,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				if !features.ThreePointOh() {
+				if !features.ThreePointOhBeta() {
 					return nil
 				}
 				sku := d.Get("sku_name").(string)
@@ -325,7 +325,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return nil
 			}),
 	}
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		// TODO: Update docs with the following text:
 		//
 		// * `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database.
@@ -582,7 +582,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		statusProperty := sql.TransparentDataEncryptionStatusDisabled
 		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
 		if encryptionStatus {
@@ -816,7 +816,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
 	}
 
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)

@@ -1,10 +1,17 @@
 package signalr
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/signalr"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -34,5 +41,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_signalr_service_network_acl": resourceArmSignalRServiceNetworkACL(),
 		"azurerm_web_pubsub":                  resourceWebPubSub(),
 		"azurerm_web_pubsub_hub":              resourceWebPubsubHub(),
+		"azurerm_web_pubsub_network_acl":      resourceWebpubsubNetworkACL(),
 	}
 }

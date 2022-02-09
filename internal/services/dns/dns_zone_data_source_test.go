@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AzureRMDNSZoneDataSource struct {
-}
+type AzureRMDNSZoneDataSource struct{}
 
 func TestAccAzureRMDNSZoneDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")

@@ -1,6 +1,284 @@
+# NOTE: this file is generated via 'make generate'
 dependencies:
   - go.mod
   - go.sum
   - vendor/**/*
 documentation:
   - website/**/*
+tooling:
+  - internal/tools/**/*
+service/aadb2c:
+  - internal/services/aadb2c/**/*
+
+service/advisor:
+  - internal/services/advisor/**/*
+
+service/analysis:
+  - internal/services/analysisservices/**/*
+
+service/api-management:
+  - internal/services/apimanagement/**/*
+
+service/app-configuration:
+  - internal/services/appconfiguration/**/*
+
+service/app-service:
+  - internal/services/appservice/**/*
+
+service/application-insights:
+  - internal/services/applicationinsights/**/*
+
+service/attestation:
+  - internal/services/attestation/**/*
+
+service/authorization:
+  - internal/services/authorization/**/*
+  - internal/services/msi/**/*
+
+service/automation:
+  - internal/services/automation/**/*
+
+service/azure-stack-hci:
+  - internal/services/azurestackhci/**/*
+
+service/batch:
+  - internal/services/batch/**/*
+
+service/billing:
+  - internal/services/billing/**/*
+
+service/blueprints:
+  - internal/services/blueprints/**/*
+
+service/bots:
+  - internal/services/bot/**/*
+
+service/cdn:
+  - internal/services/cdn/**/*
+
+service/cognitive-services:
+  - internal/services/cognitive/**/*
+
+service/communication:
+  - internal/services/communication/**/*
+
+service/consumption:
+  - internal/services/consumption/**/*
+
+service/cosmosdb:
+  - internal/services/cosmos/**/*
+
+service/cost-management:
+  - internal/services/costmanagement/**/*
+
+service/custom-resource-provider:
+  - internal/services/customproviders/**/*
+
+service/data-factory:
+  - internal/services/datafactory/**/*
+
+service/data-lake:
+  - internal/services/datalake/**/*
+
+service/data-protection:
+  - internal/services/dataprotection/**/*
+
+service/data-share:
+  - internal/services/datashare/**/*
+
+service/database-migration:
+  - internal/services/databasemigration/**/*
+
+service/databox-edge:
+  - internal/services/databoxedge/**/*
+
+service/databricks:
+  - internal/services/databricks/**/*
+
+service/devtestlabs:
+  - internal/services/devtestlabs/**/*
+
+service/digital-twins:
+  - internal/services/digitaltwins/**/*
+
+service/disks:
+  - internal/services/disks/**/*
+
+service/dns:
+  - internal/services/dns/**/*
+  - internal/services/privatedns/**/*
+
+service/domain-services:
+  - internal/services/domainservices/**/*
+
+service/event-grid:
+  - internal/services/eventgrid/**/*
+
+service/event-hubs:
+  - internal/services/eventhub/**/*
+
+service/firewall:
+  - internal/services/firewall/**/*
+
+service/frontdoor:
+  - internal/services/frontdoor/**/*
+
+service/hdinsight:
+  - internal/services/hdinsight/**/*
+
+service/healthcare:
+  - internal/services/healthcare/**/*
+
+service/hpc-cache:
+  - internal/services/hpccache/**/*
+
+service/hsm:
+  - internal/services/hsm/**/*
+
+service/iot-central:
+  - internal/services/iotcentral/**/*
+
+service/iot-hub:
+  - internal/services/iothub/**/*
+
+service/iot-time-series:
+  - internal/services/iottimeseriesinsights/**/*
+
+service/key-vault:
+  - internal/services/keyvault/**/*
+
+service/kusto:
+  - internal/services/kusto/**/*
+
+service/lighthouse:
+  - internal/services/lighthouse/**/*
+
+service/load-balancers:
+  - internal/services/loadbalancer/**/*
+
+service/load-test:
+  - internal/services/loadtest/**/*
+
+service/log-analytics:
+  - internal/services/loganalytics/**/*
+
+service/logic:
+  - internal/services/logic/**/*
+
+service/logz:
+  - internal/services/logz/**/*
+
+service/machine-learning:
+  - internal/services/machinelearning/**/*
+
+service/maintenance:
+  - internal/services/maintenance/**/*
+
+service/managed-apps:
+  - internal/services/managedapplications/**/*
+
+service/management-groups:
+  - internal/services/managementgroup/**/*
+
+service/maps:
+  - internal/services/maps/**/*
+
+service/maria-db:
+  - internal/services/mariadb/**/*
+
+service/media:
+  - internal/services/media/**/*
+
+service/mixed-reality:
+  - internal/services/mixedreality/**/*
+
+service/monitor:
+  - internal/services/monitor/**/*
+
+service/mssql:
+  - internal/services/mssql/**/*
+
+service/mysql:
+  - internal/services/mysql/**/*
+
+service/netapp:
+  - internal/services/netapp/**/*
+
+service/notifications:
+  - internal/services/notificationhub/**/*
+
+service/policy:
+  - internal/services/policy/**/*
+
+service/portal:
+  - internal/services/portal/**/*
+
+service/postgresql:
+  - internal/services/postgres/**/*
+
+service/power-bi:
+  - internal/services/powerbi/**/*
+
+service/purview:
+  - internal/services/purview/**/*
+
+service/recovery-services:
+  - internal/services/recoveryservices/**/*
+
+service/redis:
+  - internal/services/redis/**/*
+  - internal/services/redisenterprise/**/*
+
+service/relay:
+  - internal/services/relay/**/*
+
+service/search:
+  - internal/services/search/**/*
+
+service/security-center:
+  - internal/services/securitycenter/**/*
+
+service/sentinel:
+  - internal/services/sentinel/**/*
+
+service/service-bus:
+  - internal/services/servicebus/**/*
+
+service/service-fabric:
+  - internal/services/servicefabric/**/*
+
+service/service-fabric-managed-cluster:
+  - internal/services/servicefabricmanaged/**/*
+
+service/signalr:
+  - internal/services/signalr/**/*
+
+service/spring:
+  - internal/services/springcloud/**/*
+
+service/sql:
+  - internal/services/sql/**/*
+
+service/storage:
+  - internal/services/storage/**/*
+
+service/stream-analytics:
+  - internal/services/streamanalytics/**/*
+
+service/subscription:
+  - internal/services/subscription/**/*
+
+service/synapse:
+  - internal/services/synapse/**/*
+
+service/traffic-manager:
+  - internal/services/trafficmanager/**/*
+
+service/video-analyzer:
+  - internal/services/videoanalyzer/**/*
+
+service/virtual-desktops:
+  - internal/services/desktopvirtualization/**/*
+
+service/vmware:
+  - internal/services/vmware/**/*

@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ pluginsdk.StateUpgrade = RegistryV0ToV1{}
-var _ pluginsdk.StateUpgrade = RegistryV1ToV2{}
+var (
+	_ pluginsdk.StateUpgrade = RegistryV0ToV1{}
+	_ pluginsdk.StateUpgrade = RegistryV1ToV2{}
+)
 
 type RegistryV0ToV1 struct{}
 

@@ -58,7 +58,7 @@ func dataSourceLogicAppWorkflow() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityDataSource(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"access_endpoint": {
 				Type:     pluginsdk.TypeString,

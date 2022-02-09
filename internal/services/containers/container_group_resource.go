@@ -14,10 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -73,7 +75,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  validation.StringIsNotEmpty,
+				ValidateFunc:  networkValidate.NetworkProfileID,
 				ConflictsWith: []string{"dns_name_label"},
 			},
 
@@ -597,11 +599,18 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
 	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
+		id, _ := networkParse.NetworkProfileID(networkProfileID)
+		networkProfileIDNorm := id.ID()
+		// Avoid parallel provisioning if "network_profile_id" is given.
+		// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+		locks.ByID(networkProfileIDNorm)
+		defer locks.UnlockByID(networkProfileIDNorm)
+
 		if strings.ToLower(OSType) != "linux" {
 			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
 		}
 		containerGroup.ContainerGroupProperties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
-			ID: &networkProfileID,
+			ID: &networkProfileIDNorm,
 		}
 	}
 
@@ -757,8 +766,16 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := existing.ContainerGroupProperties; props != nil {
 		if profile := props.NetworkProfile; profile != nil {
 			if profile.ID != nil {
-				networkProfileId = *profile.ID
+				id, err := networkParse.NetworkProfileID(*profile.ID)
+				if err != nil {
+					return err
+				}
+				networkProfileId = id.ID()
 			}
+			// Avoid parallel deletion if "network_profile_id" is given. (not sure whether this is necessary)
+			// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+			locks.ByID(networkProfileId)
+			defer locks.UnlockByID(networkProfileId)
 		}
 	}
 

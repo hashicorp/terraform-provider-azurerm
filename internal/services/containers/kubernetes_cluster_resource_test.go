@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KubernetesClusterResource struct {
-}
+type KubernetesClusterResource struct{}
 
 var (
 	olderKubernetesVersion   = "1.20.9"

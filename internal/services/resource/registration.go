@@ -5,8 +5,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistration   = Registration{}
+	_ sdk.UntypedServiceRegistration = Registration{}
+)
 
 type Registration struct{}
 

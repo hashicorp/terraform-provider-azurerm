@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceCustomHostnameBindingResource struct {
-}
+type ServiceCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceCustomHostnameBinding(t *testing.T) {
 	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"

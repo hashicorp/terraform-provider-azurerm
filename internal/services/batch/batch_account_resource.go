@@ -145,8 +145,8 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_batch_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_batch_account", id.ID())
 		}
 	}
 

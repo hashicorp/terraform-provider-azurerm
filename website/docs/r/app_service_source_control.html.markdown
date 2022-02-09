@@ -52,45 +52,45 @@ resource "azurerm_app_service_source_control" "example" {
 
 The following arguments are supported:
 
-* `app_id` - (Required) The ID of the Windows or Linux Web App.
+* `app_id` - (Required) The ID of the Windows or Linux Web or Function App. Changing this forces a new resource to be created.
 
-* `branch` - (Required) The branch name to use for deployments.
+* `branch` - (Required) The branch name to use for deployments. Changing this forces a new resource to be created.
 
-* `repo_url` - (Required) The URL for the repository.
+* `repo_url` - (Required) The URL for the repository. Changing this forces a new resource to be created.
 
 ---
 
 * `github_action_configuration` - (Optional) A `github_action_configuration` block as defined below.
 
-* `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.
+* `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Changing this forces a new resource to be created.
 
-* `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`
+* `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value. 
 
 ~> **NOTE:** SCM Type `ScmTypeVSTSRM` is not supported as this is set by Azure DevOps and overrides Terraform's control of this resource.
 
-* `use_mercurial` - (Optional) The repository specified is Mercurial. Defaults to `false`.
+* `use_mercurial` - (Optional) The repository specified is Mercurial. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
 A `code_configuration` block supports the following:
 
-* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps.
+* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created.
 
-* `runtime_version` - (Optional) The value to use for the Runtime Version in the workflow file content for code base apps.
+* `runtime_version` - (Optional) The value to use for the Runtime Version in the workflow file content for code base apps. Changing this forces a new resource to be created.
 
 ---
 
 A `container_configuration` block supports the following:
 
-* `image_name` - (Required) The image name for the build.
+* `image_name` - (Required) The image name for the build. Changing this forces a new resource to be created.
 
-* `registry_url` - (Required) The server URL for the container registry where the build will be hosted.
+* `registry_url` - (Required) The server URL for the container registry where the build will be hosted. Changing this forces a new resource to be created.
 
-* `registry_password` - (Optional) The password used to upload the image to the container registry.
+* `registry_password` - (Optional) The password used to upload the image to the container registry. Changing this forces a new resource to be created.
 
-* `registry_username` - (Optional) The username used to upload the image to the container registry.
+* `registry_username` - (Optional) The username used to upload the image to the container registry. Changing this forces a new resource to be created.
 
 ---
 
@@ -106,9 +106,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the App Service Source Control.
 
-* `uses_github_action` - Should deployment be performed by GitHub Action. Defaults to `false`.
+* `uses_github_action` - Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.
 
-* `scm_type` - The SCM System in use for Source Control.
+* `scm_type` - The SCM Type in use. This value is decoded by the service from the repository information supplied.
 
 ## Timeouts
 

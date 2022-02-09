@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -199,6 +201,15 @@ func resourceApiManagementService() *pluginsdk.Resource {
 							},
 						},
 
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(0, 12),
+						},
+
+						"zones": azure.SchemaZones(),
+
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -210,6 +221,12 @@ func resourceApiManagementService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 							Computed: true,
+						},
+
+						"public_ip_address_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"private_ip_addresses": {
@@ -544,6 +561,18 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
+			"public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"private_ip_addresses": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -618,6 +647,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
+	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -644,8 +675,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	publisherName := d.Get("publisher_name").(string)
-	publisherEmail := d.Get("publisher_email").(string)
+	publicIpAddressId := d.Get("public_ip_address_id").(string)
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 
@@ -655,13 +685,19 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	certificates := expandAzureRmApiManagementCertificates(d)
 
+	publicNetworkAccess := apimanagement.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
+	}
+
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:    utils.String(publisherName),
-			PublisherEmail:   utils.String(publisherEmail),
-			CustomProperties: customProperties,
-			Certificates:     certificates,
+			PublisherName:       pointer.FromString(d.Get("publisher_name").(string)),
+			PublisherEmail:      pointer.FromString(d.Get("publisher_email").(string)),
+			PublicNetworkAccess: publicNetworkAccess,
+			CustomProperties:    customProperties,
+			Certificates:        certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
@@ -703,6 +739,15 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
+	if publicIpAddressId != "" {
+		if sku.Name != apimanagement.SkuTypePremium && sku.Name != apimanagement.SkuTypeDeveloper {
+			if virtualNetworkType == string(apimanagement.VirtualNetworkTypeNone) {
+				return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+			}
+		}
+		properties.ServiceProperties.PublicIPAddressID = utils.String(publicIpAddressId)
+	}
+
 	if d.HasChange("client_certificate_enabled") {
 		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
 		if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
@@ -727,6 +772,10 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if sku.Name != apimanagement.SkuTypePremium {
 			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
 		}
+
+		if publicIpAddressId == "" {
+			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+		}
 		properties.Zones = azure.ExpandZones(v)
 	}
 
@@ -740,6 +789,66 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+
+	// Remove sample products and APIs after creating (v3.0 behaviour)
+	if features.ThreePointOhBeta() && d.IsNewResource() {
+		apis := make([]apimanagement.APIContract, 0)
+
+		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs after creation of %s: %+v", id, err)
+			}
+			if apisIter.Response().IsEmpty() {
+				break
+			}
+			if apisList := apisIter.Values(); apisList != nil {
+				apis = append(apis, apisList...)
+			}
+		}
+
+		for _, api := range apis {
+			if api.ID == nil {
+				continue
+			}
+			apiId, err := parse.ApiID(*api.ID)
+			if err != nil {
+				return fmt.Errorf("parsing API ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", apiId)
+			if resp, err := apiClient.Delete(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", apiId, err)
+			}
+		}
+
+		products := make([]apimanagement.ProductContract, 0)
+
+		for productsIter, err := productsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); productsIter.NotDone(); err = productsIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing products after creation of %s: %+v", id, err)
+			}
+			if productsIter.Response().IsEmpty() {
+				break
+			}
+			if productList := productsIter.Values(); products != nil {
+				products = append(products, productList...)
+			}
+		}
+
+		for _, product := range products {
+			if product.ID == nil {
+				continue
+			}
+			productId, err := parse.ProductID(*product.ID)
+			if err != nil {
+				return fmt.Errorf("parsing product ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", productId)
+			if resp, err := productsClient.Delete(ctx, productId.ResourceGroup, productId.ServiceName, productId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", productId, err)
+			}
+		}
+
+	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
@@ -863,6 +972,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == apimanagement.PublicNetworkAccessEnabled)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
@@ -899,6 +1010,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
 		d.Set("min_api_version", minApiVersion)
+
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
@@ -1247,6 +1359,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		config := v.(map[string]interface{})
 		location := azure.NormalizeLocation(config["location"].(string))
 
+		if config["capacity"].(int) > 0 {
+			sku.Capacity = utils.Int32(int32(config["capacity"].(int)))
+		}
+
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
 			Sku:      sku,
@@ -1264,6 +1380,16 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.VirtualNetworkConfiguration = &apimanagement.VirtualNetworkConfiguration{
 				SubnetResourceID: &subnetResourceId,
 			}
+		}
+
+		publicIPAddressID := config["public_ip_address_id"].(string)
+		if publicIPAddressID != "" {
+			if sku.Name != apimanagement.SkuTypePremium {
+				if len(childVnetConfig) == 0 {
+					return nil, fmt.Errorf("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+				}
+			}
+			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
 		additionalLocations = append(additionalLocations, additionalLocation)
@@ -1289,8 +1415,20 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
 		}
 
+		if prop.PublicIPAddressID != nil {
+			output["public_ip_address_id"] = *prop.PublicIPAddressID
+		}
+
 		if prop.PrivateIPAddresses != nil {
 			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+		}
+
+		if prop.Sku.Capacity != nil {
+			output["capacity"] = *prop.Sku.Capacity
+		}
+
+		if prop.Zones != nil {
+			output["zones"] = azure.FlattenZones(prop.Zones)
 		}
 
 		if prop.GatewayRegionalURL != nil {

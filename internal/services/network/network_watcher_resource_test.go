@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkWatcherResource struct {
-}
+type NetworkWatcherResource struct{}
 
 func TestAccNetworkWatcher(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to

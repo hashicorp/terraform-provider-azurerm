@@ -132,8 +132,8 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_route_table", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 		}
 	}
 

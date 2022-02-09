@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/event-hubs"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "EventHub"

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorLogProfileDataSource struct {
-}
+type MonitorLogProfileDataSource struct{}
 
 // These tests are actually run as part of the resoure ones due to
 // Azure only being happy about provisioning one per subscription at once

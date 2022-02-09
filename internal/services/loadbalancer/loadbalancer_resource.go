@@ -92,7 +92,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"availability_zone": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							//Default:  "Zone-Redundant",
+							// Default:  "Zone-Redundant",
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"No-Zone",

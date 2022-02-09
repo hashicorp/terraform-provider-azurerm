@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
@@ -19,13 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO -- remove this type when issue https://github.com/Azure/azure-rest-api-specs/issues/13546 is resolved
 type WorkspaceSku string
 
 const (
 	Basic WorkspaceSku = "Basic"
-	// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
-	Enterprise WorkspaceSku = "Enterprise"
 )
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
@@ -175,12 +173,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Basic",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(Basic),
-					// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
-					string(Enterprise),
-				}, true),
+				Default:  string(Basic),
+				ValidateFunc: validation.StringInSlice(func() []string {
+					out := []string{string(Basic)}
+					if !features.ThreePointOhBeta() {
+						out = append(out, "Enterprise")
+					}
+					return out
+				}(), true),
 			},
 
 			"discovery_url": {

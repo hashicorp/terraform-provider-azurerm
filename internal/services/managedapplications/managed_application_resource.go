@@ -153,8 +153,8 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("failed to check for presence of %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_application", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_application", id.ID())
 		}
 	}
 

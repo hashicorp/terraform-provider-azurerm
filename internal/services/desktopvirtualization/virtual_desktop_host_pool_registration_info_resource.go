@@ -200,5 +200,4 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 	}
 
 	return nil
-
 }

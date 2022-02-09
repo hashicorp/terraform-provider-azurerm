@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationConnectionResource struct {
-}
+type AutomationConnectionResource struct{}
 
 func TestAccAutomationConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")

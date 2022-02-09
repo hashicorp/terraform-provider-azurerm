@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationAccountResource struct {
-}
+type AutomationAccountResource struct{}
 
 func TestAccAutomationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
@@ -70,6 +69,96 @@ func TestAccAutomationAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAutomationAccount_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_systemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AutomationAccountID(state.ID)
 	if err != nil {
@@ -91,22 +180,21 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-auto-%d"
-  location = "%s"
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Basic"
+  sku_name            = "Basic"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (AutomationAccountResource) requiresImport(data acceptance.TestData) string {
-	template := AutomationAccountResource{}.basic(data)
+func (r AutomationAccountResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 
 	return fmt.Sprintf(`
 %s
@@ -115,8 +203,7 @@ resource "azurerm_automation_account" "import" {
   name                = azurerm_automation_account.test.name
   location            = azurerm_automation_account.test.location
   resource_group_name = azurerm_automation_account.test.resource_group_name
-
-  sku_name = "Basic"
+  sku_name            = azurerm_automation_account.test.sku_name
 }
 `, template)
 }
@@ -128,20 +215,109 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-auto-%d"
-  location = "%s"
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Basic"
+  sku_name            = "Basic"
 
   tags = {
     "hello" = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (AutomationAccountResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (AutomationAccountResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (AutomationAccountResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

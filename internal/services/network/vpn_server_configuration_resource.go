@@ -398,8 +398,8 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
 		}
 	}
 

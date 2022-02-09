@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityCenterAutoProvisionResource struct {
-}
+type SecurityCenterAutoProvisionResource struct{}
 
 func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_auto_provisioning", "test")

@@ -425,7 +425,6 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
-
 	}
 
 	res := map[string]interface{}{

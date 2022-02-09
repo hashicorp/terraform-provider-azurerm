@@ -22,7 +22,6 @@ func TestConsumptionBudgetManagementGroupID(t *testing.T) {
 		Error    bool
 		Expected *ConsumptionBudgetManagementGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

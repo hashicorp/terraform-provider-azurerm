@@ -3,7 +3,6 @@ package identity
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -81,7 +80,12 @@ func ExpandSystemAndUserAssignedList(input []interface{}) (*SystemAndUserAssigne
 
 // FlattenSystemAndUserAssignedList turns a SystemAndUserAssignedList into a []interface{}
 func FlattenSystemAndUserAssignedList(input *SystemAndUserAssignedList) (*[]interface{}, error) {
-	if input == nil || (input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 

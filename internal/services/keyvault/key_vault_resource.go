@@ -228,7 +228,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				},
 			}
 
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				rSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Optional:   true,
@@ -651,7 +651,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 
 	// TODO: remove in 3.0
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		d.Set("soft_delete_enabled", true)
 	}
 

@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -18,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type policyAssignmentIdentity = identity.SystemAssigned
 
 type assignmentBaseResource struct{}
 
@@ -318,7 +317,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 
 		"location": azure.SchemaLocationOptional(),
 
-		"identity": policyAssignmentIdentity{}.Schema(),
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"enforce": {
 			Type:     pluginsdk.TypeBool,
@@ -377,7 +376,7 @@ func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 }
 
 func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Identity, error) {
-	expanded, err := policyAssignmentIdentity{}.Expand(input)
+	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +387,7 @@ func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Id
 }
 
 func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []interface{} {
-	var config *identity.ExpandedConfig
+	var config *identity.SystemAssigned
 	if input != nil {
 		principalId := ""
 		if input.PrincipalID != nil {
@@ -398,27 +397,34 @@ func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []inter
 		if input.TenantID != nil {
 			tenantId = *input.TenantID
 		}
-		config = &identity.ExpandedConfig{
+		config = &identity.SystemAssigned{
 			Type:        identity.Type(string(input.Type)),
 			PrincipalId: principalId,
 			TenantId:    tenantId,
 		}
 	}
-	return policyAssignmentIdentity{}.Flatten(config)
+	return identity.FlattenSystemAssigned(config)
 }
 
 func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policy.NonComplianceMessage) []interface{} {
-	results := make([]interface{}, 0)
+	if input == nil {
+		return []interface{}{}
+	}
 
-	if input != nil {
-		for _, v := range *input {
-			output := make(map[string]interface{})
-			output["content"] = v.Message
-			if v.PolicyDefinitionReferenceID != nil {
-				output["policy_definition_reference_id"] = *v.PolicyDefinitionReferenceID
-			}
-			results = append(results, output)
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		content := ""
+		if v.Message != nil {
+			content = *v.Message
 		}
+		policyDefinitionReferenceId := ""
+		if v.PolicyDefinitionReferenceID != nil {
+			policyDefinitionReferenceId = *v.PolicyDefinitionReferenceID
+		}
+		results = append(results, map[string]interface{}{
+			"content":                        content,
+			"policy_definition_reference_id": policyDefinitionReferenceId,
+		})
 	}
 
 	return results
@@ -432,13 +438,11 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 	output := make([]policy.NonComplianceMessage, 0)
 	for _, v := range input {
 		if m, ok := v.(map[string]interface{}); ok {
-			message := utils.String(m["content"].(string))
 			ncm := policy.NonComplianceMessage{
-				Message: message,
+				Message: utils.String(m["content"].(string)),
 			}
-			if m["policy_definition_reference_id"].(string) != "" {
-				policydefinitionreferenceid := utils.String(m["policy_definition_reference_id"].(string))
-				ncm.PolicyDefinitionReferenceID = policydefinitionreferenceid
+			if id := m["policy_definition_reference_id"].(string); id != "" {
+				ncm.PolicyDefinitionReferenceID = utils.String(id)
 			}
 			output = append(output, ncm)
 		}

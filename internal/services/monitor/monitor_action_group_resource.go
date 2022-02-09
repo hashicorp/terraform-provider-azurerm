@@ -422,8 +422,8 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_action_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_action_group", id.ID())
 		}
 	}
 
@@ -735,7 +735,6 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		val := receiverValue.(map[string]interface{})
 
 		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-
 		if err != nil {
 			return nil, err
 		}

@@ -8,13 +8,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -74,35 +75,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"type": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(media.ManagedIdentityTypeSystemAssigned),
-							}, true),
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"storage_authentication_type": {
 				Type:     pluginsdk.TypeString,
@@ -175,16 +148,19 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return err
 	}
+
+	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := media.Service{
+		Location: utils.String(location),
+		Identity: expandedIdentity,
 		ServiceProperties: &media.ServiceProperties{
 			StorageAccounts: storageAccounts,
 		},
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
-	}
-
-	if _, ok := d.GetOk("identity"); ok {
-		parameters.Identity = expandAzureRmMediaServiceIdentity(d)
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_authentication_type"); ok {
@@ -239,7 +215,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("storage_authentication_type", string(props.StorageAuthentication))
 	}
 
-	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenAccountIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening `identity`: %s", err)
 	}
 
@@ -322,33 +298,33 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 	return results
 }
 
-func expandAzureRmMediaServiceIdentity(d *pluginsdk.ResourceData) *media.ServiceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if identities[0] == nil {
-		return nil
+func expandAccountIdentity(input []interface{}) (*media.ServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
+
 	return &media.ServiceIdentity{
-		Type: media.ManagedIdentityType(identityType),
-	}
+		Type: media.ManagedIdentityType(string(expanded.Type)),
+	}, nil
 }
 
-func flattenAzureRmMediaServicedentity(identity *media.ServiceIdentity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
+func flattenAccountIdentity(input *media.ServiceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
-
-	return []interface{}{result}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func expandKeyDelivery(input []interface{}) *media.KeyDelivery {

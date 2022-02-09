@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -105,7 +109,8 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"identity": schemaLogicAppStandardIdentity(),
+			// TODO: API supports UserAssigned & SystemAssignedUserAssigned too?
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -306,8 +311,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandLogicAppStandardIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -393,8 +400,10 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandLogicAppStandardIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -772,36 +781,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 	}
 }
 
-func schemaLogicAppStandardIdentity() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeSystemAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func schemaLogicAppCorsSettings() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -884,7 +863,6 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
 							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
@@ -958,30 +936,6 @@ func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringVa
 	}
 
 	return results
-}
-
-func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
 }
 
 func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
@@ -1262,18 +1216,33 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 	return siteConfig, nil
 }
 
-func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	identity := input[0].(map[string]interface{})
-	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
-
-	managedServiceIdentity := web.ManagedServiceIdentity{
-		Type: identityType,
+func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	return &managedServiceIdentity
+	return &web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(expanded.Type),
+	}, nil
+}
+
+func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+	}
+
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {

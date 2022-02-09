@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudServiceResource struct {
-}
+type SpringCloudServiceResource struct{}
 
 func TestAccSpringCloudService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")

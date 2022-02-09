@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SentinelAlertRuleDataSource struct {
-}
+type SentinelAlertRuleDataSource struct{}
 
 func TestAccSentinelAlertRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule", "test")
