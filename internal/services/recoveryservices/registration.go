@@ -29,6 +29,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_recovery_services_vault":  dataSourceRecoveryServicesVault(),
+		"azurerm_site_recovery_fabric":     dataSourceSiteRecoveryFabric(),
 		"azurerm_backup_policy_vm":         dataSourceBackupPolicyVm(),
 		"azurerm_backup_policy_file_share": dataSourceBackupPolicyFileShare(),
 	}
