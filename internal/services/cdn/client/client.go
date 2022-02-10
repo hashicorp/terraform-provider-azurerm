@@ -17,55 +17,55 @@ import (
 )
 
 type Client struct {
-	FrontDoorProfileEndpointsClient        *afdendpoints.AFDEndpointsClient
-	FrontDoorProfileOriginGroupsClient     *afdorigingroups.AFDOriginGroupsClient
-	FrontDoorProfileOriginsClient          *afdorigins.AFDOriginsClient
-	FrontDoorProfileCustomDomainsClient    *afdcustomdomains.AFDCustomDomainsClient
-	FrontdoorProfileSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
-	FrontdoorProfileRoutesClient           *routes.RoutesClient
-	FrontdoorProfileRulesClient            *rules.RulesClient
-	FrontdoorProfileClient                 *profiles.ProfilesClient
-	FrontdoorProfileSecretsClient          *secrets.SecretsClient
-	FrontdoorProfileRuleSetsClient         *rulesets.RuleSetsClient
-	WebApplicationFirewallPoliciesClient   *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
-	CustomDomainsClient                    *cdn.CustomDomainsClient
-	EndpointsClient                        *cdn.EndpointsClient
-	ProfilesClient                         *cdn.ProfilesClient
+	FrontDoorEndpointsClient             *afdendpoints.AFDEndpointsClient
+	FrontDoorOriginGroupsClient          *afdorigingroups.AFDOriginGroupsClient
+	FrontDoorOriginsClient               *afdorigins.AFDOriginsClient
+	FrontDoorCustomDomainsClient         *afdcustomdomains.AFDCustomDomainsClient
+	FrontdoorSecurityPoliciesClient      *securitypolicies.SecurityPoliciesClient
+	FrontdoorRoutesClient                *routes.RoutesClient
+	FrontdoorRulesClient                 *rules.RulesClient
+	FrontdoorProfileClient               *profiles.ProfilesClient
+	FrontdoorSecretsClient               *secrets.SecretsClient
+	FrontdoorRuleSetsClient              *rulesets.RuleSetsClient
+	WebApplicationFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
+	CustomDomainsClient                  *cdn.CustomDomainsClient
+	EndpointsClient                      *cdn.EndpointsClient
+	ProfilesClient                       *cdn.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	frontDoorProfileEndpointsClient := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontDoorProfileEndpointsClient.Client, o.ResourceManagerAuthorizer)
+	frontDoorEndpointsClient := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontDoorEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorProfileOriginGroupsClient := afdorigingroups.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontDoorProfileOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
+	frontDoorOriginGroupsClient := afdorigingroups.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontDoorOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorProfileOriginsClient := afdorigins.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontDoorProfileOriginsClient.Client, o.ResourceManagerAuthorizer)
+	frontDoorOriginsClient := afdorigins.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontDoorOriginsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorProfileCustomDomainsClient := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontDoorProfileCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+	frontDoorCustomDomainsClient := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfilePolicySecurityPoliciesClient := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontdoorProfilePolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorPolicySecurityPoliciesClient := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontdoorPolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	webApplicationFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&webApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfileRoutesClient := routes.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontdoorProfileRoutesClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorRoutesClient := routes.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontdoorRoutesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfileRulesClient := rules.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontdoorProfileRulesClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorRulesClient := rules.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontdoorRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	frontdoorProfilesClient := profiles.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&frontdoorProfilesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfilePolicySecretsClient := secrets.NewSecretsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontdoorProfilePolicySecretsClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorPolicySecretsClient := secrets.NewSecretsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontdoorPolicySecretsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfileRuleSetsClient := rulesets.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&frontdoorProfileRuleSetsClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorRuleSetsClient := rulesets.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontdoorRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
@@ -77,19 +77,19 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		FrontDoorProfileEndpointsClient:        &frontDoorProfileEndpointsClient,
-		FrontDoorProfileOriginGroupsClient:     &frontDoorProfileOriginGroupsClient,
-		FrontDoorProfileOriginsClient:          &frontDoorProfileOriginsClient,
-		FrontDoorProfileCustomDomainsClient:    &frontDoorProfileCustomDomainsClient,
-		FrontdoorProfileSecurityPoliciesClient: &frontdoorProfilePolicySecurityPoliciesClient,
-		FrontdoorProfileRoutesClient:           &frontdoorProfileRoutesClient,
-		FrontdoorProfileRulesClient:            &frontdoorProfileRulesClient,
-		FrontdoorProfileClient:                 &frontdoorProfilesClient,
-		FrontdoorProfileSecretsClient:          &frontdoorProfilePolicySecretsClient,
-		FrontdoorProfileRuleSetsClient:         &frontdoorProfileRuleSetsClient,
-		WebApplicationFirewallPoliciesClient:   &webApplicationFirewallPoliciesClient,
-		CustomDomainsClient:                    &customDomainsClient,
-		EndpointsClient:                        &endpointsClient,
-		ProfilesClient:                         &profilesClient,
+		FrontDoorEndpointsClient:             &frontDoorEndpointsClient,
+		FrontDoorOriginGroupsClient:          &frontDoorOriginGroupsClient,
+		FrontDoorOriginsClient:               &frontDoorOriginsClient,
+		FrontDoorCustomDomainsClient:         &frontDoorCustomDomainsClient,
+		FrontdoorSecurityPoliciesClient:      &frontdoorPolicySecurityPoliciesClient,
+		FrontdoorRoutesClient:                &frontdoorRoutesClient,
+		FrontdoorRulesClient:                 &frontdoorRulesClient,
+		FrontdoorProfileClient:               &frontdoorProfilesClient,
+		FrontdoorSecretsClient:               &frontdoorPolicySecretsClient,
+		FrontdoorRuleSetsClient:              &frontdoorRuleSetsClient,
+		WebApplicationFirewallPoliciesClient: &webApplicationFirewallPoliciesClient,
+		CustomDomainsClient:                  &customDomainsClient,
+		EndpointsClient:                      &endpointsClient,
+		ProfilesClient:                       &profilesClient,
 	}
 }

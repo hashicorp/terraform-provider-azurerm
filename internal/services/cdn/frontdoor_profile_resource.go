@@ -155,7 +155,7 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_profile", id.ID())
+			return tf.ImportAsExistsError("azurerm_frontdoor_profile", id.ID())
 		}
 	}
 
