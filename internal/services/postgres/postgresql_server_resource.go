@@ -10,7 +10,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -126,7 +129,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
 				}, true),
-				DiffSuppressFunc: suppress.CaseDifference, // TODO: make case sensitive in 3.0
+				DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+					if !features.ThreePointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
 			},
 
 			"storage_profile": {
@@ -201,9 +209,15 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
+				Computed:      !features.ThreePointOhBeta(),
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
@@ -241,32 +255,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerID,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -586,8 +575,12 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	server := postgresql.ServerForCreate{
-		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity:   expandedIdentity,
 		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: props,
 		Sku:        sku,
@@ -739,8 +732,13 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := postgresql.ServerUpdateParameters{
-		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			PublicNetworkAccess: publicAccess,
 			SslEnforcement:      ssl,
@@ -1082,39 +1080,37 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 	return []interface{}{block}
 }
 
-func expandServerIdentity(input []interface{}) *postgresql.ResourceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandServerIdentity(input []interface{}) (*postgresql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-	return &postgresql.ResourceIdentity{
-		Type: postgresql.IdentityType(v["type"].(string)),
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
 	}
+
+	return &postgresql.ResourceIdentity{
+		Type: postgresql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenServerIdentity(input *postgresql.ResourceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transition.TenantId = input.TenantID.String()
+		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = input.PrincipalID.String()
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = input.TenantID.String()
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }
 
 func flattenSecurityAlertPolicySet(input *[]string) []interface{} {

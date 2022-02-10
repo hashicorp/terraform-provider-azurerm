@@ -1377,6 +1377,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -2049,6 +2050,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -2222,6 +2224,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4061,6 +4064,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4211,6 +4215,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 

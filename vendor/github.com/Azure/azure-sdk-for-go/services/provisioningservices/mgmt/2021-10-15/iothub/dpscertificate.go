@@ -88,7 +88,7 @@ func (client DpsCertificateClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +182,7 @@ func (client DpsCertificateClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -295,7 +295,7 @@ func (client DpsCertificateClient) GenerateVerificationCodePreparer(ctx context.
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -399,7 +399,7 @@ func (client DpsCertificateClient) GetPreparer(ctx context.Context, certificateN
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -479,7 +479,7 @@ func (client DpsCertificateClient) ListPreparer(ctx context.Context, resourceGro
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -569,7 +569,7 @@ func (client DpsCertificateClient) VerifyCertificatePreparer(ctx context.Context
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-22"
+	const APIVersion = "2021-10-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

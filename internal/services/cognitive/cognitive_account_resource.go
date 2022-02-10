@@ -7,19 +7,20 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	identityHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -50,277 +51,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CognitiveServicesAccountName(),
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Academic",
-					"AnomalyDetector",
-					"Bing.Autosuggest",
-					"Bing.Autosuggest.v7",
-					"Bing.CustomSearch",
-					"Bing.Search",
-					"Bing.Search.v7",
-					"Bing.Speech",
-					"Bing.SpellCheck",
-					"Bing.SpellCheck.v7",
-					"CognitiveServices",
-					"ComputerVision",
-					"ContentModerator",
-					"CustomSpeech",
-					"CustomVision.Prediction",
-					"CustomVision.Training",
-					"Emotion",
-					"Face",
-					"FormRecognizer",
-					"ImmersiveReader",
-					"LUIS",
-					"LUIS.Authoring",
-					"MetricsAdvisor",
-					"Personalizer",
-					"QnAMaker",
-					"Recommendations",
-					"SpeakerRecognition",
-					"Speech",
-					"SpeechServices",
-					"SpeechTranslation",
-					"TextAnalytics",
-					"TextTranslation",
-					"WebLM",
-				}, false),
-			},
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
-				}, false),
-			},
-
-			"custom_subdomain_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"fqdns": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(identityHelper.TypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(identityHelper.TypeNone),
-								string(identityHelper.TypeSystemAssigned),
-								string(identityHelper.TypeUserAssigned),
-								string(identityHelper.TypeSystemAssignedUserAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
-
-			"local_auth_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"metrics_advisor_aad_client_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
-			"metrics_advisor_aad_tenant_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
-			"metrics_advisor_super_user_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"metrics_advisor_website_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"network_acls": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				MaxItems:     1,
-				RequiredWith: []string{"custom_subdomain_name"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-							}, false),
-						},
-						"ip_rules": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.Any(
-									commonValidate.IPv4Address,
-									commonValidate.CIDR,
-								),
-							},
-							Set: set.HashIPv4AddressOrCIDR,
-						},
-						// TODO 3.0 - Remove below property
-						"virtual_network_subnet_ids": {
-							Type:          pluginsdk.TypeSet,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
-							Deprecated:    "Deprecated in favour of `virtual_network_rules`",
-							Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						},
-
-						"virtual_network_rules": {
-							Type:          pluginsdk.TypeSet,
-							Optional:      true,
-							Computed:      true, // TODO -- remove this when deprecation resolves
-							ConflictsWith: []string{"network_acls.0.virtual_network_subnet_ids"},
-							ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"subnet_id": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
-									"ignore_missing_vnet_service_endpoint": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"outbound_network_access_restrited": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"qna_runtime_endpoint": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-			},
-
-			"storage": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"storage_account_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: storageValidate.StorageAccountID,
-						},
-
-						"identity_client_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
-
-			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-		},
+		Schema: resourceCognitiveAccountSchema(),
 	}
 }
 
@@ -367,6 +98,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
 	publicNetworkAccess := cognitiveservicesaccounts.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
@@ -388,14 +120,13 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	identity, err := expandCognitiveAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -472,7 +203,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -579,7 +310,8 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			d.Set("outbound_network_access_restrited", outboundNetworkAccessRestricted)
+			//lintignore:R001
+			d.Set(outboundNetworkAccessRestrictedName(), outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -690,7 +422,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
-	if d.HasChange("network_acls.0.virtual_network_subnet_ids") {
+	if !features.ThreePointOhBeta() && d.HasChange("network_acls.0.virtual_network_subnet_ids") {
 		networkRulesRaw := v["virtual_network_subnet_ids"]
 		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
 			rawId := v.(string)
@@ -738,41 +470,26 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	return &results
 }
 
-func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	if len(vs) == 0 {
-		return &identity.SystemUserAssignedIdentityMap{
-			Type: identity.Type(identityHelper.TypeNone),
-		}, nil
+func expandCognitiveAccountIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-
-	config := &identity.ExpandedConfig{
-		Type: identity.Type(v["type"].(string)),
+	intermediate := legacyIdentity.ExpandedConfig{
+		Type: legacyIdentity.Type(string(expanded.Type)),
 	}
 
-	managedServiceIdentity := identity.SystemUserAssignedIdentityMap{}
-
-	var identityIdSet []interface{}
-	if identityIds, ok := v["identity_ids"]; ok {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if string(config.Type) == string(identityHelper.TypeUserAssigned) || string(config.Type) == string(identityHelper.TypeSystemAssignedUserAssigned) {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		intermediate.UserAssignedIdentityIds = make([]string, 0)
+		for k := range expanded.IdentityIds {
+			intermediate.UserAssignedIdentityIds = append(intermediate.UserAssignedIdentityIds, k)
 		}
-
-		config.UserAssignedIdentityIds = *utils.ExpandStringSlice(identityIdSet)
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
 
-	managedServiceIdentity.FromExpandedConfig(*config)
-
-	return &managedServiceIdentity, nil
+	out := legacyIdentity.SystemUserAssignedIdentityMap{}
+	out.FromExpandedConfig(intermediate)
+	return &out, nil
 }
 
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
@@ -845,14 +562,16 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 			})
 		}
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"default_action":             input.DefaultAction,
-			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds),
-			"virtual_network_rules":      virtualNetworkRules,
-		},
+	out := map[string]interface{}{
+		"default_action":        input.DefaultAction,
+		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
+		"virtual_network_rules": virtualNetworkRules,
 	}
+	if !features.ThreePointOhBeta() {
+		out["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds)
+	}
+
+	return []interface{}{out}
 }
 
 func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
@@ -873,33 +592,277 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 	return results
 }
 
-func flattenCognitiveAccountIdentity(identity *identity.SystemUserAssignedIdentityMap) ([]interface{}, error) {
-	if identity == nil || string(identity.Type) == string(identityHelper.TypeNone) {
-		return make([]interface{}, 0), nil
-	}
+func flattenCognitiveAccountIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalId != nil {
-		result["principal_id"] = *identity.PrincipalId
-	}
-
-	if identity.TenantId != nil {
-		result["tenant_id"] = *identity.TenantId
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if input != nil {
+		expanded := input.ToExpandedConfig()
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(expanded.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+			TenantId:    expanded.TenantId,
+			PrincipalId: expanded.PrincipalId,
 		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+		for _, k := range expanded.UserAssignedIdentityIds {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				// TODO: populate me once the SDK is updated
+			}
+		}
 	}
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CognitiveServicesAccountName(),
+		},
+
+		"location": azure.SchemaLocation(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Academic",
+				"AnomalyDetector",
+				"Bing.Autosuggest",
+				"Bing.Autosuggest.v7",
+				"Bing.CustomSearch",
+				"Bing.Search",
+				"Bing.Search.v7",
+				"Bing.Speech",
+				"Bing.SpellCheck",
+				"Bing.SpellCheck.v7",
+				"CognitiveServices",
+				"ComputerVision",
+				"ContentModerator",
+				"CustomSpeech",
+				"CustomVision.Prediction",
+				"CustomVision.Training",
+				"Emotion",
+				"Face",
+				"FormRecognizer",
+				"ImmersiveReader",
+				"LUIS",
+				"LUIS.Authoring",
+				"MetricsAdvisor",
+				"Personalizer",
+				"QnAMaker",
+				"Recommendations",
+				"SpeakerRecognition",
+				"Speech",
+				"SpeechServices",
+				"SpeechTranslation",
+				"TextAnalytics",
+				"TextTranslation",
+				"WebLM",
+			}, false),
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
+			}, false),
+		},
+
+		"custom_subdomain_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"fqdns": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"local_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"metrics_advisor_aad_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"metrics_advisor_aad_tenant_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"metrics_advisor_super_user_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"metrics_advisor_website_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"network_acls": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"custom_subdomain_name"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"default_action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(cognitiveservicesaccounts.NetworkRuleActionAllow),
+							string(cognitiveservicesaccounts.NetworkRuleActionDeny),
+						}, false),
+					},
+					"ip_rules": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.Any(
+								commonValidate.IPv4Address,
+								commonValidate.CIDR,
+							),
+						},
+						Set: set.HashIPv4AddressOrCIDR,
+					},
+
+					"virtual_network_rules": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: !features.ThreePointOhBeta(),
+						ConflictsWith: func() []string {
+							if features.ThreePointOhBeta() {
+								return []string{}
+							}
+							return []string{"network_acls.0.virtual_network_subnet_ids"}
+						}(),
+						ConfigMode: func() schema.SchemaConfigMode {
+							if features.ThreePointOhBeta() {
+								return pluginsdk.SchemaConfigModeAuto
+							}
+							return pluginsdk.SchemaConfigModeAttr
+						}(),
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"ignore_missing_vnet_service_endpoint": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		outboundNetworkAccessRestrictedName(): {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"qna_runtime_endpoint": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+		},
+
+		"storage": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: storageValidate.StorageAccountID,
+					},
+
+					"identity_client_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		},
+
+		"tags": tags.Schema(),
+
+		"endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
+	if !features.ThreePointOhBeta() {
+		s := schema["network_acls"].Elem.(*pluginsdk.Resource)
+		s.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
+			Deprecated:    "Deprecated in favour of `virtual_network_rules`",
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+		}
+	}
+	return schema
+}
+
+func outboundNetworkAccessRestrictedName() string {
+	if !features.ThreePointOhBeta() {
+		return "outbound_network_access_restrited"
+	}
+	return "outbound_network_access_restricted"
 }

@@ -4,20 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type applicationGatewayDataSourceIdentity = identity.UserAssigned
 
 func dataSourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,13 +29,13 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"identity": applicationGatewayDataSourceIdentity{}.SchemaDataSource(),
+			"identity": commonschema.UserAssignedIdentityComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -64,33 +60,13 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	identity, err := flattenApplicationGatewayDataSourceIdentity(resp.Identity)
+	identity, err := flattenApplicationGatewayIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
-	flattenedIdentity := applicationGatewayDataSourceIdentity{}.Flatten(identity)
-	if err = d.Set("identity", flattenedIdentity); err != nil {
-		return err
+	if err = d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) (*identity.ExpandedConfig, error) {
-	var config *identity.ExpandedConfig
-	if input != nil {
-		identityIds := make([]string, 0, len(input.UserAssignedIdentities))
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-		config = &identity.ExpandedConfig{
-			Type:                    identity.Type(string(input.Type)),
-			UserAssignedIdentityIds: identityIds,
-		}
-	}
-	return config, nil
 }

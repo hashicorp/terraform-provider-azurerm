@@ -6,13 +6,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
+	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -20,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-type appConfigurationIdentityType = identity.SystemAssignedUserAssigned
 
 func resourceAppConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -52,11 +52,9 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": appConfigurationIdentityType{}.Schema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// the API changed and now returns the rg in lowercase
-			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -292,7 +290,11 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		if err := d.Set("identity", flattenAppConfigurationIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := flattenAppConfigurationIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -389,22 +391,49 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 	}
 }
 
-func expandAppConfigurationIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := appConfigurationIdentityType{}.Expand(input)
+func expandAppConfigurationIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result := identity.SystemUserAssignedIdentityMap{}
-	result.FromExpandedConfig(*expanded)
-	return &result, nil
+	transform := legacyIdentity.ExpandedConfig{
+		Type:        legacyIdentity.Type(string(expanded.Type)),
+		PrincipalId: expanded.PrincipalId,
+		TenantId:    expanded.TenantId,
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		transform.UserAssignedIdentityIds = make([]string, 0)
+		for k := range expanded.IdentityIds {
+			transform.UserAssignedIdentityIds = append(transform.UserAssignedIdentityIds, k)
+		}
+	}
+	out := legacyIdentity.SystemUserAssignedIdentityMap{}
+	out.FromExpandedConfig(transform)
+	return &out, nil
 }
 
-func flattenAppConfigurationIdentity(identity *identity.SystemUserAssignedIdentityMap) []interface{} {
-	if identity == nil {
-		return []interface{}{}
+func flattenAppConfigurationIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalId != nil {
+			transform.PrincipalId = *input.PrincipalId
+		}
+		if input.TenantId != nil {
+			transform.TenantId = *input.TenantId
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientId,
+				PrincipalId: v.PrincipalId,
+			}
+		}
 	}
 
-	config := identity.ToExpandedConfig()
-	return appConfigurationIdentityType{}.Flatten(&config)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

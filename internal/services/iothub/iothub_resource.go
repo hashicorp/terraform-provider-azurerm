@@ -23,7 +23,6 @@ import (
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	servicebusValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -675,8 +674,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		cloudToDeviceProperties = expandIoTHubCloudToDevice(d)
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandIotHubIdentity(identityRaw)
+	identity, err := expandIotHubIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -851,7 +849,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	identity, err := flattenIotHubIdentity(hub.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -1695,37 +1693,28 @@ func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
 }
 
 func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
-	var config *identity.SystemAndUserAssignedMap
+	var transform *identity.SystemAndUserAssignedMap
+
 	if input != nil {
-		identityIds := map[string]identity.UserAssignedIdentityDetails{}
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
-		}
-
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
-		}
-
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		config = &identity.SystemAndUserAssignedMap{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
-			IdentityIds: identityIds,
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
 		}
 	}
-	return identity.FlattenSystemAndUserAssignedMap(config)
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
