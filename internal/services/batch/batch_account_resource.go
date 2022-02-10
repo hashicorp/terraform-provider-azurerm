@@ -137,7 +137,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] ADAM resourceBatchAccountCreate")
 	client := meta.(*clients.Client).Batch.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -270,7 +269,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 
 		if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
-			return fmt.Errorf("setting ADAM `encryption`: %+v", err)
+			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 	}
 
