@@ -263,7 +263,7 @@ The deprecated field `max_task_retry_count` will be removed in favour of the `ta
 
 The deprecated field `network_acls.virtual_network_subnet_ids` will be removed in favour of the `network_acls.virtual_network_rules` property.
 
-The field `outbound_network_access_restrited` will be removed in favour of the `outbound_network_access_restricted` property.
+The deprecated field `outbound_network_access_restrited` will be removed in favour of the `outbound_network_access_restricted` property.
 
 ### Resource: `azurerm_container_registry`
 
@@ -278,6 +278,24 @@ The field `subscription_id` will only accept subscription resource IDs instead o
 ### Resource: `azurerm_cost_management_export_resource_group`
 
 The `azurerm_cost_management_export_resource_group` resource will be removed in favour of the `azurerm_resource_group_cost_management_export` resource.
+
+### Resource: `azurerm_linux_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
+
+### Resource: `azurerm_orchestrated_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
+
+### Resource: `azurerm_windows_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
 
 ### Resource: `azurerm_kubernetes_cluster`
 
@@ -316,6 +334,8 @@ The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be rem
 The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `azure_keyvault_secrets_provider` block.
 
 ### Resource: `azurerm_cosmosdb_account`
+
+The field `capabilities` will no longer accept the value `EnableAnalyticalStorage`.
 
 The deprecated field `geolocation.prefix` will be removed since it is no longer supported by the Azure API.
 
@@ -499,7 +519,7 @@ The field `sku_name` will become Required.
 
 The field `sku_tier` will become Required.
 
-The field `threat_intel_mode` will no longer have a default value and will not accept `""` as a valid value.
+The default value for the field `threat_intel_mode` will change from "Alert" to null and will not accept `""` as a valid value.
 
 ### Resource: `azurerm_frontdoor`
 
@@ -598,6 +618,10 @@ The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
 ### Resource: `azurerm_iothub_endpoint_storage_container`
 
 The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
+
+### Resource: `azurerm_key_vault_key
+
+The field `curve` will no longer accept the value `SECP256K1` since it was renamed to `P-256K`.
 
 ### Resource: `azurerm_key_vault`
 
@@ -954,6 +978,14 @@ The default value for the field `actions.base_blob.tier_to_archive_after_days_si
 The default value for the field `actions.base_blob.delete_after_days_since_modification_greater_than` will change from null to `-1`.
 
 The default value for the field `actions.snapshot.delete_after_days_since_creation_greater_than` will change from null to `-1`.
+
+### Resource: `azurerm_synapse_role_assignment`
+
+The field `role_name` will no longer accept the values `Workspace Admin`, `Apache Spark Admin` and `Sql Admin`.
+
+### Resource: `azurerm_synapse_spark_pool`
+
+The field `spark_version` will no longer accept the value `3.0`.
 
 ### Resource: `azurerm_synapse_workspace_key`
 
