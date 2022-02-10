@@ -399,15 +399,15 @@ resource "azurerm_batch_account" "test" {
 func (BatchAccountResource) cmk(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
-	
+
 provider "azuread" {}
-	
+
 data "azuread_service_principal" "test" {
-	display_name = "Microsoft Azure Batch"
+  display_name = "Microsoft Azure Batch"
 }
-	  
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-batch-%d"
   location = "%s"
@@ -437,65 +437,65 @@ resource "azurerm_batch_account" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   encryption {
     key_vault_key_id = "${azurerm_key_vault.test.vault_uri}keys/${azurerm_key_vault_key.test.name}/${azurerm_key_vault_key.test.version}"
   }
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "batchkv%s"
-	location                        = "${azurerm_resource_group.test.location}"
-	resource_group_name             = "${azurerm_resource_group.test.name}"
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	purge_protection_enabled        = true
-	tenant_id                       = "%s"
-  
-	sku_name = "standard"
-  
-	access_policy {
-	  tenant_id = "%s"
-	  object_id = "${data.azuread_service_principal.test.object_id}"
-  
-	  key_permissions = [
-		"Get",
-		"Create",
-		"WrapKey",
-		"UnwrapKey"
-	  ]
-  
-	}
+  name                            = "batchkv%s"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%s"
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azuread_service_principal.test.object_id}"
+
+    key_permissions = [
+      "Get",
+      "Create",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+
   }
+}
 
 resource "azurerm_key_vault_access_policy" "test" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id    = "%s"
-	object_id    = "${azurerm_user_assigned_identity.test.principal_id}"
-  
-	key_permissions = [
-	  "Get",
-	  "WrapKey",
-	  "UnwrapKey"
-	]
-  }
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = "%s"
+  object_id    = "${azurerm_user_assigned_identity.test.principal_id}"
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey"
+  ]
+}
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "enckey%d"
-	key_vault_id = "${azurerm_key_vault.test.id}"
-	key_type     = "RSA"
-	key_size     = 2048
-  
-	key_opts = [
-	  "decrypt",
-	  "encrypt",
-	  "sign",
-	  "unwrapKey",
-	  "verify",
-	  "wrapKey",
-	]
-  }
+  name         = "enckey%d"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
 }
