@@ -280,6 +280,6 @@ func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{
 			}
 		}
 	}
-	
+
 	return identity.FlattenSystemOrUserAssignedMap(transform)
 }
