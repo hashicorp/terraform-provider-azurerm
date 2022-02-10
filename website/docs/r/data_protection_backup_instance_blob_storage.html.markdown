@@ -18,8 +18,13 @@ resource "azurerm_resource_group" "rg" {
   location = "West Europe"
 }
 
+resource "azurerm_resource_group" "example" {
+  name     = "example-resourcesexample"
+  location = "westus"
+}
+
 resource "azurerm_storage_account" "example" {
-  name                     = "example-storage-account"
+  name                     = "storageaccountname"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -32,6 +37,9 @@ resource "azurerm_data_protection_backup_vault" "example" {
   location            = azurerm_resource_group.rg.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_role_assignment" "example" {
