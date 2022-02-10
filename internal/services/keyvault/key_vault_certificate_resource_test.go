@@ -671,7 +671,7 @@ resource "azurerm_key_vault_certificate" "test" {
       }
 
       trigger {
-        days_before_expiry = 30
+        lifetime_percentage = 30
       }
     }
 
