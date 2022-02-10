@@ -7,8 +7,14 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/stream-analytics"
+}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
@@ -16,6 +22,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		OutputFunctionResource{},
 		OutputTableResource{},
 		ClusterResource{},
 		ManagedPrivateEndpointResource{},

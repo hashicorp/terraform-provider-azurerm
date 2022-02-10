@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorActivityLogAlertResource struct {
-}
+type MonitorActivityLogAlertResource struct{}
 
 func TestAccMonitorActivityLogAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")

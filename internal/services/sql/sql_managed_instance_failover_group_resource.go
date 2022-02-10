@@ -130,8 +130,8 @@ func resourceSqlInstanceFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, met
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_failover_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_failover_group", id.ID())
 		}
 	}
 
@@ -297,6 +297,7 @@ func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sq
 		FailoverPolicy: mode,
 	}
 }
+
 func expandSqlInstanceFailoverGroupManagedInstanceId(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
 	instanceId := d.Get("partner_managed_instance_id").(string)
 	partners := make([]sql.ManagedInstancePairInfo, 0)

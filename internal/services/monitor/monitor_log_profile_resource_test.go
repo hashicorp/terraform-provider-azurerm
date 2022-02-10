@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorLogProfileResource struct {
-}
+type MonitorLogProfileResource struct{}
 
 // NOTE: this is a combined test rather than separate split out tests due to
 // Azure only being happy about provisioning one per subscription at once

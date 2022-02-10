@@ -116,19 +116,18 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 
 func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure HPC Cache NFS Target creation.")
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	cache := d.Get("cache_name").(string)
+	id := parse.NewStorageTargetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cache_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, cache, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
@@ -149,25 +148,16 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, cache, name, param)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CacheName, id.Name, param)
 	if err != nil {
-		return fmt.Errorf("creating HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, cache, name)
-	if err != nil {
-		return fmt.Errorf("retrieving HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("retrieving HPC Cache NFS Target %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceHPCCacheNFSTargetRead(d, meta)
 }

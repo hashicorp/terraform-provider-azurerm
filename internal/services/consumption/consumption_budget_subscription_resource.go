@@ -14,9 +14,11 @@ type SubscriptionConsumptionBudget struct {
 	base consumptionBudgetBaseResource
 }
 
-var _ sdk.Resource = SubscriptionConsumptionBudget{}
-var _ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
-var _ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
+var (
+	_ sdk.Resource                   = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
+)
 
 func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -30,7 +32,7 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			//ValidateFunc: commonids.ValidateSubscriptionID, // TODO uncomment this in 3.0
+			// ValidateFunc: commonids.ValidateSubscriptionID, // TODO uncomment this in 3.0
 			// TODO remove in 3.0
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				n := strings.Split(old, "/")
@@ -83,9 +85,10 @@ func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
 
 func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.SubscriptionConsumptionBudgetV0ToV1{},
+			1: migration.SubscriptionConsumptionBudgetV1ToV2{},
 		},
 	}
 }

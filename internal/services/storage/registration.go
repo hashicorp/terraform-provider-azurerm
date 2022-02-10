@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/storage"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Storage"
@@ -59,15 +65,5 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_sync":                         resourceStorageSync(),
 		"azurerm_storage_sync_cloud_endpoint":          resourceStorageSyncCloudEndpoint(),
 		"azurerm_storage_sync_group":                   resourceStorageSyncGroup(),
-	}
-}
-
-func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
-}
-
-func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		DisksPoolResource{},
 	}
 }

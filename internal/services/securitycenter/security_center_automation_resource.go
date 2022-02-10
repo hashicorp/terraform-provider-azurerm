@@ -19,9 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const typeLogicApp = "logicapp"
-const typeEventHub = "eventhub"
-const typeLogAnalytics = "loganalytics"
+const (
+	typeLogicApp     = "logicapp"
+	typeEventHub     = "eventhub"
+	typeLogAnalytics = "loganalytics"
+)
 
 func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -132,8 +134,12 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(security.EventSourceAlerts),
 								string(security.EventSourceAssessments),
+								string(security.EventSourceRegulatoryComplianceAssessment),
+								string(security.EventSourceRegulatoryComplianceAssessmentSnapshot),
 								string(security.EventSourceSecureScoreControls),
+								string(security.EventSourceSecureScoreControlsSnapshot),
 								string(security.EventSourceSecureScores),
+								string(security.EventSourceSecureScoresSnapshot),
 								string(security.EventSourceSubAssessments),
 							}, false),
 						},

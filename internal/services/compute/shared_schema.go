@@ -293,7 +293,7 @@ func planSchema() *pluginsdk.Schema {
 }
 
 func expandPlan(input []interface{}) *compute.Plan {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

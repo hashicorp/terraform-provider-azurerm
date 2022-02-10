@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventGridDomainResource struct {
-}
+type EventGridDomainResource struct{}
 
 func TestAccEventGridDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
@@ -28,6 +27,40 @@ func TestAccEventGridDomain_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridDomain_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -177,6 +210,28 @@ resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridDomainResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_domain" "test" {
+  name                                      = "acctesteg-%d"
+  location                                  = azurerm_resource_group.test.location
+  resource_group_name                       = azurerm_resource_group.test.name
+  local_auth_enabled                        = false
+  auto_create_topic_with_first_subscription = false
+  auto_delete_topic_with_last_subscription  = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

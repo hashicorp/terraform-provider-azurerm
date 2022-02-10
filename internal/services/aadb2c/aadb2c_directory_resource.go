@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,8 +30,10 @@ type AadB2cDirectoryModel struct {
 
 type AadB2cDirectoryResource struct{}
 
-var _ sdk.Resource = AadB2cDirectoryResource{}
-var _ sdk.ResourceWithUpdate = AadB2cDirectoryResource{}
+var (
+	_ sdk.Resource           = AadB2cDirectoryResource{}
+	_ sdk.ResourceWithUpdate = AadB2cDirectoryResource{}
+)
 
 func (r AadB2cDirectoryResource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
@@ -61,7 +62,8 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		"country_code": {
 			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -83,7 +85,8 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Description:  "The initial display name of the B2C tenant.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -135,6 +138,13 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 			var model AadB2cDirectoryModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if model.CountryCode == "" {
+				return fmt.Errorf("`country_code` is required when creating a new AADB2C directory")
+			}
+			if model.DisplayName == "" {
+				return fmt.Errorf("`display_name` is required when creating a new AADB2C directory")
 			}
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)

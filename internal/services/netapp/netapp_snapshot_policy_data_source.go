@@ -168,7 +168,7 @@ func dataSourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", id.Name)
 	d.Set("account_name", id.NetAppAccountName)

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RedisCacheResource struct {
-}
+type RedisCacheResource struct{}
 
 func TestAccRedisCache_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")

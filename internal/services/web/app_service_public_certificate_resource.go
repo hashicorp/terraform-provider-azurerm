@@ -35,7 +35,6 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
@@ -78,25 +77,24 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 
 func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	appServiceName := d.Get("app_service_name").(string)
-	certificateName := d.Get("certificate_name").(string)
+	id := parse.NewPublicCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("certificate_name").(string))
 	certificateLocation := d.Get("certificate_location").(string)
 	blob := d.Get("blob").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.GetPublicCertificate(ctx, resourceGroup, appServiceName, certificateName)
+		existing, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
 		}
 	}
 
@@ -114,19 +112,11 @@ func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, 
 		certificate.PublicCertificateProperties.Blob = &decodedBlob
 	}
 
-	if _, err := client.CreateOrUpdatePublicCertificate(ctx, resourceGroup, appServiceName, certificateName, certificate); err != nil {
-		return fmt.Errorf("creating/updating App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
+	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name, certificate); err != nil {
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
-	read, err := client.GetPublicCertificate(ctx, resourceGroup, appServiceName, certificateName)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read App Service Public Certificate %q (Resource Group %q, App Service: %q) ID", certificateName, resourceGroup, appServiceName)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServicePublicCertificateRead(d, meta)
 }

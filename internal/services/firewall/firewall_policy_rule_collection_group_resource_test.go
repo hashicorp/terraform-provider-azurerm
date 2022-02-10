@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyRuleCollectionGroupResource struct {
-}
+type FirewallPolicyRuleCollectionGroupResource struct{}
 
 func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
@@ -135,7 +134,7 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 }
 
 func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyRuleCollectionGroupID(state.ID)
+	id, err := parse.FirewallPolicyRuleCollectionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}

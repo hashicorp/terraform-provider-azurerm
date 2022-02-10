@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelWebChatResource struct {
-}
+type BotChannelWebChatResource struct{}
 
 func testAccBotChannelWebChat_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")

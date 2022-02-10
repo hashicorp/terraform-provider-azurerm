@@ -269,8 +269,8 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_backend", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
 		}
 	}
 
@@ -389,7 +389,7 @@ func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.BackendCredentialsContract {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})

@@ -135,6 +135,8 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
@@ -324,7 +326,7 @@ A `http_listener` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+* `type` - (Required) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
 
@@ -529,7 +531,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, `3.1`,  and `3.2`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 

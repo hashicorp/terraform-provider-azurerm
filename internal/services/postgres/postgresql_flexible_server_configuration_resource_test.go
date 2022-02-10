@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgresqlFlexibleServerConfigurationResource struct {
-}
+type PostgresqlFlexibleServerConfigurationResource struct{}
 
 func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")

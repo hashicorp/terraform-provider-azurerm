@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BatchCertificateResource struct {
-}
+type BatchCertificateResource struct{}
 
 func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")

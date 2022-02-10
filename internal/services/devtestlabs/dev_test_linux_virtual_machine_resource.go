@@ -168,8 +168,8 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dev_test_linux_virtual_machine", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_dev_test_linux_virtual_machine", id.ID())
 		}
 	}
 

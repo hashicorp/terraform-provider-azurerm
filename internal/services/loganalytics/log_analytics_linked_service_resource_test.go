@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsLinkedServiceResource struct {
-}
+type LogAnalyticsLinkedServiceResource struct{}
 
 func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")

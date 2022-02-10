@@ -7,14 +7,14 @@ import (
 
 	legacyacr "github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2019-06-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,8 +23,10 @@ import (
 
 type ContainerRegistryTaskResource struct{}
 
-var _ sdk.ResourceWithUpdate = ContainerRegistryTaskResource{}
-var _ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ContainerRegistryTaskResource{}
+	_ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
+)
 
 type AgentConfig struct {
 	CPU int `tfschema:"cpu"`
@@ -82,8 +84,7 @@ type Auth struct {
 	ExpireInSec  int    `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct {
-}
+type SourceSetting struct{}
 
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`
@@ -99,13 +100,6 @@ type TimerTrigger struct {
 	Name     string `tfschema:"name"`
 	Enabled  bool   `tfschema:"enabled"`
 	Schedule string `tfschema:"schedule"`
-}
-
-type Identity struct {
-	Type        string   `tfschema:"type"`
-	IdentityIds []string `tfschema:"identity_ids"`
-	PrincipalId string   `tfschema:"principal_id"`
-	TenantId    string   `tfschema:"tenant_id"`
 }
 
 type RegistryCredential struct {
@@ -127,7 +121,6 @@ type CustomRegistryCredential struct {
 type ContainerRegistryTaskModel struct {
 	Name                string               `tfschema:"name"`
 	ContainerRegistryId string               `tfschema:"container_registry_id"`
-	Identity            []Identity           `tfschema:"identity"`
 	AgentConfig         []AgentConfig        `tfschema:"agent_setting"`
 	AgentPoolName       string               `tfschema:"agent_pool_name"`
 	IsSystemTask        bool                 `tfschema:"is_system_task"`
@@ -510,40 +503,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(legacyacr.UserAssigned),
-							string(legacyacr.SystemAssigned),
-							string(legacyacr.SystemAssignedUserAssigned),
-						}, false),
-					},
-					"identity_ids": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
-						},
-					},
-					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 		"registry_credential": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -590,6 +551,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {
+									// TODO - 3.0: should this be `user_assigned_identity_id`?
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -730,6 +692,11 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				status = legacyacr.TaskStatusEnabled
 			}
 
+			expandedIdentity, err := expandRegistryTaskIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
 					Platform:           expandRegistryTaskPlatform(model.Platform),
@@ -744,7 +711,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 
 				// The location of the task must be the same as the registry, otherwise the API will raise error complaining can't find the registry.
 				Location: utils.String(location.NormalizeNilable(registry.Location)),
-				Identity: expandRegistryTaskIdentity(model.Identity),
+				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(model.Tags),
 			}
 
@@ -836,14 +803,10 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				}
 				registryCredential = flattenRegistryTaskCredentials(props.Credentials, diffOrStateModel)
 			}
-			identity, err := flattenRegistryTaskIdentity(task.Identity)
-			if err != nil {
-				return err
-			}
+
 			model := ContainerRegistryTaskModel{
 				Name:                id.TaskName,
 				ContainerRegistryId: registryId.ID(),
-				Identity:            identity,
 				AgentConfig:         agentConfig,
 				AgentPoolName:       agentPoolName,
 				IsSystemTask:        isSystemTask,
@@ -861,7 +824,19 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				Tags:                tags.ToTypedObject(task.Tags),
 			}
 
-			return metadata.Encode(&model)
+			if err := metadata.Encode(&model); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenRegistryTaskIdentity(task.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -926,7 +901,11 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.TaskProperties.Trigger = expandRegistryTaskTrigger(model)
 			}
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = expandRegistryTaskIdentity(model.Identity)
+				expandedIdentity, err := expandRegistryTaskIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 			if metadata.ResourceData.HasChange("registry_credential") {
 				existing.TaskProperties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
@@ -1463,51 +1442,49 @@ func flattenRegistryTaskValues(values *[]legacyacr.SetValue) map[string]string {
 	return vals
 }
 
-func expandRegistryTaskIdentity(identities []Identity) *legacyacr.IdentityProperties {
-	if len(identities) == 0 {
-		return nil
+func expandRegistryTaskIdentity(input []interface{}) (*legacyacr.IdentityProperties, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	identity := identities[0]
-	out := &legacyacr.IdentityProperties{
-		Type: legacyacr.ResourceIdentityType(identity.Type),
+	out := legacyacr.IdentityProperties{
+		Type: legacyacr.ResourceIdentityType(string(expanded.Type)),
 	}
-	if len(identity.IdentityIds) > 0 {
+	if len(expanded.IdentityIds) > 0 {
 		out.UserAssignedIdentities = map[string]*legacyacr.UserIdentityProperties{}
-		for _, identityId := range identity.IdentityIds {
-			out.UserAssignedIdentities[identityId] = &legacyacr.UserIdentityProperties{}
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &legacyacr.UserIdentityProperties{
+				// intentionally empty
+			}
 		}
 	}
-	return out
+	return &out, nil
 }
 
-func flattenRegistryTaskIdentity(identity *legacyacr.IdentityProperties) ([]Identity, error) {
-	if identity == nil {
-		return nil, nil
-	}
+func flattenRegistryTaskIdentity(input *legacyacr.IdentityProperties) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	obj := Identity{
-		Type: string(identity.Type),
-	}
-
-	if identity.PrincipalID != nil {
-		obj.PrincipalId = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		obj.TenantId = *identity.TenantID
-	}
-
-	var identityIds []string
-	for id := range identity.UserAssignedIdentities {
-		identityId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-		if err != nil {
-			return nil, fmt.Errorf("parsing identity id %s: %w", id, err)
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		identityIds = append(identityIds, identityId.ID())
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
-	obj.IdentityIds = identityIds
 
-	return []Identity{obj}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandRegistryTaskPlatform(input []Platform) *legacyacr.PlatformProperties {

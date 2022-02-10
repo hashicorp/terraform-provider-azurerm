@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFlexibleServerConfigurationResource struct {
-}
+type MySQLFlexibleServerConfigurationResource struct{}
 
 func TestAccMySQLFlexibleServerConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")

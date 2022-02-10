@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type RecoveryServicesVaultDataSource struct {
-}
+type RecoveryServicesVaultDataSource struct{}
 
 func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_recovery_services_vault", "test")

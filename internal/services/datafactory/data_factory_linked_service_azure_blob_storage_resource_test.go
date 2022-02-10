@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceAzureBlobStorageResource struct {
-}
+type LinkedServiceAzureBlobStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")

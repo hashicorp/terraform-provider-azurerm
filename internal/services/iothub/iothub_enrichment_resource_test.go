@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubEnrichmentResource struct {
-}
+type IotHubEnrichmentResource struct{}
 
 func TestAccIotHubEnrichment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")

@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementResource struct {
-}
+type ApiManagementResource struct{}
 
 func TestAccApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
@@ -290,8 +292,11 @@ func TestAccApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T)
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("public_ip_address_id").Exists(),
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("additional_location.0.private_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("additional_location.0.public_ip_address_id").Exists(),
+				check.That(data.ResourceName).Key("additional_location.0.capacity").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -405,7 +410,7 @@ func TestAccApiManagement_clientCertificate(t *testing.T) {
 	})
 }
 
-func TestAccApiManagement_gatewayDiabled(t *testing.T) {
+func TestAccApiManagement_gatewayDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -418,7 +423,7 @@ func TestAccApiManagement_gatewayDiabled(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.gatewayDiabled(data),
+			Config: r.gatewayDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -495,6 +500,26 @@ func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_removeSamples(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.removeSamples(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				r.testCheckHasNoProductsOrApis(data.ResourceName),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
@@ -509,6 +534,52 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
+	return func(state *terraform.State) error {
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
+		ctx := client.StopContext
+
+		rs, ok := state.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("%q was not found in the state", resourceName)
+		}
+
+		id, err := parse.ApiManagementID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		for apis, err := client.ApiManagement.ApiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apis.NotDone(); err = apis.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if apis.Response().IsEmpty() {
+				break
+			}
+			if count := len(apis.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated APIs", id, count)
+			}
+		}
+
+		for products, err := client.ApiManagement.ProductsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); products.NotDone(); err = products.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if products.Response().IsEmpty() {
+				break
+			}
+			if count := len(products.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated Products", id, count)
+			}
+		}
+
+		return nil
+	}
 }
 
 func TestAccApiManagement_identityUserAssigned(t *testing.T) {
@@ -992,6 +1063,8 @@ resource "azurerm_api_management" "test" {
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
 
+  sku_name = "Premium_2"
+
   additional_location {
     location = azurerm_resource_group.test2.location
   }
@@ -1074,10 +1147,6 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku_name = "Premium_2"
-
-  zones = [1, 2]
-
   tags = {
     "Acceptance" = "Test"
   }
@@ -1115,8 +1184,11 @@ resource "azurerm_api_management" "test" {
   publisher_email           = "pub1@email.com"
   notification_sender_email = "notification@email.com"
 
+  sku_name = "Premium_2"
+
   additional_location {
     location = azurerm_resource_group.test2.location
+    capacity = 1
   }
 
   certificate {
@@ -1192,10 +1264,6 @@ resource "azurerm_api_management" "test" {
       certificate_password = "terraform"
     }
   }
-
-  sku_name = "Premium_2"
-
-  zones = [1, 2]
 
   tags = {
     "Acceptance" = "Test"
@@ -1413,6 +1481,23 @@ resource "azurerm_network_security_rule" "authenticate2" {
   network_security_group_name = azurerm_network_security_group.test2.name
 }
 
+resource "azurerm_public_ip" "test1" {
+  name                = "acctest-IP1-%[4]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-ip1-%[4]s"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest-IP2-%[4]s"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-ip2-%[4]s"
+}
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%[2]d"
@@ -1425,17 +1510,26 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = azurerm_resource_group.test2.location
+    capacity = 1
+
+    public_ip_address_id = azurerm_public_ip.test2.id
     virtual_network_configuration {
       subnet_id = azurerm_subnet.test2.id
     }
   }
 
   virtual_network_type = "Internal"
+  public_ip_address_id = azurerm_public_ip.test1.id
   virtual_network_configuration {
     subnet_id = azurerm_subnet.test.id
   }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_network_security_group_association.test2,
+  ]
 }
-`, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary)
+`, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func (ApiManagementResource) identityUserAssigned(data acceptance.TestData) string {
@@ -1480,17 +1574,21 @@ func (ApiManagementResource) identitySystemAssigned(data acceptance.TestData) st
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
@@ -1654,6 +1752,7 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
+
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1664,7 +1763,9 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
@@ -1682,14 +1783,17 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
+
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
-      key_vault_id                 = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
+      key_vault_id                 = azurerm_key_vault_certificate.test.versionless_secret_id
       default_ssl_binding          = true
       negotiate_client_certificate = false
     }
@@ -1708,10 +1812,13 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
+
   identity {
     type = "SystemAssigned"
   }
+
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
@@ -1832,7 +1939,8 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku_name = "Developer_1"
 
   hostname_configuration {
     proxy {
@@ -1850,6 +1958,7 @@ resource "azurerm_api_management" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
+
   depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1948,7 +2057,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (ApiManagementResource) gatewayDiabled(data acceptance.TestData) string {
+func (ApiManagementResource) gatewayDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2057,6 +2166,28 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementResource) removeSamples(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ApiManagementResource) tenantAccess(data acceptance.TestData) string {

@@ -87,7 +87,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					512,
-					4096}),
+					4096,
+				}),
 				Computed: true,
 			},
 
@@ -264,8 +265,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_disk", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_disk", id.ID())
 		}
 	}
 

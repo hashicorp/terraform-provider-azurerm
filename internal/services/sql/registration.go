@@ -1,10 +1,17 @@
 package sql
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/sql"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -21,8 +28,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_sql_server":   dataSourceSqlServer(),
-		"azurerm_sql_database": dataSourceSqlDatabase(),
+		"azurerm_sql_server":           dataSourceSqlServer(),
+		"azurerm_sql_database":         dataSourceSqlDatabase(),
+		"azurerm_sql_managed_instance": dataSourceArmSqlMiServer(),
 	}
 }
 

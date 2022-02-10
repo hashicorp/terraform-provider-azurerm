@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SnapshotResource struct {
-}
+type SnapshotResource struct{}
 
 func TestAccSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
@@ -487,6 +486,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = azurerm_resource_group.test.name
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
   depends_on = [
     azurerm_virtual_machine.test,
   ]

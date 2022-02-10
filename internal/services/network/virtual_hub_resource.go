@@ -132,8 +132,8 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_hub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub", id.ID())
 		}
 	}
 
@@ -186,16 +186,12 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	respRaw, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 
-	resp := respRaw.(network.VirtualHub)
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read %s ID", id)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualHubRead(d, meta)
 }
