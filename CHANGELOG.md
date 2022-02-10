@@ -7,6 +7,7 @@ FEATURES:
 * **New Data Source:** `azurerm_site_recovery_protection_container` [GH-15349]
 * **New Data Source:** `azurerm_site_recovery_replication_policy` [GH-15349]
 * **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
+* **New resource:** `azurerm_disk_pool_iscsi_target_lun` [GH-15329]
 * **New Resource:** `azurerm_sentinel_watchlist_item` [GH-14366]
 * **New Resource:** `azurerm_stream_analytics_output_function` [GH-15162]
 * **New Resource:** `azurerm_web_pubsub_network_acl` [GH-14827]
