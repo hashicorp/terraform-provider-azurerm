@@ -15,13 +15,13 @@ import (
 
 type ConfidentialLedgerResource struct{}
 
-func TestAccConfidentialLedger_free(t *testing.T) {
+func TestAccConfidentialLedger_public(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.free(data),
+			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -30,13 +30,13 @@ func TestAccConfidentialLedger_free(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_standard(t *testing.T) {
+func TestAccConfidentialLedger_private(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,7 +51,7 @@ func TestAccConfidentialLedger_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -60,13 +60,13 @@ func TestAccConfidentialLedger_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_complete(t *testing.T) {
+func TestAccConfidentialLedger_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.withTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,62 +75,107 @@ func TestAccConfidentialLedger_complete(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_identity(t *testing.T) {
+func TestAccConfidentialLedger_aadBasedServicePrincipals(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.aadBasedServicePrincipals(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("3"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.ledger_role_name").HasValue("Contributor"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.ledger_role_name").HasValue("Reader"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccConfidentialLedger_identityUserAssigned(t *testing.T) {
+func TestAccConfidentialLedger_certBasedAdministrator(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identityUserAssigned(data),
+			Config: r.certBasedAdministrator(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccConfidentialLedger_identityUpdated(t *testing.T) {
+func TestAccConfidentialLedger_certBasedContributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.certBasedContributor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Contributor"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccConfidentialLedger_certBasedReader(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
+	r := ConfidentialLedgerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.certBasedReader(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Reader"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccConfidentialLedger_combinedServicePrincipals(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
+	r := ConfidentialLedgerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.combinedServicePrincipals(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("3"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.ledger_role_name").HasValue("Contributor"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.1.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.ledger_role_name").HasValue("Reader"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.principal_id").Exists(),
+				check.That(data.ResourceName).Key("aad_based_security_principals.2.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
+				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -143,13 +188,13 @@ func TestAccConfidentialLedger_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.completeUpdated(data),
+			Config: r.publicUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -171,76 +216,76 @@ func (t ConfidentialLedgerResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (ConfidentialLedgerResource) free(data acceptance.TestData) string {
+func (ConfidentialLedgerResource) public(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
+  name     = "acl-terraform-test-%d"
   location = "%s"
 }
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "testacc-appconf%d"
-  resource_group_name = azurerm_resource_group.test.name
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ConfidentialLedgerResource) standard(data acceptance.TestData) string {
+func (ConfidentialLedgerResource) private(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
+  name     = "acl-terraform-test-%d"
   location = "%s"
 }
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "testaccappconf%d"
-  resource_group_name = azurerm_resource_group.test.name
+  name                = "terraform-test-%d"
+  ledger_type         = "Private"
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r ConfidentialLedgerResource) requiresImport(data acceptance.TestData) string {
-	template := r.standard(data)
+	template := r.public(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_confidential_ledger" "import" {
   name                = azurerm_confidential_ledger.test.name
-  resource_group_name = azurerm_confidential_ledger.test.resource_group_name
+  ledger_type         = azurerm_confidential_ledger.test.ledger_type
   location            = azurerm_confidential_ledger.test.location
-  sku                 = azurerm_confidential_ledger.test.sku
+  resource_group_name = azurerm_confidential_ledger.test.resource_group_name
 }
 `, template)
 }
 
-func (ConfidentialLedgerResource) complete(data acceptance.TestData) string {
+func (ConfidentialLedgerResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
+  name     = "acl-terraform-test-%d"
   location = "%s"
 }
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "testaccappconf%d"
-  resource_group_name = azurerm_resource_group.test.name
+  name                = "terraform-test-%d"
+  ledger_type         = "Private"
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "development"
@@ -249,91 +294,210 @@ resource "azurerm_confidential_ledger" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ConfidentialLedgerResource) identity(data acceptance.TestData) string {
+func (ConfidentialLedgerResource) aadBasedServicePrincipals(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acl-terraform-test-%d"
+		location = "%s"
+	  }
+	  
+	  resource "azurerm_confidential_ledger" "test" {
+		aad_based_security_principals = [
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f20"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+				ledger_role_name = "Administrator"
+			},
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f21"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
+				ledger_role_name = "Contributor"
+			},
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f22"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
+				ledger_role_name = "Reader"
+			}
+		]
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-resource "azurerm_confidential_ledger" "test" {
-  name                = "testaccappconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    ENVironment = "DEVelopment"
-  }
-}
+		name                = "terraform-test-%d"
+		ledger_type         = "Public"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+	  
+		tags = {
+		  environment = "development"
+		}
+	  }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ConfidentialLedgerResource) identityUserAssigned(data acceptance.TestData) string {
+func (ConfidentialLedgerResource) certBasedAdministrator(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acl-terraform-test-%d"
+		location = "%s"
+	  }
+	  
+	  resource "azurerm_confidential_ledger" "test" {
+		cert_based_security_principals = [
+			{
+				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+				ledger_role_name = "Administrator"
+			}
+		]
+
+		name                = "terraform-test-%d"
+		ledger_type         = "Public"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+	  
+		tags = {
+		  environment = "development"
+		}
+	  }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ConfidentialLedgerResource) certBasedContributor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acl-terraform-test-%d"
+		location = "%s"
+	  }
+	  
+	  resource "azurerm_confidential_ledger" "test" {
+		cert_based_security_principals = [
+			{
+				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+				ledger_role_name = "Contributor"
+			}
+		]
+
+		name                = "terraform-test-%d"
+		ledger_type         = "Public"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+	  
+		tags = {
+		  environment = "development"
+		}
+	  }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ConfidentialLedgerResource) certBasedReader(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acl-terraform-test-%d"
+		location = "%s"
+	  }
+	  
+	  resource "azurerm_confidential_ledger" "test" {
+		cert_based_security_principals = [
+			{
+				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+				ledger_role_name = "Reader"
+			}
+		]
+
+		name                = "terraform-test-%d"
+		ledger_type         = "Public"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+	  
+		tags = {
+		  environment = "development"
+		}
+	  }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ConfidentialLedgerResource) combinedServicePrincipals(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acl-terraform-test-%d"
+		location = "%s"
+	  }
+	  
+	  resource "azurerm_confidential_ledger" "test" {
+		aad_based_security_principals = [
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f20"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+				ledger_role_name = "Administrator"
+			},
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f21"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
+				ledger_role_name = "Contributor"
+			},
+			{
+				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f22"
+				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
+				ledger_role_name = "Reader"
+			}
+		]
+
+		cert_based_security_principals = [
+			{
+				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+				ledger_role_name = "Administrator"
+			}
+		]
+
+		name                = "terraform-test-%d"
+		ledger_type         = "Public"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+	  
+		tags = {
+		  environment = "development"
+		}
+	  }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ConfidentialLedgerResource) publicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_confidential_ledger" "test" {
-  name                = "testaccappconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-
-  tags = {
-    ENVironment = "DEVelopment"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (ConfidentialLedgerResource) completeUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
+  name     = "acl-terraform-test-%d"
   location = "%s"
 }
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "testaccappconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+	name                = "terraform-test-%d"
+	ledger_type         = "Public"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
 
-  tags = {
-    Environment = "Production"
+	tags = {
+		Updated = "Yes"
+	}
   }
-}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
