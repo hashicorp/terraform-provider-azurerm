@@ -2193,7 +2193,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_user_assigned_identity" "example" {
+resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2209,7 +2209,7 @@ resource "azurerm_windows_web_app" "test" {
 
   identity {
     type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
@@ -2223,7 +2223,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_user_assigned_identity" "example" {
+resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2239,7 +2239,7 @@ resource "azurerm_windows_web_app" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
