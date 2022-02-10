@@ -150,6 +150,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"enable_auto_stop": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"enable_disk_encryption": {
