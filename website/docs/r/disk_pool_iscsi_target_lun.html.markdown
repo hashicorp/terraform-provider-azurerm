@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `disk_pool_managed_disk_attachment_id` - (Required) The ID of the `azurerm_disk_pool_managed_disk_attachment`. Changing this forces a new iSCSI Target LUN to be created.
 
-* `name` - (Required) User defined name for iSCSI LUN. Supported characters include uppercase letters, lowercase letters, numbers, periods, underscores or hyphens. Name should end with an alphanumeric character. The length must be between 1 and 90. Changing this forces a new iSCSI Target LUN to be created.
+* `name` - (Required) User defined name for iSCSI LUN. Supported characters include uppercase letters, lowercase letters, numbers, periods, underscores or hyphens. Name should end with an alphanumeric character. The length must be between `1` and `90`. Changing this forces a new iSCSI Target LUN to be created.
 
 ## Attributes Reference
 
