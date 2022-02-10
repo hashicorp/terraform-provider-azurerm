@@ -6,8 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -257,95 +255,6 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeString,
 					},
 					Description: "Specifies if a Front Door Health Probe is expected.",
-				},
-			},
-		},
-	}
-}
-
-type Identity struct {
-	IdentityIds []string `tfschema:"identity_ids"`
-	Type        string   `tfschema:"type"`
-	PrincipalId string   `tfschema:"principal_id"`
-	TenantId    string   `tfschema:"tenant_id"`
-}
-
-func IdentitySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: msiValidate.UserAssignedIdentityID,
-					},
-					Description: "Specifies a list of User Assigned Identity IDs.",
-				},
-
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
-						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					Description: "The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.",
-				},
-
-				"principal_id": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Principal ID for the Service Principal associated with the Managed Service Identity.",
-				},
-
-				"tenant_id": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Tenant ID for the Service Principal associated with the Managed Service Identity.",
-				},
-			},
-		},
-	}
-}
-
-func IdentitySchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-					Description: "The list of User Assigned Identity IDs.",
-				},
-
-				"type": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The type of managed service identity.",
-				},
-
-				"principal_id": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Principal ID for the Service Principal associated with the Managed Service Identity.",
-				},
-
-				"tenant_id": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Tenant ID for the Service Principal associated with the Managed Service Identity.",
 				},
 			},
 		},
@@ -1272,26 +1181,6 @@ func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	return &result
 }
 
-func ExpandIdentity(identities []Identity) *web.ManagedServiceIdentity {
-	if len(identities) == 0 {
-		return &web.ManagedServiceIdentity{
-			Type: web.ManagedServiceIdentityTypeNone,
-		}
-	}
-	var result web.ManagedServiceIdentity
-	for _, v := range identities {
-		result.Type = web.ManagedServiceIdentityType(v.Type)
-		if result.Type == web.ManagedServiceIdentityTypeUserAssigned || result.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-			identityIds := make(map[string]*web.UserAssignedIdentity)
-			for _, i := range v.IdentityIds {
-				identityIds[i] = &web.UserAssignedIdentity{}
-			}
-			result.UserAssignedIdentities = identityIds
-		}
-	}
-	return &result
-}
-
 func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 	result := &web.SiteAuthSettings{}
 	if len(auth) == 0 {
@@ -1554,37 +1443,6 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 	}
 
 	return []AuthSettings{result}
-}
-
-func FlattenIdentity(appIdentity *web.ManagedServiceIdentity) []Identity {
-	if appIdentity == nil {
-		return nil
-	}
-	identity := Identity{
-		Type: string(appIdentity.Type),
-	}
-
-	if len(appIdentity.UserAssignedIdentities) != 0 {
-		var identityIds []string
-		for k := range appIdentity.UserAssignedIdentities {
-			// Service can return broken case IDs
-			id, err := msiParse.UserAssignedIdentityIDInsensitively(k)
-			if err == nil {
-				identityIds = append(identityIds, id.ID())
-			}
-		}
-		identity.IdentityIds = identityIds
-	}
-
-	if appIdentity.PrincipalID != nil {
-		identity.PrincipalId = *appIdentity.PrincipalID
-	}
-
-	if appIdentity.TenantID != nil {
-		identity.TenantId = *appIdentity.TenantID
-	}
-
-	return []Identity{identity}
 }
 
 func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []IpRestriction {

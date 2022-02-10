@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -31,7 +32,6 @@ type WindowsWebAppSlotModel struct {
 	ClientCertMode                string                                `tfschema:"client_certificate_mode"`
 	Enabled                       bool                                  `tfschema:"enabled"`
 	HttpsOnly                     bool                                  `tfschema:"https_only"`
-	Identity                      []helpers.Identity                    `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                                `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig                  `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindowsWebAppSlot `tfschema:"site_config"`
@@ -128,7 +128,7 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -239,10 +239,15 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: webApp.Location,
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
-				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
+				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          siteProps.ServerFarmID,
 					Enabled:               utils.Bool(webAppSlot.Enabled),
@@ -410,25 +415,23 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := WindowsWebAppSlotModel{
-				Name:                        id.SlotName,
-				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				AuthSettings:                helpers.FlattenAuthSettings(auth),
-				Backup:                      helpers.FlattenBackupConfig(backup),
-				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
-				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
-				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
-				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
-				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
-				Identity:                    helpers.FlattenIdentity(webApp.Identity),
-				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				Kind:                        utils.NormalizeNilableString(webApp.Kind),
-				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
-				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
-				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+				Name:                       id.SlotName,
+				AppServiceId:               parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+				AuthSettings:               helpers.FlattenAuthSettings(auth),
+				Backup:                     helpers.FlattenBackupConfig(backup),
+				ClientAffinityEnabled:      utils.NormaliseNilableBool(props.ClientAffinityEnabled),
+				ClientCertEnabled:          utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientCertMode:             string(props.ClientCertMode),
+				ConnectionStrings:          helpers.FlattenConnectionStrings(connectionStrings),
+				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:            utils.NormalizeNilableString(props.DefaultHostName),
+				Enabled:                    utils.NormaliseNilableBool(props.Enabled),
+				HttpsOnly:                  utils.NormaliseNilableBool(props.HTTPSOnly),
+				Kind:                       utils.NormalizeNilableString(webApp.Kind),
+				LogsConfig:                 helpers.FlattenLogsConfig(logsConfig),
+				SiteCredentials:            helpers.FlattenSiteCredentials(siteCredentials),
+				StorageAccounts:            helpers.FlattenStorageAccounts(storageAccounts),
+				Tags:                       tags.ToTypedObject(webApp.Tags),
 			}
 
 			var healthCheckCount *int
@@ -452,7 +455,19 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -519,7 +534,11 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
