@@ -96,7 +96,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

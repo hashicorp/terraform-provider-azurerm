@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataShareDataSetBlobStorageResource struct {
-}
+type DataShareDataSetBlobStorageResource struct{}
 
 func TestAccDataShareDataSetBlobStorage_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")

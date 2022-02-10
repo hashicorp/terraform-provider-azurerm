@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceAzureFileStorageResource struct {
-}
+type LinkedServiceAzureFileStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
@@ -108,6 +107,7 @@ func (t LinkedServiceAzureFileStorageResource) Exists(ctx context.Context, clien
 
 	return utils.Bool(resp.ID != nil), nil
 }
+
 func (LinkedServiceAzureFileStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

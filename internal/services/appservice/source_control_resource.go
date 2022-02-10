@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct{}
+type SourceControlResource struct{}
 
-type AppServiceSourceControlModel struct {
+type SourceControlModel struct {
 	AppID                     string                      `tfschema:"app_id"`
 	SCMType                   string                      `tfschema:"scm_type"`
 	RepoURL                   string                      `tfschema:"repo_url"`
@@ -30,9 +30,9 @@ type AppServiceSourceControlModel struct {
 	GithubActionConfiguration []GithubActionConfiguration `tfschema:"github_action_configuration"`
 }
 
-var _ sdk.Resource = AppServiceSourceControlResource{}
+var _ sdk.Resource = SourceControlResource{}
 
-func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schema {
+func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"app_id": {
 			Type:         pluginsdk.TypeString,
@@ -104,7 +104,7 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r AppServiceSourceControlResource) Attributes() map[string]*pluginsdk.Schema {
+func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scm_type": {
 			Type:     pluginsdk.TypeString,
@@ -118,19 +118,19 @@ func (r AppServiceSourceControlResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r AppServiceSourceControlResource) ModelObject() interface{} {
-	return &AppServiceSourceControlModel{}
+func (r SourceControlResource) ModelObject() interface{} {
+	return &SourceControlModel{}
 }
 
-func (r AppServiceSourceControlResource) ResourceType() string {
+func (r SourceControlResource) ResourceType() string {
 	return "azurerm_app_service_source_control" // TODO - Does this name fit the new convention?
 }
 
-func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
+func (r SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var appSourceControl AppServiceSourceControlModel
+			var appSourceControl SourceControlModel
 
 			if err := metadata.Decode(&appSourceControl); err != nil {
 				return err
@@ -208,7 +208,7 @@ func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
+func (r SourceControlResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -239,15 +239,15 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 
 			props := *appSourceControl.SiteSourceControlProperties
 
-			state := AppServiceSourceControlModel{
+			state := SourceControlModel{
 				AppID:                     id.ID(),
 				SCMType:                   string(siteConfig.ScmType),
 				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
 				Branch:                    utils.NormalizeNilableString(props.Branch),
-				ManualIntegration:         *props.IsManualIntegration,
-				UseMercurial:              *props.IsMercurial,
-				RollbackEnabled:           *props.DeploymentRollbackEnabled,
-				UsesGithubAction:          *props.IsGitHubAction,
+				ManualIntegration:         utils.NormaliseNilableBool(props.IsManualIntegration),
+				UseMercurial:              utils.NormaliseNilableBool(props.IsMercurial),
+				RollbackEnabled:           utils.NormaliseNilableBool(props.DeploymentRollbackEnabled),
+				UsesGithubAction:          utils.NormaliseNilableBool(props.IsGitHubAction),
 				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
 				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
 			}
@@ -257,7 +257,7 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) Delete() sdk.ResourceFunc {
+func (r SourceControlResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -287,7 +287,7 @@ func (r AppServiceSourceControlResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r SourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	// This is a meta resource with a 1:1 relationship with the service it's pointed at so we use the same ID
 	return validate.WebAppID
 }

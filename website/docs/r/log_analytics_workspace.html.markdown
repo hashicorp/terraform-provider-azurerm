@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
 
-~> **NOTE:** When `sku` is set to `Free` this field can be set to a maximum of `0.5` (GB), and has a default value of `0.5`. 
+~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
 * `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
 

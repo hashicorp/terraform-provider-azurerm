@@ -33,7 +33,7 @@ const (
 
 	KeyVaultPublicEndpoint ApiEndpoint = "https://vault.azure.net"
 	KeyVaultChinaEndpoint  ApiEndpoint = "https://vault.azure.cn"
-	KeyVaultUSGovEndpoint  ApiEndpoint = "https://vault.microsoftazure.de"
+	KeyVaultUSGovEndpoint  ApiEndpoint = "https://vault.microsoftazure.us"
 
 	OperationalInsightsPublicEndpoint ApiEndpoint = "https://api.loganalytics.io"
 	OperationalInsightsUSGovEndpoint  ApiEndpoint = "https://api.loganalytics.us"

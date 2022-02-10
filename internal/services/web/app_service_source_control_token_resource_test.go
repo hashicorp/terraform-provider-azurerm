@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct {
-}
+type AppServiceSourceControlResource struct{}
 
 func TestAccAppServiceSourceControlToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")

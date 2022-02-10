@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultCertificateIssuerResource struct {
-}
+type KeyVaultCertificateIssuerResource struct{}
 
 func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")

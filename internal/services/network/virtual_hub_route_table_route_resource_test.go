@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubRouteTableRouteResource struct {
-}
+type VirtualHubRouteTableRouteResource struct{}
 
 func TestAccVirtualHubRouteTableRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")

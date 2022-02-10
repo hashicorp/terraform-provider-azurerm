@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DedicatedHardwareSecurityModuleResource struct {
-}
+type DedicatedHardwareSecurityModuleResource struct{}
 
 func TestAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")

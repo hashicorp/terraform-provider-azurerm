@@ -71,6 +71,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 		},
 	}
 }
+
 func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient

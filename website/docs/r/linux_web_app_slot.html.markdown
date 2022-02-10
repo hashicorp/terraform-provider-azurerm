@@ -42,11 +42,8 @@ resource "azurerm_linux_web_app" "example" {
 }
 
 resource "azurerm_linux_web_app_slot" "example" {
-  name                = "example"
-  app_service_name    = azurerm_linux_web_app.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_service_plan.example.location
-  service_plan_id     = azurerm_service_plan.example.id
+  name           = "example-slot"
+  app_service_id = azurerm_linux_web_app.example.id
 
   site_config {}
 }
@@ -61,13 +58,7 @@ The following arguments are supported:
 
 * ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
-* `location` - (Required) The Azure Region where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
-
-* `app_service_name` - (Required) The name of the Linux Web App this Deployment Slot will be part of.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
-
-* `service_plan_id` - (Required) The ID of the Service Plan that this Linux App Service will be created in.
+* `app_service_id` - (Required) The ID of the Linux Web App this Deployment Slot will be part of. Changing this forces a new Linux Web App to be created.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
@@ -233,7 +224,7 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 

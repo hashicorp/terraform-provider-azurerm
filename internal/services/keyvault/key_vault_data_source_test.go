@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KeyVaultDataSource struct {
-}
+type KeyVaultDataSource struct{}
 
 func TestAccDataSourceKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")

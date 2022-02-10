@@ -526,6 +526,7 @@ resource "azurerm_subscription_policy_assignment" "import" {
 }
 `, template)
 }
+
 func (r SubscriptionAssignmentTestResource) withCustomPolicyUpdated(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LocalNetworkGatewayResource struct {
-}
+type LocalNetworkGatewayResource struct{}
 
 func TestAccLocalNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")

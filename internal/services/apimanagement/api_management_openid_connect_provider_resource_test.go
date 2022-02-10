@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementOpenIDConnectProviderResource struct {
-}
+type ApiManagementOpenIDConnectProviderResource struct{}
 
 func TestAccApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")

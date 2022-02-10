@@ -198,7 +198,7 @@ A `connection_string` block supports the following:
 
 * `name` - (Required) The name which should be used for this Connection.
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -358,8 +358,6 @@ A `site_config` block supports the following:
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
-
-* `auto_swap_slot_name` - (Optional) The Windows Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
 * `cors` - (Optional) A `cors` block as defined above.
 

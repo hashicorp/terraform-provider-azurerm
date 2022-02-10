@@ -72,8 +72,8 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_facebook", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_facebook", id.ID())
 		}
 	}
 

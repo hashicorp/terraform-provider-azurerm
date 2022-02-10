@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualNetworkGatewayResource struct {
-}
+type VirtualNetworkGatewayResource struct{}
 
 func TestAccVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")

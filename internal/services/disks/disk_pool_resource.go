@@ -124,8 +124,9 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
-				if err := r.retryError(future.Poller.PollUntilDone()); err != nil {
+				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
 				}
 				metadata.SetID(id)
@@ -190,8 +191,9 @@ func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
-				return r.retryError(future.Poller.PollUntilDone())
+				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
 	}
@@ -232,14 +234,15 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
-				return r.retryError(future.Poller.PollUntilDone())
+				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
 	}
 }
 
-func (DiskPoolResource) retryError(err error) *resource.RetryError {
+func (DiskPoolResource) retryError(action string, id string, err error) *resource.RetryError {
 	if err == nil {
 		return nil
 	}
@@ -251,10 +254,10 @@ func (DiskPoolResource) retryError(err error) *resource.RetryError {
 	}
 	for _, retryableError := range retryableErrors {
 		if strings.Contains(err.Error(), retryableError) {
-			return pluginsdk.RetryableError(err)
+			return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 		}
 	}
-	return pluginsdk.NonRetryableError(err)
+	return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 }
 
 func expandDisksPoolSku(sku string) diskpools.Sku {

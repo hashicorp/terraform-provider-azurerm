@@ -177,6 +177,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.MonitorClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -192,8 +193,8 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_logz_monitor", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_logz_monitor", id.ID())
 	}
 
 	monitoringStatus := logz.MonitoringStatusDisabled

@@ -74,6 +74,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 		},
 	}
 }
+
 func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataSourceWindowsEventResource struct {
-}
+type LogAnalyticsDataSourceWindowsEventResource struct{}
 
 func TestAccLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")

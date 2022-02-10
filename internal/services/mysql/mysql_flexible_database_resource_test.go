@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFlexibleDatabaseResource struct {
-}
+type MySQLFlexibleDatabaseResource struct{}
 
 func TestAccMySQLFlexibleDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")

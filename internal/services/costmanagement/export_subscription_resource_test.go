@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubscriptionCostManagementExport struct {
-}
+type SubscriptionCostManagementExport struct{}
 
 func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")

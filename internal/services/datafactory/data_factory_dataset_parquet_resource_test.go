@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetParquetResource struct {
-}
+type DatasetParquetResource struct{}
 
 func TestAccDataFactoryDatasetParquet_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")

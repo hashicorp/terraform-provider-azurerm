@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetJSONResource struct {
-}
+type DatasetJSONResource struct{}
 
 func TestAccDataFactoryDatasetJSON_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")

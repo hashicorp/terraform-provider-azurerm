@@ -20,8 +20,10 @@ import (
 
 type StorageDisksPoolResource struct{}
 
-var _ sdk.ResourceWithDeprecationReplacedBy = StorageDisksPoolResource{}
-var _ sdk.ResourceWithUpdate = StorageDisksPoolResource{}
+var (
+	_ sdk.ResourceWithDeprecationReplacedBy = StorageDisksPoolResource{}
+	_ sdk.ResourceWithUpdate                = StorageDisksPoolResource{}
+)
 
 type StorageDisksPoolJobModel struct {
 	Name              string                 `tfschema:"name"`

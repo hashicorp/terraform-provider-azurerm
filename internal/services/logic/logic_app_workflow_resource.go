@@ -198,7 +198,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentity(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
@@ -292,8 +292,8 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logic_app_workflow", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_logic_app_workflow", id.ID())
 		}
 	}
 

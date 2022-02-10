@@ -41,30 +41,34 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"registry_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								//ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+								Type:        pluginsdk.TypeString,
+								Required:    true,
+								ForceNew:    true,
+								Description: "The server URL for the container registry where the build will be hosted.",
+								// ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
 
 							"image_name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								//ValidateFunc: validate.NoEmptyStrings,
+								Type:        pluginsdk.TypeString,
+								Required:    true,
+								ForceNew:    true,
+								Description: "The image name for the build.",
+								// ValidateFunc: validate.NoEmptyStrings,
 							},
 
 							"registry_username": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
+								Type:        pluginsdk.TypeString,
+								Optional:    true,
+								ForceNew:    true,
+								Description: "The username used to upload the image to the container registry.",
 							},
 
 							"registry_password": {
-								Type:      pluginsdk.TypeString,
-								Optional:  true,
-								ForceNew:  true,
-								Sensitive: true,
+								Type:        pluginsdk.TypeString,
+								Optional:    true,
+								ForceNew:    true,
+								Sensitive:   true,
+								Description: "The password used to upload the image to the container registry.",
 							},
 						},
 					},
@@ -88,6 +92,7 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 									"node",       // Node, all versions
 									"python",     // Python, all versions
 								}, false),
+								Description: "The value to use for the Runtime Stack in the workflow file content for code base apps.",
 							},
 
 							"runtime_version": {
@@ -95,21 +100,24 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The value to use for the Runtime Version in the workflow file content for code base apps.",
 							},
 						},
 					},
 				},
 
 				"generate_workflow_file": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  true,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					ForceNew:    true,
+					Default:     true,
+					Description: "Should the service generate the GitHub Action Workflow file. Defaults to `true`",
 				},
 
 				"linux_action": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Denotes this action uses a Linux base image.",
 				},
 			},
 		},
