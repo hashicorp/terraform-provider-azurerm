@@ -871,7 +871,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("instances", instances)
 	}
 
-	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
