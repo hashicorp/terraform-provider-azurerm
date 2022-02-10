@@ -199,11 +199,7 @@ A `custom_domain` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_id` - (Required) The ID of the Key Vault.
-
-* `key_name` - (Optional) The name of Key Vault Key.
-
-* `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 

@@ -233,22 +233,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": {
+						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
-
-						"key_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"key_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 
 						"user_assigned_identity_id": {
@@ -983,6 +971,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	client := meta.(*clients.Client).Storage.AccountsClient
 	storageClient := meta.(*clients.Client).Storage
 	keyVaultClient := meta.(*clients.Client).KeyVault
+	resourceClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1126,7 +1115,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned {
 			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned`")
 		}
-		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, v.([]interface{}))
+		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, resourceClient, v.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1303,6 +1292,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
+	resourceClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1424,7 +1414,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("customer_managed_key") {
 		cmk := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, cmk)
+		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, resourceClient, cmk)
 		if err != nil {
 			return err
 		}
@@ -2093,26 +2083,38 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 	return []interface{}{domain}
 }
 
-func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyvault.Client, input []interface{}) (*storage.Encryption, error) {
+func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyvault.Client, resourceClient *resource.Client, input []interface{}) (*storage.Encryption, error) {
 	if len(input) == 0 {
 		return &storage.Encryption{}, nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	keyVaultID, err := keyVaultParse.VaultID(v["key_vault_id"].(string))
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	if err != nil {
+		return nil, err
+	}
+
+	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourceClient, keyId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, err
+	}
+	if keyVaultIdRaw == nil {
+		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
+	}
+	keyVaultId, err := keyVaultParse.VaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
 
 	vaultsClient := keyVaultClient.VaultsClient
-	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
-		vaultsClient = keyVaultClient.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
+	if keyVaultId.SubscriptionId != vaultsClient.SubscriptionID {
+		vaultsClient = keyVaultClient.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
+	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
 
 	softDeleteEnabled := false
@@ -2126,12 +2128,7 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		}
 	}
 	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultID)
-	}
-
-	keyVaultBaseURL, err := keyVaultClient.BaseUriForKeyVault(ctx, *keyVaultID)
-	if err != nil {
-		return nil, fmt.Errorf("looking up %s: %+v", *keyVaultID, err)
+		return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
 	}
 
 	encryption := &storage.Encryption{
@@ -2150,9 +2147,9 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		},
 		KeySource: storage.KeySourceMicrosoftKeyvault,
 		KeyVaultProperties: &storage.KeyVaultProperties{
-			KeyName:     utils.String(v["key_name"].(string)),
-			KeyVersion:  utils.String(v["key_version"].(string)),
-			KeyVaultURI: utils.String(*keyVaultBaseURL),
+			KeyName:     utils.String(keyId.Name),
+			KeyVersion:  utils.String(keyId.Version),
+			KeyVaultURI: utils.String(keyId.KeyVaultBaseUrl),
 		},
 	}
 
@@ -2190,16 +2187,14 @@ func flattenStorageAccountCustomerManagedKey(ctx context.Context, resourceClient
 		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
 	}
 
-	keyVaultID, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourceClient, keyVaultURI)
+	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Key Vault ID from Base URI %s: %+v", keyVaultURI, err)
+		return nil, err
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"key_vault_id":              keyVaultID,
-			"key_name":                  keyName,
-			"key_version":               keyVersion,
+			"key_vault_key_id": keyId.ID(),
 			"user_assigned_identity_id": userAssignedIdentityId,
 		},
 	}, nil

@@ -3379,9 +3379,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    key_vault_id              = azurerm_key_vault.test.id
-    key_name                  = azurerm_key_vault_key.test.name
-    key_version               = azurerm_key_vault_key.test.version
+    key_vault_key_id          = azurerm_key_vault_key.test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -3454,9 +3452,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    key_vault_id              = azurerm_key_vault.update.id
-    key_name                  = azurerm_key_vault_key.update.name
-    key_version               = azurerm_key_vault_key.update.version
+    key_vault_key_id          = azurerm_key_vault_key.update.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -3490,8 +3486,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    key_vault_id              = azurerm_key_vault.test.id
-    key_name                  = azurerm_key_vault_key.test.name
+    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
@@ -3596,9 +3591,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    key_vault_id              = azurerm_key_vault.remotetest.id
-    key_name                  = azurerm_key_vault_key.remote.name
-    key_version               = azurerm_key_vault_key.remote.version
+    key_vault_key_id          = azurerm_key_vault_key.remote.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
