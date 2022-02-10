@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_application_insights_api_key` - prevent panic by checking for the id of an existing API Key [GH-15297]
 * `azurerm_app_service_active_slot` - fix regression in ID set in creation of new resource [GH-15291]
 * `azurerm_firewall` - working around an Azure API issue when deleting the Firewall [GH-15330]
+* `azurerm_kubernetes_cluster` - unsetting `outbound_ip_prefix_ids` or `outbound_ip_address_ids` with an empty slice will default the `load_balancer_profile` to a managed outbound IP [GH-15338]
 * `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the `computer_name_prefix` wasn't specified [GH-15312]
 * `azurerm_recovery_services_vault` - fixing an issue where the subscription couldn't be found when running in Azure Government [GH-15316]
 
