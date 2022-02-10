@@ -2209,7 +2209,7 @@ func flattenStorageAccountCustomerManagedKey(ctx context.Context, resourceClient
 
 	return []interface{}{
 		map[string]interface{}{
-			"key_vault_key_id": keyId.ID(),
+			"key_vault_key_id":          keyId.ID(),
 			"user_assigned_identity_id": userAssignedIdentityId,
 		},
 	}, nil
