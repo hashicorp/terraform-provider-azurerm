@@ -33,6 +33,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_site_recovery_protection_container": dataSourceSiteRecoveryProtectionContainer(),
 		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
 		"azurerm_backup_policy_file_share":           dataSourceBackupPolicyFileShare(),
+		"azurerm_backup_protected_file_share":        dataSourceBackupProtectedFileShare(),
 		"azurerm_site_recovery_replication_policy":   dataSourceSiteRecoveryReplicationPolicy(),
 	}
 }
