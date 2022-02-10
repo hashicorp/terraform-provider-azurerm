@@ -1474,25 +1474,47 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
-				publicIPAddressIDs := idsToResourceReferences(d.Get(key))
-				loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
-					PublicIPs: publicIPAddressIDs,
-				}
+				outboundIPAddress := d.Get(key)
+				if v := outboundIPAddress.(*pluginsdk.Set).List(); len(v) == 0 {
+					// sending [] to unset `outbound_ip_address_ids` results in 400 / Bad Request
+					// instead we default back to AKS managed outbound which is the default of the AKS API when nothing is provided
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
+						Count: utils.Int32(1),
+					}
+					loadBalancerProfile.OutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				} else {
+					publicIPAddressIDs := idsToResourceReferences(d.Get(key))
+					loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
+						PublicIPs: publicIPAddressIDs,
+					}
 
-				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
-				loadBalancerProfile.ManagedOutboundIPs = nil
-				loadBalancerProfile.OutboundIPPrefixes = nil
+					// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+					loadBalancerProfile.ManagedOutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"; d.HasChange(key) {
-				outboundIPPrefixIDs := idsToResourceReferences(d.Get(key))
-				loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
-					PublicIPPrefixes: outboundIPPrefixIDs,
-				}
+				outboundIPPrefixes := d.Get(key)
+				if v := outboundIPPrefixes.(*pluginsdk.Set).List(); len(v) == 0 {
+					// sending [] to unset `outbound_ip_address_ids` results in 400 / Bad Request
+					// instead we default back to AKS managed outbound which is the default of the AKS API when nothing is specified
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
+						Count: utils.Int32(1),
+					}
+					loadBalancerProfile.OutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				} else {
+					outboundIPPrefixIDs := idsToResourceReferences(d.Get(key))
+					loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
+						PublicIPPrefixes: outboundIPPrefixIDs,
+					}
 
-				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
-				loadBalancerProfile.ManagedOutboundIPs = nil
-				loadBalancerProfile.OutboundIPs = nil
+					// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+					loadBalancerProfile.ManagedOutboundIPs = nil
+					loadBalancerProfile.OutboundIPs = nil
+				}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
