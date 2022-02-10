@@ -496,20 +496,62 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				//TODO: Remove the attribute below in 4.0
+				"disk_iops_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+					ConflictsWith: func() []string {
+						if features.ThreePointOhBeta() {
+							return []string{"ultra_ssd_disk_iops_read_write"}
+						}
+						return []string{}
+					}(),
+					Deprecated: func() string {
+						if features.ThreePointOhBeta() {
+							return "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider"
+						}
+						return ""
+					}(),
+				},
+
+				//TODO: Remove the attribute below in 4.0
+				"disk_mbps_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+					ConflictsWith: func() []string {
+						if features.ThreePointOhBeta() {
+							return []string{"ultra_ssd_mbps_read_write"}
+						}
+						return []string{}
+					}(),
+					Deprecated: func() string {
+						if features.ThreePointOhBeta() {
+							return "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider"
+						}
+						return ""
+					}(),
+				},
 			},
 		},
 	}
 
 	o := out.Elem.(*pluginsdk.Resource).Schema
-	keys := []string{"disk_iops_read_write", "disk_mbps_read_write"}
-	if !features.ThreePointOhBeta() {
-		keys = []string{"ultra_ssd_disk_iops_read_write", "ultra_ssd_mbps_read_write"}
-	}
-	for _, k := range keys {
-		o[k] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
+	if features.ThreePointOhBeta() {
+		o["ultra_ssd_disk_iops_read_write"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"disk_iops_read_write"},
+		}
+
+		o["ultra_ssd_mbps_read_write"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"disk_mbps_read_write"},
 		}
 	}
 
@@ -1158,26 +1200,32 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 			}
 		}
 
-		iopsRW := "ultra_ssd_disk_iops_read_write"
-		mbpsRW := "ultra_ssd_mbps_read_write"
-		if !features.ThreePointOhBeta() {
-			iopsRW = "disk_iops_read_write"
-			mbpsRW = "disk_mbps_read_write"
+		var iops int
+		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+			iops = diskIops.(int)
+		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
+			iops = ssdIops.(int)
 		}
-		if iops := raw[iopsRW].(int); iops != 0 {
+
+		if iops > 0 {
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", iopsRW)
+				return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
 			}
 			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
-		if mbps := raw[mbpsRW].(int); mbps != 0 {
+		var mbps int
+		if diskIops, ok := raw["disk_mbps_read_write"]; ok && diskIops.(int) > 0 {
+			mbps = diskIops.(int)
+		} else if ssdIops, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdIops.(int) > 0 {
+			mbps = ssdIops.(int)
+		}
+		if mbps > 0 {
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", mbpsRW)
+				return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
 			}
 			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
-
 		disks = append(disks, disk)
 	}
 
@@ -1718,23 +1766,18 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		iopsRW := "ultra_ssd_disk_iops_read_write"
-		mbpsRW := "ultra_ssd_mbps_read_write"
-		if !features.ThreePointOhBeta() {
-			iopsRW = "disk_iops_read_write"
-			mbpsRW = "disk_mbps_read_write"
-		}
-
 		output = append(output, map[string]interface{}{
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			iopsRW:                      iops,
-			mbpsRW:                      mbps,
+			"caching":                        string(v.Caching),
+			"create_option":                  string(v.CreateOption),
+			"lun":                            lun,
+			"disk_encryption_set_id":         diskEncryptionSetId,
+			"disk_size_gb":                   diskSizeGb,
+			"storage_account_type":           storageAccountType,
+			"write_accelerator_enabled":      writeAcceleratorEnabled,
+			"ultra_ssd_disk_iops_read_write": iops,
+			"ultra_ssd_mbps_read_write":      mbps,
+			"disk_iops_read_write":           iops,
+			"disk_mbps_read_write":           mbps,
 		})
 	}
 
