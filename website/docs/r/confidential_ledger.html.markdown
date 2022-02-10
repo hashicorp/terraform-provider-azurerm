@@ -22,6 +22,7 @@ resource "azurerm_confidential_ledger" "ledger" {
   name                = "MyConfidentialLedger"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
+  ledger_type         = "Public"
 }
 ```
 
@@ -29,110 +30,90 @@ resource "azurerm_confidential_ledger" "ledger" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Confidential Ledger. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Configuration. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group where the Confidential Ledger exists.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Confidential Ledger exists.
 
-* `sku` - (Optional) The SKU name of the the App Configuration. Possible values are `free` and `standard`.
+* `ledger_type` - (Required) Specifies the type of Confidential Ledger. Possible values are "Public" and "Private".
 
-* `identity` - (Optional) An `identity` block as defined below.
+~> **NOTE:** `ledger_type` cannot be changed after the Confidential Ledger has been created.
 
-~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
+* `aad_based_security_principals` - (Optional) An `aadBasedSecurityPrincipal` block as defined below.
+
+* `cert_based_security_principals` - (Optional) A `certBasedSecurityPrincipal` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `identity` block supports the following:
+A `aadBasedSecurityPrincipal` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `principal_id` - (Required) The identifier for the Azure Activate Directory service principal.
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `tenant_id` - (Required) The identifier for the tenant containing the specificed service principal.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+* `ledger_role_name` - (Required) The role to assign to the identity. Possible values are "Administrator", "Contributor", and "Reader".
+
+---
+
+A `certBasedSecurityPrincipal` block supports the following:
+
+* `cert` - (Required) The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
+
+* `ledger_role_name` - (Required) The role to assign to the identity. Possible values are "Administrator", "Contributor", and "Reader".
 
 ---
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The App Configuration ID.
+* `name` - Specifies the name of the Confidential Ledger. Changing this forces a new resource to be created.
 
-* `endpoint` - The URL of the App Configuration.
+* `resource_group_name` - The name of the resource group where the Confidential Ledger exists.
 
-* `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
+* `location` - Specifies the supported Azure location where the Confidential Ledger exists.
 
-* `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
+* `ledger_type` - Specifies the type of Confidential Ledger.
 
-* `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
+* `aad_based_security_principals` - An `aadBasedSecurityPrincipal` block as defined below.
 
-* `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
+* `cert_based_security_principals` - A `certBasedSecurityPrincipal` block as defined below.
 
-* `identity` - An `identity` block as defined below.
-
----
-
-An `identity` block exports the following:
-
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
-
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tags` - A mapping of tags to assign to the resource.
 
 ---
 
-A `primary_read_key` block exports the following:
+A `aadBasedSecurityPrincipal` block supports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+* `principal_id` - The identifier for the Azure Activate Directory service principal.
 
-* `id` - The ID of the Access Key.
+* `tenant_id` - The identifier for the tenant containing the specificed service principal.
 
-* `secret` - The Secret of the Access Key.
-
----
-
-A `primary_write_key` block exports the following:
-
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
-* `id` - The ID of the Access Key.
-
-* `secret` - The Secret of the Access Key.
+* `ledger_role_name` - The role to assign to the identity.
 
 ---
 
-A `secondary_read_key` block exports the following:
+A `certBasedSecurityPrincipal` block supports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+* `cert` - The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
 
-* `id` - The ID of the Access Key.
-
-* `secret` - The Secret of the Access Key.
-
----
-
-A `secondary_write_key` block exports the following:
-
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
-* `id` - The ID of the Access Key.
-
-* `secret` - The Secret of the Access Key.
+* `ledger_role_name` - The role to assign to the identity.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
-* `update` - (Defaults to 30 minutes) Used when updating the App Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
-* `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration.
+* `create` - (Defaults to 30 minutes) Used when creating the Confidential Ledger.
+* `update` - (Defaults to 30 minutes) Used when updating the Confidential Ledger.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Confidential Ledger.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Confidential Ledger.
 
 ## Import
 
-App Configurations can be imported using the `resource id`, e.g.
+Confidential Ledgers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration.appconf /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1
+terraform import azurerm_confidential_ledger.testLedger /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ledgerRG/providers/Microsoft.ConfidentialLedger/Ledgers/testLedger
 ```
