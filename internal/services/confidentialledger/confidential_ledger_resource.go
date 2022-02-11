@@ -47,14 +47,17 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"tenant_id": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"ledger_role_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrator",
 								"Contributor",
@@ -72,10 +75,12 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"ledger_role_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrator",
 								"Contributor",
