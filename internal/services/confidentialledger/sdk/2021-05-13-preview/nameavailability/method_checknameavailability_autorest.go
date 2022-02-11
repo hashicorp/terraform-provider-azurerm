@@ -9,13 +9,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type CheckNameAvailabilityResponse struct {
+type CheckNameAvailabilityAutorestResponse struct {
 	HttpResponse *http.Response
 	Model        *CheckNameAvailabilityResponse
 }
 
 // CheckNameAvailability ...
-func (c NameAvailabilityClient) CheckNameAvailability(ctx context.Context, id SubscriptionId, input CheckNameAvailabilityRequest) (result CheckNameAvailabilityResponse, err error) {
+func (c NameAvailabilityClient) CheckNameAvailability(ctx context.Context, id SubscriptionId, input CheckNameAvailabilityRequest) (result CheckNameAvailabilityAutorestResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "nameavailability.NameAvailabilityClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -55,7 +55,7 @@ func (c NameAvailabilityClient) preparerForCheckNameAvailability(ctx context.Con
 
 // responderForCheckNameAvailability handles the response to the CheckNameAvailability request. The method always
 // closes the http.Response Body.
-func (c NameAvailabilityClient) responderForCheckNameAvailability(resp *http.Response) (result CheckNameAvailabilityResponse, err error) {
+func (c NameAvailabilityClient) responderForCheckNameAvailability(resp *http.Response) (result CheckNameAvailabilityAutorestResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

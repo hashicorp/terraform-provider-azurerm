@@ -13,7 +13,7 @@ func (p ConfidentialLedgerPredicate) Matches(input ConfidentialLedger) bool {
 		return false
 	}
 
-	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
+	if p.Location != nil && (input.Location == "" && *p.Location != input.Location) {
 		return false
 	}
 
