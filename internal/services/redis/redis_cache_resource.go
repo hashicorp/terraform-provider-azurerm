@@ -8,8 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -55,16 +59,17 @@ func resourceRedisCache() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azure.NormalizeLocation,
-			},
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"zones": azure.SchemaMultipleZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaMultipleZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"capacity": {
 				Type:     pluginsdk.TypeInt,
@@ -433,7 +438,17 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		if features.ThreePointOhBeta() {
+			zones := zones.Expand(v.(*schema.Set).List())
+			if len(zones) > 0 {
+				parameters.Zones = &zones
+			}
+		} else {
+			zones := zones.Expand(v.([]interface{}))
+			if len(zones) > 0 {
+				parameters.Zones = &zones
+			}
+		}
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.RediName, parameters)
@@ -620,10 +635,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.RediName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if zones := resp.Zones; zones != nil {
-		d.Set("zones", zones)
-	}
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)
