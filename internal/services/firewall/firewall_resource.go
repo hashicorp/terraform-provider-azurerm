@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -55,10 +56,10 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// TODO 3.0: change this to required
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: features.ThreePointOhBeta(),
+				Optional: !features.ThreePointOhBeta(),
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,10 +68,10 @@ func resourceFirewall() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 3.0: change this to required
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: features.ThreePointOhBeta(),
+				Optional: !features.ThreePointOhBeta(),
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -148,15 +149,23 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.AzureFirewallThreatIntelModeAlert),
-				ValidateFunc: validation.StringInSlice([]string{
-					// TODO 3.0: remove the default value and the `""` below. So if it is not specified
-					// in config, it will not be send in request, which is required in case of vhub.
-					"",
-					string(network.AzureFirewallThreatIntelModeOff),
-					string(network.AzureFirewallThreatIntelModeAlert),
-					string(network.AzureFirewallThreatIntelModeDeny),
-				}, false),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return nil
+					}
+					return string(network.AzureFirewallThreatIntelModeAlert)
+				}(),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						string(network.AzureFirewallThreatIntelModeOff),
+						string(network.AzureFirewallThreatIntelModeAlert),
+						string(network.AzureFirewallThreatIntelModeDeny),
+					}
+					if !features.ThreePointOhBeta() {
+						out = append(out, "")
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 			},
 
 			"dns_servers": {
@@ -297,16 +306,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
 	}
 
-	// TODO 3.0: no need to test since sku_name is required
-	if skuName := d.Get("sku_name").(string); skuName != "" {
+	if skuName := d.Get("sku_name").(string); features.ThreePointOhBeta() || skuName != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
 		parameters.Sku.Name = network.AzureFirewallSkuName(skuName)
 	}
 
-	// TODO 3.0: no need to test since sku_tier is required
-	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
+	if skuTier := d.Get("sku_tier").(string); features.ThreePointOhBeta() || skuTier != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
