@@ -273,7 +273,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if features.ThreePointOhBeta() {
 		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = &clientAffinityEnabled
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
