@@ -13,7 +13,7 @@ func expandConfidentialLedgerAADBasedSecurityPrincipal(input []interface{}) *[]c
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		ledgerRoleName := v["ledger_role_name"].(confidentialledger.LedgerRoleName)
+		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		principalId := v["principal_id"].(string)
 		tenantId := v["tenant_id"].(string)
 
@@ -37,12 +37,12 @@ func flattenConfidentialLedgerAADBasedSecurityPrincipal(input *[]confidentialled
 	output := make([]interface{}, 0)
 
 	for _, item := range *input {
-		ledgerRoleName := confidentialledger.LedgerRoleNameReader
+		ledgerRoleName := string(confidentialledger.LedgerRoleNameReader)
 		principalId := ""
 		tenantId := ""
 
 		if item.LedgerRoleName != nil {
-			ledgerRoleName = *item.LedgerRoleName
+			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
 		if item.PrincipalId != nil {

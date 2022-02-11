@@ -13,7 +13,7 @@ func expandConfidentialLedgerCertBasedSecurityPrincipal(input []interface{}) *[]
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		cert := v["cert"].(string)
-		ledgerRoleName := v["ledger_role_name"].(confidentialledger.LedgerRoleName)
+		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 
 		result := confidentialledger.CertBasedSecurityPrincipal{
 			Cert:           &cert,
@@ -35,14 +35,14 @@ func flattenConfidentialLedgerCertBasedSecurityPrincipal(input *[]confidentialle
 
 	for _, item := range *input {
 		cert := ""
-		ledgerRoleName := confidentialledger.LedgerRoleNameReader
+		ledgerRoleName := string(confidentialledger.LedgerRoleNameReader)
 
 		if item.Cert != nil {
 			cert = *item.Cert
 		}
 
 		if item.LedgerRoleName != nil {
-			ledgerRoleName = *item.LedgerRoleName
+			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
 		aadBasedSecurityPrincipal := map[string]interface{}{
