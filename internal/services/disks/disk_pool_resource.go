@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,7 +20,6 @@ import (
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
@@ -32,7 +33,7 @@ type DiskPoolResourceModel struct {
 	Sku               string                 `tfschema:"sku_name"`
 	SubnetId          string                 `tfschema:"subnet_id"`
 	Tags              map[string]interface{} `tfschema:"tags"`
-	Zones             []string               `tfschema:"zones"`
+	Zones             zones.Schema           `tfschema:"zones"`
 }
 
 func (DiskPoolResource) Arguments() map[string]*schema.Schema {
@@ -64,16 +65,7 @@ func (DiskPoolResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": { // TODO: create commonschema.ZonesForceNew
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
