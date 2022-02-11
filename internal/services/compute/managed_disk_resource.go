@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -820,10 +822,17 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	if features.ThreePointOhBeta() {
+		zone := ""
+		if resp.Zones != nil && len(*resp.Zones) > 0 {
+			z := *resp.Zones
+			zone = z[0]
+		}
+		d.Set("zone", zone)
+	} else {
+		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 	}
 
 	if sku := resp.Sku; sku != nil {
