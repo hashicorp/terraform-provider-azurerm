@@ -296,185 +296,185 @@ resource "azurerm_confidential_ledger" "test" {
 
 func (ConfidentialLedgerResource) aadBasedServicePrincipals(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  
-	  resource "azurerm_resource_group" "test" {
-		name     = "acl-terraform-test-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_confidential_ledger" "test" {
-		aad_based_security_principals = [
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f20"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
-				ledger_role_name = "Administrator"
-			},
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f21"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
-				ledger_role_name = "Contributor"
-			},
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f22"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
-				ledger_role_name = "Reader"
-			}
-		]
+provider "azurerm" {
+  features {}
+}
 
-		name                = "terraform-test-%d"
-		ledger_type         = "Public"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-	  
-		tags = {
-		  environment = "development"
-		}
-	  }
+resource "azurerm_resource_group" "test" {
+  name     = "acl-terraform-test-%d"
+  location = "%s"
+}
+
+resource "azurerm_confidential_ledger" "test" {
+  aad_based_security_principals = [
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f20"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+      ledger_role_name = "Administrator"
+    },
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f21"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
+      ledger_role_name = "Contributor"
+    },
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
+      ledger_role_name = "Reader"
+    }
+  ]
+
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "development"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ConfidentialLedgerResource) certBasedAdministrator(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  
-	  resource "azurerm_resource_group" "test" {
-		name     = "acl-terraform-test-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_confidential_ledger" "test" {
-		cert_based_security_principals = [
-			{
-				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-				ledger_role_name = "Administrator"
-			}
-		]
+provider "azurerm" {
+  features {}
+}
 
-		name                = "terraform-test-%d"
-		ledger_type         = "Public"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-	  
-		tags = {
-		  environment = "development"
-		}
-	  }
+resource "azurerm_resource_group" "test" {
+  name     = "acl-terraform-test-%d"
+  location = "%s"
+}
+
+resource "azurerm_confidential_ledger" "test" {
+  cert_based_security_principals = [
+    {
+      cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+      ledger_role_name = "Administrator"
+    }
+  ]
+
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "development"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ConfidentialLedgerResource) certBasedContributor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  
-	  resource "azurerm_resource_group" "test" {
-		name     = "acl-terraform-test-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_confidential_ledger" "test" {
-		cert_based_security_principals = [
-			{
-				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-				ledger_role_name = "Contributor"
-			}
-		]
+provider "azurerm" {
+  features {}
+}
 
-		name                = "terraform-test-%d"
-		ledger_type         = "Public"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-	  
-		tags = {
-		  environment = "development"
-		}
-	  }
+resource "azurerm_resource_group" "test" {
+  name     = "acl-terraform-test-%d"
+  location = "%s"
+}
+
+resource "azurerm_confidential_ledger" "test" {
+  cert_based_security_principals = [
+    {
+      cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+      ledger_role_name = "Contributor"
+    }
+  ]
+
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "development"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ConfidentialLedgerResource) certBasedReader(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  
-	  resource "azurerm_resource_group" "test" {
-		name     = "acl-terraform-test-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_confidential_ledger" "test" {
-		cert_based_security_principals = [
-			{
-				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-				ledger_role_name = "Reader"
-			}
-		]
+provider "azurerm" {
+  features {}
+}
 
-		name                = "terraform-test-%d"
-		ledger_type         = "Public"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-	  
-		tags = {
-		  environment = "development"
-		}
-	  }
+resource "azurerm_resource_group" "test" {
+  name     = "acl-terraform-test-%d"
+  location = "%s"
+}
+
+resource "azurerm_confidential_ledger" "test" {
+  cert_based_security_principals = [
+    {
+      cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+      ledger_role_name = "Reader"
+    }
+  ]
+
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "development"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ConfidentialLedgerResource) combinedServicePrincipals(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  
-	  resource "azurerm_resource_group" "test" {
-		name     = "acl-terraform-test-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_confidential_ledger" "test" {
-		aad_based_security_principals = [
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f20"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
-				ledger_role_name = "Administrator"
-			},
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f21"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
-				ledger_role_name = "Contributor"
-			},
-			{
-				principal_id = "34621747-6fc8-4771-a2eb-72f31c461f22"
-				tenant_id = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
-				ledger_role_name = "Reader"
-			}
-		]
+provider "azurerm" {
+  features {}
+}
 
-		cert_based_security_principals = [
-			{
-				cert = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-				ledger_role_name = "Administrator"
-			}
-		]
+resource "azurerm_resource_group" "test" {
+  name     = "acl-terraform-test-%d"
+  location = "%s"
+}
 
-		name                = "terraform-test-%d"
-		ledger_type         = "Public"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-	  
-		tags = {
-		  environment = "development"
-		}
-	  }
+resource "azurerm_confidential_ledger" "test" {
+  aad_based_security_principals = [
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f20"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+      ledger_role_name = "Administrator"
+    },
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f21"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
+      ledger_role_name = "Contributor"
+    },
+    {
+      principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
+      tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
+      ledger_role_name = "Reader"
+    }
+  ]
+
+  cert_based_security_principals = [
+    {
+      cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
+      ledger_role_name = "Administrator"
+    }
+  ]
+
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "development"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
@@ -490,14 +490,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_confidential_ledger" "test" {
-	name                = "terraform-test-%d"
-	ledger_type         = "Public"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "terraform-test-%d"
+  ledger_type         = "Public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	tags = {
-		Updated = "Yes"
-	}
+  tags = {
+    Updated = "Yes"
   }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
