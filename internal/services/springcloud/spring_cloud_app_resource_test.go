@@ -63,6 +63,21 @@ func TestAccSpringCloudApp_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudApp_customPersistentDisks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customPersistentDisks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 	r := SpringCloudAppResource{}
@@ -153,6 +168,41 @@ resource "azurerm_spring_cloud_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SpringCloudAppResource) customPersistentDisks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_spring_cloud_storage" "test" {
+  name                    = "acctest-ss-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  storage_account_name    = azurerm_storage_account.test.name
+  storage_account_key     = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%[2]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  custom_persistent_disks {
+    storage_id        = azurerm_spring_cloud_storage.test.id
+    mount_path        = "/temp"
+    share_name        = "testname"
+    mount_options     = ["uid=1000", "gid=1000", "file_mode=0755", "dir_mode=0755"]
+    read_only_enabled = true
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(10))
 }
 
 func (SpringCloudAppResource) template(data acceptance.TestData) string {

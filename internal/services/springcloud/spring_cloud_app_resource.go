@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,6 +58,48 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 
 			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
 			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"custom_persistent_disks": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.SpringCloudStorageID,
+						},
+
+						"mount_path": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"share_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"mount_options": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"read_only_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
 
 			"is_public": {
 				Type:     pluginsdk.TypeBool,
@@ -150,8 +193,9 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: serviceResp.Location,
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:            utils.Bool(d.Get("is_public").(bool)),
+			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:                utils.Bool(d.Get("is_public").(bool)),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
@@ -195,10 +239,11 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	app := appplatform.AppResource{
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:            utils.Bool(d.Get("is_public").(bool)),
-			HTTPSOnly:         utils.Bool(d.Get("https_only").(bool)),
-			PersistentDisk:    expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:                utils.Bool(d.Get("is_public").(bool)),
+			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
+			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -250,6 +295,9 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
+		if err := d.Set("custom_persistent_disks", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disks`: %+v", err)
+		}
 	}
 
 	return nil
@@ -300,6 +348,24 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 	}
 }
 
+func expandAppCustomPersistentDiskResourceArray(input []interface{}) *[]appplatform.CustomPersistentDiskResource {
+	results := make([]appplatform.CustomPersistentDiskResource, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, appplatform.CustomPersistentDiskResource{
+			StorageID: utils.String(v["storage_id"].(string)),
+			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
+				ShareName:    utils.String(v["share_name"].(string)),
+				MountPath:    utils.String(v["mount_path"].(string)),
+				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
+				MountOptions: utils.ExpandStringSlice(v["mount_options"].([]interface{})),
+				Type:         appplatform.TypeAzureFileVolume,
+			},
+		})
+	}
+	return &results
+}
+
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
 	var systemAssigned *identity.SystemAssigned
 	if input != nil {
@@ -337,4 +403,45 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 			"mount_path": mountPath,
 		},
 	}
+}
+
+func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var storageId string
+		if item.StorageID != nil {
+			storageId = *item.StorageID
+		}
+		var mountPath string
+		var shareName string
+		var readOnly bool
+		var mountOptions *[]string
+		if item.CustomPersistentDiskProperties != nil {
+			if prop, ok := item.CustomPersistentDiskProperties.AsAzureFileVolume(); ok && prop != nil {
+				if prop.MountPath != nil {
+					mountPath = *prop.MountPath
+				}
+				if prop.ShareName != nil {
+					shareName = *prop.ShareName
+				}
+				if prop.ReadOnly != nil {
+					readOnly = *prop.ReadOnly
+				}
+				mountOptions = prop.MountOptions
+			}
+		}
+
+		results = append(results, map[string]interface{}{
+			"storage_id":        storageId,
+			"mount_path":        mountPath,
+			"share_name":        shareName,
+			"mount_options":     utils.FlattenStringSlice(mountOptions),
+			"read_only_enabled": readOnly,
+		})
+	}
+	return results
 }
