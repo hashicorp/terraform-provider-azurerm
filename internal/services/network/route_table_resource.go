@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -81,8 +82,8 @@ func resourceRouteTable() *pluginsdk.Resource {
 								string(network.RouteNextHopTypeInternet),
 								string(network.RouteNextHopTypeVirtualAppliance),
 								string(network.RouteNextHopTypeNone),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"next_hop_in_ip_address": {

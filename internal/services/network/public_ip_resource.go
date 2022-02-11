@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -84,11 +85,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Optional:         true,
 				Default:          string(network.IPVersionIPv4),
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.IPVersionIPv4),
 					string(network.IPVersionIPv6),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"sku": {
@@ -96,11 +97,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(network.PublicIPAddressSkuNameBasic),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PublicIPAddressSkuNameBasic),
 					string(network.PublicIPAddressSkuNameStandard),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"sku_tier": {

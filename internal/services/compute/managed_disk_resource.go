@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -133,8 +134,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"disk_size_gb": {

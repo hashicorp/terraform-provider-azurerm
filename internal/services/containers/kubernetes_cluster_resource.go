@@ -497,8 +497,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"outbound_type": {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -93,9 +94,9 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, true),
+							}, !features.ThreePointOh()),
 							StateFunc:        state.IgnoreCase,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"public_ip_address_id": {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
@@ -78,9 +79,9 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 					string(iotcentral.S1),
 					string(iotcentral.ST1),
 					string(iotcentral.ST2),
-				}, true),
+				}, !features.ThreePointOh()),
 				Default:          iotcentral.ST1,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -63,12 +64,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:         true,
 				Default:          "Public",
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"network_profile_id": {
@@ -83,11 +84,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.OperatingSystemTypesWindows),
 					string(containerinstance.OperatingSystemTypesLinux),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"image_registry_credential": {
@@ -130,12 +131,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupRestartPolicyAlways),
 					string(containerinstance.ContainerGroupRestartPolicyNever),
 					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"dns_name_label": {

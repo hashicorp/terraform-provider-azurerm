@@ -103,8 +103,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindBlockBlobStorage),
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				Default:          string(storage.KindStorageV2),
 			},
 
@@ -115,8 +115,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"account_replication_type": {
@@ -129,8 +129,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					"RAGRS",
 					"GZRS",
 					"RAGZRS",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -141,8 +141,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.AccessTierCool),
 					string(storage.AccessTierHot),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"azure_files_authentication": {
@@ -296,8 +296,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									string(storage.BypassLogging),
 									string(storage.BypassMetrics),
 									string(storage.BypassNone),
-								}, true),
-								DiffSuppressFunc: suppress.CaseDifference,
+								}, !features.ThreePointOh()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 							Set: pluginsdk.HashString,
 						},

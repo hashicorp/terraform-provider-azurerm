@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -162,8 +163,8 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"vnet_route_all_enabled": {

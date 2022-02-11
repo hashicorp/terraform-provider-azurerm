@@ -160,8 +160,8 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						out = append(out, "Enterprise")
 					}
 					return out
-				}(), true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}(), !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"discovery_url": {

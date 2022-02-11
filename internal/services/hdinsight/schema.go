@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,9 +42,8 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, true),
-		// TODO: file a bug about this
-		DiffSuppressFunc: location.DiffSuppressFunc,
+		}, !features.ThreePointOh()),
+		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 	}
 }
 
@@ -749,8 +748,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.NodeDefinitionVMSize(),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,

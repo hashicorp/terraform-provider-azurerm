@@ -206,8 +206,8 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 											string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 											string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 											string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-										}, true),
-										DiffSuppressFunc: suppress.CaseDifference,
+										}, !features.ThreePointOh()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 									"source_addresses": {
 										Type:     pluginsdk.TypeSet,

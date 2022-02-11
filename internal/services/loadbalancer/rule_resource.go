@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
@@ -97,12 +98,12 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 			"protocol": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
 					string(network.TransportProtocolTCP),
 					string(network.TransportProtocolUDP),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"frontend_port": {

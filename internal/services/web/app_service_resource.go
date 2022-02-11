@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -119,8 +120,8 @@ func resourceAppService() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"value": {

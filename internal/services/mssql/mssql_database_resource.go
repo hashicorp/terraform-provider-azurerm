@@ -184,7 +184,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validate.DatabaseSkuName(),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"creation_source_database_id": {
@@ -230,19 +230,20 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 									"Sql_Injection",
 									"Sql_Injection_Vulnerability",
 									"Access_Anomaly",
-								}, true),
+								}, !features.ThreePointOh()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
 
 						"email_account_admins": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          "Disabled",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Disabled",
 								"Enabled",
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"email_addresses": {
@@ -263,13 +264,13 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 						"state": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"storage_account_access_key": {
@@ -289,12 +290,12 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 						"use_server_default": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          "Disabled",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Disabled",
 								"Enabled",
-							}, true),
+							}, !features.ThreePointOh()),
 							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
 						},
 					},

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -163,8 +164,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											string(keyvault.RSA),
 											string(keyvault.RSAHSM),
 											string(keyvault.Oct),
-										}, true),
-										DiffSuppressFunc: suppress.CaseDifference,
+										}, !features.ThreePointOh()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 									"reuse_key": {
 										Type:     pluginsdk.TypeBool,

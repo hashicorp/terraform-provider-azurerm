@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -296,8 +297,8 @@ func IdentitySchema() *pluginsdk.Schema {
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 					Description:      "The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.",
 				},
 
