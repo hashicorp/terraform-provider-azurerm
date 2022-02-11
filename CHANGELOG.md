@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory` - refactor: consistent identity blocks [GH-15344]
 * `azurerm_kusto_cluster` - support for `enable_auto_stop` [GH-15332]
 * `azurerm_linux_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
+* `azurerm_linux_virtual_machine` - Full support for Automatic VM Guest Patching [GH-14906]
 * `azurerm_network_watcher_flow_log` - the `name` property can now be set for new resources [GH-15016]
 * `azurerm_windows_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
 * `azurerm_windows_virtual_machine` - Full support for Automatic VM Guest Patching and Hotpaching [GH-14796]
