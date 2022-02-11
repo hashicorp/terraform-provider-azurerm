@@ -147,28 +147,60 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"enable_auto_stop": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+				ConflictsWith: []string{"auto_stop_enabled"},
+			},
+
 			"auto_stop_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 
-			// TODO 3.0 - change to disk_encryption_enabled
 			"enable_disk_encryption": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+				ConflictsWith: []string{"disk_encryption_enabled"},
 			},
 
-			// TODO 3.0 - change to streaming_ingestion_enabled
+			"disk_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"enable_streaming_ingest": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been renamed to streaming_ingestion_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+				ConflictsWith: []string{"streaming_ingestion_enabled"},
 			},
 
-			// TODO 3.0 - change to purge_enabled
-			"enable_purge": {
+			"streaming_ingestion_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true,
+			},
+
+			"enable_purge": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been renamed to purge_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+				ConflictsWith: []string{"purge_enabled"},
+			},
+
+			"purge_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"virtual_network_configuration": {
@@ -291,12 +323,25 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:     optimizedAutoScale,
-		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
+		EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
 		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
 		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
 		EngineType:             engine,
+	}
+
+	if v, ok := d.GetOkExists("auto_stop_enabled"); ok {
+		clusterProperties.EnableAutoStop = utils.Bool(v.(bool))
+	}
+	if v, ok := d.GetOkExists("disk_encryption_enabled"); ok {
+		clusterProperties.EnableDiskEncryption = utils.Bool(v.(bool))
+	}
+	if v, ok := d.GetOkExists("streaming_ingestion_enabled"); ok {
+		clusterProperties.EnableStreamingIngest = utils.Bool(v.(bool))
+	}
+	if v, ok := d.GetOkExists("purge_enabled"); ok {
+		clusterProperties.EnablePurge = utils.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -429,9 +474,13 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 		d.Set("auto_stop_enabled", props.EnableAutoStop)
+		d.Set("enable_auto_stop", props.EnableAutoStop)
 		d.Set("enable_disk_encryption", props.EnableDiskEncryption)
+		d.Set("disk_encryption_enabled", props.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", props.EnableStreamingIngest)
+		d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
 		d.Set("enable_purge", props.EnablePurge)
+		d.Set("purge_enabled", props.EnablePurge)
 		d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
 		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
 		d.Set("uri", props.URI)

@@ -19,7 +19,7 @@ ENHANCEMENTS:
 * `azurerm_application_insights` - Add support for `force_customer_storage_for_profiler` [GH-15254]
 * `azurerm_automation_account` - Support for managed identity [GH-15072]
 * `azurerm_data_factory` - refactor: consistent identity blocks [GH-15344]
-* `azurerm_kusto_cluster` - support for `auto_stop_enabled` [GH-15332]
+* `azurerm_kusto_cluster` - support for `enable_auto_stop` [GH-15332]
 * `azurerm_linux_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
 * `azurerm_network_watcher_flow_log` - the `name` property can now be set for new resources [GH-15016]
 * `azurerm_windows_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
