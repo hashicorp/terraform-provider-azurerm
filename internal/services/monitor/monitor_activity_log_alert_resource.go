@@ -682,9 +682,9 @@ func flattenMonitorActivityLogAlertResourceHealth(input *insights.AlertRuleAllOf
 					values = append(values, *cond.Equals)
 				}
 				switch strings.ToLower(*cond.Field) {
-				case "properties.currentHealthStatus":
+				case "properties.currenthealthstatus":
 					rhResult["current"] = values
-				case "properties.previousHealthStatus":
+				case "properties.previoushealthstatus":
 					rhResult["previous"] = values
 				case "properties.cause":
 					rhResult["reason"] = values

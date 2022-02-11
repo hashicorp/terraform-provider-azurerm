@@ -179,7 +179,7 @@ func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndUpdate(t *testing.T) 
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceHealth_basic(data),
+			Config: r.resourceHealth_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
