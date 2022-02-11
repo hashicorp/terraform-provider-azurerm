@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
 * `azurerm_network_watcher_flow_log` - the `name` property can now be set for new resources [GH-15016]
 * `azurerm_windows_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
+* `azurerm_windows_virtual_machine` - Full support for Automatic VM Guest Patching and Hotpaching [GH-14796]
 
 BUG FIXES:
 
