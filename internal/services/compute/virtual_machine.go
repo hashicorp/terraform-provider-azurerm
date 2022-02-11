@@ -170,6 +170,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 					}, false),
 				},
 
