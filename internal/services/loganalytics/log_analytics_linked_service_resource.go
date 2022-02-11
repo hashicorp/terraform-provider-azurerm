@@ -314,21 +314,6 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-		"workspace_id": {
-			Type:             pluginsdk.TypeString,
-			Computed:         !features.ThreePointOhBeta(),
-			Optional:         !features.ThreePointOhBeta(),
-			Required:         features.ThreePointOhBeta(),
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     azure.ValidateResourceID,
-			ExactlyOneOf: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"workspace_id", "workspace_name"}
-				}
-				return []string{}
-			}(),
-		},
-
 		"read_access_id": {
 			Type:         pluginsdk.TypeString,
 			Computed:     true,
@@ -365,6 +350,19 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.ThreePointOhBeta() {
+		out["workspace_id"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Computed:         true,
+			Optional:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     azure.ValidateResourceID,
+			ExactlyOneOf: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"workspace_id", "workspace_name"}
+				}
+				return []string{}
+			}(),
+		}
 
 		out["workspace_name"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
@@ -397,6 +395,19 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 			Deprecated: "This field has been deprecated and will be removed in a future version of the provider",
 		}
 
+	} else {
+		out["workspace_id"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     azure.ValidateResourceID,
+			ExactlyOneOf: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"workspace_id", "workspace_name"}
+				}
+				return []string{}
+			}(),
+		}
 	}
 
 	return out
