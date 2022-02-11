@@ -5,6 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -48,9 +54,9 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 				ValidateFunc: validate.DedicatedHardwareSecurityModuleName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -97,7 +103,13 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"tags": tags.Schema(),
 		},
@@ -137,7 +149,14 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		if features.ThreePointOhBeta() {
+			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			if len(zones) > 0 {
+				parameters.Zones = &zones
+			}
+		} else {
+			parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DedicatedHSMName, parameters)
@@ -177,6 +196,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.DedicatedHSMName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if props := resp.DedicatedHsmProperties; props != nil {
 		if err := d.Set("network_profile", flattenDedicatedHsmNetworkProfile(props.NetworkProfile)); err != nil {
@@ -187,10 +207,6 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
-	}
-
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
