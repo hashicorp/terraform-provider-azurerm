@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +26,12 @@ var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate, // TODO: remove in 3.0 since all fields are ForceNew
+		Update: func() schema.UpdateFunc {
+			if !features.ThreePointOhBeta() {
+				return resourceArmLoadBalancerBackendAddressPoolCreateUpdate
+			}
+			return nil
+		}(),
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
