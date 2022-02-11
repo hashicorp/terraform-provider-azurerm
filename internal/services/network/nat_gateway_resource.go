@@ -6,9 +6,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -92,7 +96,13 @@ func resourceNatGateway() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"resource_guid": {
 				Type:     pluginsdk.TypeString,
@@ -130,7 +140,6 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
 	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
-	zones := d.Get("zones").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.NatGateway{
@@ -143,8 +152,15 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Sku: &network.NatGatewaySku{
 			Name: network.NatGatewaySkuName(skuName),
 		},
-		Tags:  tags.Expand(t),
-		Zones: utils.ExpandStringSlice(zones),
+		Tags: tags.Expand(t),
+	}
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
+		}
+	} else {
+		parameters.Zones = utils.ExpandStringSlice(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
@@ -281,9 +297,7 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if err := d.Set("zones", utils.FlattenStringSlice(resp.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
-	}
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
