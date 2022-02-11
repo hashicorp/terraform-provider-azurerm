@@ -27,7 +27,7 @@ import (
 var azureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := pluginsdk.Resource{
 		Create: resourceFirewallCreateUpdate,
 		Read:   resourceFirewallRead,
 		Update: resourceFirewallCreateUpdate,
@@ -55,30 +55,6 @@ func resourceFirewall() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: features.ThreePointOhBeta(),
-				Optional: !features.ThreePointOhBeta(),
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuNameAZFWHub),
-					string(network.AzureFirewallSkuNameAZFWVNet),
-				}, false),
-			},
-
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Required: features.ThreePointOhBeta(),
-				Optional: !features.ThreePointOhBeta(),
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuTierPremium),
-					string(network.AzureFirewallSkuTierStandard),
-				}, false),
-			},
 
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
@@ -226,6 +202,51 @@ func resourceFirewall() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.ThreePointOhBeta() {
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+	} else {
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+	}
+
+	return &resource
 }
 
 func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
