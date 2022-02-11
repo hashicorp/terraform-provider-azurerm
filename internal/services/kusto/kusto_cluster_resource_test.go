@@ -590,7 +590,7 @@ resource "azurerm_kusto_cluster" "test" {
   name                    = "acctestkc%s"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  enable_auto_stop        = true
+  auto_stop_enabled        = true
   enable_disk_encryption  = true
   enable_streaming_ingest = true
   enable_purge            = true

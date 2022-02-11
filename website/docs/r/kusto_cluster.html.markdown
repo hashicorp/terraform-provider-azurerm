@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `enable_auto_stop` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
+* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
 
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 
