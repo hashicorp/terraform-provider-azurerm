@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_site"
 description: |-
-  Manages a VPN Site.
+Manages a VPN Site.
 ---
 
 # azurerm_vpn_site
@@ -33,6 +33,7 @@ resource "azurerm_vpn_site" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   virtual_wan_id      = azurerm_virtual_wan.example.id
+  address_cidrs       = ["10.0.0.0/24"]
 
   link {
     name       = "link1"
@@ -71,7 +72,7 @@ A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `peering_address` - (Required) The BGP peering ip address. 
+* `peering_address` - (Required) The BGP peering ip address.
 
 ---
 
@@ -93,7 +94,7 @@ A `link` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the VPN Site.
 

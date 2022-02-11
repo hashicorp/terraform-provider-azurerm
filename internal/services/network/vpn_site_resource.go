@@ -110,25 +110,25 @@ func resourceVpnSite() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"bgp": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"asn": {
-										Type:         pluginsdk.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntAtLeast(1),
-									},
-									"peering_address": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.IsIPAddress,
-									},
-								},
-							},
-						},
+						//"bgp": {
+						//	Type:     pluginsdk.TypeList,
+						//	Optional: true,
+						//	MaxItems: 1,
+						//	Elem: &pluginsdk.Resource{
+						//		Schema: map[string]*pluginsdk.Schema{
+						//			"asn": {
+						//				Type:         pluginsdk.TypeInt,
+						//				Required:     true,
+						//				ValidateFunc: validation.IntAtLeast(1),
+						//			},
+						//			"peering_address": {
+						//				Type:         pluginsdk.TypeString,
+						//				Required:     true,
+						//				ValidateFunc: validation.IsIPAddress,
+						//			},
+						//		},
+						//	},
+						//},
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -339,9 +339,9 @@ func expandVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 		if v, ok := e["fqdn"]; ok {
 			link.VpnSiteLinkProperties.Fqdn = utils.String(v.(string))
 		}
-		if v, ok := e["bgp"]; ok {
-			link.VpnSiteLinkProperties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
-		}
+		//if v, ok := e["bgp"]; ok {
+		//	link.VpnSiteLinkProperties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
+		//}
 
 		result = append(result, link)
 	}
@@ -372,7 +372,7 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 			fqdn             string
 			linkProviderName string
 			linkSpeed        int
-			bgpProperty      []interface{}
+			//bgpProperty      []interface{}
 		)
 
 		if prop := e.VpnSiteLinkProperties; prop != nil {
@@ -393,7 +393,7 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 				}
 			}
 
-			bgpProperty = flattenVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
+			//bgpProperty = flattenVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
 		}
 
 		link := map[string]interface{}{
@@ -403,7 +403,7 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 			"speed_in_mbps": linkSpeed,
 			"ip_address":    ipAddress,
 			"fqdn":          fqdn,
-			"bgp":           bgpProperty,
+			//"bgp":           bgpProperty,
 		}
 
 		output = append(output, link)
