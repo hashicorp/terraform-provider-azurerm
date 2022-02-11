@@ -1,12 +1,8 @@
 package confidentialledger
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
 
 type Registration struct{}
 
@@ -34,14 +30,4 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_confidential_ledger": resourceConfidentialLedger(),
 	}
-}
-
-// DataSources returns a list of Data Sources supported by this Service
-func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
-}
-
-// Resources returns a list of Resources supported by this Service
-func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
 }
