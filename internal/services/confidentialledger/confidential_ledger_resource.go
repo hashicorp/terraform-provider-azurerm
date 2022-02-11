@@ -95,7 +95,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ConfidentialLedgerID,
+				ValidateFunc: validate.ConfidentialLedgerName,
 			},
 
 			"ledger_type": {

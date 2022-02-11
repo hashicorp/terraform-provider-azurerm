@@ -28,19 +28,22 @@ func dataSourceConfidentialLedger() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"aad_based_security_principals": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"tenant_id": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"ledger_role_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrator",
 								"Contributor",
@@ -53,15 +56,17 @@ func dataSourceConfidentialLedger() *pluginsdk.Resource {
 
 			"cert_based_security_principals": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
 							Type:      pluginsdk.TypeString,
+							Required:  true,
 							Sensitive: true,
 						},
 						"ledger_role_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrator",
 								"Contributor",
@@ -76,11 +81,12 @@ func dataSourceConfidentialLedger() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ConfidentialLedgerID,
+				ValidateFunc: validate.ConfidentialLedgerName,
 			},
 
 			"ledger_type": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Public",
 					"Private",
