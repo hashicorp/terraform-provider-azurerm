@@ -153,7 +153,7 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	d.Set("private_ip_address", privateIpAddress)
 	d.Set("private_ip_addresses", privateIpAddresses)
-	
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
