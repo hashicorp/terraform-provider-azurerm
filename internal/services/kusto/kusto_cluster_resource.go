@@ -153,16 +153,19 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0 - change to disk_encryption_enabled
 			"enable_disk_encryption": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			// TODO 3.0 - change to streaming_ingestion_enabled
 			"enable_streaming_ingest": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			// TODO 3.0 - change to purge_enabled
 			"enable_purge": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
