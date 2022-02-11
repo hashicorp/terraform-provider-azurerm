@@ -54,261 +54,24 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 	//lintignore:XS003
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		Optional: true,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"aci_connector_linux": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-
-							"subnet_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-					},
-				},
-
-				"azure_policy": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
-				},
-
-				"kube_dashboard": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
-				},
-
-				"http_application_routing": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"http_application_routing_zone_name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-
-				"oms_agent": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"log_analytics_workspace_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-							},
-							"oms_agent_identity": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"client_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"object_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"user_assigned_identity_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-
-				"ingress_application_gateway": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"gateway_id": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
-							},
-							"gateway_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"subnet_cidr": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
-								ValidateFunc:  commonValidate.CIDR,
-							},
-							"subnet_id": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
-								ValidateFunc:  subnetValidate.SubnetID,
-							},
-							"effective_gateway_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"ingress_application_gateway_identity": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"client_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"object_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"user_assigned_identity_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-
-				"open_service_mesh": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-						},
-					},
-				},
-
-				"azure_keyvault_secrets_provider": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"secret_rotation_enabled": {
-								Type:     pluginsdk.TypeBool,
-								Default:  false,
-								Optional: true,
-							},
-							"secret_rotation_interval": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Default:      "2m",
-								ValidateFunc: containerValidate.Duration,
-							},
-							"secret_identity": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"client_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"object_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"user_assigned_identity_id": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-// TODO 3.0 - Duplicate of the old schema with deprecation messages that should only be displayed when the release is open for beta
-func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
-	//lintignore:XS003
-	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
 		MaxItems:   1,
 		Optional:   true,
 		Computed:   true,
-		Deprecated: "`addon_profile` block has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
+		Deprecated: "`addon_profile` block has been deprecated and will be removed in version 3.0 of the AzureRM Provider. All properties within the block will move to the top level.",
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"aci_connector_linux": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
+					Type:       pluginsdk.TypeList,
+					MaxItems:   1,
+					Optional:   true,
+					Deprecated: "`addon_profile.0.aci_connector_linux` block has been deprecated in favour of the `aci_connector_linux` block and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.aci_connector_linux.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 
 							"subnet_name": {
@@ -324,12 +87,13 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 					Type:       pluginsdk.TypeList,
 					MaxItems:   1,
 					Optional:   true,
-					Deprecated: "`azure_policy` has been deprecated in favour of `azure_policy_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
+					Deprecated: "`addon_profile.0.azure_policy` has been deprecated in favour of `azure_policy_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.azure_policy.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 						},
 					},
@@ -354,30 +118,34 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 					Type:       pluginsdk.TypeList,
 					MaxItems:   1,
 					Optional:   true,
-					Deprecated: "`http_application_routing` has been deprecated in favour of `http_application_routing_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
+					Deprecated: "`addon_profile.0.http_application_routing` block has been deprecated in favour of the `http_application_routing_enabled` property and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.http_application_routing.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 							"http_application_routing_zone_name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type:       pluginsdk.TypeString,
+								Computed:   true,
+								Deprecated: "`addon_profile.0.http_application_routing.0.http_application_routing_zone_name` has been deprecated in favour of `http_application_routing_zone_name` and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 						},
 					},
 				},
 
 				"oms_agent": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
+					Type:       pluginsdk.TypeList,
+					MaxItems:   1,
+					Optional:   true,
+					Deprecated: "`addon_profile.0.oms_agent` block has been deprecated in favour of the `oms_agent` block and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.oms_agent.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 							"log_analytics_workspace_id": {
 								Type:         pluginsdk.TypeString,
@@ -409,14 +177,16 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 				},
 
 				"ingress_application_gateway": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
+					Type:       pluginsdk.TypeList,
+					MaxItems:   1,
+					Optional:   true,
+					Deprecated: "`addon_profile.0.ingress_application_gateway` block has been deprecated in favour of the `ingress_application_gateway` block and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.ingress_application_gateway.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 							"gateway_id": {
 								Type:          pluginsdk.TypeString,
@@ -473,26 +243,29 @@ func schemaKubernetesAddOnProfilesDeprecated() *pluginsdk.Schema {
 					Type:       pluginsdk.TypeList,
 					MaxItems:   1,
 					Optional:   true,
-					Deprecated: "`open_service_mesh` has been deprecated in favour of `open_service_mesh_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
+					Deprecated: "`addon_profile.0.open_service_mesh` has been deprecated in favour of `open_service_mesh_enabled` and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.open_service_mesh.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 						},
 					},
 				},
 
 				"azure_keyvault_secrets_provider": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
+					Type:       pluginsdk.TypeList,
+					MaxItems:   1,
+					Optional:   true,
+					Deprecated: "`addon_profile.0.azure_keyvault_secrets_provider` block has been deprecated in favour of the `keyvault_secrets_provider` block and will be removed in version 3.0 of the AzureRM Provider.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
+								Type:       pluginsdk.TypeBool,
+								Required:   true,
+								Deprecated: "`addon_profile.0.azure_keyvault_secrets_provider.0.enabled` has been deprecated and will be removed in version 3.0 of the AzureRM Provider.",
 							},
 							"secret_rotation_enabled": {
 								Type:     pluginsdk.TypeBool,
@@ -681,7 +454,7 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 		Optional: true,
 		Default:  false,
 	}
-	resource.Schema["azure_keyvault_secrets_provider"] = &pluginsdk.Schema{
+	resource.Schema["keyvault_secrets_provider"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
@@ -692,8 +465,8 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 					Default:  false,
 					Optional: true,
 					AtLeastOneOf: []string{
-						"azure_keyvault_secrets_provider.0.secret_rotation_enabled",
-						"azure_keyvault_secrets_provider.0.secret_rotation_interval",
+						"keyvault_secrets_provider.0.secret_rotation_enabled",
+						"keyvault_secrets_provider.0.secret_rotation_interval",
 					},
 				},
 				"secret_rotation_interval": {
@@ -701,8 +474,8 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 					Optional: true,
 					Default:  "2m",
 					AtLeastOneOf: []string{
-						"azure_keyvault_secrets_provider.0.secret_rotation_enabled",
-						"azure_keyvault_secrets_provider.0.secret_rotation_interval",
+						"keyvault_secrets_provider.0.secret_rotation_enabled",
+						"keyvault_secrets_provider.0.secret_rotation_interval",
 					},
 					ValidateFunc: containerValidate.Duration,
 				},
@@ -984,7 +757,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		}
 	}
 
-	azureKeyVaultSecretsProvider := input["azure_keyvault_secrets_provider"].([]interface{})
+	azureKeyVaultSecretsProvider := input["keyvault_secrets_provider"].([]interface{})
 	if len(azureKeyVaultSecretsProvider) > 0 && azureKeyVaultSecretsProvider[0] != nil {
 		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
 		config := make(map[string]*string)
@@ -997,7 +770,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			Enabled: utils.Bool(true),
 			Config:  config,
 		}
-	} else if len(azureKeyVaultSecretsProvider) == 0 && d.HasChange("azure_keyvault_secrets_provider") {
+	} else if len(azureKeyVaultSecretsProvider) == 0 && d.HasChange("keyvault_secrets_provider") {
 		addonProfiles[azureKeyvaultSecretsProviderKey] = &disabled
 	}
 
@@ -1352,7 +1125,7 @@ func flattenKubernetesAddOns(profile map[string]*containerservice.ManagedCluster
 		"oms_agent":                          omsAgents,
 		"ingress_application_gateway":        ingressApplicationGateways,
 		"open_service_mesh_enabled":          openServiceMeshEnabled,
-		"azure_keyvault_secrets_provider":    azureKeyVaultSecretsProviders,
+		"keyvault_secrets_provider":          azureKeyVaultSecretsProviders,
 	}
 }
 
@@ -1394,7 +1167,7 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 		"oms_agent":                        d.Get("oms_agent").([]interface{}),
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
 		"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
-		"azure_keyvault_secrets_provider":  d.Get("azure_keyvault_secrets_provider").([]interface{}),
+		"keyvault_secrets_provider":        d.Get("keyvault_secrets_provider").([]interface{}),
 	}
 }
 
