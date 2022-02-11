@@ -61,9 +61,6 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				// TODO 3.0: remove this as it can be inferred from "loadbalancer_id"
-				"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
-
 				"loadbalancer_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -140,6 +137,7 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 			}
 
 			if !features.ThreePointOhBeta() {
+				s["resource_group_name"] = azure.SchemaResourceGroupNameDeprecatedComputed()
 				s["backend_address"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeSet,
 					Optional:   true,
@@ -319,11 +317,13 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.BackendAddressPoolName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("loadbalancer_id", lbId.ID())
 
+	if !features.ThreePointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
+
 	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		// TODO: remove in 3.0
 		if !features.ThreePointOhBeta() {
 			// @tombuildsstuff: this is a Set so won't be referenced, let's just nil this out for now
 			if err := d.Set("backend_address", []interface{}{}); err != nil {
