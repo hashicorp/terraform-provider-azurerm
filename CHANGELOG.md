@@ -1,5 +1,9 @@
 ## 2.97.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
+
 ## 2.96.0 (February 11, 2022)
 
 FEATURES: 
