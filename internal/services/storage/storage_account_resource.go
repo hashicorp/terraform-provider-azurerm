@@ -235,6 +235,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Remove in 3.0 - this needs to be Computed for now otherwise it will generate a diff for users using
+				// azurerm_storage_account_customer_managed_key. Once this is no longer Computed users should add
+				// ignore_changes to their config for this block
+				Computed: !features.ThreePointOhBeta(),
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1697,8 +1701,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
-	keyVaultClient := meta.(*clients.Client).KeyVault
-	resourceClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1878,10 +1880,11 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 
-		customerManagedKey, err := flattenStorageAccountCustomerManagedKey(ctx, resourceClient, keyVaultClient, id, props.Encryption)
+		customerManagedKey, err := flattenStorageAccountCustomerManagedKey(id, props.Encryption)
 		if err != nil {
 			return err
 		}
+
 		if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
@@ -2171,7 +2174,7 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	return encryption, nil
 }
 
-func flattenStorageAccountCustomerManagedKey(ctx context.Context, resourceClient *resource.Client, keyVaultClient *keyvault.Client, storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
+func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
 	if input == nil || input.KeySource == storage.KeySourceMicrosoftStorage {
 		return make([]interface{}, 0), nil
 	}
@@ -2180,6 +2183,13 @@ func flattenStorageAccountCustomerManagedKey(ctx context.Context, resourceClient
 	keyName := ""
 	keyVaultURI := ""
 	keyVersion := ""
+
+	if props := input.EncryptionIdentity; props != nil {
+		if props.EncryptionUserAssignedIdentity != nil {
+			userAssignedIdentityId = *props.EncryptionUserAssignedIdentity
+		}
+	}
+
 	if props := input.KeyVaultProperties; props != nil {
 		if props.KeyName != nil {
 			keyName = *props.KeyName
@@ -2189,12 +2199,6 @@ func flattenStorageAccountCustomerManagedKey(ctx context.Context, resourceClient
 		}
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
-		}
-	}
-
-	if props := input.EncryptionIdentity; props != nil {
-		if props.EncryptionUserAssignedIdentity != nil {
-			userAssignedIdentityId = *props.EncryptionUserAssignedIdentity
 		}
 	}
 
