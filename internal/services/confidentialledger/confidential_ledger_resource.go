@@ -130,7 +130,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	existing, err := client.LedgerGet(ctx, resourceId)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("Resource %s exists: %+v", resourceId.ID(), err)
+			return fmt.Errorf("resource %s exists: %+v", resourceId.ID(), err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
@@ -140,19 +140,21 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	aadBasedUsers := expandConfidentialLedgerAADBasedSecurityPrincipal(d.Get("aad_based_security_principals").([]interface{}))
 	certBasedUsers := expandConfidentialLedgerCertBasedSecurityPrincipal(d.Get("cert_based_security_principals").([]interface{}))
 
+	ledgerType := confidentialledger.LedgerType(d.Get("ledger_type").(string))
+
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
 		Properties: &confidentialledger.LedgerProperties{
 			AadBasedSecurityPrincipals:  aadBasedUsers,
 			CertBasedSecurityPrincipals: certBasedUsers,
-			LedgerType:                  d.Get("ledger_type").(*confidentialledger.LedgerType),
+			LedgerType:                  &ledgerType,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.LedgerCreateThenPoll(ctx, resourceId, parameters); err != nil {
-		return fmt.Errorf("Error creating %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("error creating %s: %+v", resourceId.ID(), err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -176,25 +178,25 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("error retrieving %s: %+v", resourceId.ID(), err)
 	}
 
 	d.Set("name", resourceId.LedgerName)
 	d.Set("resource_group_name", resourceId.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("ledger_type", model.Properties.LedgerType)
+		d.Set("ledger_type", string(*model.Properties.LedgerType))
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("tags", model.Tags)
 
 		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
+			return fmt.Errorf("error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
+			return fmt.Errorf("error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		d.Set("aad_based_security_principals", aadBasedUsers)
@@ -226,19 +228,21 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	aadBasedUsers := expandConfidentialLedgerAADBasedSecurityPrincipal(d.Get("aad_based_security_principals").([]interface{}))
 	certBasedUsers := expandConfidentialLedgerCertBasedSecurityPrincipal(d.Get("cert_based_security_principals").([]interface{}))
 
+	ledgerType := confidentialledger.LedgerType(d.Get("ledger_type").(string))
+
 	parameters := confidentialledger.ConfidentialLedger{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Name:     &resourceId.LedgerName,
 		Properties: &confidentialledger.LedgerProperties{
 			AadBasedSecurityPrincipals:  aadBasedUsers,
 			CertBasedSecurityPrincipals: certBasedUsers,
-			LedgerType:                  d.Get("ledger_type").(*confidentialledger.LedgerType),
+			LedgerType:                  &ledgerType,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.LedgerUpdateThenPoll(ctx, *resourceId, parameters); err != nil {
-		return fmt.Errorf("Error updating %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("error updating %s: %+v", resourceId.ID(), err)
 	}
 
 	return resourceConfidentialLedgerRead(d, meta)
@@ -255,7 +259,7 @@ func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.LedgerDeleteThenPoll(ctx, *resourceId); err != nil {
-		return fmt.Errorf("Error deleting %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("error deleting %s: %+v", resourceId.ID(), err)
 	}
 
 	return nil

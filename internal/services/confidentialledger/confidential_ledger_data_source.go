@@ -122,7 +122,7 @@ func dataSourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("%s was not found", resourceId.ID())
 		}
 
-		return fmt.Errorf("Error retrieving %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("error retrieving %s: %+v", resourceId.ID(), err)
 	}
 
 	// Another difference - the id must be set.
@@ -132,18 +132,18 @@ func dataSourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceId.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("ledger_type", model.Properties.LedgerType)
+		d.Set("ledger_type", string(*model.Properties.LedgerType))
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("tags", model.Tags)
 
 		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
+			return fmt.Errorf("error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
 		if err != nil {
-			return fmt.Errorf("Error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
+			return fmt.Errorf("error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
 		}
 
 		d.Set("aad_based_security_principals", aadBasedUsers)

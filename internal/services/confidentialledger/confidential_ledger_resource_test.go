@@ -311,11 +311,13 @@ resource "azurerm_confidential_ledger" "test" {
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
     ledger_role_name = "Administrator"
   }
+
   aad_based_security_principals {
     principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f21"
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
     ledger_role_name = "Contributor"
   }
+  
   aad_based_security_principals {
     principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
@@ -438,11 +440,13 @@ resource "azurerm_confidential_ledger" "test" {
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
     ledger_role_name = "Administrator"
   }
+
   aad_based_security_principals {
     principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f21"
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
     ledger_role_name = "Contributor"
   }
+
   aad_based_security_principals {
     principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
