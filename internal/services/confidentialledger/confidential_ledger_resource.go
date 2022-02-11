@@ -42,7 +42,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"aad_based_security_principals": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
@@ -67,7 +67,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 
 			"cert_based_security_principals": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
@@ -94,7 +94,8 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 			},
 
 			"ledger_type": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Public",
 					"Private",
