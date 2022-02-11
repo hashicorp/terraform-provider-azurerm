@@ -6,6 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -197,7 +204,13 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"tags": tags.Schema(),
 		},
@@ -281,17 +294,24 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("building list of Azure Firewall IP Configurations: %+v", err)
 	}
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	parameters := network.AzureFirewall{
 		Location: &location,
-		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations:     ipConfigs,
 			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
 			AdditionalProperties: make(map[string]*string),
 		},
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
+		}
+	} else {
+		parameters.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	m := d.Get("management_ip_configuration").([]interface{})
@@ -415,9 +435,9 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.AzureFirewallName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(read.Location))
+	d.Set("zones", zones.Flatten(read.Zones))
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
 		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
@@ -455,10 +475,6 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 			return fmt.Errorf("setting `virtual_hub`: %+v", err)
 		}
-	}
-
-	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, read.Tags)
