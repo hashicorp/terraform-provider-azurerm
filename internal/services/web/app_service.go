@@ -399,13 +399,20 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"VS2012", // TODO for 3.0 - remove VS2012, VS2013, VS2015
-						"VS2013",
-						"VS2015",
-						"VS2017",
-						"VS2019",
-					}, true),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						out := []string{
+							"VS2017",
+							"VS2019",
+						}
+						if !features.ThreePointOhBeta() {
+							out = append(out, []string{
+								"VS2012",
+								"VS2013",
+								"VS2015",
+							}...)
+						}
+						return validation.StringInSlice(out, true)
+					}(),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
