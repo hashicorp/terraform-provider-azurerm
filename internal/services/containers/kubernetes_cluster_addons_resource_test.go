@@ -78,7 +78,7 @@ func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		data.ResourceTest(t, r, []acceptance.TestStep{
 			{
 				Config: r.addonProfileKubeDashboardConfig(data),
@@ -268,7 +268,7 @@ func TestAccKubernetesCluster_addonProfileAzureKeyVaultSecretsProvider(t *testin
 }
 
 func (KubernetesClusterResource) addonProfileAciConnectorLinuxConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -424,7 +424,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileAciConnectorLinuxDisabledConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -542,7 +542,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileAzurePolicyConfig(data acceptance.TestData, enabled bool) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -626,7 +626,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 // TODO 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
 func (KubernetesClusterResource) addonProfileKubeDashboardConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -707,7 +707,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileOMSConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -833,7 +833,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileOMSDisabledConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -915,7 +915,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 // TODO 3.0 - Remove this since OMS Agent can only be disabled by omitting the config
 func (KubernetesClusterResource) addonProfileOMSScaleWithoutBlockConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -990,7 +990,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileRoutingConfig(data acceptance.TestData, enabled bool) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1076,7 +1076,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1317,7 +1317,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1408,7 +1408,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayDisabledConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1492,7 +1492,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1611,7 +1611,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileOpenServiceMeshConfig(data acceptance.TestData, enabled bool) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1694,7 +1694,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) addonProfileAzureKeyVaultSecretsProviderConfig(data acceptance.TestData, enabled bool, secretRotation bool, rotationInterval string) string {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1769,7 +1769,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  azure_keyvault_secrets_provider {
+  keyvault_secrets_provider {
     secret_rotation_enabled  = %t
     secret_rotation_interval = "%s"
   }

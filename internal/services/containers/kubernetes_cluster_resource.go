@@ -1003,11 +1003,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	if features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
+		resource.Schema["addon_profile"] = schemaKubernetesAddOnProfiles()
+	} else {
 		schemaKubernetesAddOns(resource)
-		// Overwrite old schema with version containing the deprecation messages for beta,
-		// TODO 3.0 - Remove this
-		resource.Schema["addon_profile"] = schemaKubernetesAddOnProfilesDeprecated()
 	}
 
 	if features.KubeConfigsAreSensitive() {
@@ -1135,13 +1134,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
-	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-	addonProfiles, err = expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
-	if err != nil {
-		return err
-	}
-
-	if features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
+		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+		addonProfiles, err = expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+		if err != nil {
+			return err
+		}
+	} else {
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
 		if err != nil {
@@ -1426,27 +1425,24 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// TODO 3.0 - Remove this block
-	if d.HasChange("addon_profile") {
-		updateCluster = true
-		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
-		if err != nil {
-			return err
+	if !features.ThreePointOhBeta() {
+		if d.HasChange("addon_profile") {
+			updateCluster = true
+			addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+			addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+			if err != nil {
+				return err
+			}
+			existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
 		}
-
-		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
-	}
-
-	if features.ThreePointOh() {
-		if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("azure_keyvault_secrets_provider") {
+	} else {
+		if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("keyvault_secrets_provider") {
 			updateCluster = true
 			addOns := collectKubernetesAddons(d)
 			addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
 			if err != nil {
 				return err
 			}
-
 			existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
 		}
 	}
@@ -1827,13 +1823,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		// TODO 3.0 - Remove this
-		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
-		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("setting `addon_profile`: %+v", err)
-		}
-
-		if features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
+			addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
+			if err := d.Set("addon_profile", addonProfiles); err != nil {
+				return fmt.Errorf("setting `addon_profile`: %+v", err)
+			}
+		} else {
 			addOns := flattenKubernetesAddOns(props.AddonProfiles)
 			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
 			d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
@@ -1842,7 +1837,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("oms_agent", addOns["oms_agent"])
 			d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
 			d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
-			d.Set("azure_keyvault_secrets_provider", addOns["azure_keyvault_secrets_provider"])
+			d.Set("keyvault_secrets_provider", addOns["keyvault_secrets_provider"])
 		}
 
 		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
