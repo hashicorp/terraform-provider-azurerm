@@ -7,7 +7,7 @@ FEATURES:
 * **New Data Source:** `azurerm_site_recovery_protection_container` [GH-15349]
 * **New Data Source:** `azurerm_site_recovery_replication_policy` [GH-15349]
 * **New Beta Resource:** `azurerm_app_service_source_control_slot` [GH-15301]
-* **New resource:** `azurerm_disk_pool_iscsi_target_lun` [GH-15329]
+* **New Resource:** `azurerm_disk_pool_iscsi_target_lun` [GH-15329]
 * **New Resource:** `azurerm_sentinel_watchlist_item` [GH-14366]
 * **New Resource:** `azurerm_stream_analytics_output_function` [GH-15162]
 * **New Resource:** `azurerm_web_pubsub_network_acl` [GH-14827]
@@ -20,7 +20,9 @@ ENHANCEMENTS:
 * `azurerm_automation_account` - Support for managed identity [GH-15072]
 * `azurerm_data_factory` - refactor: consistent identity blocks [GH-15344]
 * `azurerm_kusto_cluster` - support for `enable_auto_stop` [GH-15332]
+* `azurerm_linux_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
 * `azurerm_network_watcher_flow_log` - the `name` property can now be set for new resources [GH-15016]
+* `azurerm_windows_virtual_machine` - support the `StandardSSD_ZRS` and `Premium_ZRS` values for the `storage_account_type` property [GH-15360]
 
 BUG FIXES:
 
