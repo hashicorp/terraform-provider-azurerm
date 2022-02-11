@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -43,7 +44,6 @@ type WindowsFunctionAppDataSourceModel struct {
 	FunctionExtensionsVersion string                                 `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                   `tfschema:"https_only"`
-	Identity                  []helpers.Identity                     `tfschema:"identity"`
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	Tags                      map[string]string                      `tfschema:"tags"`
 
@@ -204,7 +204,7 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
 
-		"identity": helpers.IdentitySchemaComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
 	}
@@ -287,10 +287,6 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
 			}
 
-			if identity := helpers.FlattenIdentity(existing.Identity); identity != nil {
-				functionApp.Identity = identity
-			}
-
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
@@ -321,7 +317,19 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&functionApp)
+			if err := metadata.Encode(&functionApp); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(existing.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
