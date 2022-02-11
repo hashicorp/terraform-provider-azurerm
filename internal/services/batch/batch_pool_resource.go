@@ -929,9 +929,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 		"task_retry_maximum": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: !features.ThreePointOh(),
+			Computed: !features.ThreePointOhBeta(),
 			ConflictsWith: func() []string {
-				if !features.ThreePointOh() {
+				if !features.ThreePointOhBeta() {
 					return []string{"start_task.0.max_task_retry_count"}
 				}
 				return nil
@@ -952,7 +952,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 			ConflictsWith: func() []string {
-				if !features.ThreePointOh() {
+				if !features.ThreePointOhBeta() {
 					return []string{"start_task.0.environment"}
 				}
 				return nil
