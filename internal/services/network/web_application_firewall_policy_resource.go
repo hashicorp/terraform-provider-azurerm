@@ -717,7 +717,7 @@ func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.Ma
 	}
 
 	for _, item := range *input {
-		if item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled {
+		if (item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled) && item.RuleID != nil {
 			v := *item.RuleID
 
 			results = append(results, v)

@@ -177,13 +177,13 @@ func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 	r := WebApplicationFirewallResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.complete(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.updateDisabledRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -191,13 +191,13 @@ func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.complete(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
