@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -95,7 +94,6 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
 							}, !features.ThreePointOh()),
-							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 

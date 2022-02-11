@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -80,7 +79,6 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 					// API backend accepts event_types case-insensitively
 					ValidateFunc:     validation.StringInSlice([]string{"error", "warning", "information"}, !features.ThreePointOh()),
-					StateFunc:        state.IgnoreCase,
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 			},
