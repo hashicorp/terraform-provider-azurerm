@@ -52,7 +52,9 @@ resource "azurerm_app_service_source_control" "example" {
 
 The following arguments are supported:
 
-* `app_id` - (Required) The ID of the Windows or Linux Web or Function App. Changing this forces a new resource to be created.
+* `app_id` - (Required) The ID of the Windows or Linux Web App. Changing this forces a new resource to be created.
+
+~> **NOTE:** Function apps are not supported at this time. 
 
 * `branch` - (Required) The branch name to use for deployments. Changing this forces a new resource to be created.
 
@@ -62,13 +64,13 @@ The following arguments are supported:
 
 * `github_action_configuration` - (Optional) A `github_action_configuration` block as defined below.
 
-* `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Changing this forces a new resource to be created.
+* `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value. 
 
-~> **NOTE:** SCM Type `ScmTypeVSTSRM` is not supported as this is set by Azure DevOps and overrides Terraform's control of this resource.
+* `use_local_git` - (Optional) Should the App use local Git configuration. Changing this forces a new resource to be created.
 
 * `use_mercurial` - (Optional) The repository specified is Mercurial. Defaults to `false`. Changing this forces a new resource to be created.
 
