@@ -125,19 +125,18 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if !features.ThreePointOhBeta() {
 		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = clientAffinityEnabled
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
@@ -264,19 +263,18 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if features.ThreePointOhBeta() {
 		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = &clientAffinityEnabled
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
