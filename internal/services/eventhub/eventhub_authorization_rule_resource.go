@@ -129,7 +129,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.ParseEventhubAuthorizationRuleID(d.Id())
+	id, err := eventhubs.ParseEventhubAuthorizationRuleIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
