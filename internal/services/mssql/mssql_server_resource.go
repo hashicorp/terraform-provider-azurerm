@@ -186,7 +186,13 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 				RequiredWith: []string{
-					"identity.0.user_assigned_identity_ids",
+					func() string {
+						if !features.ThreePointOhBeta() {
+							return "identity.0.user_assigned_identity_ids"
+						}
+
+						return "identity.0.identity_ids"
+					}(),
 				},
 			},
 
