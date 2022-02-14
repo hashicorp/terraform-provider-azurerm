@@ -278,7 +278,7 @@ func flattenJSON(stringMap interface{}) string {
 	return ""
 }
 
-func resourceArmPolicyDefinitionSchema() map[string] *pluginsdk.Schema {
+func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -318,10 +318,10 @@ func resourceArmPolicyDefinitionSchema() map[string] *pluginsdk.Schema {
 		},
 
 		"management_group_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      !features.ThreePointOhBeta(),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Computed: !features.ThreePointOhBeta(),
 			ConflictsWith: func() []string {
 				if !features.ThreePointOhBeta() {
 					return []string{"management_group_name"}
@@ -358,13 +358,13 @@ func resourceArmPolicyDefinitionSchema() map[string] *pluginsdk.Schema {
 	}
 
 	if !features.ThreePointOhBeta() {
-		out["management_group_name"] = &pluginsdk.Schema {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"management_group_id"},
-				Deprecated:    "Deprecated in favour of `management_group_id`",
+		out["management_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"management_group_id"},
+			Deprecated:    "Deprecated in favour of `management_group_id`",
 		}
 	}
 	return out
