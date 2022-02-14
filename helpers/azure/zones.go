@@ -54,15 +54,3 @@ func ExpandZones(v []interface{}) *[]string {
 		return nil
 	}
 }
-
-func FlattenZones(v *[]string) []interface{} {
-	zones := make([]interface{}, 0)
-	if v == nil {
-		return zones
-	}
-
-	for _, s := range *v {
-		zones = append(zones, s)
-	}
-	return zones
-}
