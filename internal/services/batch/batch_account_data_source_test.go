@@ -218,10 +218,7 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread" {}
-
-data "azuread_service_principal" "test" {
-  display_name = "Microsoft Azure Batch"
+data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_resource_group" "test" {
@@ -273,7 +270,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "%s"
-    object_id = "${data.azuread_service_principal.test.object_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
       "Get",
@@ -281,7 +278,6 @@ resource "azurerm_key_vault" "test" {
       "WrapKey",
       "UnwrapKey"
     ]
-
   }
 }
 
