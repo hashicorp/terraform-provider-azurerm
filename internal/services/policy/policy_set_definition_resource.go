@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"reflect"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -192,6 +192,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 
 	if !features.ThreePointOhBeta() {
 		out["management_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			Computed:      true,
