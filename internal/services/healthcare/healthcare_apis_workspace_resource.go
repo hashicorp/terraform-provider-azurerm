@@ -42,9 +42,9 @@ func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceName,
 			},
 
@@ -137,7 +137,7 @@ func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(future.HttpResponse){
+		if response.WasNotFound(future.HttpResponse) {
 			return nil
 		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -175,7 +175,7 @@ func healthcareapiWorkspaceStateCodeRefreshFunc(ctx context.Context, client *wor
 		}
 
 		if err != nil {
-			if response.WasNotFound(res.HttpResponse){
+			if response.WasNotFound(res.HttpResponse) {
 				return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
 			}
 			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)

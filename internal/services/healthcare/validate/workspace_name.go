@@ -22,4 +22,3 @@ func WorkspaceName(i interface{}, k string) (warnings []string, errors []error) 
 	}
 	return warnings, errors
 }
-
