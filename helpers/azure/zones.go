@@ -43,17 +43,6 @@ func SchemaMultipleZones() *pluginsdk.Schema {
 	}
 }
 
-func SchemaZonesComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-	}
-}
-
 func ExpandZones(v []interface{}) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
