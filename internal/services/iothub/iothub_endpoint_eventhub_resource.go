@@ -141,9 +141,12 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iothub_name").(string)
 	iotHubRG := endpointRG
 
+	var iotHubName string
+	if !features.ThreePointOhBeta() {
+		iotHubName = d.Get("q").(string)
+	}
 	if iotHubName == "" {
 		id, err := parse.IotHubID(d.Get("iothub_id").(string))
 		if err != nil {
@@ -264,8 +267,10 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("iothub_name", id.IotHubName)
+	if !features.ThreePointOhBeta() {
+		d.Set("iothub_name", id.IotHubName)
 
+	}
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())
 
