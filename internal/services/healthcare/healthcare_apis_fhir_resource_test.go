@@ -142,13 +142,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
-  name                = "acctestfhir%d"
+  name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcareapis_workspace.test.id
@@ -190,7 +190,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -203,7 +203,7 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%d"
+  name                     = "acc%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -215,13 +215,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
-  name                = "acctestfhir%d"
+  name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcareapis_workspace.test.id
@@ -260,7 +260,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%d"
+  name                     = "acc%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -272,13 +272,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
-  name                = "acctestfhir%d"
+  name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcareapis_workspace.test.id
@@ -318,7 +318,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -331,7 +331,7 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%d"
+  name                     = "acc%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -343,13 +343,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acctest%d"
+  name                = "acc%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
-  name                = "acctestfhir%d"
+  name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcareapis_workspace.test.id

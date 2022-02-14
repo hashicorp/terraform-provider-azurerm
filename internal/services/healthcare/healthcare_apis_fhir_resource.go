@@ -106,7 +106,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 			"identity": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -295,6 +295,9 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	}
 	d.Set("name", id.FhirServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	workSpaceId := workspace.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	d.Set("workspace_id", workSpaceId.ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
