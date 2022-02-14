@@ -68,7 +68,7 @@ provider "azurerm" {
 
 ## What's available in Version 3.0 of the AzureRM Provider?
 
-At a high level, version 3.0 to includes the following changes:
+At a high level, version 3.0 includes the following changes:
 * [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
 * [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
 * [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal)
@@ -177,7 +177,7 @@ Below we'll cover each of the Data Sources and Resources which will be affected 
 
 ### Data Source: `azurerm_batch_pool`
 
-The deprecated field `environment` will be removed in favour of the `common_environment_properties` properties.
+The deprecated field `start_task.environment` will be removed in favour of the `start_task.common_environment_properties` properties.
 
 The deprecated field `start_task.max_task_retry_count` will be removed in favour of the `start_task.task_retry_maximum` property.
 
@@ -186,6 +186,8 @@ The deprecated field `start_task.max_task_retry_count` will be removed in favour
 The deprecated field `storage_account_id` has been removed as it is no longer recognized by the API nor functional.
 
 ### Data Source: `azurerm_cosmosdb_account`
+
+The field `capabilities` will no longer accept the value `EnableAnalyticalStorage`.
 
 The deprecated field `primary_master_key` will be removed in favour of the `primary_key` property.
 
@@ -523,6 +525,10 @@ The default value for the field `threat_intel_mode` will change from "Alert" to 
 
 ### Resource: `azurerm_frontdoor`
 
+The deprecated field `backend_pools_send_receive_timeout_seconds` will be removed in favour of the `backend_pool_settings.backend_pools_send_receive_timeout_seconds` property.
+
+The deprecated field `enforce_backend_pools_certificate_name_check` will be removed in favour of the `backend_pool_settings.enforce_backend_pools_certificate_name_check` property.
+
 The deprecated field `location` will be removed since it must always be set to `Global` for new resources.
 
 ### Resource: `azurerm_frontdoor_rules_engine`
@@ -648,6 +654,8 @@ The deprecated field `zones` will become Computed only and is replaced by the `a
 ### Resource: `azurerm_lb_rule`
 
 The deprecated field `backend_address_pool_id` will be removed in favour of `backend_address_pool_ids`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
 
 ### Resource: `azurerm_log_analytics_linked_service`
 
@@ -1002,6 +1010,14 @@ The deprecated field `hosting_environment_profile_id` will be removed in favour 
 ### Resource: `azurerm_app_service_environment`
 
 The deprecated field `user_whitelisted_ip_ranges` will be removed in favour of the `allowed_user_ip_cidrs` property.
+
+### Resource: `azurerm_app_service_slot`
+
+The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
+
+### Resource: `azurerm_app_service`
+
+The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
 
 ### Resource: `azurerm_function_app_host_keys`
 
