@@ -426,7 +426,7 @@ resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  zones               = ["1", "2"]
+  zones               = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
