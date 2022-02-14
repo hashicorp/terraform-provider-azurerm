@@ -14,11 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	acrParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	fhirService "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/fhirservices"
 	workspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/workspaces"
-	storgaeAccountParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageAccountValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -108,17 +105,17 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			},
 
 			"identity": {
-				Type: pluginsdk.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"type":{
-							Type: pluginsdk.TypeString,
+						"type": {
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(fhirService.ManagedServiceIdentityTypeSystemAssigned),
-							},false),
+							}, false),
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -132,6 +129,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
+			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 			"acr_login_servers": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -197,10 +195,10 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"export_storage_account_id": {
+			"export_storage_account_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: storageAccountValidate.StorageAccountID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"tags": commonschema.Tags(),
 		},
@@ -253,22 +251,19 @@ func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.AccessPolicies = expandAccessPolicy(accessPolicyObjectIds.(*pluginsdk.Set).List())
 	}
 
-	if v := d.Get("export_storage_account_id").(string); v != "" {
-		storageAccount, err := storgaeAccountParse.StorageAccountID(v)
-		if err != nil {
-			return err
-		}
+	if v := d.Get("export_storage_account_name").(string); v != "" {
+		//storageAccount, err := storgaeAccountParse.StorageAccountID(v)
+		//if err != nil {
+		//	return err
+		//}
 		parameters.Properties.ExportConfiguration = &fhirService.FhirServiceExportConfiguration{
-			StorageAccountName: utils.String(storageAccount.Name),
+			StorageAccountName: utils.String(v),
 		}
 	}
 
 	acrConfig, hasValues := d.GetOk("acr_login_servers")
 	if hasValues {
-		result, err := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List(), meta, ctx)
-		if err != nil {
-			return fmt.Errorf("expanding Acr Login Server error: %+v", err)
-		}
+		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
 		parameters.Properties.AcrConfiguration = result
 	}
 
@@ -303,6 +298,7 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("identity", flattenFhirServiceIdentity(model.Identity))
 
 		if model.Kind != nil {
 			d.Set("kind", model.Kind)
@@ -311,10 +307,10 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 		if props := model.Properties; props != nil {
 			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
 			d.Set("authentication_configuration", flattenFhirAuthentication(props.AuthenticationConfiguration))
-			d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
 			d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
+			d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
 			if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
-				d.Set("export_storage_account_id", props.ExportConfiguration.StorageAccountName)
+				d.Set("export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 			}
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -382,18 +378,39 @@ func healthcareApiFhirServiceStateCodeRefreshFunc(ctx context.Context, client *f
 	}
 }
 
-func expandFhirServiceIdentity(input []interface{}) *fhirService.ServiceManagedIdentityIdentity{
+func expandFhirServiceIdentity(input []interface{}) *fhirService.ServiceManagedIdentityIdentity {
+	//todo: is there any other way to set the address?
+	typeNone := fhirService.ManagedServiceIdentityTypeNone
 	if len(input) == 0 {
 		return &fhirService.ServiceManagedIdentityIdentity{
-			Type: fhirService.ManagedServiceIdentityTypeNone,
+			Type: &typeNone,
 		}
 	}
 
-		identity := input[0].(map[string]interface{})
-		return &fhirService.ServiceManagedIdentityIdentity{
-			Type: fhirService.ManagedServiceIdentityType(identity["type"].(string)),
-		}
+	identity := input[0].(map[string]interface{})
+	inputType := fhirService.ManagedServiceIdentityType(identity["type"].(string))
+	return &fhirService.ServiceManagedIdentityIdentity{
+		Type: &inputType,
 	}
+}
+
+func flattenFhirServiceIdentity(identity *fhirService.ServiceManagedIdentityIdentity) []interface{} {
+	if identity == nil || *identity.Type == fhirService.ManagedServiceIdentityTypeNone {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(*identity.Type)
+
+	//todo:check if there is any tenantID and principalID will be added in the stable api
+	//if identity.PrincipalID != nil {
+	//	result["principal_id"] = identity.PrincipalID.String()
+	//}
+	//
+	//if identity.TenantID != nil {
+	//	result["tenant_id"] = identity.TenantID.String()
+	//}
+	return []interface{}{result}
 }
 func expandFhirAuthentication(input []interface{}) *fhirService.FhirServiceAuthenticationConfiguration {
 	authConfig := input[0].(map[string]interface{})
@@ -458,27 +475,44 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirService.FhirServiceCo
 	return cors
 }
 
-func expandFhirAcrLoginServer(input []interface{}, meta interface{}, ctx context.Context) (*fhirService.FhirServiceAcrConfiguration, error) {
-	acrLoginServers := make([]string, 0)
-	acrClient := meta.(*clients.Client).Containers.RegistriesClient
+//func expandFhirAcrLoginServer(input []interface{}, meta interface{}, ctx context.Context) (*fhirService.FhirServiceAcrConfiguration, error) {
+//	acrLoginServers := make([]string, 0)
+//	acrClient := meta.(*clients.Client).Containers.RegistriesClient
+//
+//	for _, item := range input {
+//		acrId, err := acrParse.RegistryID(item.(string))
+//		if err != nil {
+//			return nil, err
+//		}
+//		acrItem, err := acrClient.Get(ctx, acrId.ResourceGroup, acrId.Name)
+//		if err != nil {
+//			return nil, fmt.Errorf("retrieving %s: %+v", acrId, err)
+//		}
+//		if loginServer := acrItem.LoginServer; loginServer != nil {
+//			acrLoginServers = append(acrLoginServers, *loginServer)
+//		}
+//	}
+//
+//	return &fhirService.FhirServiceAcrConfiguration{
+//		LoginServers: &acrLoginServers,
+//	}, nil
+//}
 
-	for _, item := range input {
-		acrId, err := acrParse.RegistryID(item.(string))
-		if err != nil {
-			return nil, err
-		}
-		acrItem, err := acrClient.Get(ctx, acrId.ResourceGroup, acrId.Name)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving %s: %+v", acrId, err)
-		}
-		if loginServer := acrItem.LoginServer; loginServer != nil {
-			acrLoginServers = append(acrLoginServers, *loginServer)
+func expandFhirAcrLoginServer(input []interface{}) *fhirService.FhirServiceAcrConfiguration {
+	acrLoginServers := make([]string, 0)
+
+	if len(input) == 0 {
+		return &fhirService.FhirServiceAcrConfiguration{
+			LoginServers: &acrLoginServers,
 		}
 	}
 
+	for _, item := range input {
+		acrLoginServers = append(acrLoginServers, item.(string))
+	}
 	return &fhirService.FhirServiceAcrConfiguration{
 		LoginServers: &acrLoginServers,
-	}, nil
+	}
 }
 
 func flattenFhirAcrLoginServer(acrLoginServer *fhirService.FhirServiceAcrConfiguration) []string {
