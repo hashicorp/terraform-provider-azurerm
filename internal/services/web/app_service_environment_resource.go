@@ -48,7 +48,7 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Schema: nil,
+		Schema: resourceAppServiceEnvironmentSchema,
 	}
 }
 
