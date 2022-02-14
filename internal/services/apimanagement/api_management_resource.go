@@ -320,14 +320,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Default:  false,
 					},
 
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_frontend_ssl30": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_frontend_tls10": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
