@@ -295,7 +295,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
 	var storageConnection string
-	if features.ThreePointOhBeta() {
+	if !features.ThreePointOhBeta() {
 		if v, ok := d.GetOk("storage_connection_string"); ok {
 			storageConnection = v.(string)
 		}

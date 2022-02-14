@@ -171,7 +171,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("expiration_date", expirationDate)
 		d.Set("thumbprint", props.Thumbprint)
 
-		if hep := props.HostingEnvironmentProfile; features.ThreePointOhBeta() && hep != nil {
+		if hep := props.HostingEnvironmentProfile; !features.ThreePointOhBeta() && hep != nil {
 			d.Set("hosting_environment_profile_id", hep.ID)
 		}
 	}
