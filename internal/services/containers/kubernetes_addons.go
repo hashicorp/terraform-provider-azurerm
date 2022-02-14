@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -311,6 +312,7 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
+		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"subnet_name": {
@@ -324,12 +326,12 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 	resource.Schema["azure_policy_enabled"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Default:  false,
+		Computed: !features.ThreePointOhBeta(),
 	}
 	resource.Schema["http_application_routing_enabled"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Default:  false,
+		Computed: !features.ThreePointOhBeta(),
 	}
 	resource.Schema["http_application_routing_zone_name"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
@@ -339,6 +341,7 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
+		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"log_analytics_workspace_id": {
@@ -373,6 +376,7 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
+		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"gateway_id": {
@@ -452,12 +456,13 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 	resource.Schema["open_service_mesh_enabled"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Default:  false,
+		Computed: !features.ThreePointOhBeta(),
 	}
 	resource.Schema["keyvault_secrets_provider"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
+		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secret_rotation_enabled": {

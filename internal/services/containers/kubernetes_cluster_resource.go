@@ -1003,10 +1003,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
+	schemaKubernetesAddOns(resource)
+
 	if !features.ThreePointOhBeta() {
 		resource.Schema["addon_profile"] = schemaKubernetesAddOnProfiles()
-	} else {
-		schemaKubernetesAddOns(resource)
 	}
 
 	if features.KubeConfigsAreSensitive() {
@@ -1134,17 +1134,20 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
+	addOns := collectKubernetesAddons(d)
+	addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
+	if err != nil {
+		return err
+	}
+
 	if !features.ThreePointOhBeta() {
-		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles, err = expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
-		if err != nil {
-			return err
-		}
-	} else {
-		addOns := collectKubernetesAddons(d)
-		addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
-		if err != nil {
-			return err
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("addon_profile"); ok {
+			addonProfilesRaw := v.([]interface{})
+			addonProfiles, err = expandKubernetesAddOnProfiles(addonProfilesRaw, env)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1425,21 +1428,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("keyvault_secrets_provider") {
+		updateCluster = true
+		addOns := collectKubernetesAddons(d)
+		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
+		if err != nil {
+			return err
+		}
+		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
+	}
+
 	if !features.ThreePointOhBeta() {
 		if d.HasChange("addon_profile") {
 			updateCluster = true
 			addOnProfilesRaw := d.Get("addon_profile").([]interface{})
 			addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
-			if err != nil {
-				return err
-			}
-			existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
-		}
-	} else {
-		if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("keyvault_secrets_provider") {
-			updateCluster = true
-			addOns := collectKubernetesAddons(d)
-			addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
 			if err != nil {
 				return err
 			}
@@ -1823,21 +1826,21 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
+		addOns := flattenKubernetesAddOns(props.AddonProfiles)
+		d.Set("aci_connector_linux", addOns["aci_connector_linux"])
+		d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+		d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
+		d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
+		d.Set("oms_agent", addOns["oms_agent"])
+		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
+		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
+		d.Set("keyvault_secrets_provider", addOns["keyvault_secrets_provider"])
+
 		if !features.ThreePointOhBeta() {
 			addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
 			if err := d.Set("addon_profile", addonProfiles); err != nil {
 				return fmt.Errorf("setting `addon_profile`: %+v", err)
 			}
-		} else {
-			addOns := flattenKubernetesAddOns(props.AddonProfiles)
-			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
-			d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
-			d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
-			d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
-			d.Set("oms_agent", addOns["oms_agent"])
-			d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
-			d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
-			d.Set("keyvault_secrets_provider", addOns["keyvault_secrets_provider"])
 		}
 
 		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
