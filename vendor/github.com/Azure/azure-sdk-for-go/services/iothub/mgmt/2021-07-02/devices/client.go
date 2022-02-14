@@ -1,4 +1,4 @@
-// Package devices implements the Azure ARM Devices service API version 2021-03-31.
+// Package devices implements the Azure ARM Devices service API version 2021-07-02.
 //
 // Use this API to manage the IoT hubs in your Azure subscription.
 package devices
