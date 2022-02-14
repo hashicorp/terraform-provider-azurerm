@@ -272,7 +272,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if features.ThreePointOhBeta() {
+	if !features.ThreePointOhBeta() {
 		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
