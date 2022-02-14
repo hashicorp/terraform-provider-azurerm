@@ -44,219 +44,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-_!a-zA-Z0-9]{2,149}$"),
-					"Backup Policy name must be 3 - 150 characters long, start with a letter, contain only letters and numbers.",
-				),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"instant_restore_retention_days": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 5),
-			},
-
-			"recovery_vault_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.RecoveryServicesVaultName,
-			},
-
-			"timezone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "UTC",
-			},
-
-			"backup": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"frequency": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(backup.ScheduleRunTypeDaily),
-								string(backup.ScheduleRunTypeWeekly),
-							}, !features.ThreePointOhBeta()),
-						},
-
-						"time": { // applies to all backup schedules & retention times (they all must be the same)
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
-								"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
-							),
-						},
-
-						"weekdays": { // only for weekly
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_daily": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999), // Azure no longer supports less than 7 daily backups. This should be updated in 3.0 provider
-
-						},
-					},
-				},
-			},
-
-			"retention_weekly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_monthly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"weeks": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.WeekOfMonthFirst),
-									string(backup.WeekOfMonthSecond),
-									string(backup.WeekOfMonthThird),
-									string(backup.WeekOfMonthFourth),
-									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOhBeta()),
-							},
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_yearly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"months": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsMonth(true),
-							},
-						},
-
-						"weeks": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.WeekOfMonthFirst),
-									string(backup.WeekOfMonthSecond),
-									string(backup.WeekOfMonthThird),
-									string(backup.WeekOfMonthFourth),
-									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOhBeta()),
-							},
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceBackupProtectionPolicyVMSchema(),
 
 		// if daily, we need daily retention
 		// if weekly daily cannot be set, and we need weekly
@@ -297,7 +85,6 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	policyName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
@@ -345,7 +132,6 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	policy := backup.ProtectionPolicyResource{
-		Tags:       tags.Expand(t),
 		Properties: vmProtectionPolicyProperties,
 	}
 
@@ -435,7 +221,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -780,4 +566,224 @@ func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *ba
 
 		return resp, "Found", nil
 	}
+}
+
+func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z][-_!a-zA-Z0-9]{2,149}$"),
+				"Backup Policy name must be 3 - 150 characters long, start with a letter, contain only letters and numbers.",
+			),
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"instant_restore_retention_days": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 5),
+		},
+
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		"timezone": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "UTC",
+		},
+
+		"backup": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"frequency": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(backup.ScheduleRunTypeDaily),
+							string(backup.ScheduleRunTypeWeekly),
+						}, !features.ThreePointOhBeta()),
+					},
+
+					"time": { // applies to all backup schedules & retention times (they all must be the same)
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+							"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+						),
+					},
+
+					"weekdays": { // only for weekly
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+
+		"retention_daily": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999), // Azure no longer supports less than 7 daily backups. This should be updated in 3.0 provider
+
+					},
+				},
+			},
+		},
+
+		"retention_weekly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+
+		"retention_monthly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"weeks": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(backup.WeekOfMonthFirst),
+								string(backup.WeekOfMonthSecond),
+								string(backup.WeekOfMonthThird),
+								string(backup.WeekOfMonthFourth),
+								string(backup.WeekOfMonthLast),
+							}, !features.ThreePointOhBeta()),
+						},
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+
+		"retention_yearly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"months": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsMonth(true),
+						},
+					},
+
+					"weeks": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(backup.WeekOfMonthFirst),
+								string(backup.WeekOfMonthSecond),
+								string(backup.WeekOfMonthThird),
+								string(backup.WeekOfMonthFourth),
+								string(backup.WeekOfMonthLast),
+							}, !features.ThreePointOhBeta()),
+						},
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		schema["tags"] = tags.SchemaDeprecatedUnsupported()
+	}
+
+	return schema
 }

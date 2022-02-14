@@ -21,7 +21,6 @@ func TestAccDataSourceBackupPolicyVm_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("recovery_vault_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 	})

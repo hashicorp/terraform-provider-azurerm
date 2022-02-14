@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	vmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -41,53 +42,7 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(80 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"recovery_vault_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.RecoveryServicesVaultName,
-			},
-
-			"source_vm_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"backup_policy_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"exclude_disk_luns": {
-				Type:          pluginsdk.TypeSet,
-				ConflictsWith: []string{"include_disk_luns"},
-				Optional:      true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeInt,
-					ValidateFunc: validation.IntAtLeast(0),
-				},
-			},
-
-			"include_disk_luns": {
-				Type:          pluginsdk.TypeSet,
-				ConflictsWith: []string{"exclude_disk_luns"},
-				Optional:      true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeInt,
-					ValidateFunc: validation.IntAtLeast(0),
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceRecoveryServicesBackupProtectedVMSchema(),
 	}
 }
 
@@ -97,7 +52,6 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	vaultName := d.Get("recovery_vault_name").(string)
 	vmId := d.Get("source_vm_id").(string)
@@ -128,7 +82,6 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	}
 
 	item := backup.ProtectedItemResource{
-		Tags: tags.Expand(t),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:           &policyId,
 			ProtectedItemType:  backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
@@ -202,7 +155,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -336,4 +289,58 @@ func expandDiskLunList(input []interface{}) []interface{} {
 		result = append(result, v.(int))
 	}
 	return result
+}
+
+func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		"source_vm_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
+			DiffSuppressFunc: suppress.CaseDifference,
+		},
+
+		"backup_policy_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"exclude_disk_luns": {
+			Type:          pluginsdk.TypeSet,
+			ConflictsWith: []string{"include_disk_luns"},
+			Optional:      true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeInt,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+		},
+
+		"include_disk_luns": {
+			Type:          pluginsdk.TypeSet,
+			ConflictsWith: []string{"exclude_disk_luns"},
+			Optional:      true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeInt,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		schema["tags"] = tags.SchemaDeprecatedUnsupported()
+	}
+
+	return schema
 }
