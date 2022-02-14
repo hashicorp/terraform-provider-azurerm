@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -191,7 +190,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						}
 
 						if features.ThreePointOhBeta() {
-							s["zones"] = commonschema.ZonesMultipleOptional()
+							s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
 						} else {
 							s["availability_zone"] = &pluginsdk.Schema{
 								Type:     pluginsdk.TypeString,
@@ -465,7 +464,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		if features.ThreePointOhBeta() {
-			zones := zones.Expand(data["zones"].(*schema.Set).List())
+			zones := zones.Expand(data["zones"].(*pluginsdk.Set).List())
 			if len(zones) > 0 {
 				frontEndConfig.Zones = &zones
 			}
@@ -608,7 +607,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 		}
 
 		if features.ThreePointOhBeta() {
-			out["zones"] = pluginsdk.NewSet(pluginsdk.HashString, zones.Flatten(config.Zones))
+			out["zones"] = zones.Flatten(config.Zones)
 		} else {
 			availabilityZones := "No-Zone"
 			zonesDeprecated := make([]string, 0)

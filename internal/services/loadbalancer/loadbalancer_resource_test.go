@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -166,7 +165,11 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_zones(t *testing.T) {
+func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("skipping since this requires the 3.0 beta")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
@@ -178,15 +181,20 @@ func TestAccAzureRMLoadBalancer_zones(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_zonesMultiple(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("skipping since this requires the 3.0 beta")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zonesMultiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.zonesSingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -717,7 +725,7 @@ resource "azurerm_lb" "test" {
     private_ip_address_version    = "IPv4"
     private_ip_address            = "10.0.2.7"
     subnet_id                     = azurerm_subnet.test.id
-    zones                         = ["1", "2"]
+    zones                         = ["1", "2", "3"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
