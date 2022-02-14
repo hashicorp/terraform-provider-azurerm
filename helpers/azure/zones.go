@@ -5,16 +5,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SchemaZoneComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		Computed:     true,
-		ForceNew:     true,
-		ValidateFunc: validation.StringIsNotEmpty,
-	}
-}
-
 func SchemaZones() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
