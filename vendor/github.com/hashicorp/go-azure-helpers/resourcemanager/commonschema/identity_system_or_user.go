@@ -13,7 +13,85 @@ import (
 // from a users perspective however, these should both be represented using the same schema
 // so we have a single schema and separate Expand/Flatten functions
 
-func SystemOrUserAssignedIdentity() *schema.Schema {
+// SystemOrUserAssignedIdentityRequired returns the System or User Assigned Identity schema where this is Required
+func SystemOrUserAssignedIdentityRequired() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemOrUserAssignedIdentityRequiredForceNew returns the System or User Assigned Identity schema where this is Required and ForceNew
+func SystemOrUserAssignedIdentityRequiredForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemOrUserAssignedIdentityOptional returns the System or User Assigned Identity schema where this is Optional
+func SystemOrUserAssignedIdentityOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -49,7 +127,48 @@ func SystemOrUserAssignedIdentity() *schema.Schema {
 	}
 }
 
-func SystemOrUserAssignedIdentityDataSource() *schema.Schema {
+// SystemOrUserAssignedIdentityOptionalForceNew returns the System or User Assigned Identity schema where this is Optional and ForceNew
+func SystemOrUserAssignedIdentityOptionalForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemOrUserAssignedIdentityComputed returns the System or User Assigned Identity schema where this is Computed
+func SystemOrUserAssignedIdentityComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

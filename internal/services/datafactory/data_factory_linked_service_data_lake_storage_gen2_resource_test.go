@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceDataLakeStorageGen2Resource struct {
-}
+type LinkedServiceDataLakeStorageGen2Resource struct{}
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")

@@ -18,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApplicationGatewayResource struct {
-}
+type ApplicationGatewayResource struct{}
 
 func TestAccApplicationGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
@@ -1378,6 +1377,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -2050,6 +2050,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -2223,6 +2224,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4062,6 +4064,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4212,6 +4215,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 

@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyResource struct {
-}
+type FirewallPolicyResource struct{}
 
 func TestAccFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
@@ -194,7 +194,7 @@ func TestAccFirewallPolicy_insights(t *testing.T) {
 }
 
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyID(state.ID)
+	id, err := parse.FirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,10 @@ resource "azurerm_firewall_policy" "test" {
 func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	r := FirewallPolicyResource{}
 	template := r.templatePremium(data)
-	return fmt.Sprintf(`
+
+	if !features.ThreePointOhBeta() {
+
+		return fmt.Sprintf(`
 %s
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
@@ -300,6 +303,59 @@ resource "azurerm_firewall_policy" "test" {
   identity {
     type = "UserAssigned"
     user_assigned_identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  tls_certificate {
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
+    name                = azurerm_key_vault_certificate.test.name
+  }
+  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%s
+resource "azurerm_firewall_policy" "test" {
+  name                     = "acctest-networkfw-Policy-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Premium"
+  threat_intelligence_mode = "Off"
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers       = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled = true
+  }
+  intrusion_detection {
+    mode = "Alert"
+    signature_overrides {
+      state = "Alert"
+      id    = "1"
+    }
+    traffic_bypass {
+      name              = "Name bypass traffic settings"
+      description       = "Description bypass traffic settings"
+      protocol          = "Any"
+      destination_ports = ["*"]
+      source_ip_groups = [
+        azurerm_ip_group.test_source.id,
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.test_destination.id,
+      ]
+    }
+  }
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
   }

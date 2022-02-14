@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,9 +64,13 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.ReplicationRolePrimary),
 					string(redis.ReplicationRoleSecondary),
-					// TODO: make this case-sensitive in 3.0
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+					if !features.ThreePointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
 			},
 
 			"name": {

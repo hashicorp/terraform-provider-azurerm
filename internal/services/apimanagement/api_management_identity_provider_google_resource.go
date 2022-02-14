@@ -73,8 +73,8 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_google", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_google", id.ID())
 		}
 	}
 

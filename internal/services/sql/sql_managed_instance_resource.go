@@ -9,11 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -22,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type managedInstanceIdentity = identity.SystemAssigned
 
 func resourceArmSqlMiServer() *schema.Resource {
 	return &schema.Resource{
@@ -172,7 +171,8 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"identity": managedInstanceIdentity{}.Schema(),
+			// TODO: support User Assigned https://github.com/hashicorp/terraform-provider-azurerm/issues/15277
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,
@@ -369,7 +369,7 @@ func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
 }
 
 func expandManagedInstanceIdentity(input []interface{}, isNewResource bool) (*sql.ResourceIdentity, error) {
-	config, err := managedInstanceIdentity{}.Expand(input)
+	config, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
@@ -385,26 +385,25 @@ func expandManagedInstanceIdentity(input []interface{}, isNewResource bool) (*sq
 }
 
 func flattenManagedInstanceIdentity(input *sql.ResourceIdentity) []interface{} {
-	var config *identity.ExpandedConfig
+	var config *identity.SystemAssigned
 
-	if input == nil {
-		return []interface{}{}
+	if input != nil {
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = input.PrincipalID.String()
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = input.TenantID.String()
+		}
+
+		config = &identity.SystemAssigned{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+		}
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = input.PrincipalID.String()
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-
-	config = &identity.ExpandedConfig{
-		Type:        identity.Type(string(input.Type)),
-		PrincipalId: principalId,
-		TenantId:    tenantId,
-	}
-	return managedInstanceIdentity{}.Flatten(config)
+	return identity.FlattenSystemAssigned(config)
 }

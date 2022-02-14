@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
-	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
+	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2021-10-15/iothub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -106,14 +106,14 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  features.ThreePointOh(),
+							Default:  features.ThreePointOhBeta(),
 						},
 						// TODO update docs with new default for 3.0
 						"allocation_weight": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default: func() interface{} {
-								if features.ThreePointOh() {
+								if features.ThreePointOhBeta() {
 									return 1
 								}
 								return 0
@@ -131,11 +131,11 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 			"allocation_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(iothub.Hashed),
+				Default:  string(iothub.AllocationPolicyHashed),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(iothub.Hashed),
-					string(iothub.GeoLatency),
-					string(iothub.Static),
+					string(iothub.AllocationPolicyHashed),
+					string(iothub.AllocationPolicyGeoLatency),
+					string(iothub.AllocationPolicyStatic),
 				}, false),
 			},
 
@@ -175,8 +175,8 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iothub_dps", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
 		}
 	}
 

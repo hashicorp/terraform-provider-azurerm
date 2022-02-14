@@ -179,8 +179,8 @@ func resourceHDInsightStormClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_storm_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_storm_cluster", id.ID())
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{

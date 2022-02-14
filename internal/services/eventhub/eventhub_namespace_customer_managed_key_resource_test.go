@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceCustomerManagedKeyResource struct {
-}
+type EventHubNamespaceCustomerManagedKeyResource struct{}
 
 func TestAccEventHubNamespaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")

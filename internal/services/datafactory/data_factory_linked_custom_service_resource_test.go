@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedCustomServiceResource struct {
-}
+type LinkedCustomServiceResource struct{}
 
 func TestAccDataFactoryLinkedCustomService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")

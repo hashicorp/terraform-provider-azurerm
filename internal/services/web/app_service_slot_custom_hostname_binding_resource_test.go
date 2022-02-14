@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSlotCustomHostnameBindingResource struct {
-}
+type AppServiceSlotCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceSlotCustomHostnameBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")

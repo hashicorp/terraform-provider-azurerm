@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_elastic_worker_count` - The maximum number of workers in use in an Elastic SKU Plan.
 
-* `number_of_workers` - The number of Workers (instances) allocated.
+* `worker_count` - The number of Workers (instances) allocated.
 
 * `os_type` - The O/S type for the App Services hosted in this plan.
 

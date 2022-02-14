@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudActiveDeploymentResource struct {
-}
+type SpringCloudActiveDeploymentResource struct{}
 
 func TestAccSpringCloudActiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_active_deployment", "test")

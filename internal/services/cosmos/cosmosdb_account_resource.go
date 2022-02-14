@@ -12,6 +12,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -449,33 +451,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						// only system assigned identity is supported
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.ResourceIdentityTypeSystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"cors_rule": common.SchemaCorsRule(),
 
@@ -634,8 +610,8 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_account", id.ID())
 		}
 	}
 
@@ -677,10 +653,15 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
+	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
@@ -795,7 +776,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// get existing locations (if exists)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		return fmt.Errorf("making Read request on %s: %s", id, err)
 	}
@@ -824,12 +804,17 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
+	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
@@ -974,7 +959,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("kind", string(resp.Kind))
 
 	if v := resp.Identity; v != nil {
-		if err := d.Set("identity", flattenAzureRmdocumentdbMachineIdentity(v)); err != nil {
+		if err := d.Set("identity", flattenAccountIdentity(v)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 	}
@@ -1558,40 +1543,33 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 	}
 }
 
-func expandCosmosdbAccountIdentity(vs []interface{}) *documentdb.ManagedServiceIdentity {
-	if len(vs) == 0 || vs[0] == nil {
-		return &documentdb.ManagedServiceIdentity{
-			Type: documentdb.ResourceIdentityTypeNone,
+func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &documentdb.ManagedServiceIdentity{
+		Type: documentdb.ResourceIdentityType(string(expanded.Type)),
+	}, nil
+}
+
+func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
 		}
 	}
 
-	v := vs[0].(map[string]interface{})
-
-	return &documentdb.ManagedServiceIdentity{
-		Type: documentdb.ResourceIdentityType(v["type"].(string)),
-	}
-}
-
-func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedServiceIdentity) []interface{} {
-	if identity == nil || identity.Type == documentdb.ResourceIdentityTypeNone {
-		return make([]interface{}, 0)
-	}
-
-	var principalID, tenantID string
-	if identity.PrincipalID != nil {
-		principalID = *identity.PrincipalID
-	}
-
-	if identity.TenantID != nil {
-		tenantID = *identity.TenantID
-	}
-
-	return []interface{}{map[string]interface{}{
-		"type":         string(identity.Type),
-		"principal_id": principalID,
-		"tenant_id":    tenantID,
-	},
-	}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {

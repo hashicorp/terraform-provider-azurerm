@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationJobScheduleResource struct {
-}
+type AutomationJobScheduleResource struct{}
 
 func TestAccAutomationJobSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")

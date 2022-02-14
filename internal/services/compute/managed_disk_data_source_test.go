@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ManagedDiskDataSource struct {
-}
+type ManagedDiskDataSource struct{}
 
 func TestAccDataSourceManagedDisk_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk", "test")

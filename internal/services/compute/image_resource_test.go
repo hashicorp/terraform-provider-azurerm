@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ImageResource struct {
-}
+type ImageResource struct{}
 
 func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")

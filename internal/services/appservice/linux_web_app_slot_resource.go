@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -25,10 +25,7 @@ type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
 	Name                          string                              `tfschema:"name"`
-	AppServiceName                string                              `tfschema:"app_service_name"`
-	ResourceGroup                 string                              `tfschema:"resource_group_name"`
-	Location                      string                              `tfschema:"location"`
-	ServicePlanId                 string                              `tfschema:"service_plan_id"`
+	AppServiceId                  string                              `tfschema:"app_service_id"`
 	AppSettings                   map[string]string                   `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings              `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup                    `tfschema:"backup"`
@@ -37,7 +34,6 @@ type LinuxWebAppSlotModel struct {
 	ClientCertMode                string                              `tfschema:"client_certificate_mode"`
 	Enabled                       bool                                `tfschema:"enabled"`
 	HttpsOnly                     bool                                `tfschema:"https_only"`
-	Identity                      []helpers.Identity                  `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                              `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig                `tfschema:"logs"`
 	MetaData                      map[string]string                   `tfschema:"app_metadata"`
@@ -78,20 +74,10 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"app_service_name": {
+		"app_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.WebAppName,
-		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"location": location.Schema(),
-
-		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: validate.WebAppID,
 		},
 
 		// Optional
@@ -144,7 +130,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -229,9 +215,24 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			appId, err := parse.WebAppID(webAppSlot.AppServiceId)
+			if err != nil {
+				return err
+			}
 
-			id := parse.NewWebAppSlotID(subscriptionId, webAppSlot.ResourceGroup, webAppSlot.AppServiceName, webAppSlot.Name)
+			id := parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, webAppSlot.Name)
+
+			webApp, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Linux Web App for %s: %+v", id, err)
+			}
+			if webApp.Location == nil {
+				return fmt.Errorf("could not determine location for %s: %+v", id, err)
+			}
+			siteProps := webApp.SiteProperties
+			if siteProps == nil || siteProps.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -247,12 +248,19 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
-				Location: utils.String(webAppSlot.Location),
-				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
+				Location: webApp.Location,
+				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webAppSlot.ServicePlanId),
+					ServerFarmID:          siteProps.ServerFarmID,
 					Enabled:               utils.Bool(webAppSlot.Enabled),
 					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
 					SiteConfig:            siteConfig,
@@ -277,7 +285,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettings(webAppSlot.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -407,10 +415,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state := LinuxWebAppSlotModel{
 				Name:                        id.SlotName,
-				AppServiceName:              id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				Location:                    location.NormalizeNilable(webApp.Location),
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
@@ -440,10 +445,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
-			if identity := helpers.FlattenIdentity(webApp.Identity); identity != nil {
-				state.Identity = identity
-			}
-
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount)
@@ -454,7 +455,19 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -504,9 +517,6 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-			}
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}
@@ -524,7 +534,11 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
@@ -553,7 +567,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				}

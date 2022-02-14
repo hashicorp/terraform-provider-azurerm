@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotServiceAzureBotResource struct {
-}
+type BotServiceAzureBotResource struct{}
 
 func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")

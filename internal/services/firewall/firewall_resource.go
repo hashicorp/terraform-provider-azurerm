@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -25,7 +27,7 @@ import (
 var azureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := pluginsdk.Resource{
 		Create: resourceFirewallCreateUpdate,
 		Read:   resourceFirewallRead,
 		Update: resourceFirewallCreateUpdate,
@@ -53,30 +55,6 @@ func resourceFirewall() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			// TODO 3.0: change this to required
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuNameAZFWHub),
-					string(network.AzureFirewallSkuNameAZFWVNet),
-				}, false),
-			},
-
-			// TODO 3.0: change this to required
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuTierPremium),
-					string(network.AzureFirewallSkuTierStandard),
-				}, false),
-			},
 
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
@@ -147,15 +125,23 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.AzureFirewallThreatIntelModeAlert),
-				ValidateFunc: validation.StringInSlice([]string{
-					// TODO 3.0: remove the default value and the `""` below. So if it is not specified
-					// in config, it will not be send in request, which is required in case of vhub.
-					"",
-					string(network.AzureFirewallThreatIntelModeOff),
-					string(network.AzureFirewallThreatIntelModeAlert),
-					string(network.AzureFirewallThreatIntelModeDeny),
-				}, false),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return nil
+					}
+					return string(network.AzureFirewallThreatIntelModeAlert)
+				}(),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						string(network.AzureFirewallThreatIntelModeOff),
+						string(network.AzureFirewallThreatIntelModeAlert),
+						string(network.AzureFirewallThreatIntelModeDeny),
+					}
+					if !features.ThreePointOhBeta() {
+						out = append(out, "")
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 			},
 
 			"dns_servers": {
@@ -216,6 +202,51 @@ func resourceFirewall() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.ThreePointOhBeta() {
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+	} else {
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+	}
+
+	return &resource
 }
 
 func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -296,16 +327,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
 	}
 
-	// TODO 3.0: no need to test since sku_name is required
-	if skuName := d.Get("sku_name").(string); skuName != "" {
+	if skuName := d.Get("sku_name").(string); features.ThreePointOhBeta() || skuName != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
 		parameters.Sku.Name = network.AzureFirewallSkuName(skuName)
 	}
 
-	// TODO 3.0: no need to test since sku_tier is required
-	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
+	if skuTier := d.Get("sku_tier").(string); features.ThreePointOhBeta() || skuTier != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
@@ -507,7 +536,8 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&subnetNamesToLock, SubnetResourceName)
 	defer locks.UnlockMultipleByName(&subnetNamesToLock, SubnetResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
+	// Change this back to using the SDK method once https://github.com/Azure/azure-sdk-for-go/issues/17013 is addressed.
+	future, err := azuresdkhacks.DeleteFirewall(ctx, client, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		return fmt.Errorf("deleting Azure Firewall %s : %+v", *id, err)
 	}

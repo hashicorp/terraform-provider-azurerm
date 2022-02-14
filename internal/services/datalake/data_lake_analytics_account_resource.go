@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakeanalytics/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,9 +48,9 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"tier": {
 				Type:             pluginsdk.TypeString,
@@ -76,7 +77,7 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName(),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -109,7 +110,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 
 	dateLakeAnalyticsAccount := accounts.CreateDataLakeAnalyticsAccountParameters{
 		Location: location,
-		Tags:     tagsHelper.Expand(t),
+		Tags:     tags.Expand(t),
 		Properties: accounts.CreateDataLakeAnalyticsAccountProperties{
 			NewTier:                     &tier,
 			DefaultDataLakeStoreAccount: storeAccountName,
@@ -145,7 +146,7 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *pluginsdk.ResourceData, meta i
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := accounts.UpdateDataLakeAnalyticsAccountParameters{
-		Tags: tagsHelper.Expand(newTags),
+		Tags: tags.Expand(newTags),
 		Properties: &accounts.UpdateDataLakeAnalyticsAccountProperties{
 			NewTier: &newTier,
 			DataLakeStoreAccounts: &[]accounts.UpdateDataLakeStoreWithAccountParameters{
@@ -187,9 +188,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if properties := model.Properties; properties != nil {
 			tier := ""
@@ -200,7 +199,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 			d.Set("default_store_account_name", properties.DefaultDataLakeStoreAccount)
 		}
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }

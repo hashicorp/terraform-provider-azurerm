@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopApplicationResource struct {
-}
+type VirtualDesktopApplicationResource struct{}
 
 func TestAccVirtualDesktopApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application", "test")

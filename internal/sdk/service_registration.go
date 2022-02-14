@@ -37,3 +37,27 @@ type UntypedServiceRegistration interface {
 	// SupportedResources returns the supported Resources supported by this Service
 	SupportedResources() map[string]*pluginsdk.Resource
 }
+
+// TypedServiceRegistrationWithAGitHubLabel is a superset of TypedServiceRegistration allowing
+// a single GitHub Label to be specified that will be automatically applied to any Pull Requests
+// making changes to this package.
+//
+// NOTE: this is intentionally an optional interface as the Service Package : GitHub Labels aren't
+// always 1:1
+type TypedServiceRegistrationWithAGitHubLabel interface {
+	TypedServiceRegistration
+
+	AssociatedGitHubLabel() string
+}
+
+// UntypedServiceRegistrationWithAGitHubLabel is a superset of UntypedServiceRegistration allowing
+// a single GitHub Label to be specified that will be automatically applied to any Pull Requests
+// making changes to this package.
+//
+// NOTE: this is intentionally an optional interface as the Service Package : GitHub Labels aren't
+// always 1:1
+type UntypedServiceRegistrationWithAGitHubLabel interface {
+	UntypedServiceRegistration
+
+	AssociatedGitHubLabel() string
+}

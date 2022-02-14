@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Redis Enterprise Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redisenterprise_redis_enterprise.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/cluster1
+terraform import azurerm_redis_enterprise_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/cluster1
 ```

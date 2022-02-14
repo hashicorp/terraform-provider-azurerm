@@ -216,7 +216,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							//Computed: true,
+							// Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -225,7 +225,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						"common_environment_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							//Computed: true,
+							// Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},

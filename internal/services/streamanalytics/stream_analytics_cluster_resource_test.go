@@ -51,6 +51,28 @@ func TestAccStreamAnalyticsCluster_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsCluster_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
+	r := StreamAnalyticsClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tagsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStreamAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
 	r := StreamAnalyticsClusterResource{}
@@ -106,6 +128,43 @@ resource "azurerm_stream_analytics_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   streaming_capacity  = 72
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsClusterResource) tags(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctestcluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsClusterResource) tagsUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctestcluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
+
+  tags = {
+    Hello = "World"
+    Env   = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }

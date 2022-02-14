@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -106,7 +108,6 @@ func TestAccComputeInstance_identity(t *testing.T) {
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +262,8 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 
 func (r ComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -277,6 +279,30 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
     type = "SystemAssigned,UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomIntOfLength(8))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_machine_learning_compute_instance" "test" {
+  name                          = "acctest%d"
+  location                      = azurerm_resource_group.test.location
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  virtual_machine_size          = "STANDARD_DS2_V2"
+  identity {
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

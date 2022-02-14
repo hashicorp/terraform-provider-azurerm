@@ -3,6 +3,7 @@ package servicebus
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
@@ -85,6 +86,12 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"ip_rules": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -156,6 +163,10 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 	defaultAction := servicebus.DefaultAction(d.Get("default_action").(string))
 	vnetRule := expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List())
 	ipRule := expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
+	publicNetworkAcc := "Disabled"
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAcc = "Enabled"
+	}
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
 	// TODO: The check won't be needed when 2021-11-01 API is released since service team will fail the update with bad request in that version
@@ -168,6 +179,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 			DefaultAction:               defaultAction,
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
+			PublicNetworkAccess:         servicebus.PublicNetworkAccessFlag(publicNetworkAcc),
 			TrustedServiceAccessEnabled: utils.Bool(d.Get("trusted_services_allowed").(bool)),
 		},
 	}
@@ -207,6 +219,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
 		d.Set("trusted_services_allowed", props.TrustedServiceAccessEnabled)
+		d.Set("public_network_access_enabled", strings.EqualFold(string(props.PublicNetworkAccess), "Enabled"))
 
 		if err := d.Set("network_rules", pluginsdk.NewSet(networkRuleHash, flattenServiceBusNamespaceVirtualNetworkRules(props.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("failed to set `network_rules`: %+v", err)

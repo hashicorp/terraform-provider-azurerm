@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterResource struct {
-}
+type KustoClusterResource struct{}
 
 func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -300,7 +299,7 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is enabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -339,7 +338,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -591,6 +590,7 @@ resource "azurerm_kusto_cluster" "test" {
   name                    = "acctestkc%s"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
+  enable_auto_stop        = true
   enable_disk_encryption  = true
   enable_streaming_ingest = true
   enable_purge            = true

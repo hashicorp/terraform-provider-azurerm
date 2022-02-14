@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,7 +34,6 @@ type WindowsWebAppDataSourceModel struct {
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
-	Identity                      []helpers.Identity          `tfschema:"identity"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
@@ -129,7 +130,7 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": helpers.IdentitySchemaComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"kind": {
 			Type:     pluginsdk.TypeString,
@@ -284,8 +285,6 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
-			webApp.Identity = helpers.FlattenIdentity(existing.Identity)
-
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			currentStack := ""
@@ -303,7 +302,19 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&webApp)
+			if err := metadata.Encode(&webApp); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(existing.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }

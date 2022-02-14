@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightHBaseClusterResource struct {
-}
+type HDInsightHBaseClusterResource struct{}
 
 func TestAccHDInsightHBaseCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
@@ -992,8 +991,13 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
+    storage_resource_id  = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+  }
+
+  network {
+    connection_direction = "Outbound"
   }
 
   roles {

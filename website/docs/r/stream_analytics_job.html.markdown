@@ -81,7 +81,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Stream Analytics Job. Possible values are `SystemAssigned`.
+* `type` - (Required) The type of identity used for the Stream Analytics Job. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

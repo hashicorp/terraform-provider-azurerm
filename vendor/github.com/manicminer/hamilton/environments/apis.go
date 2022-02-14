@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+var ApiUnavailable = Api{}
+
 // API represent an API configuration for Microsoft Graph or Azure Active Directory Graph.
 type Api struct {
 	// The Application ID for the API.
@@ -13,11 +15,15 @@ type Api struct {
 	Endpoint ApiEndpoint
 }
 
-func (a *Api) DefaultScope() string {
+func (a Api) IsAvailable() bool {
+	return a != ApiUnavailable
+}
+
+func (a Api) DefaultScope() string {
 	return fmt.Sprintf("%s/.default", a.Endpoint)
 }
 
-func (a *Api) Resource() string {
+func (a Api) Resource() string {
 	return fmt.Sprintf("%s/", a.Endpoint)
 }
 

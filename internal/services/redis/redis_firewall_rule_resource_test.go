@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RedisFirewallRuleResource struct {
-}
+type RedisFirewallRuleResource struct{}
 
 func TestAccRedisFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")

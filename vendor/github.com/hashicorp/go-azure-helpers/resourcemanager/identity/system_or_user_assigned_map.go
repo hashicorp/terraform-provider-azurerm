@@ -77,7 +77,12 @@ func ExpandSystemOrUserAssignedMap(input []interface{}) (*SystemOrUserAssignedMa
 
 // FlattenSystemOrUserAssignedMap turns a SystemOrUserAssignedMap into a []interface{}
 func FlattenSystemOrUserAssignedMap(input *SystemOrUserAssignedMap) (*[]interface{}, error) {
-	if input == nil || (input.Type != TypeSystemAssigned && input.Type != TypeUserAssigned) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 

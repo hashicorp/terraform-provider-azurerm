@@ -2,7 +2,6 @@ package identity
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 var _ json.Marshaler = &SystemAssigned{}
@@ -37,7 +36,13 @@ func ExpandSystemAssigned(input []interface{}) (*SystemAssigned, error) {
 }
 
 func FlattenSystemAssigned(input *SystemAssigned) []interface{} {
-	if input == nil || strings.EqualFold(string(input.Type), string(TypeNone)) {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type == TypeNone {
 		return []interface{}{}
 	}
 

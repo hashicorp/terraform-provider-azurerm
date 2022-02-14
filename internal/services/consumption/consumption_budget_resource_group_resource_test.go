@@ -85,6 +85,7 @@ func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
 	r := ConsumptionBudgetResourceGroupResource{}
