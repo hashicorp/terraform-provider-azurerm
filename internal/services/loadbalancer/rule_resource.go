@@ -360,7 +360,6 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-
 	out := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
