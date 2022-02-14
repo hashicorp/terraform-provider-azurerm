@@ -45,7 +45,7 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmLoadBalancerSchema(),
+		Schema: resourceArmLoadBalancerRuleSchema(),
 	}
 }
 
@@ -358,7 +358,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 	}, nil
 }
 
-func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
+func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
