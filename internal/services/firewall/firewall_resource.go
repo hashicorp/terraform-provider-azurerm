@@ -63,6 +63,30 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Required: features.ThreePointOhBeta(),
+				Optional: !features.ThreePointOhBeta(),
+				Computed: !features.ThreePointOhBeta(),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AzureFirewallSkuNameAZFWHub),
+					string(network.AzureFirewallSkuNameAZFWVNet),
+				}, false),
+			},
+
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Required: features.ThreePointOhBeta(),
+				Optional: !features.ThreePointOhBeta(),
+				Computed: !features.ThreePointOhBeta(),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AzureFirewallSkuTierPremium),
+					string(network.AzureFirewallSkuTierStandard),
+				}, false),
+			},
+
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
