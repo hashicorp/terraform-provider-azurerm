@@ -64,7 +64,7 @@ The following arguments are supported:
 ---
 An `custom_persistent_disks` block exports the following:
 
-* `storage_id` - (Required) The ID of the storage.
+* `storage_name` - (Required) The name of the Spring Cloud Storage.
 
 * `mount_path` - (Required) The mount path of the persistent disk.
 
