@@ -5,7 +5,7 @@ import (
 )
 
 func expandConfidentialLedgerCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.CertBasedSecurityPrincipal {
-	output := make([]confidentialledger.CertBasedSecurityPrincipal, len(input))
+	output := make([]confidentialledger.CertBasedSecurityPrincipal, 0, len(input))
 	if len(input) == 0 {
 		return &output
 	}
@@ -31,7 +31,7 @@ func flattenConfidentialLedgerCertBasedSecurityPrincipal(input *[]confidentialle
 		return &[]interface{}{}, nil
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]interface{}, 0, len(*input))
 
 	for _, item := range *input {
 		cert := ""
