@@ -24,6 +24,7 @@ func TestAccConfidentialLedger_public(t *testing.T) {
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"), // Internally we always add the provisioner's identity as a user
 			),
 		},
 		data.ImportStep(),
@@ -39,6 +40,7 @@ func TestAccConfidentialLedger_private(t *testing.T) {
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"), // Internally we always add the provisioner's identity as a user
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +71,7 @@ func TestAccConfidentialLedger_withTags(t *testing.T) {
 			Config: r.withTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"), // Internally we always add the provisioner's identity as a user
 			),
 		},
 		data.ImportStep(),
