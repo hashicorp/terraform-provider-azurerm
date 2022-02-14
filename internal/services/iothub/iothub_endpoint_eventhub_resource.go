@@ -145,7 +145,7 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	var iotHubName string
 	if !features.ThreePointOhBeta() {
-		iotHubName = d.Get("q").(string)
+		iotHubName = d.Get("iothub_name").(string)
 	}
 	if iotHubName == "" {
 		id, err := parse.IotHubID(d.Get("iothub_id").(string))
