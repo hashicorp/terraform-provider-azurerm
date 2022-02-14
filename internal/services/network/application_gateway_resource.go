@@ -1916,7 +1916,7 @@ func expandApplicationGatewayIdentity(input []interface{}) (*network.ManagedServ
 func flattenApplicationGatewayIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
 	var transform *identity.UserAssignedMap
 
-	if transform != nil {
+	if input != nil {
 		transform = &identity.UserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
