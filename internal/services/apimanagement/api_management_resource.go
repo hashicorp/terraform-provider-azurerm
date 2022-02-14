@@ -609,7 +609,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.ThreePointOhBeta() {
-		out["enable_triple_des_ciphers"] = &pluginsdk.Schema{
+		s := out["security"].Elem.(*pluginsdk.Resource)
+		s.Schema["enable_triple_des_ciphers"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
