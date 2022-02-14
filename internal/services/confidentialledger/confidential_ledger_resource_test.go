@@ -84,7 +84,7 @@ func TestAccConfidentialLedger_aadBasedServicePrincipals(t *testing.T) {
 			Config: r.aadBasedServicePrincipals(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("3"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("4"), // One more than the spec as internally we append the provisioner's identity to the list of AAD users.
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
@@ -163,7 +163,7 @@ func TestAccConfidentialLedger_combinedServicePrincipals(t *testing.T) {
 			Config: r.combinedServicePrincipals(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("3"),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("4"), // One more than the spec as internally we append the provisioner's identity to the list of AAD users.
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
