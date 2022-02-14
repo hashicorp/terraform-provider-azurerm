@@ -123,9 +123,9 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 	if !features.ThreePointOhBeta() {
 		s := out["configuration"].Elem.(*pluginsdk.Resource)
 		s.Schema["name"] = &pluginsdk.Schema{
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
 		}
 	}
 	return out
