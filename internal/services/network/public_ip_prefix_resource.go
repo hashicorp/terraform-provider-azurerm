@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -102,10 +104,9 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO - 3.0 make Computed only
 			"zones": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Optional: !features.ThreePointOhBeta(),
 				Computed: true,
 				ForceNew: true,
 				ConflictsWith: []string{
@@ -153,11 +154,12 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 
 	zones := &[]string{"1", "2"}
-	// TODO - Remove in 3.0
-	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
-		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
-		if deprecatedZones != nil {
-			zones = deprecatedZones
+	if !features.ThreePointOhBeta() {
+		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
+			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+			if deprecatedZones != nil {
+				zones = deprecatedZones
+			}
 		}
 	}
 
