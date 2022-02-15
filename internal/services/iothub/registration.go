@@ -45,6 +45,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_iothub_consumer_group":             resourceIotHubConsumerGroup(),
 		"azurerm_iothub":                            resourceIotHub(),
 		"azurerm_iothub_fallback_route":             resourceIotHubFallbackRoute(),
+		"azurerm_iothub_file_upload":                resourceIotHubFileUpload(),
 		"azurerm_iothub_enrichment":                 resourceIotHubEnrichment(),
 		"azurerm_iothub_route":                      resourceIotHubRoute(),
 		"azurerm_iothub_endpoint_eventhub":          resourceIotHubEndpointEventHub(),

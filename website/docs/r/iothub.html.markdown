@@ -18,6 +18,8 @@ Manages an IotHub
 
 ~> **NOTE:** Fallback route can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_fallback_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
+~> **NOTE:** File Upload can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_file_upload` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+
 ## Example Usage
 
 ```hcl
@@ -293,6 +295,14 @@ A `fallback_route` block supports the following:
 ---
 
 A `file_upload` block supports the following:
+
+* `authentication_type` - (Optional) Type used to authenticate against the storage account. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) ID of the User Managed Identity used to authenticate against the storage account.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
+
+~> **NOTE:** System Assigned Managed Identity can only be used in an update because access to the endpoint cannot be granted before the creation is done. The extracted resources `azurerm_iothub_file_upload` can be used to configure File Upload with System Assigned Managed Identity without the need of an update.
 
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 
