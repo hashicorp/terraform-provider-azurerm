@@ -2,7 +2,6 @@ package kusto
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -231,7 +230,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"zones": azure.SchemaZones(),
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
