@@ -202,20 +202,27 @@ func TestAccWebPubsub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsub_identityUpdate(t *testing.T) {
+func TestAccWebPubsub_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
 	r := WebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withIdentity(data),
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.identityUpdate(data),
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -338,7 +345,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WebPubsubResource) withIdentity(data acceptance.TestData) string {
+func (r WebPubsubResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_user_assigned_identity" "test" {
@@ -375,7 +382,7 @@ resource "azurerm_web_pubsub" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r WebPubsubResource) identityUpdate(data acceptance.TestData) string {
+func (r WebPubsubResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

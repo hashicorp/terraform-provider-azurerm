@@ -6,15 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -127,36 +128,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webpubsub.ManagedIdentityTypeUserAssigned),
-								string(webpubsub.ManagedIdentityTypeSystemAssigned),
-							}, false),
-						},
-						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
-							Optional:     true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"public_port": {
 				Type:     pluginsdk.TypeInt,
@@ -241,9 +213,14 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		publicNetworkAcc = "Disabled"
 	}
 
+	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := webpubsub.ResourceType{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Identity: expandManagedIdentity(d.Get("identity").([]interface{})),
+		Identity: identity,
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
 			PublicNetworkAccess:    utils.String(publicNetworkAcc),
@@ -471,60 +448,49 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 	}}
 }
 
-func expandManagedIdentity(input []interface{}) *webpubsub.ManagedIdentity {
-	if len(input) == 0 || input[0] == nil {
-		return &webpubsub.ManagedIdentity{
-			Type: webpubsub.ManagedIdentityTypeNone,
+func expandManagedIdentity(input []interface{}) (*webpubsub.ManagedIdentity, error) {
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := webpubsub.ManagedIdentity{
+		Type: webpubsub.ManagedIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = make(map[string]*webpubsub.UserAssignedIdentityProperty)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &webpubsub.UserAssignedIdentityProperty{
+				// intentionally empty
+			}
 		}
 	}
 
-	rawData := input[0].(map[string]interface{})
-
-	if webpubsub.ManagedIdentityType(rawData["type"].(string)) == webpubsub.ManagedIdentityTypeUserAssigned {
-		userAssignedIdentities := map[string]*webpubsub.UserAssignedIdentityProperty{
-			rawData["user_assigned_identity_id"].(string): {},
-		}
-		return &webpubsub.ManagedIdentity{
-			Type:                   webpubsub.ManagedIdentityType(rawData["type"].(string)),
-			UserAssignedIdentities: userAssignedIdentities,
-		}
-	}
-
-	return &webpubsub.ManagedIdentity{
-		Type: webpubsub.ManagedIdentityType(rawData["type"].(string)),
-	}
+	return &out, nil
 }
 
-func flattenManagedIdentity(input *webpubsub.ManagedIdentity) ([]interface{}, error) {
-	if input == nil || input.Type == webpubsub.ManagedIdentityTypeNone {
-		return []interface{}{}, nil
-	}
+func flattenManagedIdentity(input *webpubsub.ManagedIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemOrUserAssignedMap
 
-	identity := make(map[string]interface{})
-
-	identity["principal_id"] = ""
-	if input.PrincipalID != nil {
-		identity["principal_id"] = *input.PrincipalID
-	}
-
-	identity["tenant_id"] = ""
-	if input.TenantID != nil {
-		identity["tenant_id"] = *input.TenantID
-	}
-	identity["user_assigned_identity_id"] = ""
-	if input.UserAssignedIdentities != nil {
-		keys := []string{}
-		for key := range input.UserAssignedIdentities {
-			keys = append(keys, key)
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+			Type:        identity.Type(string(input.Type)),
 		}
-		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
-			if err != nil {
-				return nil, err
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-			identity["user_assigned_identity_id"] = parsedId.ID()
 		}
 	}
-	identity["type"] = string(input.Type)
-	return []interface{}{identity}, nil
+
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }
