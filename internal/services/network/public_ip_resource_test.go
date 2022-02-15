@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,14 +65,25 @@ func TestAccPublicIpStatic_zones(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("1"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						check.That(data.ResourceName).ExistsInAzure(r),
+						check.That(data.ResourceName).Key("ip_address").Exists(),
+						check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+						check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+						check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+						check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						check.That(data.ResourceName).ExistsInAzure(r),
+						check.That(data.ResourceName).Key("ip_address").Exists(),
+						check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+						check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
@@ -83,13 +96,28 @@ func TestAccPublicIpStatic_zonesNoZone(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "No-Zone"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("zones.#").HasValue("0"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+						),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+						),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
@@ -102,13 +130,28 @@ func TestAccPublicIpStatic_zonesZoneRedundant(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "Zone-Redundant"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated Note: Zero here due to legacy behaviour - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("zones.#").HasValue("0"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
+						),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
+						),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
