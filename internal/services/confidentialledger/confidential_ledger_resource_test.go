@@ -71,7 +71,7 @@ func TestAccConfidentialLedger_withTags(t *testing.T) {
 			Config: r.withTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"), // Internally we always add the provisioner's identity as a user
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -87,7 +87,7 @@ func TestAccConfidentialLedger_aadBasedServicePrincipals(t *testing.T) {
 			Config: r.aadBasedServicePrincipals(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("4"), // One more than the spec as internally we append the provisioner's identity to the list of AAD users.
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("3"),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
@@ -112,6 +112,7 @@ func TestAccConfidentialLedger_certBasedAdministrator(t *testing.T) {
 			Config: r.certBasedAdministrator(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
@@ -130,6 +131,7 @@ func TestAccConfidentialLedger_certBasedContributor(t *testing.T) {
 			Config: r.certBasedContributor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Contributor"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
@@ -148,36 +150,9 @@ func TestAccConfidentialLedger_certBasedReader(t *testing.T) {
 			Config: r.certBasedReader(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Reader"),
-				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccConfidentialLedger_combinedServicePrincipals(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
-	r := ConfidentialLedgerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.combinedServicePrincipals(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("4"), // One more than the spec as internally we append the provisioner's identity to the list of AAD users.
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.1.ledger_role_name").HasValue("Contributor"),
-				check.That(data.ResourceName).Key("aad_based_security_principals.1.principal_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.1.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.2.ledger_role_name").HasValue("Reader"),
-				check.That(data.ResourceName).Key("aad_based_security_principals.2.principal_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.2.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("cert_based_security_principals.#").HasValue("1"),
-				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").HasValue("Administrator"),
 				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
 			),
 		},
@@ -194,12 +169,14 @@ func TestAccConfidentialLedger_update(t *testing.T) {
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 			),
 		},
 		{
 			Config: r.publicUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("aad_based_security_principals.#").HasValue("1"),
 			),
 		},
 	})
@@ -230,11 +207,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
   name                = "terraform-acc-%d"
   ledger_type         = "Public"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -250,11 +236,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
   name                = "terraform-acc-%d"
   ledger_type         = "Private"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -269,6 +264,12 @@ resource "azurerm_confidential_ledger" "import" {
   ledger_type         = azurerm_confidential_ledger.test.ledger_type
   location            = azurerm_confidential_ledger.test.location
   resource_group_name = azurerm_confidential_ledger.test.resource_group_name
+
+  aad_based_security_principals {
+    principal_id     = azurerm_confidential_ledger.test.aad_based_security_principals.0.principal_id
+    tenant_id        = azurerm_confidential_ledger.test.aad_based_security_principals.0.tenant_id
+    ledger_role_name = azurerm_confidential_ledger.test.aad_based_security_principals.0.ledger_rol_name
+  }
 }
 `, template)
 }
@@ -284,11 +285,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
   name                = "terraform-acc-%d"
   ledger_type         = "Private"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
 
   tags = {
     environment = "development"
@@ -308,10 +318,14 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
+
   aad_based_security_principals {
-    principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f20"
-    tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
     ledger_role_name = "Administrator"
   }
 
@@ -320,7 +334,7 @@ resource "azurerm_confidential_ledger" "test" {
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
     ledger_role_name = "Contributor"
   }
-  
+
   aad_based_security_principals {
     principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
     tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
@@ -350,7 +364,16 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
+
   cert_based_security_principals {
     cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
     ledger_role_name = "Administrator"
@@ -379,7 +402,16 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
+
   cert_based_security_principals {
     cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
     ledger_role_name = "Contributor"
@@ -408,57 +440,19 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_confidential_ledger" "test" {
-  cert_based_security_principals {
-    cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-    ledger_role_name = "Reader"
-  }
-
-  name                = "terraform-acc-%d"
-  ledger_type         = "Public"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    environment = "development"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ConfidentialLedgerResource) combinedServicePrincipals(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acl-terraform-acc-%d"
-  location = "%s"
+data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_confidential_ledger" "test" {
   aad_based_security_principals {
-    principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f20"
-    tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd00"
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
     ledger_role_name = "Administrator"
-  }
-
-  aad_based_security_principals {
-    principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f21"
-    tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd01"
-    ledger_role_name = "Contributor"
-  }
-
-  aad_based_security_principals {
-    principal_id     = "34621747-6fc8-4771-a2eb-72f31c461f22"
-    tenant_id        = "bce123b9-2b7b-4975-8360-5ca0b9b1cd02"
-    ledger_role_name = "Reader"
   }
 
   cert_based_security_principals {
     cert             = "-----BEGIN CERTIFICATE-----MIIBsjCCATigAwIBAgIUZWIbyG79TniQLd2UxJuU74tqrKcwCgYIKoZIzj0EAwMwEDEOMAwGA1UEAwwFdXNlcjAwHhcNMjEwMzE2MTgwNjExWhcNMjIwMzE2MTgwNjExWjAQMQ4wDAYDVQQDDAV1c2VyMDB2MBAGByqGSM49AgEGBSuBBAAiA2IABBiWSo/j8EFit7aUMm5lF+lUmCu+IgfnpFD+7QMgLKtxRJ3aGSqgS/GpqcYVGddnODtSarNE/HyGKUFUolLPQ5ybHcouUk0kyfA7XMeSoUA4lBz63Wha8wmXo+NdBRo39qNTMFEwHQYDVR0OBBYEFPtuhrwgGjDFHeUUT4nGsXaZn69KMB8GA1UdIwQYMBaAFPtuhrwgGjDFHeUUT4nGsXaZn69KMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwMDaAAwZQIxAOnozm2CyqRwSSQLls5r+mUHRGRyXHXwYtM4Dcst/VEZdmS9fqvHRCHbjUlO/+HNfgIwMWZ4FmsjD3wnPxONOm9YdVn/PRD7SsPRPbOjwBiE4EBGaHDsLjYAGDSGi7NJnSkA-----END CERTIFICATE-----"
-    ledger_role_name = "Administrator"
+    ledger_role_name = "Reader"
   }
 
   name                = "terraform-acc-%d"
@@ -484,11 +478,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_confidential_ledger" "test" {
   name                = "terraform-acc-%d"
   ledger_type         = "Public"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
 
   tags = {
     Updated = "Yes"
