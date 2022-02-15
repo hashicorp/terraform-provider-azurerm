@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_storage` [GH-15375]
 
+ENHANCEMENTS:
+
+* `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
+
 BUG FIXES:
 
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
