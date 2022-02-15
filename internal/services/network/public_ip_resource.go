@@ -386,10 +386,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
-		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
-		if iptags != nil {
-			d.Set("ip_tags", iptags)
-		}
+		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 
 		d.Set("ip_address", props.IPAddress)
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
@@ -420,13 +417,16 @@ func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenPublicIpPropsIpTags(ipTags []network.IPTag) map[string]interface{} {
-	mapIpTags := make(map[string]interface{})
+func flattenPublicIpPropsIpTags(input *[]network.IPTag) map[string]interface{} {
+	out := make(map[string]interface{})
 
-	for _, tag := range ipTags {
-		if tag.IPTagType != nil {
-			mapIpTags[*tag.IPTagType] = tag.Tag
+	if input != nil {
+		for _, tag := range *input {
+			if tag.IPTagType != nil {
+				out[*tag.IPTagType] = tag.Tag
+			}
 		}
 	}
-	return mapIpTags
+
+	return out
 }

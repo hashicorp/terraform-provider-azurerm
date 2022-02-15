@@ -7,6 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -128,7 +135,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -1572,9 +1585,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
-
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
 			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
@@ -1600,6 +1611,15 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
 		},
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			gateway.Zones = &zones
+		}
+	} else {
+		gateway.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("fips_enabled"); ok {
@@ -1722,12 +1742,11 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", applicationGateway.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("zones", applicationGateway.Zones)
+
+	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
+	d.Set("zones", zones.Flatten(applicationGateway.Zones))
 
 	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {

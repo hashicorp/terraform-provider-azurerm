@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,7 +174,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 12),
 						},
 
-						"zones": azure.SchemaZones(),
+						"zones": func() *schema.Schema {
+							if !features.ThreePointOhBeta() {
+								return azure.SchemaZones()
+							}
+
+							return commonschema.ZonesMultipleOptionalForceNew()
+						}(),
 
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
@@ -500,7 +508,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"gateway_url": {
 				Type:     pluginsdk.TypeString,
@@ -732,15 +746,29 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if v := d.Get("zones").([]interface{}); len(v) > 0 {
-		if sku.Name != apimanagement.SkuTypePremium {
-			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-		}
+	if features.ThreePointOhBeta() {
+		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
+			if sku.Name != apimanagement.SkuTypePremium {
+				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			}
 
-		if publicIpAddressId == "" {
-			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			if publicIpAddressId == "" {
+				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			}
+			zones := zones.Expand(v)
+			properties.Zones = &zones
 		}
-		properties.Zones = azure.ExpandZones(v)
+	} else {
+		if v := d.Get("zones").([]interface{}); len(v) > 0 {
+			if sku.Name != apimanagement.SkuTypePremium {
+				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			}
+
+			if publicIpAddressId == "" {
+				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			}
+			properties.Zones = azure.ExpandZones(v)
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
@@ -985,7 +1013,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", azure.FlattenZones(resp.Zones))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -1356,6 +1384,15 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
+		if features.ThreePointOhBeta() {
+			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			if len(zones) > 0 {
+				additionalLocation.Zones = &zones
+			}
+		} else {
+			additionalLocation.Zones = azure.ExpandZones(config["zones"].([]interface{}))
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
@@ -1369,39 +1406,41 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
-		if prop.Location != nil {
-			output["location"] = azure.NormalizeLocation(*prop.Location)
-		}
-
+		var publicIPAddresses []string
 		if prop.PublicIPAddresses != nil {
-			output["public_ip_addresses"] = *prop.PublicIPAddresses
+			publicIPAddresses = *prop.PublicIPAddresses
 		}
 
+		publicIpAddressId := ""
 		if prop.PublicIPAddressID != nil {
-			output["public_ip_address_id"] = *prop.PublicIPAddressID
+			publicIpAddressId = *prop.PublicIPAddressID
 		}
 
+		var privateIPAddresses []string
 		if prop.PrivateIPAddresses != nil {
-			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+			privateIPAddresses = *prop.PrivateIPAddresses
 		}
 
+		var capacity *int32
 		if prop.Sku.Capacity != nil {
-			output["capacity"] = *prop.Sku.Capacity
+			capacity = prop.Sku.Capacity
 		}
 
-		if prop.Zones != nil {
-			output["zones"] = azure.FlattenZones(prop.Zones)
-		}
-
+		gatewayRegionalUrl := ""
 		if prop.GatewayRegionalURL != nil {
-			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
-		output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"capacity":                      capacity,
+			"gateway_regional_url":          gatewayRegionalUrl,
+			"location":                      location.NormalizeNilable(prop.Location),
+			"private_ip_addresses":          privateIPAddresses,
+			"public_ip_address_id":          publicIpAddressId,
+			"public_ip_addresses":           publicIPAddresses,
+			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
+			"zones":                         zones.Flatten(prop.Zones),
+		})
 	}
 
 	return results

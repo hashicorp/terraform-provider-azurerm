@@ -203,6 +203,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/location
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
 github.com/hashicorp/go-azure-helpers/resourcemanager/tags
+github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
