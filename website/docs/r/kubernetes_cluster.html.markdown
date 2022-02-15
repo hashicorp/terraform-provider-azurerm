@@ -189,6 +189,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
+
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -552,6 +553,7 @@ A `load_balancer_profile` block supports the following:
 -> **NOTE** Set `outbound_ip_prefix_ids` to an empty slice `[]` in order to unlink it from the cluster. Unlinking a `outbound_ip_prefix_ids` will revert the load balancing for the cluster back to a managed one.
 
 * `outbound_ports_allocated` - (Optional) Number of desired SNAT port for each VM in the clusters load balancer. Must be between `0` and `64000` inclusive. Defaults to `0`.
+
 ---
 
 A `nat_gateway_profile` block supports the following:
