@@ -150,8 +150,14 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := servicebus.SBNamespace{
 		Location: &location,
+		Identity: identity,
 		Sku: &servicebus.SBSku{
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
@@ -161,12 +167,6 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Tags: tags.Expand(t),
 	}
-
-	identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-	parameters.Identity = identity
 
 	if capacity := d.Get("capacity"); capacity != nil {
 		if !strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) > 0 {
@@ -217,9 +217,11 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	identity, err := flattenServiceBusNamespaceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
-	d.Set("identity", identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", strings.ToLower(string(sku.Name)))
@@ -301,6 +303,12 @@ func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interfac
 		}
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
 		}
 	}
 
