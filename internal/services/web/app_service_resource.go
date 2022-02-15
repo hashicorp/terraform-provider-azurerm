@@ -225,6 +225,12 @@ func resourceAppService() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"webhook_url": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -788,6 +794,8 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
+
+	d.Set("webhook_url", *siteCredResp.UserProperties.ScmURI+"/docker/hook")
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

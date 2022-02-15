@@ -466,6 +466,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
+* `webhook_url` - The value of the webhook found in the Deployment Center. A post request to this URL will trigger the rollout of a new version. It can be used in conjunction with `azurerm_container_registry_webhook` to enable continuous deployments from the Azure Container Registry.
+
 ---
 
 A `identity` block exports the following:

@@ -146,6 +146,12 @@ func dataSourceAppService() *pluginsdk.Resource {
 			},
 
 			"source_control": schemaAppServiceSiteSourceControlDataSource(),
+
+			"webhook_url": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -246,6 +252,8 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
+
+	d.Set("webhook_url", *siteCredResp.UserProperties.ScmURI+"/docker/hook")
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
