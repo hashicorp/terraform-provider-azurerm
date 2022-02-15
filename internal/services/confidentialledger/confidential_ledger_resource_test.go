@@ -268,7 +268,7 @@ resource "azurerm_confidential_ledger" "import" {
   aad_based_security_principals {
     principal_id     = azurerm_confidential_ledger.test.aad_based_security_principals.0.principal_id
     tenant_id        = azurerm_confidential_ledger.test.aad_based_security_principals.0.tenant_id
-    ledger_role_name = azurerm_confidential_ledger.test.aad_based_security_principals.0.ledger_rol_name
+    ledger_role_name = azurerm_confidential_ledger.test.aad_based_security_principals.0.ledger_role_name
   }
 }
 `, template)
