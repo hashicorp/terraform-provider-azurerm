@@ -139,6 +139,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
+			// todo: check Set:hashString func
 			"cors_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -163,9 +164,9 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+
 						"allowed_methods": {
-							//check set or list via api call
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MaxItems: 64,
 							Elem: &pluginsdk.Schema{
@@ -180,6 +181,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 									"PUT",
 								}, false),
 							},
+							Set: pluginsdk.HashString,
 						},
 						"max_age_in_seconds": {
 							Type:         pluginsdk.TypeInt,
@@ -460,7 +462,7 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirService.FhirServiceCo
 
 	allowedOrigins := *utils.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *utils.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *utils.ExpandStringSlice(block["allowed_methods"].([]interface{}))
+	allowedMethods := *utils.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
 	allowCredentials := block["allow_credentials"].(bool)
 
 	cors := &fhirService.FhirServiceCorsConfiguration{
@@ -573,7 +575,7 @@ func flattenFhirCorsConfiguration(corsConfig *fhirService.FhirServiceCorsConfigu
 		map[string]interface{}{
 			"allow_credentials":  allowCredentials,
 			"allowed_headers":    utils.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":    utils.FlattenStringSlice(corsConfig.Methods),
+			"allowed_methods":    pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(corsConfig.Methods)),
 			"allowed_origins":    utils.FlattenStringSlice(corsConfig.Origins),
 			"max_age_in_seconds": maxAge,
 		},

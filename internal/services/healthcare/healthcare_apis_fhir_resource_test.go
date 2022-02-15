@@ -184,6 +184,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-healthcareapi-%d"
   location = "%s"
@@ -230,6 +233,10 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
+  access_policy_object_ids = [
+    data.azurerm_client_config.current.object_id,
+  ]
+
   identity {
     type = "SystemAssigned"
   }
