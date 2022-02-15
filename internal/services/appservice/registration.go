@@ -52,6 +52,7 @@ func (r Registration) Resources() []sdk.Resource {
 			WindowsFunctionAppResource{},
 			WindowsWebAppSlotResource{},
 			WindowsFunctionAppSlotResource{},
+			AppFunctionResource{},
 		}
 	}
 	return []sdk.Resource{}
