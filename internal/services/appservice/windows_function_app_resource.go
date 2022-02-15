@@ -204,7 +204,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"https_only": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     false,
+			Computed:    true,
 			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
@@ -377,8 +377,12 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					functionApp.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+				}
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
@@ -541,7 +545,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
-			state.unpackWindowsFunctionAppSettings(appSettingsResp)
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -831,7 +835,7 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
+func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
 	if input.Properties == nil {
 		return
 	}
@@ -847,7 +851,19 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			if conf, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
+				if connectionString, ok := conf["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; ok {
+					appSettings[k] = connectionString.(string)
+				}
+			}
+
 		case "WEBSITE_CONTENTSHARE":
+			if conf, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
+				if contentShare, ok := conf["WEBSITE_CONTENTSHARE"]; ok {
+					appSettings[k] = contentShare.(string)
+				}
+			}
+
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
