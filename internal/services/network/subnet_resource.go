@@ -78,9 +78,10 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoints": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"service_endpoint_policy_ids": {
@@ -230,7 +231,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies))
 	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies))
 
-	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
+	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
 	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
@@ -349,7 +350,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoints") {
-		serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
+		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
@@ -444,7 +445,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(string(props.PrivateLinkServiceNetworkPolicies)))
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+		if err := d.Set("service_endpoints", pluginsdk.NewSet(pluginsdk.HashString, serviceEndpoints)); err != nil {
 			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 
@@ -502,8 +503,8 @@ func expandSubnetServiceEndpoints(input []interface{}) *[]network.ServiceEndpoin
 	return &endpoints
 }
 
-func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
-	endpoints := make([]string, 0)
+func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []interface{} {
+	endpoints := make([]interface{}, 0)
 
 	if serviceEndpoints == nil {
 		return endpoints
