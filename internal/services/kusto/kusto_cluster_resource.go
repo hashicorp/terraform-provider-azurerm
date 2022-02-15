@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -229,6 +230,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"zones": azure.SchemaZones(),
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -286,6 +293,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
+	publicNetworkAccess := kusto.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = kusto.PublicNetworkAccessDisabled
+	}
+
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:     optimizedAutoScale,
 		EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
@@ -294,6 +306,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
 		EngineType:             engine,
+		PublicNetworkAccess:    publicNetworkAccess,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -402,6 +415,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == kusto.PublicNetworkAccessEnabled)
 
 	identity, err := flattenClusterIdentity(resp.Identity)
 	if err != nil {
