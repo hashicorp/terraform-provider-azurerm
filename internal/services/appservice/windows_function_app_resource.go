@@ -851,17 +851,13 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
-			if conf, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
-				if connectionString, ok := conf["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; ok {
-					appSettings[k] = connectionString.(string)
-				}
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
 			}
 
 		case "WEBSITE_CONTENTSHARE":
-			if conf, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
-				if contentShare, ok := conf["WEBSITE_CONTENTSHARE"]; ok {
-					appSettings[k] = contentShare.(string)
-				}
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
 			}
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":

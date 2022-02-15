@@ -383,8 +383,12 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+				}
+				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
@@ -545,7 +549,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
 
-			state.unpackWindowsFunctionAppSettings(appSettingsResp)
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -730,7 +734,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
+func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
 	if input.Properties == nil {
 		return
 	}
@@ -746,7 +750,15 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_CONTENTSHARE":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if m.SiteConfig[0].ApplicationStack != nil {
