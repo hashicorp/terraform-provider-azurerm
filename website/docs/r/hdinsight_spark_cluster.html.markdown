@@ -214,6 +214,8 @@ A `storage_account_gen2` block supports the following:
 
 A `worker_node` block supports the following:
 
+* `target_instance_count` - (Required) The number of instances which should be run for the Worker Nodes.
+
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
@@ -229,8 +231,6 @@ A `worker_node` block supports the following:
 -> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
-
-* `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
