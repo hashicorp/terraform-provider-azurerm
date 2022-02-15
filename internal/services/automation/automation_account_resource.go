@@ -2,7 +2,6 @@ package automation
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -77,7 +76,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -107,8 +106,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-
-	var parameters = automation.AccountCreateOrUpdateParameters{
+	parameters := automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
 			Sku: &automation.Sku{
 				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
@@ -151,7 +149,6 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
