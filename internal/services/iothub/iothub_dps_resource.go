@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -34,11 +33,6 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 		Read:   resourceIotHubDPSRead,
 		Update: resourceIotHubDPSCreateUpdate,
 		Delete: resourceIotHubDPSDelete,
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.IotHubDPSResourceV0ToV1{},
-		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotHubDpsID(id)
@@ -230,22 +224,24 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	publicNetworkAccess := iothub.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = iothub.PublicNetworkAccessDisabled
-	}
-
 	iotdps := iothub.ProvisioningServiceDescription{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
-			AllocationPolicy:    iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
-			PublicNetworkAccess: publicNetworkAccess,
-			IPFilterRules:       expandDpsIPFilterRules(d),
+			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			AllocationPolicy: iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			IPFilterRules:    expandDpsIPFilterRules(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+		publicNetworkAccess := iothub.PublicNetworkAccessEnabled
+		if !v.(bool) {
+			publicNetworkAccess = iothub.PublicNetworkAccessDisabled
+		}
+		iotdps.Properties.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iotdps)
@@ -306,7 +302,11 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IDScope)
 		d.Set("allocation_policy", string(props.AllocationPolicy))
-		d.Set("public_network_access_enabled", strings.EqualFold("Enabled", string(props.PublicNetworkAccess)))
+		publicNetworkAccess := true
+		if props.PublicNetworkAccess != "" {
+			publicNetworkAccess = strings.EqualFold("Enabled", string(props.PublicNetworkAccess))
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccess)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
