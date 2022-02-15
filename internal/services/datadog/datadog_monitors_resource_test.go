@@ -122,8 +122,8 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
-			api_key = "a2252a9c2d1c73560ffeb0bd38d09460"
-			application_key = "7c45227a89448d8711dfd20e73153c3d1e002704"
+			api_key = ""
+			application_key = ""
 		}
 		user_info {
 			name          = "vidhi"
@@ -148,8 +148,8 @@ func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
-			api_key = "a2252a9c2d1c73560ffeb0bd38d09460"
-			application_key = "7c45227a89448d8711dfd20e73153c3d1e002704"
+			api_key = ""
+			application_key = ""
 		}
 		user_info {
 			name          = "vidhi"
@@ -178,8 +178,8 @@ func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string 
 	resource_group_name = azurerm_datadog_monitor.test.resource_group_name
 	location            = azurerm_datadog_monitor.test.location
 	datadog_organization_properties {
-		api_key = "a2252a9c2d1c73560ffeb0bd38d09460"
-		application_key = "7c45227a89448d8711dfd20e73153c3d1e002704"
+		api_key = ""
+		application_key = ""
 	}
 	sku {
 		name = "Linked"
@@ -204,8 +204,8 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	resource_group_name = azurerm_resource_group.test.name
 	location            = azurerm_resource_group.test.location
 	datadog_organization_properties {
-		api_key           = "a2252a9c2d1c73560ffeb0bd38d09460"
-		application_key   = "7c45227a89448d8711dfd20e73153c3d1e002704"
+		api_key           = ""
+		application_key   = ""
 		enterprise_app_id = ""
 		linking_auth_code = ""
 		linking_client_id = ""
