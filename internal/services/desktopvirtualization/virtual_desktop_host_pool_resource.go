@@ -5,8 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -46,126 +48,133 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			0: migration.HostPoolV0ToV1{},
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-			"location": azure.SchemaLocation(),
+				"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+				"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.HostPoolTypePersonal),
-					string(desktopvirtualization.HostPoolTypePooled),
-				}, false),
-			},
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(desktopvirtualization.HostPoolTypePersonal),
+						string(desktopvirtualization.HostPoolTypePooled),
+					}, false),
+				},
 
-			"load_balancer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.LoadBalancerTypeBreadthFirst),
-					string(desktopvirtualization.LoadBalancerTypeDepthFirst),
-					string(desktopvirtualization.LoadBalancerTypePersistent),
-				}, false),
-			},
+				"load_balancer_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(desktopvirtualization.LoadBalancerTypeBreadthFirst),
+						string(desktopvirtualization.LoadBalancerTypeDepthFirst),
+						string(desktopvirtualization.LoadBalancerTypePersistent),
+					}, false),
+				},
 
-			"friendly_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
-			},
+				"friendly_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringLenBetween(1, 64),
+				},
 
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 512),
-			},
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringLenBetween(1, 512),
+				},
 
-			"validate_environment": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+				"validate_environment": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 
-			"custom_rdp_properties": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+				"custom_rdp_properties": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
 
-			"personal_desktop_assignment_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.PersonalDesktopAssignmentTypeAutomatic),
-					string(desktopvirtualization.PersonalDesktopAssignmentTypeDirect),
-				}, false),
-			},
+				"personal_desktop_assignment_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(desktopvirtualization.PersonalDesktopAssignmentTypeAutomatic),
+						string(desktopvirtualization.PersonalDesktopAssignmentTypeDirect),
+					}, false),
+				},
 
-			"maximum_sessions_allowed": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      999999,
-				ValidateFunc: validation.IntBetween(0, 999999),
-			},
+				"maximum_sessions_allowed": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      999999,
+					ValidateFunc: validation.IntBetween(0, 999999),
+				},
 
-			"start_vm_on_connect": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+				"start_vm_on_connect": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 
-			"preferred_app_group_type": {
-				Type:        pluginsdk.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Preferred App Group type to display",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.PreferredAppGroupTypeDesktop),
-					string(desktopvirtualization.PreferredAppGroupTypeNone),
-					string(desktopvirtualization.PreferredAppGroupTypeRailApplications),
-				}, false),
-				Default: string(desktopvirtualization.PreferredAppGroupTypeDesktop),
-			},
+				"preferred_app_group_type": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					ForceNew:    true,
+					Description: "Preferred App Group type to display",
+					ValidateFunc: validation.StringInSlice([]string{
+						string(desktopvirtualization.PreferredAppGroupTypeDesktop),
+						string(desktopvirtualization.PreferredAppGroupTypeNone),
+						string(desktopvirtualization.PreferredAppGroupTypeRailApplications),
+					}, false),
+					Default: string(desktopvirtualization.PreferredAppGroupTypeDesktop),
+				},
 
-			"registration_info": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"expiration_date": {
-							Type:       pluginsdk.TypeString,
-							Optional:   true,
-							Deprecated: "This property has been deprecated in favour of the `virtual_desktop_host_pool_registration_info` resource",
-						},
+				"tags": tags.Schema(),
+			}
 
-						"reset_token": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
+			if !features.ThreePointOhBeta() {
+				s["registration_info"] = &schema.Schema{
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Description: "This block is now non-functional and will be removed in version 3.0 of the Azure Provider - use the `azurerm_virtual_desktop_host_pool_registration_info` resource instead.",
+					MaxItems:    1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"expiration_date": {
+								Type:       pluginsdk.TypeString,
+								Optional:   true,
+								Deprecated: "This field is now non-functional and will be removed in version 3.0 of the Azure Provider - use the `azurerm_virtual_desktop_host_pool_registration_info` resource instead.",
+							},
 
-						"token": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
+							"reset_token": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"token": {
+								Type:      pluginsdk.TypeString,
+								Sensitive: true,
+								Computed:  true,
+							},
 						},
 					},
-				},
-			},
+				}
+			}
 
-			"tags": tags.Schema(),
-		},
+			return s
+		}(),
 	}
 }
 
@@ -216,14 +225,9 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
 		},
 	}
-	// only process registration info if a registration_info block is present
-	// this prevents a null value being stored in state which will generate a diff if virtual_desktop_host_pool_registration_info is used
-	if _, ok := d.GetOk("registration_info"); ok {
-		context.HostPoolProperties.RegistrationInfo = expandVirtualDesktopHostPoolRegistrationInfo(d)
-	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -274,18 +278,6 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("validate_environment", props.ValidationEnvironment)
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("custom_rdp_properties", props.CustomRdpProperty)
-		// only process registration info if a registration_info block is present
-		// this prevents a null value being stored in state which will generate a diff if virtual_desktop_host_pool_registration_info is used
-		if _, ok := d.GetOk("registration_info"); ok {
-			reginfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("retrieving Registration Token for %s: %+v", *id, err)
-			}
-
-			if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(&reginfo)); err != nil {
-				return fmt.Errorf("setting `registration_info`: %+v", err)
-			}
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -310,49 +302,4 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
-}
-
-func expandVirtualDesktopHostPoolRegistrationInfo(d *pluginsdk.ResourceData) *desktopvirtualization.RegistrationInfo {
-	old, new := d.GetChange("registration_info")
-	oldInterfaces := old.([]interface{})
-	newInterfaces := new.([]interface{})
-
-	if len(oldInterfaces) == 0 && len(newInterfaces) == 0 {
-		return nil
-	}
-
-	if len(oldInterfaces) != 0 && len(newInterfaces) == 0 {
-		deleteConfig := desktopvirtualization.RegistrationInfo{
-			RegistrationTokenOperation: desktopvirtualization.RegistrationTokenOperationDelete,
-		}
-		return &deleteConfig
-	}
-
-	v := newInterfaces[0].(map[string]interface{})
-	expdt, _ := date.ParseTime(time.RFC3339, v["expiration_date"].(string))
-	configuration := desktopvirtualization.RegistrationInfo{
-		ExpirationTime: &date.Time{
-			Time: expdt,
-		},
-		RegistrationTokenOperation: desktopvirtualization.RegistrationTokenOperationUpdate,
-	}
-
-	return &configuration
-}
-
-func flattenVirtualDesktopHostPoolRegistrationInfo(input *desktopvirtualization.RegistrationInfo) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	if input.ExpirationTime == nil || input.Token == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"expiration_date": input.ExpirationTime.Format(time.RFC3339),
-			"token":           *input.Token,
-		},
-	}
 }
