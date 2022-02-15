@@ -243,7 +243,7 @@ func TestAccPublicIpStatic_standard_withIPv6(t *testing.T) {
 func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
-	ipVersion := "Ipv6"
+	ipVersion := "IPv6"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

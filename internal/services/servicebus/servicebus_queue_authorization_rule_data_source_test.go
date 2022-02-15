@@ -20,7 +20,7 @@ func TestAccDataSourceServiceBusQueueAuthorizationRule_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("queue_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -56,9 +56,7 @@ func (ServiceBusQueueAuthorizationRuleDataSource) basic(data acceptance.TestData
 
 data "azurerm_servicebus_queue_authorization_rule" "test" {
   name                = azurerm_servicebus_queue_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_queue_authorization_rule.test.namespace_name
-  resource_group_name = azurerm_servicebus_queue_authorization_rule.test.resource_group_name
-  queue_name          = azurerm_servicebus_queue_authorization_rule.test.queue_name
+  queue_id            = azurerm_servicebus_queue.test.id
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.base(data, true, true, true))
 }
@@ -69,9 +67,7 @@ func (ServiceBusQueueAuthorizationRuleDataSource) queueAliasPolicy(data acceptan
 
 data "azurerm_servicebus_queue_authorization_rule" "test" {
   name                = azurerm_servicebus_queue_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  queue_name          = azurerm_servicebus_queue.example.name
+  queue_id            = azurerm_servicebus_queue.example.id
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.withAliasConnectionString(data))
 }

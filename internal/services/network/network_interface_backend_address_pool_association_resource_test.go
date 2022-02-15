@@ -207,7 +207,7 @@ func (r NetworkInterfaceBackendAddressPoolResource) requiresImport(data acceptan
 resource "azurerm_network_interface_backend_address_pool_association" "import" {
   network_interface_id     = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
   ip_configuration_name    = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
-  backend_address_pool_ids = [azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id]
+  backend_address_pool_id  = azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id
 }
 `, r.basic(data))
 }
@@ -231,7 +231,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "dynamic"
   }
 }
 
@@ -287,8 +287,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  loadbalancer_id = azurerm_lb.test.id
-  name            = "acctestpool"
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "acctestpool"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
