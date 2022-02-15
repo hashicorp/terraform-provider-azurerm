@@ -409,7 +409,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.ThreePointOhBeta() {
-		s := out["bpg_settings"].Elem.(*pluginsdk.Resource)
+		s := out["bgp_settings"].Elem.(*pluginsdk.Resource)
 		s.Schema["peering_address"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Optional:   true,
