@@ -180,15 +180,28 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				return commonschema.SystemOrUserAssignedIdentityOptional()
 			}(),
 
-			"primary_user_assigned_identity_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: msivalidate.UserAssignedIdentityID,
-				RequiredWith: []string{
-					"identity.0.user_assigned_identity_ids",
-				},
-			},
+			"primary_user_assigned_identity_id": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
+						RequiredWith: []string{
+							"identity.0.user_assigned_identity_ids",
+						},
+					}
+				}
+				return &schema.Schema{
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: msivalidate.UserAssignedIdentityID,
+					RequiredWith: []string{
+						"identity.0.identity_ids",
+					},
+				}
+			}(),
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,

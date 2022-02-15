@@ -275,40 +275,78 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return commonschema.SystemOrUserAssignedIdentityOptional()
 			}(),
 
-			"kubelet_identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"client_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
-							ValidateFunc: validation.StringIsNotEmpty,
+			"kubelet_identity": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Computed:     true,
+									ForceNew:     true,
+									RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"object_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Computed:     true,
+									ForceNew:     true,
+									RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"user_assigned_identity_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Computed:     true,
+									ForceNew:     true,
+									RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+									ValidateFunc: msivalidate.UserAssignedIdentityID,
+								},
+							},
 						},
-						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
+					}
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"client_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ForceNew:     true,
+								RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.identity_ids"},
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"object_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ForceNew:     true,
+								RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.identity_ids"},
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"user_assigned_identity_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ForceNew:     true,
+								RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.identity_ids"},
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
 						},
 					},
-				},
-			},
+				}
+			}(),
 
 			"linux_profile": {
 				Type:     pluginsdk.TypeList,
