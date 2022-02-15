@@ -63,6 +63,7 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			//lintignore:S013
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: features.ThreePointOhBeta(),
@@ -75,6 +76,7 @@ func resourceFirewall() *pluginsdk.Resource {
 				}, false),
 			},
 
+			//lintignore:S013
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Required: features.ThreePointOhBeta(),
