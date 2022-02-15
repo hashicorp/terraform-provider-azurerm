@@ -1,6 +1,9 @@
 package confidentialledger
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -43,14 +46,20 @@ func flattenConfidentialLedgerAADBasedSecurityPrincipal(input *[]confidentialled
 
 		if item.LedgerRoleName != nil {
 			ledgerRoleName = string(*item.LedgerRoleName)
+		} else {
+			return nil, errors.New(fmt.Sprintf("error flattening AAD-based security principal (no assigned role): %v", item))
 		}
 
 		if item.PrincipalId != nil {
 			principalId = *item.PrincipalId
+		} else {
+			return nil, errors.New(fmt.Sprintf("error flattening AAD-based security principal (no principal id): %v", item))
 		}
 
 		if item.TenantId != nil {
 			tenantId = *item.TenantId
+		} else {
+			return nil, errors.New(fmt.Sprintf("error flattening AAD-based security principal (no tenant id): %v", item))
 		}
 
 		aadBasedSecurityPrincipal := map[string]interface{}{
