@@ -197,9 +197,21 @@ The deprecated field `primary_readonly_master_key` will be removed in favour of 
 
 The deprecated field `secondary_readonly_master_key` will be removed in favour of the `secondary_readonly_key` property.
 
+### Data Source: `azurerm_function_app_host_keys`
+
+The deprecated field `master_key` will be removed in favour of the `primary_key` property.
+
 ### Data Source: `azurerm_key_vault`
 
 The deprecated field `soft_delete_enabled` will be removed since the Azure API always returns `true`.
+
+### Data Source: `azurerm_kubernetes_cluster`
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
+
+### Data Source: `azurerm_kubernetes_cluster_node_pool`
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
 
 ### Data Source: `azurerm_lb_rule`
 
@@ -228,10 +240,6 @@ The deprecated field `management_group_id` will be removed in favour of the `man
 ### Data Source: `azurerm_postgresql_flexible_server`
 
 The deprecated field `cmk_enabled` will be removed since it no longer exists in the Azure API.
-
-### Data Source: `azurerm_function_app_host_keys`
-
-The deprecated field `master_key` will be removed in favour of the `primary_key` property.
 
 ### Resource: `azurerm_api_management_custom_domain`
 
@@ -334,6 +342,12 @@ The field `addon_profile.ingress_application_gateway.enabled` will be removed an
 The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `azure_keyvault_secrets_provider` block.
 
 The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `azure_keyvault_secrets_provider` block.
+
+The field `default_node_pool.availability_zones` will be removed in favour of `default_node_pool.zones` to be consistent across the Provider.
+
+### Resource: `azurerm_kubernetes_cluster_node_pool`
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
 
 ### Resource: `azurerm_cosmosdb_account`
 
@@ -649,7 +663,7 @@ The deprecated field `backend_address` will be removed since it is no longer fun
 
 ### Resource: `azurerm_lb`
 
-The deprecated field `zones` will become Computed only and is replaced by the `availability_zone` property.
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
 
 ### Resource: `azurerm_lb_rule`
 
@@ -670,6 +684,10 @@ The deprecated field `resource_id` will be removed in favour of `read_access_id`
 The deprecated field `reservation_capcity_in_gb_per_day` will be removed in favour of `reservation_capacity_in_gb_per_day`.
 
 The deprecated field `portal_url` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_managed_disk`
+
+The field `zones` has been renamed `zone` (as this only accepts a single value) to be consistent across the Provider.
 
 ### Resource: `azurerm_management_group`
 
@@ -751,11 +769,11 @@ The `azurerm_policy_assignment` resource will be removed in favour of the `azure
 
 ### Resource: `azurerm_public_ip_prefix`
 
-The deprecated field `zones` will be removed in favour of the `availability_zone` property.
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
 
 ### Resource: `azurerm_public_ip`
 
-The deprecated field `zones` will be removed in favour of the `availability_zone` property.
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
 
 ### Resource: `azurerm_subnet`
 
