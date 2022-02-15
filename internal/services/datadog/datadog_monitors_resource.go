@@ -52,7 +52,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 
 			"datadog_organization_properties": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -63,13 +63,13 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 
 						"api_key": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 
 						"application_key": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 

@@ -12,16 +12,55 @@ Manages a datadog Monitor.
 
 ## Example Usage
 
+### Creating new monitor
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-datadog"
-  location = "West Europe"
+  location = "West US 2"
 }
 
 resource "azurerm_datadog_monitor" "example" {
   name                = "example-monitor"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+   user_info {
+    name          = "Example"
+    email_address = "abc@xyz.com"
+  }
+  sku {
+    name = "payg_v2_Monthly"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
+###  Monitor creation with linking to Datadog organization
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-datadog"
+  location = "West US 2"
+}
+
+resource "azurerm_datadog_monitor" "example" {
+  name                = "example-monitor"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  datadog_organization_properties {
+    api_key = "XXXX"
+    application_key = "XXXX"
+  }
+   user_info {
+    name          = "Example"
+    email_address = "abc@xyz.com"
+  }
+  sku {
+    name = "Linked"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -35,15 +74,15 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the datadog Monitor should exist. Changing this forces a new datadog Monitor to be created.
 
+* `identity` - (Required) A `identity` block as defined below.
+
+* `sku` - (Required) A `sku` block as defined below.
+
+* `user_info` - (Required) A `user_info` block as defined below.
+
 ---
 
 * `datadog_organization_properties` - (Optional) A `datadog_organization_properties` block as defined below.
-
-* `identity` - (Optional) A `identity` block as defined below.
-
-* `sku` - (Optional) A `sku` block as defined below.
-
-* `user_info` - (Optional) A `user_info` block as defined below.
 
 * `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
 
@@ -51,19 +90,19 @@ The following arguments are supported:
 
 ---
 
-An `datadog_organization_properties` block exports the following:
+A `datadog_organization_properties` block exports the following:
 
 * `api_key` - (Optional) Api key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
 
 * `application_key` - (Optional) Application key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
 
-* `enterprise_app_id` - (Optional) The ID of the enterprise_app. Changing this forces a new datadog Monitor to be created.
+* `enterprise_app_id` - (Optional) The ID of the enterprise_app.
 
-* `linking_auth_code` - (Optional) The auth code used to linking to an existing datadog organization. Changing this forces a new datadog Monitor to be created.
+* `linking_auth_code` - (Optional) The auth code used to linking to an existing datadog organization.
 
-* `linking_client_id` - (Optional) The ID of the linking_client. Changing this forces a new datadog Monitor to be created.
+* `linking_client_id` - (Optional) The ID of the linking_client.
 
-* `redirect_uri` - (Optional) The redirect uri for linking. Changing this forces a new datadog Monitor to be created.
+* `redirect_uri` - (Optional) The redirect uri for linking.
 
 ---
 
@@ -71,23 +110,23 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the datadog Monitor. At this time the only allowed value is `SystemAssigned`.
 
-~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the datadog Monitor has been created. More details are available below.
+> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the datadog Monitor has been created. More details are available below.
 
 ---
 
 An `sku` block exports the following:
 
-* `name` - (Required) The name which should be used for this sku. Changing this forces a new datadog Monitor to be created.
+* `name` - (Required) The name which should be used for this sku.
 
 ---
 
 An `user_info` block exports the following:
 
-* `name` - (Optional) The name which should be used for this user_info. Changing this forces a new datadog Monitor to be created.
+* `name` - (Required) The name which should be used for this user_info.
 
-* `email_address` - (Optional) Email of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
+* `email_address` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
 
-* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
+* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed.
 
 ## Attributes Reference
 
