@@ -160,7 +160,6 @@ func resourcePublicIp() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO - 3.0 make Computed only
 			"zones": {
 				Type:     pluginsdk.TypeList,
 				Optional: !features.ThreePointOhBeta(),
@@ -211,7 +210,6 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
 	zones := &[]string{"1", "2"}
 	zonesSet := false
-	// TODO - Remove in 3.0
 	if !features.ThreePointOhBeta() {
 		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 			zonesSet = true
