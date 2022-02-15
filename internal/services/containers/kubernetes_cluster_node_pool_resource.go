@@ -736,10 +736,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if features.ThreePointOhBeta() {
 			d.Set("zones", zones.Flatten(props.AvailabilityZones))
-		} else {
-			if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {
-				return fmt.Errorf("setting `availability_zones`: %+v", err)
-			}
+		} else if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {
+			return fmt.Errorf("setting `availability_zones`: %+v", err)
 		}
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
