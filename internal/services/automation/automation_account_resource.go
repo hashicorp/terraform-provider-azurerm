@@ -2,6 +2,7 @@ package automation
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -75,6 +76,11 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -101,17 +107,18 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	parameters := automation.AccountCreateOrUpdateParameters{
+
+	var parameters = automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
 			Sku: &automation.Sku{
 				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 			},
+			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -138,6 +145,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Sku: &automation.Sku{
 				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 			},
+			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
@@ -187,7 +195,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess)
 	skuName := ""
 	if sku := resp.Sku; sku != nil {
 		skuName = string(resp.Sku.Name)
