@@ -103,14 +103,62 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
-  location = "%s"
+  name     = "acctest-afdx-%[1]d"
+  location = "%[2]s"
 }
+
+resource "azurerm_frontdoor_firewall_policy" "test" {
+  name                              = "testAccFrontDoorWAF%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "Rule1"
+    enabled                        = true
+    priority                       = 1
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "Block"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+    }
+  }
+
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "preview-0.1"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933111"
+        enabled = false
+        action  = "Block"
+      }
+    }
+  }
+
+  managed_rule {
+    type    = "BotProtection"
+    version = "preview-0.1"
+  }
+}
+
 resource "azurerm_frontdoor_profile_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "acctest-c-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r FrontdoorSecurityPolicyResource) basic(data acceptance.TestData) string {
@@ -119,10 +167,24 @@ func (r FrontdoorSecurityPolicyResource) basic(data acceptance.TestData) string 
 				%s
 
 resource "azurerm_frontdoor_security_policy" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
-  parameters {
-    type = ""
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
+
+  web_application_firewall {
+    waf_policy_id = azurerm_frontdoor_firewall_policy.test.id
+
+    association {
+      domain {
+        id = "foo"
+      }
+      domain {
+        id = "bar"
+      }
+      domain {
+        id = "spoon"
+      }
+      patterns_to_match = ["/foo", "/bar"]
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -134,10 +196,24 @@ func (r FrontdoorSecurityPolicyResource) requiresImport(data acceptance.TestData
 			%s
 
 resource "azurerm_frontdoor_security_policy" "import" {
-  name           = azurerm_frontdoor_security_policy.test.name
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
-  parameters {
-    type = ""
+  name                 = azurerm_frontdoor_security_policy.test.name
+  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
+
+  web_application_firewall {
+    waf_policy_id = azurerm_frontdoor_firewall_policy.test.id
+
+    association {
+      domain {
+        id = "foo"
+      }
+      domain {
+        id = "bar"
+      }
+      domain {
+        id = "spoon"
+      }
+      patterns_to_match = ["/foo", "/bar"]
+    }
   }
 }
 `, config)
@@ -149,10 +225,36 @@ func (r FrontdoorSecurityPolicyResource) complete(data acceptance.TestData) stri
 			%s
 
 resource "azurerm_frontdoor_security_policy" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
-  parameters {
-    type = ""
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
+
+  web_application_firewall {
+    waf_policy_id = azurerm_frontdoor_firewall_policy.test.id
+
+    association {
+      domain {
+        id = "foo"
+      }
+      domain {
+        id = "bar"
+      }
+      domain {
+        id = "spoon"
+      }
+      patterns_to_match = ["/foo", "/bar"]
+    }
+
+    association {
+      domain {
+        id = "foo"
+      }
+      domain {
+        id      = "badf00d"
+        enabled = false
+      }
+
+      patterns_to_match = ["foo"]
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -164,10 +266,25 @@ func (r FrontdoorSecurityPolicyResource) update(data acceptance.TestData) string
 			%s
 
 resource "azurerm_frontdoor_security_policy" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
-  parameters {
-    type = ""
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
+
+  web_application_firewall {
+    waf_policy_id = azurerm_frontdoor_firewall_policy.test.id
+
+    association {
+      domain {
+        id = "foo"
+      }
+      domain {
+        id = "bar"
+      }
+      domain {
+        id      = "spoon"
+        enabled = false
+      }
+      patterns_to_match = ["/spoon", "/bar", "/*"]
+    }
   }
 }
 `, template, data.RandomInteger)

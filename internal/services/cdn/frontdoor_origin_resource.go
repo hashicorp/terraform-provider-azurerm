@@ -48,20 +48,9 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: afdorigingroups.ValidateOriginGroupID,
 			},
 
-			"azure_origin": {
-				Type:     pluginsdk.TypeList,
+			"azure_origin_id": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
-				},
 			},
 
 			"deployment_status": {
@@ -151,7 +140,7 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enabledStateValue := afdorigins.EnabledState(d.Get("enabled_state").(string))
 	props := afdorigins.AFDOrigin{
 		Properties: &afdorigins.AFDOriginProperties{
-			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin").([]interface{})),
+			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
 			EnabledState:                &enabledStateValue,
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    d.Get("host_name").(string),
@@ -201,8 +190,8 @@ func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 
-			if err := d.Set("azure_origin", flattenOriginGroupOriginResourceReference(props.AzureOrigin)); err != nil {
-				return fmt.Errorf("setting `azure_origin`: %+v", err)
+			if err := d.Set("azure_origin_id", flattenOriginGroupOriginResourceReference(props.AzureOrigin)); err != nil {
+				return fmt.Errorf("setting `azure_origin_id`: %+v", err)
 			}
 			d.Set("deployment_status", props.DeploymentStatus)
 			d.Set("enabled_state", props.EnabledState)
@@ -238,7 +227,7 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	enabledStateValue := afdorigins.EnabledState(d.Get("enabled_state").(string))
 	props := afdorigins.AFDOriginUpdateParameters{
 		Properties: &afdorigins.AFDOriginUpdatePropertiesParameters{
-			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin").([]interface{})),
+			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
 			EnabledState:                &enabledStateValue,
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
@@ -279,28 +268,24 @@ func resourceFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandOriginGroupOriginResourceReference(input []interface{}) *afdorigins.ResourceReference {
-	if len(input) == 0 || input[0] == nil {
+func expandOriginGroupOriginResourceReference(input string) *afdorigins.ResourceReference {
+	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-
 	return &afdorigins.ResourceReference{
-		Id: utils.String(v["id"].(string)),
+		Id: utils.String(input),
 	}
 }
 
-func flattenOriginGroupOriginResourceReference(input *afdorigins.ResourceReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenOriginGroupOriginResourceReference(input *afdorigins.ResourceReference) string {
+	result := ""
 	if input == nil {
-		return results
+		return result
 	}
-
-	result := make(map[string]interface{})
 
 	if input.Id != nil {
-		result["id"] = *input.Id
+		result = *input.Id
 	}
-	return append(results, result)
+	return result
 }

@@ -103,7 +103,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
 resource "azurerm_frontdoor_profile" "test" {
@@ -119,27 +119,32 @@ func (r FrontdoorOriginGroupResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_origin_group" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
   health_probe_settings {
     probe_interval_in_seconds = 0
     probe_path                = ""
     probe_protocol            = ""
     probe_request_type        = ""
   }
+
   load_balancing_settings {
     additional_latency_in_milliseconds = 0
     sample_size                        = 0
     successful_samples_required        = 0
   }
+
   response_based_afd_origin_error_detection_settings {
     http_error_ranges {
       begin = 0
       end   = 0
     }
+
     response_based_detected_error_types          = ""
     response_based_failover_threshold_percentage = 0
   }
+
   session_affinity_state                                         = ""
   traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }
@@ -152,27 +157,32 @@ func (r FrontdoorOriginGroupResource) requiresImport(data acceptance.TestData) s
 			%s
 
 resource "azurerm_frontdoor_origin_group" "import" {
-  name           = azurerm_frontdoor_origin_group.test.name
+  name                 = azurerm_frontdoor_origin_group.test.name
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
   health_probe_settings {
     probe_interval_in_seconds = 0
     probe_path                = ""
     probe_protocol            = ""
     probe_request_type        = ""
   }
+
   load_balancing_settings {
     additional_latency_in_milliseconds = 0
     sample_size                        = 0
     successful_samples_required        = 0
   }
+
   response_based_afd_origin_error_detection_settings {
     http_error_ranges {
       begin = 0
       end   = 0
     }
+
     response_based_detected_error_types          = ""
     response_based_failover_threshold_percentage = 0
   }
+
   session_affinity_state                                         = ""
   traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }
@@ -185,27 +195,32 @@ func (r FrontdoorOriginGroupResource) complete(data acceptance.TestData) string 
 			%s
 
 resource "azurerm_frontdoor_origin_group" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
   health_probe_settings {
     probe_interval_in_seconds = 0
     probe_path                = ""
     probe_protocol            = ""
     probe_request_type        = ""
   }
+
   load_balancing_settings {
     additional_latency_in_milliseconds = 0
     sample_size                        = 0
     successful_samples_required        = 0
   }
+
   response_based_afd_origin_error_detection_settings {
     http_error_ranges {
       begin = 0
       end   = 0
     }
+
     response_based_detected_error_types          = ""
     response_based_failover_threshold_percentage = 0
   }
+
   session_affinity_state                                         = ""
   traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }
@@ -218,27 +233,32 @@ func (r FrontdoorOriginGroupResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_origin_group" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
   health_probe_settings {
     probe_interval_in_seconds = 0
     probe_path                = ""
     probe_protocol            = ""
     probe_request_type        = ""
   }
+
   load_balancing_settings {
     additional_latency_in_milliseconds = 0
     sample_size                        = 0
     successful_samples_required        = 0
   }
+
   response_based_afd_origin_error_detection_settings {
     http_error_ranges {
       begin = 0
       end   = 0
     }
+
     response_based_detected_error_types          = ""
     response_based_failover_threshold_percentage = 0
   }
+
   session_affinity_state                                         = ""
   traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }

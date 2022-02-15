@@ -103,13 +103,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
-resource "azurerm_frontdoor_profile_profile" "test" {
+
+resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_frontdoor_rule_set" "test" {
   name           = "acctest-c-%d"
   cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
@@ -123,14 +125,17 @@ func (r FrontdoorRuleResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_rule" "test" {
-  name            = "acctest-c-%d"
+  name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+
   actions {
     name = ""
   }
+
   conditions {
     name = ""
   }
+
   match_processing_behavior = ""
   order                     = 0
 }
@@ -143,14 +148,17 @@ func (r FrontdoorRuleResource) requiresImport(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_rule" "import" {
-  name            = azurerm_frontdoor_rule.test.name
+  name                  = azurerm_frontdoor_rule.test.name
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+
   actions {
     name = ""
   }
+
   conditions {
     name = ""
   }
+
   match_processing_behavior = ""
   order                     = 0
 }
@@ -163,14 +171,17 @@ func (r FrontdoorRuleResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_rule" "test" {
-  name            = "acctest-c-%d"
+  name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+
   actions {
     name = ""
   }
+
   conditions {
     name = ""
   }
+
   match_processing_behavior = ""
   order                     = 0
 }
@@ -183,14 +194,17 @@ func (r FrontdoorRuleResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_rule" "test" {
-  name            = "acctest-c-%d"
+  name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+
   actions {
     name = ""
   }
+
   conditions {
     name = ""
   }
+
   match_processing_behavior = ""
   order                     = 0
 }

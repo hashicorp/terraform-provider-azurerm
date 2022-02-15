@@ -103,16 +103,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
-resource "azurerm_frontdoor_profile_profile" "test" {
+
+resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
-resource "azurerm_frontdoor_profile_afd_endpoint" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+
+resource "azurerm_frontdoor_endpoint" "test" {
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -123,28 +125,27 @@ func (r FrontdoorRouteResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_route" "test" {
-  name                = "acctest-c-%d"
-  cdn_afd_endpoint_id = azurerm_frontdoor_profile_afd_endpoint.test.id
+  name                  = "acctest-c-%d"
+  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+
   cache_configuration {
     query_parameters              = ""
     query_string_caching_behavior = ""
   }
+
   custom_domains {
     id = ""
   }
+
   enabled_state          = ""
   forwarding_protocol    = ""
   https_redirect         = ""
   link_to_default_domain = ""
-  origin_group {
-    id = ""
-  }
-  origin_path       = ""
-  patterns_to_match = []
-  rule_sets {
-    id = ""
-  }
-  supported_protocols = ""
+  origin_group_id        = ""
+  origin_path            = ""
+  patterns_to_match      = []
+  rule_set_ids           = [""]
+  supported_protocols    = ""
 }
 `, template, data.RandomInteger)
 }
@@ -155,28 +156,27 @@ func (r FrontdoorRouteResource) requiresImport(data acceptance.TestData) string 
 			%s
 
 resource "azurerm_frontdoor_route" "import" {
-  name                = azurerm_frontdoor_route.test.name
-  cdn_afd_endpoint_id = azurerm_frontdoor_profile_afd_endpoint.test.id
+  name                  = azurerm_frontdoor_route.test.name
+  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+
   cache_configuration {
     query_parameters              = ""
     query_string_caching_behavior = ""
   }
+
   custom_domains {
     id = ""
   }
+
   enabled_state          = ""
   forwarding_protocol    = ""
   https_redirect         = ""
   link_to_default_domain = ""
-  origin_group {
-    id = ""
-  }
-  origin_path       = ""
-  patterns_to_match = []
-  rule_sets {
-    id = ""
-  }
-  supported_protocols = ""
+  origin_group_id        = ""
+  origin_path            = ""
+  patterns_to_match      = []
+  rule_set_ids           = [""]
+  supported_protocols    = ""
 }
 `, config)
 }
@@ -187,28 +187,27 @@ func (r FrontdoorRouteResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_route" "test" {
-  name                = "acctest-c-%d"
-  cdn_afd_endpoint_id = azurerm_frontdoor_profile_afd_endpoint.test.id
+  name                  = "acctest-c-%d"
+  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+
   cache_configuration {
     query_parameters              = ""
     query_string_caching_behavior = ""
   }
+
   custom_domains {
     id = ""
   }
+
   enabled_state          = ""
   forwarding_protocol    = ""
   https_redirect         = ""
   link_to_default_domain = ""
-  origin_group {
-    id = ""
-  }
-  origin_path       = ""
-  patterns_to_match = []
-  rule_sets {
-    id = ""
-  }
-  supported_protocols = ""
+  origin_group_id        = ""
+  origin_path            = ""
+  patterns_to_match      = [""]
+  rule_set_ids           = [""]
+  supported_protocols    = ""
 }
 `, template, data.RandomInteger)
 }
@@ -219,28 +218,27 @@ func (r FrontdoorRouteResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_route" "test" {
-  name                = "acctest-c-%d"
-  cdn_afd_endpoint_id = azurerm_frontdoor_profile_afd_endpoint.test.id
+  name                  = "acctest-c-%d"
+  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+
   cache_configuration {
     query_parameters              = ""
     query_string_caching_behavior = ""
   }
+
   custom_domains {
     id = ""
   }
+
   enabled_state          = ""
   forwarding_protocol    = ""
   https_redirect         = ""
   link_to_default_domain = ""
-  origin_group {
-    id = ""
-  }
-  origin_path       = ""
-  patterns_to_match = []
-  rule_sets {
-    id = ""
-  }
-  supported_protocols = ""
+  origin_group_id        = ""
+  origin_path            = ""
+  patterns_to_match      = []
+  rule_set_ids           = [""]
+  supported_protocols    = ""
 }
 `, template, data.RandomInteger)
 }

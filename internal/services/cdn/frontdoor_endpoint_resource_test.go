@@ -103,9 +103,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
+
 resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -120,7 +121,7 @@ func (r FrontdoorProfileEndpointResource) basic(data acceptance.TestData) string
 
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
-  frontdoor_profile_id                  = azurerm_frontdoor_profile.test.id
+  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = ""
   location                        = "%s"
   origin_response_timeout_seconds = 0
@@ -139,7 +140,7 @@ func (r FrontdoorProfileEndpointResource) requiresImport(data acceptance.TestDat
 
 resource "azurerm_frontdoor_endpoint" "import" {
   name                            = azurerm_frontdoor_endpoint.test.name
-  frontdoor_profile_id                  = azurerm_frontdoor_profile.test.id
+  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = ""
   location                        = "%s"
   origin_response_timeout_seconds = 0
@@ -158,7 +159,7 @@ func (r FrontdoorProfileEndpointResource) complete(data acceptance.TestData) str
 
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
-  frontdoor_profile_id                  = azurerm_frontdoor_profile.test.id
+  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = ""
   location                        = "%s"
   origin_response_timeout_seconds = 0
@@ -177,7 +178,7 @@ func (r FrontdoorProfileEndpointResource) update(data acceptance.TestData) strin
 
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
-  frontdoor_profile_id                  = azurerm_frontdoor_profile.test.id
+  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = ""
   origin_response_timeout_seconds = 0
 

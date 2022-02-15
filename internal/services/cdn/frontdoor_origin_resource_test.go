@@ -103,16 +103,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
+
 resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_frontdoor_origin_group" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile.test.id
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -123,11 +125,10 @@ func (r FrontdoorOriginResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_origin" "test" {
-  name                    = "acctest-c-%d"
-  cdn_afd_origin_group_id = azurerm_frontdoor_origin_group.test.id
-  azure_origin {
-    id = ""
-  }
+  name                      = "acctest-c-%d"
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+  azure_origin_id           = ""
+
   enabled_state                  = ""
   enforce_certificate_name_check = false
   host_name                      = ""
@@ -146,11 +147,10 @@ func (r FrontdoorOriginResource) requiresImport(data acceptance.TestData) string
 			%s
 
 resource "azurerm_frontdoor_origin" "import" {
-  name                    = azurerm_cdn_afd_origin.test.name
-  cdn_afd_origin_group_id = azurerm_frontdoor_origin_group.test.id
-  azure_origin {
-    id = ""
-  }
+  name                      = azurerm_cdn_afd_origin.test.name
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+  azure_origin_id           = ""
+
   enabled_state                  = ""
   enforce_certificate_name_check = false
   host_name                      = ""
@@ -169,11 +169,10 @@ func (r FrontdoorOriginResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_origin" "test" {
-  name                    = "acctest-c-%d"
-  cdn_afd_origin_group_id = azurerm_frontdoor_origin_group.test.id
-  azure_origin {
-    id = ""
-  }
+  name                      = "acctest-c-%d"
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+  azure_origin_id           = ""
+
   enabled_state                  = ""
   enforce_certificate_name_check = false
   host_name                      = ""
@@ -192,11 +191,10 @@ func (r FrontdoorOriginResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_origin" "test" {
-  name                    = "acctest-c-%d"
-  cdn_afd_origin_group_id = azurerm_frontdoor_origin_group.test.id
-  azure_origin {
-    id = ""
-  }
+  name                      = "acctest-c-%d"
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+  azure_origin_id           = ""
+
   enabled_state                  = ""
   enforce_certificate_name_check = false
   host_name                      = ""

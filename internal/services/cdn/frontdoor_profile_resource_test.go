@@ -103,7 +103,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -121,11 +121,11 @@ resource "azurerm_frontdoor_profile" "test" {
   identity = {
     type = "SystemAssigned"
   }
+
   location                        = "%s"
   origin_response_timeout_seconds = 0
-  sku {
-    name = ""
-  }
+  sku_name                        = ""
+
 
   tags = {
     ENV = "Test"
@@ -146,11 +146,10 @@ resource "azurerm_frontdoor_profile" "import" {
   identity = {
     type = "SystemAssigned"
   }
+
   location                        = "%s"
   origin_response_timeout_seconds = 0
-  sku {
-    name = ""
-  }
+  sku_name                        = ""
 
   tags = {
     ENV = "Test"
@@ -171,11 +170,10 @@ resource "azurerm_frontdoor_profile" "test" {
   identity = {
     type = "SystemAssigned"
   }
+
   location                        = "%s"
   origin_response_timeout_seconds = 0
-  sku {
-    name = ""
-  }
+  sku_name                        = ""
 
   tags = {
     ENV = "Test"

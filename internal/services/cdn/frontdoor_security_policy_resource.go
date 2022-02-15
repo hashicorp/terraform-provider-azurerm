@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -50,22 +49,13 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				ValidateFunc: profiles.ValidateProfileID,
 			},
 
-			"parameters": {
+			"web_application_firewall": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "WebApplicationFirewall",
-							ValidateFunc: validation.StringInSlice([]string{
-								"WebApplicationFirewall",
-							}, false),
-						},
-
 						"waf_policy_id": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -154,9 +144,17 @@ func resourceFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
+	params := securitypolicies.SecurityPolicyPropertiesParameters(nil)
+	if waf, ok := d.GetOk("web_application_firewall"); ok {
+		params = expandFrontdoorSecurityPoliciesParameters(waf.([]interface{}), securitypolicies.SecurityPolicyPropertiesParameters(&securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}))
+	} else {
+		// Will look for DDoS policy here once it is GA
+		return fmt.Errorf("unable to locate %q policy parameters", "web_application_firewall")
+	}
+
 	props := securitypolicies.SecurityPolicy{
 		Properties: &securitypolicies.SecurityPolicyProperties{
-			Parameters: expandFrontdoorSecurityPoliciesParameters(d.Get("parameters").([]interface{})),
+			Parameters: params,
 		},
 	}
 	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
@@ -200,8 +198,8 @@ func resourceFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			// If it is not Type WebApplicationFirewall ignore this for now
 			switch params := props.Parameters.(type) {
 			case securitypolicies.SecurityPolicyWebApplicationFirewallParameters:
-				if err := d.Set("parameters", flattenFrontdoorSecurityPoliciesParameters(&params)); err != nil {
-					return fmt.Errorf("setting `parameters`: %+v", err)
+				if err := d.Set("web_application_firewall", flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
+					return fmt.Errorf("setting `web_application_firewall`: %+v", err)
 				}
 			default:
 				// Unknown Security Policy Type
@@ -224,11 +222,19 @@ func resourceFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	props := securitypolicies.SecurityPolicyUpdateParameters{
-		Properties: expandFrontdoorSecurityPoliciesUpdateParameters(d.Get("parameters").([]interface{})),
+	params := securitypolicies.SecurityPolicyUpdateProperties{}
+	if waf, ok := d.GetOk("web_application_firewall"); ok {
+		params = expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(waf.([]interface{}))
+	} else {
+		// Will look for DDoS policy here once it is GA
+		return fmt.Errorf("unable to locate %q update parameters", "web_application_firewall")
 	}
-	if err := client.PatchThenPoll(ctx, *id, props); err != nil {
 
+	props := securitypolicies.SecurityPolicyUpdateParameters{
+		Properties: &params,
+	}
+
+	if err := client.PatchThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -252,41 +258,51 @@ func resourceFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandFrontdoorSecurityPoliciesParameters(input []interface{}) securitypolicies.SecurityPolicyPropertiesParameters {
+func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType securitypolicies.SecurityPolicyPropertiesParameters) securitypolicies.SecurityPolicyPropertiesParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
+	results := securitypolicies.SecurityPolicyPropertiesParameters(nil)
+
+	// TODO: Add DDoS when it GA's
+	switch policyType.(type) {
+	case securitypolicies.SecurityPolicyWebApplicationFirewallParameters:
+		results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
+	default:
+		// Unknown Security Policy Type
+		return nil
+	}
+
+	return results
+}
+
+func expandFrontdoorSecurityPoliciesWebApplicationFirewall(input []interface{}) securitypolicies.SecurityPolicyWebApplicationFirewallParameters {
 	results := securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}
 	associations := make([]securitypolicies.SecurityPolicyWebApplicationFirewallAssociation, 0)
 	v := input[0].(map[string]interface{})
 
-	// DDoS is going to come later, currently WebApplicationFirewall is the
-	// only supported security policy
-	if secPolType := v["type"].(string); secPolType != "" {
-		if strings.EqualFold(secPolType, "WebApplicationFirewall") {
-			if id := v["waf_policy_id"].(string); id != "" {
-				results.WafPolicy = &securitypolicies.ResourceReference{
-					Id: utils.String(id),
-				}
-			}
-
-			configAssociations := v["association"].([]interface{})
-
-			for _, item := range configAssociations {
-				v := item.(map[string]interface{})
-
-				association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
-					Domains:         expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{})),
-					PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
-				}
-
-				associations = append(associations, association)
-			}
-
-			results.Associations = &associations
+	if id := v["waf_policy_id"].(string); id != "" {
+		results.WafPolicy = &securitypolicies.ResourceReference{
+			Id: utils.String(id),
 		}
 	}
+
+	configAssociations := v["association"].([]interface{})
+
+	for _, item := range configAssociations {
+		v := item.(map[string]interface{})
+
+		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
+			Domains:         expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{})),
+			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+		}
+
+		associations = append(associations, association)
+	}
+
+	results.Associations = &associations
+
 	return results
 }
 
@@ -316,86 +332,54 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]se
 	return &results
 }
 
-func expandFrontdoorSecurityPoliciesUpdateParameters(input []interface{}) *securitypolicies.SecurityPolicyUpdateProperties {
+func expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) securitypolicies.SecurityPolicyUpdateProperties {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return securitypolicies.SecurityPolicyUpdateProperties{}
 	}
 
-	v := input[0].(map[string]interface{})
+	waf := expandFrontdoorSecurityPoliciesParameters(input, securitypolicies.SecurityPolicyPropertiesParameters(&securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}))
 
-	typeValue := securitypolicies.SecurityPolicyType(v["type"].(string))
-	return &securitypolicies.SecurityPolicyUpdateProperties{
-		Parameters: typeValue,
+	return securitypolicies.SecurityPolicyUpdateProperties{
+		Parameters: waf,
 	}
 }
 
-// func flattenFrontdoorSecurityPoliciesParameters(input *securitypolicies.SecurityPolicyPropertiesParameters) []interface{} {
-func flattenFrontdoorSecurityPoliciesParameters(input *securitypolicies.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
+func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *securitypolicies.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
 	params := make([]interface{}, 0)
+	associations := make([]interface{}, 0)
 	if input == nil {
 		return params
 	}
 
-	topLevel := make(map[string]interface{}, 0)
-	// associations := make([]interface{}, 0)
-
 	// if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
-	topLevel["type"] = *input.Associations
-	topLevel["waf_policy_id"] = *input.WafPolicy.Id
-	topLevel["association"] = *input.WafPolicy.Id
+	values := make(map[string]interface{})
+	values["waf_policy_id"] = *input.WafPolicy.Id
 
-	// Parameters {
-	// 	type = "WebApplicationFirewall"
-	// 	waf_policy_id = "foo"
+	for _, v := range *input.Associations {
+		temp := make(map[string]interface{})
+		domains := make([]interface{}, 0)
 
-	// 	association {
-	// 		domain {
-	// 			id      = "foo"
-	// 			enabled = true
-	// 		}
-	// 		domain {
-	// 			id      = "foo"
-	// 			enabled = true
-	// 		}
-	// 		domain {
-	// 			id      = "foo"
-	// 			enabled = true
-	// 		}
-	// 		patterns_to_match = ["foo"]
-	// 	}
+		for _, x := range *v.Domains {
+			domain := make(map[string]interface{})
+			if x.Id != nil {
+				domain["id"] = *x.Id
 
-	// 	association {
-	// 		domain {
-	// 			id      = "foo"
-	// 			enabled = true
-	// 		}
-	// 		domain {
-	// 			id      = "badf00d"
-	// 			enabled = false
-	// 		}
+				if x.IsActive != nil {
+					domain["enabled"] = *x.IsActive
+				}
+				domains = append(domains, domain)
+			}
+		}
 
-	// 		patterns_to_match = ["foo"]
-	// 	}
-	// }
+		association := make([]interface{}, 0)
+		temp["domain"] = domains
+		temp["patterns_to_match"] = *v.PatternsToMatch
 
-	// Net New
-	// foo["type"] = "WebApplicationFirewall"
-	// foo["waf_policy_id"] = waf
+		association = append(association, temp)
+		associations = append(associations, association)
+	}
 
-	// for _, v := range assocs {
-	// 	association := make(map[string]interface{}, 0)
-	// 	domains := make([]interface{}, 0)
-	// 	domain := make(map[string]interface{}, 0)
-	// 	for _, x := range *v.Domains {
-	// 		domain["id"] = *x.Id
-	// 		domain["enabled"] = *x.IsActive
-	// 		domains = append(domains, domain)
-	// 	}
-
-	// 	association["domain"] = domains
-	// 	association["patterns_to_match"] = *v.PatternsToMatch
-	// 	associations = append(associations, association)
-	// }
-
+	values["association"] = associations
+	params = append(params, values)
 	return params
 }

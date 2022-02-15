@@ -115,22 +115,25 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"sku": {
-				Type:     pluginsdk.TypeList,
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				Required: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"name": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Required: true,
-						},
-					},
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					string(profiles.SkuNameCustomVerizon),
+					string(profiles.SkuNamePremiumAzureFrontDoor),
+					string(profiles.SkuNamePremiumVerizon),
+					string(profiles.SkuNameStandardAkamai),
+					string(profiles.SkuNameStandardAvgBandWidthChinaCdn),
+					string(profiles.SkuNameStandardAzureFrontDoor),
+					string(profiles.SkuNameStandardChinaCdn),
+					string(profiles.SkuNameStandardMicrosoft),
+					string(profiles.SkuNameStandardNineFiveFiveBandWidthChinaCdn),
+					string(profiles.SkuNameStandardPlusAvgBandWidthChinaCdn),
+					string(profiles.SkuNameStandardPlusChinaCdn),
+					string(profiles.SkuNameStandardPlusNineFiveFiveBandWidthChinaCdn),
+					string(profiles.SkuNameStandardVerizon),
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -172,7 +175,7 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 			Identity:                     v,
 			OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
 		},
-		Sku:  *expandProfileSku(d.Get("sku").([]interface{})),
+		Sku:  *expandProfileSku(d.Get("sku_name").(string)),
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if err := client.CreateThenPoll(ctx, id, props); err != nil {
@@ -216,8 +219,8 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("resource_state", props.ResourceState)
 		}
 
-		if err := d.Set("sku", flattenProfileSku(&model.Sku)); err != nil {
-			return fmt.Errorf("setting `sku`: %+v", err)
+		if err := d.Set("sku_name", flattenProfileSku(&model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
 		if err := tags.FlattenAndSet(d, ConvertFrontdoorProfileTags(model.Tags)); err != nil {
@@ -265,14 +268,12 @@ func resourceFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandProfileSku(input []interface{}) *profiles.Sku {
-	if len(input) == 0 || input[0] == nil {
+func expandProfileSku(input string) *profiles.Sku {
+	if len(input) == 0 || input == "" {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-
-	nameValue := profiles.SkuName(v["name"].(string))
+	nameValue := profiles.SkuName(input)
 	return &profiles.Sku{
 		Name: &nameValue,
 	}
@@ -287,35 +288,33 @@ func expandSystemAndUserAssignedIdentity(input []interface{}) (*identity.SystemA
 	return expanded, nil
 }
 
-func expandSystemAssignedIdentity(input []interface{}) (*identity.SystemAssigned, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
+// func expandSystemAssignedIdentity(input []interface{}) (*identity.SystemAssigned, error) {
+// 	expanded, err := identity.ExpandSystemAssigned(input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return expanded, nil
-}
+// 	return expanded, nil
+// }
 
-func flattenProfileSku(input *profiles.Sku) []interface{} {
-	results := make([]interface{}, 0)
+func flattenProfileSku(input *profiles.Sku) string {
+	result := ""
 	if input == nil {
-		return results
+		return result
 	}
-
-	result := make(map[string]interface{})
 
 	if input.Name != nil {
-		result["name"] = *input.Name
+		result = string(*input.Name)
 	}
 
-	return append(results, result)
+	return result
 }
 
-func flattenSystemAssignedIdentity(input *identity.SystemAssigned) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+// func flattenSystemAssignedIdentity(input *identity.SystemAssigned) []interface{} {
+// 	if input == nil {
+// 		return []interface{}{}
+// 	}
 
-	config := identity.FlattenSystemAssigned(input)
-	return config
-}
+// 	config := identity.FlattenSystemAssigned(input)
+// 	return config
+// }

@@ -103,10 +103,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
-resource "azurerm_frontdoor_profile_profile" "test" {
+
+resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -119,8 +120,8 @@ func (r FrontdoorSecretResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_secret" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+  name                      = "acctest-c-%d"
+  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -134,8 +135,8 @@ func (r FrontdoorSecretResource) requiresImport(data acceptance.TestData) string
 			%s
 
 resource "azurerm_frontdoor_secret" "import" {
-  name           = azurerm_frontdoor_secret.test.name
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+  name                      = azurerm_frontdoor_secret.test.name
+  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -149,8 +150,8 @@ func (r FrontdoorSecretResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_secret" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+  name                      = "acctest-c-%d"
+  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -164,8 +165,8 @@ func (r FrontdoorSecretResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_secret" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+  name                      = "acctest-c-%d"
+  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
 }
 `, template, data.RandomInteger)
 }

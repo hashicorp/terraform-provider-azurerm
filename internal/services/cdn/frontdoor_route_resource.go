@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,7 +81,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"is_active": {
+						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -157,6 +158,10 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(routes.AFDEndpointProtocolsHttp),
+						string(routes.AFDEndpointProtocolsHttps),
+					}, false),
 				},
 			},
 		},
@@ -407,7 +412,7 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResou
 		}
 
 		if input.IsActive != nil {
-			result["is_active"] = *input.IsActive
+			result["enabled"] = *input.IsActive
 		}
 		results = append(results, result)
 	}

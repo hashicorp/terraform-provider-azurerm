@@ -103,9 +103,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cdn-%d"
+  name     = "acctest-afdx-%d"
   location = "%s"
 }
+
 resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -119,15 +120,13 @@ func (r FrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_custom_domain" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  host_name = ""
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
+
+  azure_dns_zone_id                       = ""
+  host_name                               = ""
+  pre_validated_custom_domain_resource_id = ""
+
   tls_settings {
     certificate_type    = ""
     minimum_tls_version = ""
@@ -145,15 +144,13 @@ func (r FrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) 
 			%s
 
 resource "azurerm_frontdoor_custom_domain" "import" {
-  name           = azurerm_frontdoor_custom_domain.test.name
+  name                 = azurerm_frontdoor_custom_domain.test.name
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  host_name = ""
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
+
+  azure_dns_zone_id                       = ""
+  host_name                               = ""
+  pre_validated_custom_domain_resource_id = ""
+
   tls_settings {
     certificate_type    = ""
     minimum_tls_version = ""
@@ -171,15 +168,13 @@ func (r FrontdoorCustomDomainResource) complete(data acceptance.TestData) string
 			%s
 
 resource "azurerm_frontdoor_custom_domain" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  host_name = ""
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
+
+  azure_dns_zone_id                       = ""
+  host_name                               = ""
+  pre_validated_custom_domain_resource_id = ""
+
   tls_settings {
     certificate_type    = ""
     minimum_tls_version = ""
@@ -197,7 +192,7 @@ func (r FrontdoorCustomDomainResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_custom_domain" "test" {
-  name           = "acctest-c-%d"
+  name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
   azure_dns_zone {
     id = ""
