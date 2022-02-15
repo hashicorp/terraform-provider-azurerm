@@ -75,7 +75,7 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 }
 
 func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "hptest")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
