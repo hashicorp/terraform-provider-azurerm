@@ -6,10 +6,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v0.24.0` of `github.com/hashicorp/go-azure-helpers` [GH-15414]
 * `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - fixing a regression where the `identity` block wasn't set into the state [GH-15412]
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
 * `azurerm_web_application_firewall_policy` - `disabled_rules` is now optional [GH-15386]
 
