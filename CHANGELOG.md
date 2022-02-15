@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v0.24.0` of `github.com/hashicorp/go-azure-helpers` [GH-15414]
+* dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` [GH-15430]
 * `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
 
 BUG FIXES:
