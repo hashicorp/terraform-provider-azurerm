@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_backup_protected_file_share
 
-Use this data source to access information about an existing VM Backup Policy.
+Use this data source to access information about an existing Backup Protected File Share.
 
 ## Example Usage
 
