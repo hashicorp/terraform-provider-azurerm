@@ -8,14 +8,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetworkDDoSProtectionPlanDataSource struct {
-}
+type NetworkDDoSProtectionPlanDataSource struct{}
 
 func testAccNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_ddos_protection_plan", "test")
 	r := NetworkDDoSProtectionPlanDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

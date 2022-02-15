@@ -74,11 +74,11 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "example" {
-  database_id     = azurerm_mssql_database.example.id
+  database_id            = azurerm_mssql_database.example.id
   log_monitoring_enabled = true
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "example" {
-  server_id       = azurerm_mssql_server.example.id
+  server_id              = azurerm_mssql_server.example.id
   log_monitoring_enabled = true
 }

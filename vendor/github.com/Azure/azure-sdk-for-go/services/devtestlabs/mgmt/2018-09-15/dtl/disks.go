@@ -57,7 +57,7 @@ func (client DisksClient) Attach(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.AttachSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Attach", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Attach", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client DisksClient) AttachPreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client DisksClient) AttachSender(req *http.Request) (future DisksAttachFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -147,7 +148,7 @@ func (client DisksClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -183,6 +184,7 @@ func (client DisksClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -231,7 +233,7 @@ func (client DisksClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -265,6 +267,7 @@ func (client DisksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -314,7 +317,7 @@ func (client DisksClient) Detach(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DetachSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Detach", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Detach", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -350,6 +353,7 @@ func (client DisksClient) DetachPreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client DisksClient) DetachSender(req *http.Request) (future DisksDetachFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

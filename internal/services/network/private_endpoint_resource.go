@@ -4,15 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	mariaDBParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -20,6 +23,7 @@ import (
 	postgresqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	privateDnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -279,6 +283,14 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.PrivateEndpointProperties)
+	for _, cosmosDbResId := range cosmosDbResIds {
+		log.Printf("[DEBUG] Add Lock For Private Endpoint %q, lock name: %q", id.Name, cosmosDbResId)
+		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
+		//goland:noinspection GoDeferInLoop
+		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
 		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
@@ -304,6 +316,35 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
+}
+
+func getCosmosDbResIdInPrivateServiceConnections(p *network.PrivateEndpointProperties) []string {
+	var ids []string
+	exists := make(map[string]struct{})
+
+	for _, l := range *p.PrivateLinkServiceConnections {
+		id := *l.PrivateLinkServiceID
+		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+			_, ok := exists[id]
+			if !ok {
+				ids = append(ids, id)
+				exists[id] = struct{}{}
+			}
+		}
+	}
+	for _, l := range *p.ManualPrivateLinkServiceConnections {
+		id := *l.PrivateLinkServiceID
+		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+			_, ok := exists[id]
+			if !ok {
+				ids = append(ids, id)
+				exists[id] = struct{}{}
+			}
+		}
+	}
+	// Sort ids, force adding lock in consistent order to avoid potential deadlock
+	sort.Strings(ids)
+	return ids
 }
 
 func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -507,10 +548,23 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	parameters := network.PrivateEndpoint{
+		PrivateEndpointProperties: &network.PrivateEndpointProperties{
+			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+		},
+	}
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.PrivateEndpointProperties)
+	for _, cosmosDbResId := range cosmosDbResIds {
+		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
+		//goland:noinspection GoDeferInLoop
+		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
+	}
+
 	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -529,9 +583,9 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		privateConnectonResourceId := v["private_connection_resource_id"].(string)
-		if privateConnectonResourceId == "" {
-			privateConnectonResourceId = v["private_connection_resource_alias"].(string)
+		privateConnectionResourceId := v["private_connection_resource_id"].(string)
+		if privateConnectionResourceId == "" {
+			privateConnectionResourceId = v["private_connection_resource_alias"].(string)
 		}
 		subresourceNames := v["subresource_names"].([]interface{})
 		requestMessage := v["request_message"].(string)
@@ -543,7 +597,7 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 				Name: utils.String(name),
 				PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
 					GroupIds:             utils.ExpandStringSlice(subresourceNames),
-					PrivateLinkServiceID: utils.String(privateConnectonResourceId),
+					PrivateLinkServiceID: utils.String(privateConnectionResourceId),
 				},
 			}
 
@@ -622,6 +676,11 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
 					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
+					if serviceId, err := signalr.ParseSignalRIDInsensitively(privateConnectionId); err == nil {
+						privateConnectionId = serviceId.ID()
 					}
 				}
 				attrs["private_connection_resource_id"] = privateConnectionId

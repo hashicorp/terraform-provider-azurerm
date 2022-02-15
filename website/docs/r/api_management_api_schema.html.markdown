@@ -24,7 +24,7 @@ resource "azurerm_api_management_api_schema" "example" {
   api_name            = data.azurerm_api_management_api.example.name
   api_management_name = data.azurerm_api_management_api.example.api_management_name
   resource_group_name = data.azurerm_api_management_api.example.resource_group_name
-  schema_id           = "example-sche,a"
+  schema_id           = "example-schema"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
   value               = file("api_management_api_schema.xml")
 }
@@ -66,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management API Schema's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
+terraform import azurerm_api_management_api_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/schemas/schema1
 ```

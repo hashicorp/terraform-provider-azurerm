@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,6 +58,8 @@ func dataSourceLogicAppWorkflow() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
 			"access_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -89,26 +93,32 @@ func dataSourceLogicAppWorkflow() *pluginsdk.Resource {
 
 func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
+	subscriptionId := meta.(*clients.Client).Logic.WorkflowClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Logic App Workflow %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("Logic App Workflow %s was not found", id)
 		}
 
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	identity, err := flattenLogicAppWorkflowIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
 
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppDataSourceWorkflowParameters(props.Parameters)

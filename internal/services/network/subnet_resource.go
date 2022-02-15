@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -134,6 +135,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.StoragePool/diskPools",
 											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
@@ -149,6 +151,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",
 												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
@@ -289,6 +292,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
@@ -470,7 +479,9 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		}
 	}
 
 	return nil

@@ -5,10 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -23,8 +24,10 @@ func resourceImage() *pluginsdk.Resource {
 		Read:   resourceImageRead,
 		Update: resourceImageCreateUpdate,
 		Delete: resourceImageDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ImageID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -80,8 +83,8 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Linux),
-								string(compute.Windows),
+								string(compute.OperatingSystemTypesLinux),
+								string(compute.OperatingSystemTypesWindows),
 							}, true),
 						},
 
@@ -90,8 +93,8 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Generalized),
-								string(compute.Specialized),
+								string(compute.OperatingSystemStateTypesGeneralized),
+								string(compute.OperatingSystemStateTypesSpecialized),
 							}, true),
 						},
 
@@ -114,7 +117,7 @@ func resourceImage() *pluginsdk.Resource {
 						"caching": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Default:          string(compute.None),
+							Default:          string(compute.CachingTypesNone),
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
@@ -138,7 +141,6 @@ func resourceImage() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"lun": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
@@ -161,7 +163,7 @@ func resourceImage() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(compute.None),
+							Default:  string(compute.CachingTypesNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
@@ -187,26 +189,26 @@ func resourceImage() *pluginsdk.Resource {
 
 func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	zoneResilient := d.Get("zone_resilient").(bool)
 	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Image %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_image", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_image", id.ID())
 		}
 	}
 
@@ -245,13 +247,13 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createImage := compute.Image{
-		Name:            &name,
+		Name:            &id.Name,
 		Location:        &location,
 		Tags:            expandedTags,
 		ImageProperties: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, createImage)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, createImage)
 	if err != nil {
 		return err
 	}
@@ -260,15 +262,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("[ERROR] Cannot read AzureRM Image %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceImageRead(d, meta)
 }
@@ -278,24 +272,22 @@ func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ImageID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["images"]
 
-	resp, err := client.Get(ctx, resGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %q : %+v", id.String(), err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -327,14 +319,12 @@ func resourceImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ImageID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["images"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return err
 	}

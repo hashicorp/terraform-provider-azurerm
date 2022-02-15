@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = MxRecordId{}
+var _ resourceids.Id = MxRecordId{}
 
 func TestMxRecordIDFormatter(t *testing.T) {
 	actual := NewMxRecordID("12345678-1234-9876-4563-123456789012", "resGroup1", "privateDnsZone1", "mx1").ID()

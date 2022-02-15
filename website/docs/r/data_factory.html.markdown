@@ -77,6 +77,8 @@ A `global_parameter` block supports the following:
 
 * `value` - (Required) Specifies the global parameter value.
 
+-> **Note:** For type `Array` and `Object` it is recommended to use `jsonencode()` for the value
+
 ---
 
 A `identity` block supports the following:

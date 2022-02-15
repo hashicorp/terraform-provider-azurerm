@@ -42,6 +42,10 @@ The following attributes are exported:
 
 * `endpoint` - The Endpoint associated with the EventGrid Domain.
 
+* `primary_access_key` - The primary access key associated with the EventGrid Domain.
+
+* `secondary_access_key` - The secondary access key associated with the EventGrid Domain.
+
 * `input_schema` - The schema in which incoming events will be published to this domain. Possible values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`.
 
 * `input_mapping_fields` - A `input_mapping_fields` block as defined below.

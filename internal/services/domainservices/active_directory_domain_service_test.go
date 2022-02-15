@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -40,8 +39,7 @@ type ActiveDirectoryDomainServiceResource struct {
 	adminPassword string
 }
 
-type ActiveDirectoryDomainServiceReplicaSetResource struct {
-}
+type ActiveDirectoryDomainServiceReplicaSetResource struct{}
 
 // AADDS has a single test which also includes a step for the data source, because:
 // - There can only be a single domain service per tenant, or per subscription
@@ -297,8 +295,9 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_group" "test" {
-  name        = "AAD DC Administrators"
-  description = "Delegated group to administer Azure AD Domain Services"
+  display_name     = "AAD DC Administrators"
+  description      = "Delegated group to administer Azure AD Domain Services"
+  security_enabled = true
 }
 
 resource "azuread_user" "test" {

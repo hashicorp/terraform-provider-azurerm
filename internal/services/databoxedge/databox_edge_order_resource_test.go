@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataboxEdgeOrderResource struct {
-}
+type DataboxEdgeOrderResource struct{}
 
 func TestAccDataboxEdgeOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
@@ -67,14 +66,14 @@ func TestAccDataboxEdgeOrder_complete(t *testing.T) {
 }
 
 func (DataboxEdgeOrderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataboxEdgeOrderID(state.ID)
+	id, err := parse.OrderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataboxEdge.OrderClient.Get(ctx, id.DeviceName, id.ResourceGroup)
+	resp, err := clients.DataboxEdge.OrderClient.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databox Edge Order Device Name %q (resource group: %q): %+v", id.DeviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.OrderProperties != nil), nil

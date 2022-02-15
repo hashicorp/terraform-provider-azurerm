@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) Specifies the ID of the Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `version` - (Optional) Specifies the version of the certificate to look up.  (Defaults to latest) 
+* `version` - (Optional) Specifies the version of the certificate to look up.  (Defaults to latest)
 
 ~> **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
@@ -51,13 +51,15 @@ The following attributes are exported:
 
 * `certificates_count` - Amount of certificates in the chain in case Key Vault Certificate is a bundle (e.g. has an intermediate certificate).
 
-* `hex` - The raw Key Vault Certificate data represented as a hexadecimal string. 
+* `hex` - The raw Key Vault Certificate data represented as a hexadecimal string.
 
-* `pem` - The Key Vault Certificate in PEM format. 
+* `pem` - The Key Vault Certificate in PEM format.
 
-* `key` - The Key Vault Certificate Key. 
+* `key` - The Key Vault Certificate Key.
 
-* `expires` - Expiry date of certificate in RFC3339 format. 
+* `expires` - Expiry date of certificate in RFC3339 format.
+
+* `not_before` - Not Before date of certificate in RFC3339 format.
 
 * `tags` - A mapping of tags to assign to the resource.
 

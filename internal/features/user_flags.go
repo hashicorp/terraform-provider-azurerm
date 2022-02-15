@@ -25,11 +25,18 @@ type VirtualMachineFeatures struct {
 type VirtualMachineScaleSetFeatures struct {
 	ForceDelete               bool
 	RollInstancesWhenRequired bool
+	ScaleToZeroOnDelete       bool
 }
 
 type KeyVaultFeatures struct {
-	PurgeSoftDeleteOnDestroy    bool
-	RecoverSoftDeletedKeyVaults bool
+	PurgeSoftDeleteOnDestroy         bool
+	PurgeSoftDeletedKeysOnDestroy    bool
+	PurgeSoftDeletedCertsOnDestroy   bool
+	PurgeSoftDeletedSecretsOnDestroy bool
+	RecoverSoftDeletedKeyVaults      bool
+	RecoverSoftDeletedKeys           bool
+	RecoverSoftDeletedCerts          bool
+	RecoverSoftDeletedSecrets        bool
 }
 
 type NetworkFeatures struct {

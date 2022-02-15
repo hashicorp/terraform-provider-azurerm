@@ -6,7 +6,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -17,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ImageResource struct {
-}
+type ImageResource struct{}
 
 func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
@@ -182,14 +180,12 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 }
 
 func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ImageID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["images"]
 
-	resp, err := clients.Compute.ImagesClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Compute.ImagesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Image %q", id)
 	}
@@ -283,7 +279,8 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
-		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+		// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 		if err != nil {
 			return fmt.Errorf("Bad: deallocating vm: %+v", err)
 		}
@@ -325,7 +322,8 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 		return err
 	}
 
-	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", *id)

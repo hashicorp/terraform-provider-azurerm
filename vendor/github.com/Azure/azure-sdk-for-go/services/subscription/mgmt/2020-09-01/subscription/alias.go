@@ -59,7 +59,7 @@ func (client AliasClient) Create(ctx context.Context, aliasName string, body Put
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscription.AliasClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscription.AliasClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -91,6 +91,7 @@ func (client AliasClient) CreatePreparer(ctx context.Context, aliasName string, 
 // http.Response Body if it receives an error.
 func (client AliasClient) CreateSender(req *http.Request) (future AliasCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return

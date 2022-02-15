@@ -7,5 +7,5 @@ variable "location" {
 }
 
 variable "role_definition_name" {
-  description = "Desired role to assign your function (Reader, Contributor, Owner, etc.)"  
+  description = "Desired role to assign your function (Reader, Contributor, Owner, etc.)"
 }

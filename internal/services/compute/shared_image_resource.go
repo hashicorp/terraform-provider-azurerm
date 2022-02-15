@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -62,8 +62,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Linux),
-					string(compute.Windows),
+					string(compute.OperatingSystemTypesLinux),
+					string(compute.OperatingSystemTypesWindows),
 				}, false),
 			},
 
@@ -73,8 +73,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Default:  string(compute.HyperVGenerationTypesV1),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.V1),
-					string(compute.V2),
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
 				}, false),
 			},
 
@@ -154,6 +154,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -161,26 +167,32 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
-
-	name := d.Get("name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_shared_image", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
 		}
+	}
+
+	var features []compute.GalleryImageFeature
+	if d.Get("trusted_launch_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("TrustedLaunch"),
+		})
 	}
 
 	image := compute.GalleryImage{
@@ -194,35 +206,27 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
+			Features:            &features,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if d.Get("specialized").(bool) {
-		image.GalleryImageProperties.OsState = compute.Specialized
+		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesSpecialized
 	} else {
-		image.GalleryImageProperties.OsState = compute.Generalized
+		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesGeneralized
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, image)
 	if err != nil {
-		return fmt.Errorf("creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, galleryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Shared Image %q (Gallery %q / Resource Group %q) ID", name, galleryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceSharedImageRead(d, meta)
 }
@@ -259,7 +263,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
-		d.Set("specialized", props.OsState == compute.Specialized)
+		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
@@ -271,6 +275,16 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
+
+		trusted_launch_enabled := false
+		if props.Features != nil {
+			for _, feature := range *props.Features {
+				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
+					trusted_launch_enabled = true
+				}
+			}
+		}
+		d.Set("trusted_launch_enabled", trusted_launch_enabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

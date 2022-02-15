@@ -2,6 +2,7 @@ package polling
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -33,6 +34,10 @@ func NewLongRunningPollerFromResponse(ctx context.Context, resp *http.Response, 
 
 // PollUntilDone polls until this Long Running Poller is completed
 func (fw *LongRunningPoller) PollUntilDone() error {
+	if fw.future == nil {
+		return fmt.Errorf("internal error: cannot poll on a nil-future")
+	}
+
 	err := fw.future.WaitForCompletionRef(fw.ctx, fw.client)
 	fw.HttpResponse = fw.future.Response()
 	return err

@@ -52,6 +52,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -62,6 +70,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -185,7 +201,7 @@ func TestAccLinuxWebApp_withLogging(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -202,7 +218,7 @@ func TestAccLinuxWebApp_removeLogging(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -233,7 +249,7 @@ func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -242,7 +258,7 @@ func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
 			),
 		},
@@ -251,7 +267,7 @@ func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -457,6 +473,42 @@ func TestAccLinuxWebApp_withStorageAccountUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withStorageAccountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1039,6 +1091,25 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppResource) basicWithStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1111,9 +1182,9 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 
-  client_affinity_enabled = true
-  client_cert_enabled     = true
-  client_cert_mode        = "Optional"
+  client_affinity_enabled    = true
+  client_certificate_enabled = true
+  client_certificate_mode    = "Optional"
 
   connection_string {
     name  = "First"
@@ -1147,15 +1218,15 @@ resource "azurerm_linux_web_app" "test" {
     ]
     http2_enabled               = true
     scm_use_main_ip_restriction = true
-    local_mysql                 = true
+    local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
+    remote_debugging_enabled    = true
     remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = true
+    use_32_bit_worker           = false
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"
-    number_of_workers           = 1
+    worker_count                = 1
     minimum_tls_version         = "1.1"
     scm_minimum_tls_version     = "1.1"
     cors {
@@ -1168,10 +1239,10 @@ resource "azurerm_linux_web_app" "test" {
     }
 
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     // auto_swap_slot_name = // TODO
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -1280,9 +1351,9 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 
-  client_affinity_enabled = true
-  client_cert_enabled     = true
-  client_cert_mode        = "Optional"
+  client_affinity_enabled    = true
+  client_certificate_enabled = true
+  client_certificate_mode    = "Optional"
 
   connection_string {
     name  = "First"
@@ -1308,18 +1379,19 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = false
-    scm_use_main_ip_restriction = false
-    local_mysql                 = false
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
-    remote_debugging_version    = "VS2017"
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health2"
-    number_of_workers           = 2
-    minimum_tls_version         = "1.2"
-    scm_minimum_tls_version     = "1.2"
+    http2_enabled                     = false
+    scm_use_main_ip_restriction       = false
+    local_mysql_enabled               = false
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2017"
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health2"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 2
+    minimum_tls_version               = "1.2"
+    scm_minimum_tls_version           = "1.2"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -1332,7 +1404,7 @@ resource "azurerm_linux_web_app" "test" {
 
     container_registry_use_managed_identity = true
 
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -1348,7 +1420,8 @@ resource "azurerm_linux_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
-    // auto_swap_slot_name = // TODO - Not supported yet
+
+    vnet_route_all_enabled = true
   }
 
   storage_account {
@@ -1658,7 +1731,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
@@ -1919,7 +1991,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
@@ -1943,7 +2014,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }
 
@@ -1967,7 +2037,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
@@ -1991,7 +2060,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
 
@@ -2017,7 +2085,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
@@ -2043,7 +2110,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
@@ -2076,7 +2142,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
 }
 
@@ -2095,7 +2160,7 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2131,7 +2196,7 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2172,7 +2237,7 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2188,6 +2253,89 @@ resource "azurerm_linux_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) identityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

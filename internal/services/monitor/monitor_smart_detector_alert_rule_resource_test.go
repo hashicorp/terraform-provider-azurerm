@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorSmartDetectorAlertRuleResource struct {
-}
+type MonitorSmartDetectorAlertRuleResource struct{}
 
 func TestAccMonitorSmartDetectorAlertRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
@@ -97,7 +96,7 @@ func (t MonitorSmartDetectorAlertRuleResource) Exists(ctx context.Context, clien
 
 	resp, err := clients.Monitor.SmartDetectorAlertRulesClient.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
 	if err != nil {
-		return nil, fmt.Errorf("reading action rule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

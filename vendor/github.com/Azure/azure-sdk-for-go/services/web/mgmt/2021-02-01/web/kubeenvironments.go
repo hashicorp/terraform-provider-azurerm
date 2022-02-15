@@ -64,7 +64,7 @@ func (client KubeEnvironmentsClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.KubeEnvironmentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.KubeEnvironmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -98,6 +98,7 @@ func (client KubeEnvironmentsClient) CreateOrUpdatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client KubeEnvironmentsClient) CreateOrUpdateSender(req *http.Request) (future KubeEnvironmentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -152,7 +153,7 @@ func (client KubeEnvironmentsClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.KubeEnvironmentsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.KubeEnvironmentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -184,6 +185,7 @@ func (client KubeEnvironmentsClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client KubeEnvironmentsClient) DeleteSender(req *http.Request) (future KubeEnvironmentsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert`,`Deny` and `""`(empty string). Defaults to `Alert`.
 
--> **NOTE**: If `virtual_hub_settting` is specified, the `threat_intel_mode` has to be explicitly set as `""`.
+-> **NOTE:** If `virtual_hub_settting` is specified, the `threat_intel_mode` has to be explicitly set as `""`.
 
 * `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 

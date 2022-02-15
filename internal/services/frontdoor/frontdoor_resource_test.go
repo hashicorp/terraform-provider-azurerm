@@ -8,13 +8,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorResource struct {
-}
+type FrontDoorResource struct{}
 
 func TestAccFrontDoor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
@@ -199,17 +198,17 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 }
 
 func (FrontDoorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorIDInsensitively(state.ID)
+	id, err := frontdoors.ParseFrontDoorIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Frontdoor.FrontDoorsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Frontdoor.FrontDoorsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Front Door %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FrontDoorResource) basic(data acceptance.TestData) string {
@@ -1018,6 +1017,5 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
     azurerm_frontdoor.test
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }

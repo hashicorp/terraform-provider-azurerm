@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing Service Plan.
 
-!> **NOTE:** This is a 3.0 beta Data Source. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this Data Source.
+!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_elastic_worker_count` - The maximum number of workers in use in an Elastic SKU Plan.
 
-* `number_of_workers` - The number of Workers (instances) allocated.
+* `worker_count` - The number of Workers (instances) allocated.
 
 * `os_type` - The O/S type for the App Services hosted in this plan.
 

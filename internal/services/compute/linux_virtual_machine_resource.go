@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -37,7 +38,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
-		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
+		}, importVirtualMachine(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -138,9 +139,25 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// same for `dedicated_host_group_id`
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_group_id",
+				},
 				// TODO: raise a GH issue for the broken API
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
+
+			},
+
+			"dedicated_host_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_id",
+				},
 			},
 
 			"disable_password_authentication": {
@@ -162,7 +179,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
-					string(compute.Deallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
 				}, false),
 			},
 
@@ -173,7 +190,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -197,10 +214,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -209,6 +226,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
+			},
+
+			"patch_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
+					string(compute.LinuxVMGuestPatchModeImageDefault),
+				}, false),
+				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
 			"proximity_placement_group_id": {
@@ -220,6 +247,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"secret": linuxSecretSchema(),
+
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -244,6 +277,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"platform_fault_domain": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -254,6 +293,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
 
 			"zone": {
 				Type:     pluginsdk.TypeString,
@@ -301,19 +346,19 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
@@ -338,7 +383,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
-		computerName = name
+		computerName = id.Name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -358,7 +403,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
+	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandLinuxSecrets(secretsRaw)
@@ -374,7 +419,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		Identity: identity,
 		Plan:     plan,
@@ -416,6 +461,16 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("patch_mode"); ok {
+		if v == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		}
+
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
+			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("license_type"); ok {
 		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
 	}
@@ -424,6 +479,28 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
+	}
+
+	if secureBootEnabled, ok := d.GetOk("secure_boot_enabled"); ok && secureBootEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -446,18 +523,24 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+		params.HostGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if params.Priority != compute.Spot {
+		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -483,6 +566,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	if v, ok := d.GetOk("user_data"); ok {
+		params.UserData = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("zone"); ok {
 		params.Zones = &[]string{
 			v.(string),
@@ -501,25 +588,16 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
@@ -536,7 +614,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Linux Virtual Machine %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -555,7 +633,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -620,6 +698,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
 
+	dedicatedHostGroupId := ""
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		dedicatedHostGroupId = *props.HostGroup.ID
+	}
+	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
+
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
 		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
@@ -647,6 +731,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
+			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
+				patchMode = string(patchSettings.PatchMode)
+			}
+			d.Set("patch_mode", patchMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -655,7 +744,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
 	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
-	priority := string(compute.Regular)
+	priority := string(compute.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
 	}
@@ -688,12 +777,30 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	vtpmEnabled := false
+	secureBootEnabled := false
+
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		if secprofile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+		}
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			if uefi.VTpmEnabled != nil {
+				vtpmEnabled = *uefi.VTpmEnabled
+			}
+			if uefi.SecureBootEnabled != nil {
+				secureBootEnabled = *uefi.SecureBootEnabled
+			}
+		}
 	}
+
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
+
+	d.Set("user_data", props.UserData)
 
 	zone := ""
 	if resp.Zones != nil {
@@ -728,7 +835,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
@@ -749,7 +856,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		if storage := props.StorageProfile; storage != nil {
 			if disk := storage.OsDisk; disk != nil {
 				if settings := disk.DiffDiskSettings; settings != nil {
-					hasEphemeralOSDisk = settings.Option == compute.Local
+					hasEphemeralOSDisk = settings.Option == compute.DiffDiskOptionsLocal
 				}
 			}
 		}
@@ -817,6 +924,21 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("dedicated_host_group_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+			update.HostGroup = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.HostGroup = &compute.SubResource{}
+		}
+	}
+
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
@@ -865,7 +987,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
+		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}
@@ -930,6 +1052,27 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("patch_mode") {
+		shouldUpdate = true
+		patchSettings := &compute.LinuxPatchSettings{}
+
+		if patchMode, ok := d.GetOk("patch_mode"); ok {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode.(string))
+		} else {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchModeImageDefault
+		}
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
+	}
+
 	if d.HasChange("allow_extension_operations") {
 		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
 
@@ -968,6 +1111,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("user_data") {
+		shouldUpdate = true
+		update.UserData = utils.String(d.Get("user_data").(string))
 	}
 
 	if instanceView.Statuses != nil {
@@ -1018,7 +1166,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if shouldDeallocate {
 		if !hasEphemeralOSDisk {
 			log.Printf("[DEBUG] Deallocating Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
+			// Upgrade to 2021-07-01 added a hibernate parameter to this call defaulting to false
+			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
 				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
@@ -1067,12 +1216,17 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			diskName := d.Get("os_disk.0.name").(string)
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                *encryptionType,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
@@ -1153,7 +1307,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
 			log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
 		} else {
-			//ISSUE: 4920
+			// ISSUE: 4920
 			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
 			// thus this can be a large cost-saving when deleting larger instances
 			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle

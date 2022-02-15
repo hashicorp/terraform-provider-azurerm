@@ -73,6 +73,11 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"not_before": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"certificates_count": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -133,17 +138,29 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	}
 	d.Set("hex", certificateData)
 
-	timeString, err := cert.Attributes.Expires.MarshalText()
+	expireString, err := cert.Attributes.Expires.MarshalText()
 	if err != nil {
 		return fmt.Errorf("parsing expiry time of certificate: %+v", err)
 	}
 
-	t, err := time.Parse(time.RFC3339, string(timeString))
+	e, err := time.Parse(time.RFC3339, string(expireString))
 	if err != nil {
 		return fmt.Errorf("converting text to Time struct: %+v", err)
 	}
 
-	d.Set("expires", t.Format(time.RFC3339))
+	d.Set("expires", e.Format(time.RFC3339))
+
+	notBeforeString, err := cert.Attributes.NotBefore.MarshalText()
+	if err != nil {
+		return fmt.Errorf("parsing not-before time of certificate: %+v", err)
+	}
+
+	n, err := time.Parse(time.RFC3339, string(notBeforeString))
+	if err != nil {
+		return fmt.Errorf("converting text to Time struct: %+v", err)
+	}
+
+	d.Set("not_before", n.Format(time.RFC3339))
 
 	// Get PFX
 	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version)

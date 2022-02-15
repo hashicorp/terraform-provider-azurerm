@@ -175,7 +175,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -209,6 +209,7 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -362,7 +363,7 @@ func (client AccountsClient) Failover(ctx context.Context, resourceGroupName str
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Failover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Failover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -394,6 +395,7 @@ func (client AccountsClient) FailoverPreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client AccountsClient) FailoverSender(req *http.Request) (future AccountsFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1188,7 +1190,7 @@ func (client AccountsClient) RestoreBlobRanges(ctx context.Context, resourceGrou
 
 	result, err = client.RestoreBlobRangesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RestoreBlobRanges", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RestoreBlobRanges", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1222,6 +1224,7 @@ func (client AccountsClient) RestoreBlobRangesPreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client AccountsClient) RestoreBlobRangesSender(req *http.Request) (future AccountsRestoreBlobRangesFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

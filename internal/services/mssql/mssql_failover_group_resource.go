@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -39,8 +38,10 @@ type ReadWriteEndpointFailurePolicyModel struct {
 	Mode         string `tfschema:"mode"`
 }
 
-var _ sdk.Resource = MsSqlFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+)
 
 type MsSqlFailoverGroupResource struct{}
 
@@ -119,8 +120,8 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(sql.Automatic),
-							string(sql.Manual),
+							string(sql.ReadWriteEndpointFailoverPolicyAutomatic),
+							string(sql.ReadWriteEndpointFailoverPolicyManual),
 						}, false),
 					},
 					"grace_minutes": {
@@ -149,11 +150,11 @@ func (r MsSqlFailoverGroupResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
-				if rwPolicy[0].Mode == string(sql.Automatic) && rwPolicy[0].GraceMinutes < 60 {
-					return fmt.Errorf("`grace_minutes` should be %d or greater when `mode` is %q", 60, sql.Automatic)
+				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) && rwPolicy[0].GraceMinutes < 60 {
+					return fmt.Errorf("`grace_minutes` should be %d or greater when `mode` is %q", 60, sql.ReadWriteEndpointFailoverPolicyAutomatic)
 				}
-				if rwPolicy[0].Mode == string(sql.Manual) && rwPolicy[0].GraceMinutes > 0 {
-					return fmt.Errorf("`grace_minutes` should not be specified when `mode` is %q", sql.Manual)
+				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyManual) && rwPolicy[0].GraceMinutes > 0 {
+					return fmt.Errorf("`grace_minutes` should not be specified when `mode` is %q", sql.ReadWriteEndpointFailoverPolicyManual)
 				}
 			}
 
@@ -180,7 +181,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name); err != nil {
+			if _, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name, ""); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 
@@ -193,7 +194,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if existing.ID != nil && *existing.ID != "" {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -216,7 +217,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
-				if rwPolicy[0].Mode == string(sql.Automatic) {
+				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
 					properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(rwPolicy[0].GraceMinutes)
 				}
 			}
@@ -274,7 +275,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 				Tags: tags.FromTypedObject(state.Tags),
 			}
 
-			if state.ReadWriteEndpointFailurePolicy[0].Mode == string(sql.Automatic) {
+			if state.ReadWriteEndpointFailurePolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
 				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes)
 			}
 
@@ -401,6 +402,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input *[]sql.PartnerIn
 
 	return
 }
+
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) *[]sql.PartnerInfo {
 	var partnerServers []sql.PartnerInfo
 	if input == nil {

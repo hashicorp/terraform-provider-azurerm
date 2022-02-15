@@ -71,7 +71,7 @@ func (client BotsClient) Create(ctx context.Context, resourceGroupName string, b
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthbot.BotsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthbot.BotsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client BotsClient) CreatePreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client BotsClient) CreateSender(req *http.Request) (future BotsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -163,7 +164,7 @@ func (client BotsClient) Delete(ctx context.Context, resourceGroupName string, b
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthbot.BotsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthbot.BotsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -195,6 +196,7 @@ func (client BotsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client BotsClient) DeleteSender(req *http.Request) (future BotsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

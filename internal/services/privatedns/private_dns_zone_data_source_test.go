@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PrivateDnsZoneDatasource struct {
-}
+type PrivateDnsZoneDatasource struct{}
 
 func TestAccDataSourcePrivateDNSZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")

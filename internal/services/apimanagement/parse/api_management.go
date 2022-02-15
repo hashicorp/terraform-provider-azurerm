@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApiManagementId struct {
@@ -39,7 +39,7 @@ func (id ApiManagementId) ID() string {
 
 // ApiManagementID parses a ApiManagement ID into an ApiManagementId struct
 func ApiManagementID(input string) (*ApiManagementId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -72,7 +72,7 @@ func (client SQLPoolWorkloadClassifierClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -109,6 +109,7 @@ func (client SQLPoolWorkloadClassifierClient) CreateOrUpdatePreparer(ctx context
 // http.Response Body if it receives an error.
 func (client SQLPoolWorkloadClassifierClient) CreateOrUpdateSender(req *http.Request) (future SQLPoolWorkloadClassifierCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -168,7 +169,7 @@ func (client SQLPoolWorkloadClassifierClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -203,6 +204,7 @@ func (client SQLPoolWorkloadClassifierClient) DeletePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client SQLPoolWorkloadClassifierClient) DeleteSender(req *http.Request) (future SQLPoolWorkloadClassifierDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

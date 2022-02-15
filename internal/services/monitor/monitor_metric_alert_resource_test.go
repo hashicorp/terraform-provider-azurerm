@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorMetricAlertResource struct {
-}
+type MonitorMetricAlertResource struct{}
 
 func TestAccMonitorMetricAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
@@ -135,16 +134,14 @@ func TestAccMonitorMetricAlert_applicationInsightsWebTest(t *testing.T) {
 }
 
 func (t MonitorMetricAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.MetricAlertID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["metricAlerts"]
 
-	resp, err := clients.Monitor.MetricAlertsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Monitor.MetricAlertsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Metric Alert (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -183,6 +180,13 @@ resource "azurerm_monitor_metric_alert" "test" {
   }
 
   window_size = "PT1H"
+
+  tags = {
+    test      = "123"
+    Example   = "Example123"
+    terraform = "Coolllll"
+    CUSTOMER  = "CUSTOMERx"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -271,6 +275,16 @@ resource "azurerm_monitor_metric_alert" "test" {
 
   action {
     action_group_id = azurerm_monitor_action_group.test2.id
+  }
+
+  tags = {
+    test          = "456"
+    Example       = "Example456"
+    Terraform     = "Coolllll"
+    tfazurerm     = "Awesome"
+    CUSTOMER      = "CUSTOMERx"
+    "EXAMPLE.TAG" = "sample"
+    "Foo.Bar"     = "Test tag"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

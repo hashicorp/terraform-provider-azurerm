@@ -95,44 +95,6 @@ func TestAccFunctionAppSlot_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppSlot_clientAffinityEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
-	r := FunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clientAffinityEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
-			),
-		},
-	})
-}
-
-func TestAccFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
-	r := FunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clientAffinityEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.clientAffinityEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
-			),
-		},
-	})
-}
-
 func TestAccFunctionAppSlot_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
@@ -917,58 +879,6 @@ resource "azurerm_function_app_slot" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func (r FunctionAppSlotResource) clientAffinityEnabled(data acceptance.TestData, clientAffinityEnabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_function_app" "test" {
-  name                       = "acctestFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-
-resource "azurerm_function_app_slot" "test" {
-  name                       = "acctestFASlot-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  function_app_name          = azurerm_function_app.test.name
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  client_affinity_enabled    = %t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, clientAffinityEnabled)
 }
 
 func (r FunctionAppSlotResource) connectionStrings(data acceptance.TestData) string {

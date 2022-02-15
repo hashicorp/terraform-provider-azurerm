@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,11 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 		Read:   resourceDataFactoryPipelineRead,
 		Update: resourceDataFactoryPipelineCreateUpdate,
 		Delete: resourceDataFactoryPipelineDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.PipelineID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,11 +44,24 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
+			// TODO remove in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
+				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
+				ExactlyOneOf: []string{"data_factory_id"},
+			},
+
+			"data_factory_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true, // TODO set to Required in 3.0
+				Computed:     true, // TODO remove in 3.0
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryID,
+				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -109,25 +126,36 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 
 func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
+	subscriptionId := meta.(*clients.Client).DataFactory.PipelinesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Data Factory Pipeline creation.")
+	// TODO remove/simplify this after deprecation in 3.0
+	var err error
+	var dataFactoryId *parse.DataFactoryId
+	if v := d.Get("data_factory_name").(string); v != "" {
+		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
+		dataFactoryId = &newDataFactoryId
+	}
+	if v := d.Get("data_factory_id").(string); v != "" {
+		dataFactoryId, err = parse.DataFactoryID(v)
+		if err != nil {
+			return err
+		}
+	}
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
+	id := parse.NewPipelineID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %s", name, resourceGroupName, dataFactoryName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
 		}
 	}
 
@@ -140,7 +168,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if v, ok := d.GetOk("activities_json"); ok {
 		activities, err := deserializeDataFactoryPipelineActivities(v.(string))
 		if err != nil {
-			return fmt.Errorf("parsing 'activities_json' for Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID: %+v", name, resourceGroupName, dataFactoryName, err)
+			return fmt.Errorf("parsing 'activities_json' for Data Factory %s: %+v", id, err)
 		}
 		pipeline.Activities = activities
 	}
@@ -176,20 +204,11 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Pipeline: pipeline,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, name, config, ""); err != nil {
-		return fmt.Errorf("creating Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, config, ""); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID", name, resourceGroupName, dataFactoryName)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryPipelineRead(d, meta)
 }
@@ -199,26 +218,28 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PipelineID(d.Id())
 	if err != nil {
 		return err
 	}
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["pipelines"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, dataFactoryName, name, "")
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", name, id.ResourceGroup)
+			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("reading the state of Data Factory Pipeline %q: %+v", name, err)
+		return fmt.Errorf("reading the state of Data Factory Pipeline %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	// TODO remove in 3.0
+	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	if props := resp.Pipeline; props != nil {
 		d.Set("description", props.Description)
@@ -277,16 +298,13 @@ func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PipelineID(d.Id())
 	if err != nil {
 		return err
 	}
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["pipelines"]
-	resourceGroupName := id.ResourceGroup
 
-	if _, err = client.Delete(ctx, resourceGroupName, dataFactoryName, name); err != nil {
-		return fmt.Errorf("deleting Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

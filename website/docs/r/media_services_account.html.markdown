@@ -50,12 +50,12 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` blocks as defined below.
 
-* `identity` - (Optional) An `identity` block is documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `storage_authentication_type` - (Optional) Specifies the storage authentication type. 
 Possible value is  `ManagedIdentity` or `System`.
 
-* `key_delivery_access_control` - (Optional) An `key_delivery_access_control` block is documented below.
+* `key_delivery_access_control` - (Optional) A `key_delivery_access_control` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 

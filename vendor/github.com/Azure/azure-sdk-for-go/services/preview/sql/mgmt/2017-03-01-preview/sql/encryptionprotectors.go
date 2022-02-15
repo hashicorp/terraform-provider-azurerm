@@ -58,7 +58,7 @@ func (client EncryptionProtectorsClient) CreateOrUpdate(ctx context.Context, res
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -95,6 +95,7 @@ func (client EncryptionProtectorsClient) CreateOrUpdatePreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client EncryptionProtectorsClient) CreateOrUpdateSender(req *http.Request) (future EncryptionProtectorsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -339,7 +340,7 @@ func (client EncryptionProtectorsClient) Revalidate(ctx context.Context, resourc
 
 	result, err = client.RevalidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "Revalidate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "Revalidate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -372,6 +373,7 @@ func (client EncryptionProtectorsClient) RevalidatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client EncryptionProtectorsClient) RevalidateSender(req *http.Request) (future EncryptionProtectorsRevalidateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

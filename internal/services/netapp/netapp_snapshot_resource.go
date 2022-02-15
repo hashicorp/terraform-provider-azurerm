@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,6 +23,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
+		// todo remove this in version 3.0 of the provider as tags was the only updatable property and they can no longer be updated and will also be removed
 		Update: resourceNetAppSnapshotUpdate,
 		Delete: resourceNetAppSnapshotDelete,
 
@@ -72,6 +73,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 
 			// TODO: remove this in a next breaking changes release since tags are
 			// not supported anymore on Snapshots (todo 3.0)
+			// todo remove this in version 3.0 of the provider
 			"tags": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -86,24 +88,20 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 
 func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("pool_name").(string)
-	volumeName := d.Get("volume_name").(string)
-
+	id := parse.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("volume_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_netapp_snapshot", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_netapp_snapshot", id.ID())
 		}
 	}
 
@@ -117,23 +115,15 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: utils.String(location),
 	}
 
-	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
+	future, err := client.Create(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
 	if err != nil {
-		return fmt.Errorf("creating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceNetAppSnapshotRead(d, meta)
 }
 
@@ -169,6 +159,7 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
+// todo remove this in version 3.0 of the provider
 func resourceNetAppSnapshotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Snapshot resource in Azure changed its type to proxied resource, therefore
 	// tags are not supported anymore, ignoring any tags.

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TriggerCustomEventResource struct {
-}
+type TriggerCustomEventResource struct{}
 
 func TestAccDataFactoryTriggerCustomEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
@@ -98,7 +97,7 @@ func (t TriggerCustomEventResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.DataFactory.TriggersClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

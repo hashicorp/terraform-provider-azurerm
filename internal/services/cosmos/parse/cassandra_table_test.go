@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = CassandraTableId{}
+var _ resourceids.Id = CassandraTableId{}
 
 func TestCassandraTableIDFormatter(t *testing.T) {
 	actual := NewCassandraTableID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "keyspace1", "table1").ID()

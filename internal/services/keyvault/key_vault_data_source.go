@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -115,6 +116,11 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					Computed: true,
 				},
 
+				"enable_rbac_authorization": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"network_acls": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
@@ -151,7 +157,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 
 				"tags": tags.SchemaDataSource(),
 			}
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				dsSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Computed:   true,
@@ -165,24 +171,24 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 
 func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("KeyVault %q (Resource Group %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("KeyVault %s does not exist", id)
 		}
-		return fmt.Errorf("making Read request on KeyVault %q: %+v", name, err)
+		return fmt.Errorf("making read request %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -192,11 +198,12 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
 		// TODO: remove in 3.0
-		if !features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
 			d.Set("soft_delete_enabled", true)
 		}
 

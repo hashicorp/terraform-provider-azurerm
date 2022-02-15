@@ -100,6 +100,10 @@ A `addon_profile` block exports the following:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block.
 
+* `open_service_mesh` - An `open_service_mesh` block.
+
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -287,6 +291,32 @@ The `ingress_application_gateway_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
+
+---
+
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
+
+---
+
+An `azure_keyvault_secrets_provider` block exports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Provider enabled?
+
+* `secret_rotation_enabled` - Is secret rotation enabled?
+
+* `secret_rotation_interval` - The interval to poll for secret rotation.
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
 
 ---
 

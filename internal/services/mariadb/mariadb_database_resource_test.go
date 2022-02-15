@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbDatabaseResource struct {
-}
+type MariaDbDatabaseResource struct{}
 
 func TestAccMariaDbDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
@@ -52,17 +51,14 @@ func TestAccMariaDbDatabase_requiresImport(t *testing.T) {
 }
 
 func (MariaDbDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.MariaDBDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverName := id.Path["servers"]
-	name := id.Path["databases"]
-
-	resp, err := clients.MariaDB.DatabasesClient.Get(ctx, id.ResourceGroup, serverName, name)
+	resp, err := clients.MariaDB.DatabasesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Database %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.DatabaseProperties != nil), nil

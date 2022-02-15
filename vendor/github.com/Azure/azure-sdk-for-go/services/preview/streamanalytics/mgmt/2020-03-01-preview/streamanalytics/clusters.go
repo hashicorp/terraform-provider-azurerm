@@ -77,7 +77,7 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, cluster Cluster
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -120,6 +120,7 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, cluster
 // http.Response Body if it receives an error.
 func (client ClustersClient) CreateOrUpdateSender(req *http.Request) (future ClustersCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -176,7 +177,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -208,6 +209,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -727,7 +729,7 @@ func (client ClustersClient) Update(ctx context.Context, cluster Cluster, resour
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.ClustersClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -766,6 +768,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, cluster Cluster
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

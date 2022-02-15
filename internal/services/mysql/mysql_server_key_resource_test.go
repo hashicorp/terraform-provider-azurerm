@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLServerKeyResource struct {
-}
+type MySQLServerKeyResource struct{}
 
 func TestAccMySQLServerKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")

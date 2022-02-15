@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
@@ -194,12 +195,9 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	// TODO: fix this behaviour in 3.0 - Terraform should remove even if there's running tasks
-	// this last param is `delete the resource even if it contains running tasks`
-	toDeleteRunningTasks := false
+	toDeleteRunningTasks := features.ThreePointOhBeta()
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
 	if err != nil {
-
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

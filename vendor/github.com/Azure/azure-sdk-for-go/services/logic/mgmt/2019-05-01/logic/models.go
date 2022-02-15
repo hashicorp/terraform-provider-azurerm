@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -475,75 +476,39 @@ type APIResourcePolicies struct {
 
 // APIResourceProperties the API resource properties.
 type APIResourceProperties struct {
-	// Name - The name
+	// Name - READ-ONLY; The name
 	Name *string `json:"name,omitempty"`
-	// ConnectionParameters - The connection parameters.
+	// ConnectionParameters - READ-ONLY; The connection parameters.
 	ConnectionParameters map[string]interface{} `json:"connectionParameters"`
-	// Metadata - The metadata.
+	// Metadata - READ-ONLY; The metadata.
 	Metadata *APIResourceMetadata `json:"metadata,omitempty"`
-	// RuntimeUrls - The runtime urls.
+	// RuntimeUrls - READ-ONLY; The runtime urls.
 	RuntimeUrls *[]string `json:"runtimeUrls,omitempty"`
-	// GeneralInformation - The api general information.
+	// GeneralInformation - READ-ONLY; The api general information.
 	GeneralInformation *APIResourceGeneralInformation `json:"generalInformation,omitempty"`
-	// Capabilities - The capabilities.
+	// Capabilities - READ-ONLY; The capabilities.
 	Capabilities *[]string `json:"capabilities,omitempty"`
-	// BackendService - The backend service.
+	// BackendService - READ-ONLY; The backend service.
 	BackendService *APIResourceBackendService `json:"backendService,omitempty"`
-	// Policies - The policies for the API.
+	// Policies - READ-ONLY; The policies for the API.
 	Policies *APIResourcePolicies `json:"policies,omitempty"`
-	// APIDefinitionURL - The API definition.
+	// APIDefinitionURL - READ-ONLY; The API definition.
 	APIDefinitionURL *string `json:"apiDefinitionUrl,omitempty"`
-	// APIDefinitions - The api definitions.
+	// APIDefinitions - READ-ONLY; The api definitions.
 	APIDefinitions *APIResourceDefinitions `json:"apiDefinitions,omitempty"`
 	// IntegrationServiceEnvironment - The integration service environment reference.
 	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
-	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
-	// Category - The category. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
+	// Category - READ-ONLY; The category. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
 	Category APITier `json:"category,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for APIResourceProperties.
 func (arp APIResourceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if arp.Name != nil {
-		objectMap["name"] = arp.Name
-	}
-	if arp.ConnectionParameters != nil {
-		objectMap["connectionParameters"] = arp.ConnectionParameters
-	}
-	if arp.Metadata != nil {
-		objectMap["metadata"] = arp.Metadata
-	}
-	if arp.RuntimeUrls != nil {
-		objectMap["runtimeUrls"] = arp.RuntimeUrls
-	}
-	if arp.GeneralInformation != nil {
-		objectMap["generalInformation"] = arp.GeneralInformation
-	}
-	if arp.Capabilities != nil {
-		objectMap["capabilities"] = arp.Capabilities
-	}
-	if arp.BackendService != nil {
-		objectMap["backendService"] = arp.BackendService
-	}
-	if arp.Policies != nil {
-		objectMap["policies"] = arp.Policies
-	}
-	if arp.APIDefinitionURL != nil {
-		objectMap["apiDefinitionUrl"] = arp.APIDefinitionURL
-	}
-	if arp.APIDefinitions != nil {
-		objectMap["apiDefinitions"] = arp.APIDefinitions
-	}
 	if arp.IntegrationServiceEnvironment != nil {
 		objectMap["integrationServiceEnvironment"] = arp.IntegrationServiceEnvironment
-	}
-	if arp.ProvisioningState != "" {
-		objectMap["provisioningState"] = arp.ProvisioningState
-	}
-	if arp.Category != "" {
-		objectMap["category"] = arp.Category
 	}
 	return json.Marshal(objectMap)
 }
@@ -887,14 +852,23 @@ type ContentHash struct {
 type ContentLink struct {
 	// URI - The content link URI.
 	URI *string `json:"uri,omitempty"`
-	// ContentVersion - The content version.
+	// ContentVersion - READ-ONLY; The content version.
 	ContentVersion *string `json:"contentVersion,omitempty"`
-	// ContentSize - The content size.
+	// ContentSize - READ-ONLY; The content size.
 	ContentSize *int64 `json:"contentSize,omitempty"`
-	// ContentHash - The content hash.
+	// ContentHash - READ-ONLY; The content hash.
 	ContentHash *ContentHash `json:"contentHash,omitempty"`
-	// Metadata - The metadata.
+	// Metadata - READ-ONLY; The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentLink.
+func (cl ContentLink) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cl.URI != nil {
+		objectMap["uri"] = cl.URI
+	}
+	return json.Marshal(objectMap)
 }
 
 // Correlation the correlation property.
@@ -1563,7 +1537,7 @@ func (iaa *IntegrationAccountAgreement) UnmarshalJSON(body []byte) error {
 
 // IntegrationAccountAgreementFilter the integration account agreement filter for odata query.
 type IntegrationAccountAgreementFilter struct {
-	// AgreementType - The agreement type of integration account agreement. Possible values include: 'NotSpecified', 'AS2', 'X12', 'Edifact'
+	// AgreementType - The agreement type of integration account agreement. Possible values include: 'AgreementTypeNotSpecified', 'AgreementTypeAS2', 'AgreementTypeX12', 'AgreementTypeEdifact'
 	AgreementType AgreementType `json:"agreementType,omitempty"`
 }
 
@@ -1735,7 +1709,7 @@ type IntegrationAccountAgreementProperties struct {
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
-	// AgreementType - The agreement type. Possible values include: 'NotSpecified', 'AS2', 'X12', 'Edifact'
+	// AgreementType - The agreement type. Possible values include: 'AgreementTypeNotSpecified', 'AgreementTypeAS2', 'AgreementTypeX12', 'AgreementTypeEdifact'
 	AgreementType AgreementType `json:"agreementType,omitempty"`
 	// HostPartner - The integration account partner that is set as host partner for this agreement.
 	HostPartner *string `json:"hostPartner,omitempty"`
@@ -2838,7 +2812,7 @@ func (iapp IntegrationAccountPartnerProperties) MarshalJSON() ([]byte, error) {
 // IntegrationAccountProperties the integration account properties.
 type IntegrationAccountProperties struct {
 	// IntegrationServiceEnvironment - The integration service environment.
-	IntegrationServiceEnvironment *IntegrationServiceEnvironment `json:"integrationServiceEnvironment,omitempty"`
+	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
 	// State - The workflow state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
 	State WorkflowState `json:"state,omitempty"`
 }
@@ -3477,7 +3451,8 @@ type IntegrationServiceEnvironment struct {
 	// Properties - The integration service environment properties.
 	Properties *IntegrationServiceEnvironmentProperties `json:"properties,omitempty"`
 	// Sku - The sku.
-	Sku *IntegrationServiceEnvironmentSku `json:"sku,omitempty"`
+	Sku      *IntegrationServiceEnvironmentSku `json:"sku,omitempty"`
+	Identity *ManagedServiceIdentity           `json:"identity,omitempty"`
 	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Gets the resource name.
@@ -3498,6 +3473,9 @@ func (ise IntegrationServiceEnvironment) MarshalJSON() ([]byte, error) {
 	}
 	if ise.Sku != nil {
 		objectMap["sku"] = ise.Sku
+	}
+	if ise.Identity != nil {
+		objectMap["identity"] = ise.Identity
 	}
 	if ise.Location != nil {
 		objectMap["location"] = ise.Location
@@ -3673,6 +3651,321 @@ func NewIntegrationServiceEnvironmentListResultPage(cur IntegrationServiceEnviro
 	}
 }
 
+// IntegrationServiceEnvironmentManagedAPI the integration service environment managed api.
+type IntegrationServiceEnvironmentManagedAPI struct {
+	autorest.Response `json:"-"`
+	// IntegrationServiceEnvironmentManagedAPIProperties - The integration service environment managed api properties.
+	*IntegrationServiceEnvironmentManagedAPIProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for IntegrationServiceEnvironmentManagedAPI.
+func (isema IntegrationServiceEnvironmentManagedAPI) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if isema.IntegrationServiceEnvironmentManagedAPIProperties != nil {
+		objectMap["properties"] = isema.IntegrationServiceEnvironmentManagedAPIProperties
+	}
+	if isema.Location != nil {
+		objectMap["location"] = isema.Location
+	}
+	if isema.Tags != nil {
+		objectMap["tags"] = isema.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IntegrationServiceEnvironmentManagedAPI struct.
+func (isema *IntegrationServiceEnvironmentManagedAPI) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var integrationServiceEnvironmentManagedAPIProperties IntegrationServiceEnvironmentManagedAPIProperties
+				err = json.Unmarshal(*v, &integrationServiceEnvironmentManagedAPIProperties)
+				if err != nil {
+					return err
+				}
+				isema.IntegrationServiceEnvironmentManagedAPIProperties = &integrationServiceEnvironmentManagedAPIProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				isema.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				isema.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				isema.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				isema.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				isema.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// IntegrationServiceEnvironmentManagedAPIDeploymentParameters the integration service environment managed
+// api deployment parameters.
+type IntegrationServiceEnvironmentManagedAPIDeploymentParameters struct {
+	// ContentLinkDefinition - The integration service environment managed api content link for deployment.
+	ContentLinkDefinition *ContentLink `json:"contentLinkDefinition,omitempty"`
+}
+
+// IntegrationServiceEnvironmentManagedAPIListResult the list of integration service environment managed
+// APIs.
+type IntegrationServiceEnvironmentManagedAPIListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The integration service environment managed APIs.
+	Value *[]IntegrationServiceEnvironmentManagedAPI `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// IntegrationServiceEnvironmentManagedAPIListResultIterator provides access to a complete listing of
+// IntegrationServiceEnvironmentManagedAPI values.
+type IntegrationServiceEnvironmentManagedAPIListResultIterator struct {
+	i    int
+	page IntegrationServiceEnvironmentManagedAPIListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *IntegrationServiceEnvironmentManagedAPIListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedAPIListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *IntegrationServiceEnvironmentManagedAPIListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter IntegrationServiceEnvironmentManagedAPIListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter IntegrationServiceEnvironmentManagedAPIListResultIterator) Response() IntegrationServiceEnvironmentManagedAPIListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter IntegrationServiceEnvironmentManagedAPIListResultIterator) Value() IntegrationServiceEnvironmentManagedAPI {
+	if !iter.page.NotDone() {
+		return IntegrationServiceEnvironmentManagedAPI{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentManagedAPIListResultIterator type.
+func NewIntegrationServiceEnvironmentManagedAPIListResultIterator(page IntegrationServiceEnvironmentManagedAPIListResultPage) IntegrationServiceEnvironmentManagedAPIListResultIterator {
+	return IntegrationServiceEnvironmentManagedAPIListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (isemalr IntegrationServiceEnvironmentManagedAPIListResult) IsEmpty() bool {
+	return isemalr.Value == nil || len(*isemalr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (isemalr IntegrationServiceEnvironmentManagedAPIListResult) hasNextLink() bool {
+	return isemalr.NextLink != nil && len(*isemalr.NextLink) != 0
+}
+
+// integrationServiceEnvironmentManagedAPIListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (isemalr IntegrationServiceEnvironmentManagedAPIListResult) integrationServiceEnvironmentManagedAPIListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !isemalr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(isemalr.NextLink)))
+}
+
+// IntegrationServiceEnvironmentManagedAPIListResultPage contains a page of
+// IntegrationServiceEnvironmentManagedAPI values.
+type IntegrationServiceEnvironmentManagedAPIListResultPage struct {
+	fn      func(context.Context, IntegrationServiceEnvironmentManagedAPIListResult) (IntegrationServiceEnvironmentManagedAPIListResult, error)
+	isemalr IntegrationServiceEnvironmentManagedAPIListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *IntegrationServiceEnvironmentManagedAPIListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedAPIListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.isemalr)
+		if err != nil {
+			return err
+		}
+		page.isemalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *IntegrationServiceEnvironmentManagedAPIListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page IntegrationServiceEnvironmentManagedAPIListResultPage) NotDone() bool {
+	return !page.isemalr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page IntegrationServiceEnvironmentManagedAPIListResultPage) Response() IntegrationServiceEnvironmentManagedAPIListResult {
+	return page.isemalr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page IntegrationServiceEnvironmentManagedAPIListResultPage) Values() []IntegrationServiceEnvironmentManagedAPI {
+	if page.isemalr.IsEmpty() {
+		return nil
+	}
+	return *page.isemalr.Value
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentManagedAPIListResultPage type.
+func NewIntegrationServiceEnvironmentManagedAPIListResultPage(cur IntegrationServiceEnvironmentManagedAPIListResult, getNextPage func(context.Context, IntegrationServiceEnvironmentManagedAPIListResult) (IntegrationServiceEnvironmentManagedAPIListResult, error)) IntegrationServiceEnvironmentManagedAPIListResultPage {
+	return IntegrationServiceEnvironmentManagedAPIListResultPage{
+		fn:      getNextPage,
+		isemalr: cur,
+	}
+}
+
+// IntegrationServiceEnvironmentManagedAPIProperties the integration service environment managed api
+// properties.
+type IntegrationServiceEnvironmentManagedAPIProperties struct {
+	// DeploymentParameters - The integration service environment managed api deployment parameters.
+	DeploymentParameters *IntegrationServiceEnvironmentManagedAPIDeploymentParameters `json:"deploymentParameters,omitempty"`
+	// Name - READ-ONLY; The name
+	Name *string `json:"name,omitempty"`
+	// ConnectionParameters - READ-ONLY; The connection parameters.
+	ConnectionParameters map[string]interface{} `json:"connectionParameters"`
+	// Metadata - READ-ONLY; The metadata.
+	Metadata *APIResourceMetadata `json:"metadata,omitempty"`
+	// RuntimeUrls - READ-ONLY; The runtime urls.
+	RuntimeUrls *[]string `json:"runtimeUrls,omitempty"`
+	// GeneralInformation - READ-ONLY; The api general information.
+	GeneralInformation *APIResourceGeneralInformation `json:"generalInformation,omitempty"`
+	// Capabilities - READ-ONLY; The capabilities.
+	Capabilities *[]string `json:"capabilities,omitempty"`
+	// BackendService - READ-ONLY; The backend service.
+	BackendService *APIResourceBackendService `json:"backendService,omitempty"`
+	// Policies - READ-ONLY; The policies for the API.
+	Policies *APIResourcePolicies `json:"policies,omitempty"`
+	// APIDefinitionURL - READ-ONLY; The API definition.
+	APIDefinitionURL *string `json:"apiDefinitionUrl,omitempty"`
+	// APIDefinitions - READ-ONLY; The api definitions.
+	APIDefinitions *APIResourceDefinitions `json:"apiDefinitions,omitempty"`
+	// IntegrationServiceEnvironment - The integration service environment reference.
+	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
+	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
+	// Category - READ-ONLY; The category. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
+	Category APITier `json:"category,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IntegrationServiceEnvironmentManagedAPIProperties.
+func (isemap IntegrationServiceEnvironmentManagedAPIProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if isemap.DeploymentParameters != nil {
+		objectMap["deploymentParameters"] = isemap.DeploymentParameters
+	}
+	if isemap.IntegrationServiceEnvironment != nil {
+		objectMap["integrationServiceEnvironment"] = isemap.IntegrationServiceEnvironment
+	}
+	return json.Marshal(objectMap)
+}
+
 // IntegrationServiceEnvironmentManagedApisDeleteFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type IntegrationServiceEnvironmentManagedApisDeleteFuture struct {
@@ -3716,7 +4009,7 @@ type IntegrationServiceEnvironmentManagedApisPutFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
-	Result func(IntegrationServiceEnvironmentManagedApisClient) (ManagedAPI, error)
+	Result func(IntegrationServiceEnvironmentManagedApisClient) (IntegrationServiceEnvironmentManagedAPI, error)
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
@@ -3731,7 +4024,7 @@ func (future *IntegrationServiceEnvironmentManagedApisPutFuture) UnmarshalJSON(b
 }
 
 // result is the default implementation for IntegrationServiceEnvironmentManagedApisPutFuture.Result.
-func (future *IntegrationServiceEnvironmentManagedApisPutFuture) result(client IntegrationServiceEnvironmentManagedApisClient) (ma ManagedAPI, err error) {
+func (future *IntegrationServiceEnvironmentManagedApisPutFuture) result(client IntegrationServiceEnvironmentManagedApisClient) (isema IntegrationServiceEnvironmentManagedAPI, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -3739,15 +4032,15 @@ func (future *IntegrationServiceEnvironmentManagedApisPutFuture) result(client I
 		return
 	}
 	if !done {
-		ma.Response.Response = future.Response()
+		isema.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ma.Response.Response, err = future.GetResult(sender); err == nil && ma.Response.Response.StatusCode != http.StatusNoContent {
-		ma, err = client.PutResponder(ma.Response.Response)
+	if isema.Response.Response, err = future.GetResult(sender); err == nil && isema.Response.Response.StatusCode != http.StatusNoContent {
+		isema, err = client.PutResponder(isema.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", ma.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", isema.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -3857,7 +4150,7 @@ type IntegrationServiceEnvironmentSkuCapacity struct {
 	Maximum *int32 `json:"maximum,omitempty"`
 	// Default - The default capacity.
 	Default *int32 `json:"default,omitempty"`
-	// ScaleType - The sku scale type. Possible values include: 'Manual', 'Automatic', 'None'
+	// ScaleType - The sku scale type. Possible values include: 'IntegrationServiceEnvironmentSkuScaleTypeManual', 'IntegrationServiceEnvironmentSkuScaleTypeAutomatic', 'IntegrationServiceEnvironmentSkuScaleTypeNone'
 	ScaleType IntegrationServiceEnvironmentSkuScaleType `json:"scaleType,omitempty"`
 }
 
@@ -4200,7 +4493,6 @@ type ListKeyVaultKeysDefinition struct {
 
 // ManagedAPI the managed api definition.
 type ManagedAPI struct {
-	autorest.Response `json:"-"`
 	// Properties - The api resource properties.
 	Properties *APIResourceProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; The resource id.
@@ -4232,161 +4524,34 @@ func (ma ManagedAPI) MarshalJSON() ([]byte, error) {
 
 // ManagedAPIListResult the list of managed APIs.
 type ManagedAPIListResult struct {
-	autorest.Response `json:"-"`
 	// Value - The managed APIs.
 	Value *[]ManagedAPI `json:"value,omitempty"`
 	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ManagedAPIListResultIterator provides access to a complete listing of ManagedAPI values.
-type ManagedAPIListResultIterator struct {
-	i    int
-	page ManagedAPIListResultPage
+// ManagedServiceIdentity managed service identity properties.
+type ManagedServiceIdentity struct {
+	// Type - Type of managed service identity. The type 'SystemAssigned' includes an implicitly created identity. The type 'None' will remove any identities from the resource. Possible values include: 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned', 'ManagedServiceIdentityTypeNone'
+	Type ManagedServiceIdentityType `json:"type,omitempty"`
+	// TenantID - READ-ONLY; Tenant of managed service identity.
+	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+	// PrincipalID - READ-ONLY; Principal Id of managed service identity.
+	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
+	// UserAssignedIdentities - The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+	UserAssignedIdentities map[string]*UserAssignedIdentity `json:"userAssignedIdentities"`
 }
 
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *ManagedAPIListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedAPIListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
+// MarshalJSON is the custom marshaler for ManagedServiceIdentity.
+func (msi ManagedServiceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msi.Type != "" {
+		objectMap["type"] = msi.Type
 	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
+	if msi.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = msi.UserAssignedIdentities
 	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *ManagedAPIListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter ManagedAPIListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter ManagedAPIListResultIterator) Response() ManagedAPIListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter ManagedAPIListResultIterator) Value() ManagedAPI {
-	if !iter.page.NotDone() {
-		return ManagedAPI{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the ManagedAPIListResultIterator type.
-func NewManagedAPIListResultIterator(page ManagedAPIListResultPage) ManagedAPIListResultIterator {
-	return ManagedAPIListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (malr ManagedAPIListResult) IsEmpty() bool {
-	return malr.Value == nil || len(*malr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (malr ManagedAPIListResult) hasNextLink() bool {
-	return malr.NextLink != nil && len(*malr.NextLink) != 0
-}
-
-// managedAPIListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (malr ManagedAPIListResult) managedAPIListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !malr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(malr.NextLink)))
-}
-
-// ManagedAPIListResultPage contains a page of ManagedAPI values.
-type ManagedAPIListResultPage struct {
-	fn   func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error)
-	malr ManagedAPIListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *ManagedAPIListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedAPIListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.malr)
-		if err != nil {
-			return err
-		}
-		page.malr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *ManagedAPIListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page ManagedAPIListResultPage) NotDone() bool {
-	return !page.malr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page ManagedAPIListResultPage) Response() ManagedAPIListResult {
-	return page.malr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page ManagedAPIListResultPage) Values() []ManagedAPI {
-	if page.malr.IsEmpty() {
-		return nil
-	}
-	return *page.malr.Value
-}
-
-// Creates a new instance of the ManagedAPIListResultPage type.
-func NewManagedAPIListResultPage(cur ManagedAPIListResult, getNextPage func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error)) ManagedAPIListResultPage {
-	return ManagedAPIListResultPage{
-		fn:   getNextPage,
-		malr: cur,
-	}
+	return json.Marshal(objectMap)
 }
 
 // NetworkConfiguration the network configuration.
@@ -4416,19 +4581,10 @@ func (oaap OpenAuthenticationAccessPolicies) MarshalJSON() ([]byte, error) {
 
 // OpenAuthenticationAccessPolicy open authentication access policy defined by user.
 type OpenAuthenticationAccessPolicy struct {
-	// Type - READ-ONLY; Type of provider for OAuth. Possible values include: 'AAD'
+	// Type - Type of provider for OAuth. Possible values include: 'OpenAuthenticationProviderTypeAAD'
 	Type OpenAuthenticationProviderType `json:"type,omitempty"`
 	// Claims - The access policy claims.
 	Claims *[]OpenAuthenticationPolicyClaim `json:"claims,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenAuthenticationAccessPolicy.
-func (oaap OpenAuthenticationAccessPolicy) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if oaap.Claims != nil {
-		objectMap["claims"] = oaap.Claims
-	}
-	return json.Marshal(objectMap)
 }
 
 // OpenAuthenticationPolicyClaim open authentication policy claim.
@@ -4720,7 +4876,7 @@ type RecurrenceSchedule struct {
 
 // RecurrenceScheduleOccurrence the recurrence schedule occurrence.
 type RecurrenceScheduleOccurrence struct {
-	// Day - The day of the week. Possible values include: 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+	// Day - The day of the week. Possible values include: 'DayOfWeekSunday', 'DayOfWeekMonday', 'DayOfWeekTuesday', 'DayOfWeekWednesday', 'DayOfWeekThursday', 'DayOfWeekFriday', 'DayOfWeekSaturday'
 	Day DayOfWeek `json:"day,omitempty"`
 	// Occurrence - The occurrence.
 	Occurrence *int32 `json:"occurrence,omitempty"`
@@ -5287,7 +5443,7 @@ func (sed SwaggerExternalDocumentation) MarshalJSON() ([]byte, error) {
 type SwaggerSchema struct {
 	// Ref - The reference.
 	Ref *string `json:"ref,omitempty"`
-	// Type - The type. Possible values include: 'String', 'Number', 'Integer', 'Boolean', 'Array', 'File', 'Object', 'Null'
+	// Type - The type. Possible values include: 'SwaggerSchemaTypeString', 'SwaggerSchemaTypeNumber', 'SwaggerSchemaTypeInteger', 'SwaggerSchemaTypeBoolean', 'SwaggerSchemaTypeArray', 'SwaggerSchemaTypeFile', 'SwaggerSchemaTypeObject', 'SwaggerSchemaTypeNull'
 	Type SwaggerSchemaType `json:"type,omitempty"`
 	// Title - The title.
 	Title *string `json:"title,omitempty"`
@@ -5435,7 +5591,7 @@ func (sx SwaggerXML) MarshalJSON() ([]byte, error) {
 
 // TrackingEvent the tracking event.
 type TrackingEvent struct {
-	// EventLevel - The event level. Possible values include: 'LogAlways', 'Critical', 'Error', 'Warning', 'Informational', 'Verbose'
+	// EventLevel - The event level. Possible values include: 'EventLevelLogAlways', 'EventLevelCritical', 'EventLevelError', 'EventLevelWarning', 'EventLevelInformational', 'EventLevelVerbose'
 	EventLevel EventLevel `json:"eventLevel,omitempty"`
 	// EventTime - The event time.
 	EventTime *date.Time `json:"eventTime,omitempty"`
@@ -5465,11 +5621,26 @@ type TrackingEventsDefinition struct {
 	Events *[]TrackingEvent `json:"events,omitempty"`
 }
 
+// UserAssignedIdentity user Assigned identity properties.
+type UserAssignedIdentity struct {
+	// PrincipalID - READ-ONLY; Principal Id of user assigned identity
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; Client Id of user assigned identity
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentity.
+func (uai UserAssignedIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Workflow the workflow type.
 type Workflow struct {
 	autorest.Response `json:"-"`
 	// WorkflowProperties - The workflow properties.
 	*WorkflowProperties `json:"properties,omitempty"`
+	Identity            *ManagedServiceIdentity `json:"identity,omitempty"`
 	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Gets the resource name.
@@ -5487,6 +5658,9 @@ func (w Workflow) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if w.WorkflowProperties != nil {
 		objectMap["properties"] = w.WorkflowProperties
+	}
+	if w.Identity != nil {
+		objectMap["identity"] = w.Identity
 	}
 	if w.Location != nil {
 		objectMap["location"] = w.Location
@@ -5514,6 +5688,15 @@ func (w *Workflow) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				w.WorkflowProperties = &workflowProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				w.Identity = &identity
 			}
 		case "id":
 			if v != nil {

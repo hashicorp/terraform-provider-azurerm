@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service resource has to be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
 * `allocation_policy` - (Optional) The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`). Defaults to `Hashed`.
 
@@ -61,11 +61,11 @@ A `sku` block supports the following:
 
 A `linked_hub` block supports the following:
 
-* `connection_string` - (Required) The connection string to connect to the IoT Hub. Changing this forces a new resource.
+* `connection_string` - (Required) The connection string to connect to the IoT Hub.
 
-* `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
+* `location` - (Required) The location of the IoT hub.
 
-* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to false.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to true.
 
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 

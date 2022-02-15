@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -107,6 +107,8 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		groupName = uuid.New().String()
 	}
 
+	id := parse.NewManagementGroupId(groupName)
+
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
@@ -114,15 +116,15 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	recurse := false
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+		existing, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
 			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
 		}
 	}
 
@@ -144,7 +146,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, groupName, properties, managementGroupCacheControl)
+	future, err := client.CreateOrUpdate(ctx, id.Name, properties, managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
 	}
@@ -171,12 +173,12 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
-	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*pluginsdk.Set))
 
@@ -295,6 +297,9 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 				if err != nil {
 					return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 				}
+				if subscriptionId == nil {
+					continue
+				}
 				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.Name)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
 				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.Name, subscriptionId.subscriptionId, managementGroupCacheControl)
@@ -364,7 +369,7 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 	// this is either:
 	// /subscriptions/00000000-0000-0000-0000-000000000000
 
-	// we skip out the managementGroup ID's
+	// we skip out the child managementGroup ID's
 	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {
 		return nil, nil
 	}

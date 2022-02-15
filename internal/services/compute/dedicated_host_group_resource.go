@@ -5,10 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,8 +25,10 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 		Update: resourceDedicatedHostGroupUpdate,
 		Delete: resourceDedicatedHostGroupDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.HostGroupID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,21 +76,21 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 
 func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id := parse.NewHostGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dedicated_host_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_dedicated_host_group", id.ID())
 		}
 	}
 
@@ -110,18 +113,11 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 		parameters.DedicatedHostGroupProperties.SupportAutomaticPlacement = utils.Bool(v.(bool))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
-		return fmt.Errorf("creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Dedicated Host Group %q (Resource Group %q) ID", name, resourceGroupName)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDedicatedHostGroupRead(d, meta)
 }
@@ -131,25 +127,23 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HostGroupID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroupName := id.ResourceGroup
-	name := id.Path["hostGroups"]
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host Group %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("reading Dedicated Host Group %q (: %+v", id.String(), err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -192,15 +186,13 @@ func resourceDedicatedHostGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HostGroupID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["hostGroups"]
 
-	if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
-		return fmt.Errorf("deleting Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting Dedicated Host Group %q : %+v", id.String(), err)
 	}
 
 	return nil

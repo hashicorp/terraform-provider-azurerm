@@ -55,7 +55,7 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdate(ctx context.Co
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -89,6 +89,7 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdatePreparer(ctx co
 // http.Response Body if it receives an error.
 func (client IntegrationServiceEnvironmentsClient) CreateOrUpdateSender(req *http.Request) (future IntegrationServiceEnvironmentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -600,7 +601,7 @@ func (client IntegrationServiceEnvironmentsClient) Update(ctx context.Context, r
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -634,6 +635,7 @@ func (client IntegrationServiceEnvironmentsClient) UpdatePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client IntegrationServiceEnvironmentsClient) UpdateSender(req *http.Request) (future IntegrationServiceEnvironmentsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

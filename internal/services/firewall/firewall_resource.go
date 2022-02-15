@@ -6,13 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,13 +27,15 @@ import (
 var azureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := pluginsdk.Resource{
 		Create: resourceFirewallCreateUpdate,
 		Read:   resourceFirewallRead,
 		Update: resourceFirewallCreateUpdate,
 		Delete: resourceFirewallDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -50,30 +55,6 @@ func resourceFirewall() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			// TODO 3.0: change this to required
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuNameAZFWHub),
-					string(network.AzureFirewallSkuNameAZFWVNet),
-				}, false),
-			},
-
-			// TODO 3.0: change this to required
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuTierPremium),
-					string(network.AzureFirewallSkuTierStandard),
-				}, false),
-			},
 
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
@@ -144,15 +125,23 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.AzureFirewallThreatIntelModeAlert),
-				ValidateFunc: validation.StringInSlice([]string{
-					// TODO 3.0: remove the default value and the `""` below. So if it is not specified
-					// in config, it will not be send in request, which is required in case of vhub.
-					"",
-					string(network.AzureFirewallThreatIntelModeOff),
-					string(network.AzureFirewallThreatIntelModeAlert),
-					string(network.AzureFirewallThreatIntelModeDeny),
-				}, false),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return nil
+					}
+					return string(network.AzureFirewallThreatIntelModeAlert)
+				}(),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						string(network.AzureFirewallThreatIntelModeOff),
+						string(network.AzureFirewallThreatIntelModeAlert),
+						string(network.AzureFirewallThreatIntelModeDeny),
+					}
+					if !features.ThreePointOhBeta() {
+						out = append(out, "")
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 			},
 
 			"dns_servers": {
@@ -213,33 +202,76 @@ func resourceFirewall() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.ThreePointOhBeta() {
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+	} else {
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuNameAZFWHub),
+				string(network.AzureFirewallSkuNameAZFWVNet),
+			}, false),
+		}
+
+		resource.Schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallSkuTierPremium),
+				string(network.AzureFirewallSkuTierStandard),
+			}, false),
+		}
+	}
+
+	return &resource
 }
 
 func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFirewallID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if d.IsNewResource() {
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_firewall", *existing.ID)
-		}
+	if d.IsNewResource() && !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_firewall", id.ID())
 	}
 
 	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]interface{})); err != nil {
-		return fmt.Errorf("validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -295,16 +327,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
 	}
 
-	// TODO 3.0: no need to test since sku_name is required
-	if skuName := d.Get("sku_name").(string); skuName != "" {
+	if skuName := d.Get("sku_name").(string); features.ThreePointOhBeta() || skuName != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
 		parameters.Sku.Name = network.AzureFirewallSkuName(skuName)
 	}
 
-	// TODO 3.0: no need to test since sku_tier is required
-	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
+	if skuTier := d.Get("sku_tier").(string); features.ThreePointOhBeta() || skuTier != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
@@ -323,8 +353,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	locks.ByName(name, azureFirewallResourceName)
-	defer locks.UnlockByName(name, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
 
 	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
@@ -333,15 +363,15 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockMultipleByName(subnetToLock, SubnetResourceName)
 
 	if !d.IsNewResource() {
-		exists, err2 := client.Get(ctx, resourceGroup, name)
+		exists, err2 := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 		if err2 != nil {
 			if utils.ResponseWasNotFound(exists.Response) {
-				return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): firewall not found in resource group", name, resourceGroup)
+				return fmt.Errorf("retrieving existing %s: firewall not found in resource group", id)
 			}
-			return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err2)
+			return fmt.Errorf("retrieving existing %s: %+v", id, err2)
 		}
 		if exists.AzureFirewallPropertiesFormat == nil {
-			return fmt.Errorf("retrieving existing rules (Firewall %q / Resource Group %q): `props` was nil", name, resourceGroup)
+			return fmt.Errorf("retrieving existing rules for %s: `props` was nil", id)
 		}
 		props := *exists.AzureFirewallPropertiesFormat
 		parameters.AzureFirewallPropertiesFormat.ApplicationRuleCollections = props.ApplicationRuleCollections
@@ -349,26 +379,16 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.NatRuleCollections = props.NatRuleCollections
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Azure Firewall %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceFirewallRead(d, meta)
 }
 
@@ -381,22 +401,20 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.AzureFirewallName
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", id.AzureFirewallName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
 
-	d.Set("name", read.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.AzureFirewallName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := read.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -451,22 +469,20 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["azureFirewalls"]
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - assuming removed!", name, resourceGroup)
+			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - assuming removed!", id.AzureFirewallName, id.ResourceGroup)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall %s : %+v", *id, err)
 	}
 
 	subnetNamesToLock := make([]string, 0)
@@ -478,45 +494,41 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetID, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
+				parsedSubnetID, err2 := networkParse.SubnetID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
-				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-					subnetNamesToLock = append(subnetNamesToLock, subnetName)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
 				}
 
-				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 				}
 			}
 		}
 
 		if mconfig := props.ManagementIPConfiguration; mconfig != nil {
 			if mconfig.Subnet != nil && mconfig.Subnet.ID != nil {
-				parsedSubnetID, err2 := azure.ParseAzureResourceID(*mconfig.Subnet.ID)
+				parsedSubnetID, err2 := networkParse.SubnetID(*mconfig.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
-				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-					subnetNamesToLock = append(subnetNamesToLock, subnetName)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
 				}
 
-				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 				}
 			}
 		}
 	}
 
-	locks.ByName(name, azureFirewallResourceName)
-	defer locks.UnlockByName(name, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
 
 	locks.MultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
@@ -524,13 +536,14 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&subnetNamesToLock, SubnetResourceName)
 	defer locks.UnlockMultipleByName(&subnetNamesToLock, SubnetResourceName)
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	// Change this back to using the SDK method once https://github.com/Azure/azure-sdk-for-go/issues/17013 is addressed.
+	future, err := azuresdkhacks.DeleteFirewall(ctx, client, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return fmt.Errorf("deleting Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Azure Firewall %s : %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Azure Firewall %s : %+v", *id, err)
 	}
 
 	return err
@@ -557,20 +570,17 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFire
 		}
 
 		if subnetId != "" {
-			subnetID, err := azure.ParseAzureResourceID(subnetId)
+			subnetID, err := networkParse.SubnetID(subnetId)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 
-			subnetName := subnetID.Path["subnets"]
-			virtualNetworkName := subnetID.Path["virtualNetworks"]
-
-			if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-				subnetNamesToLock = append(subnetNamesToLock, subnetName)
+			if !utils.SliceContainsValue(subnetNamesToLock, subnetID.Name) {
+				subnetNamesToLock = append(subnetNamesToLock, subnetID.Name)
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			if !utils.SliceContainsValue(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {
+				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, subnetID.VirtualNetworkName)
 			}
 
 			ipConfig.AzureFirewallIPConfigurationPropertiesFormat.Subnet = &network.SubResource{

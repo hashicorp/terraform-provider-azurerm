@@ -6,16 +6,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsLinkedServiceResource struct {
-}
+type LogAnalyticsLinkedServiceResource struct{}
 
 func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
@@ -65,8 +65,11 @@ func TestAccLogAnalyticsLinkedService_complete(t *testing.T) {
 	})
 }
 
-// TODO: Remove in 3.0
+// CLEANUP: Remove in 3.0
 func TestAccLogAnalyticsLinkedService_legacy(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on 3.0 or later")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 	r := LogAnalyticsLinkedServiceResource{}
 
@@ -102,18 +105,14 @@ func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 }
 
 func (t LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LogAnalyticsLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
-
-	resp, err := clients.LogAnalytics.LinkedServicesClient.Get(ctx, resourceGroup, workspaceName, serviceType)
+	resp, err := clients.LogAnalytics.LinkedServicesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Linked Service (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -155,7 +154,7 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, r.template(data))
 }
 
-// TODO: Remove in 3.0
+// CLEANUP: Remove in 3.0
 func (r LogAnalyticsLinkedServiceResource) legacy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

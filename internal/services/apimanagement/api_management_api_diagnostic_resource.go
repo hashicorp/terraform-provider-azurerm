@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,9 +79,9 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Verbose),
-					string(apimanagement.Information),
-					string(apimanagement.Error),
+					string(apimanagement.VerbosityVerbose),
+					string(apimanagement.VerbosityInformation),
+					string(apimanagement.VerbosityError),
 				}, false),
 			},
 
@@ -113,10 +113,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 			"operation_name_format": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.Name),
+				Default:  string(apimanagement.OperationNameFormatName),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Name),
-					string(apimanagement.URL),
+					string(apimanagement.OperationNameFormatName),
+					string(apimanagement.OperationNameFormatURL),
 				}, false),
 			},
 		},
@@ -163,24 +163,22 @@ func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 
 func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId := d.Get("identifier").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
+	id := parse.NewApiDiagnosticID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("identifier").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, diagnosticId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %s", diagnosticId, resourceGroup, serviceName, apiName, err)
+				return fmt.Errorf("checking for presence of existing Diagnostic %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_api_diagnostic", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_api_diagnostic", id.ID())
 		}
 	}
 
@@ -193,7 +191,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 
 	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
 		parameters.Sampling = &apimanagement.SamplingSettings{
-			SamplingType: apimanagement.Fixed,
+			SamplingType: apimanagement.SamplingTypeFixed,
 			Percentage:   utils.Float(samplingPercentage.(float64)),
 		}
 	} else {
@@ -201,7 +199,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
-		parameters.AlwaysLog = apimanagement.AllErrors
+		parameters.AlwaysLog = apimanagement.AlwaysLogAllErrors
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
@@ -241,18 +239,18 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, diagnosticId, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId, resourceGroup, serviceName, apiName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Diagnostic %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, diagnosticId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
 	if err != nil {
-		return fmt.Errorf("retrieving Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId, resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("retrieving Diagnostic %s: %+v", id, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading ID for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): ID is empty", diagnosticId, resourceGroup, serviceName, apiName)
+		return fmt.Errorf("reading ID for Diagnostic %s: ID is empty", id)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementApiDiagnosticRead(d, meta)
 }
@@ -287,7 +285,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 		if props.Sampling != nil && props.Sampling.Percentage != nil {
 			d.Set("sampling_percentage", props.Sampling.Percentage)
 		}
-		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
+		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AlwaysLogAllErrors)
 		d.Set("verbosity", props.Verbosity)
 		d.Set("log_client_ip", props.LogClientIP)
 		d.Set("http_correlation_protocol", props.HTTPCorrelationProtocol)
@@ -306,7 +304,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("backend_response", nil)
 		}
 
-		format := string(apimanagement.Name)
+		format := string(apimanagement.OperationNameFormatName)
 		if props.OperationNameFormat != "" {
 			format = string(props.OperationNameFormat)
 		}
@@ -397,8 +395,8 @@ func schemaApiManagementDataMaskingEntityList() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.Hide),
-						string(apimanagement.Mask),
+						string(apimanagement.DataMaskingModeHide),
+						string(apimanagement.DataMaskingModeMask),
 					}, false),
 				},
 

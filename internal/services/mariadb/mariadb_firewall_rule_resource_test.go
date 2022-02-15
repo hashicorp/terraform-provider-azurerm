@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbFirewallRuleResource struct {
-}
+type MariaDbFirewallRuleResource struct{}
 
 func TestAccMariaDbFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
@@ -50,17 +49,14 @@ func TestAccMariaDbFirewallRule_requiresImport(t *testing.T) {
 }
 
 func (MariaDbFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.MariaDBFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
-
-	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, id.ResourceGroup, serverName, name)
+	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Firewall Rule %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.FirewallRuleProperties != nil), nil

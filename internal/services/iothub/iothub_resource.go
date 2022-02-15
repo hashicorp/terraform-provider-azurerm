@@ -4,19 +4,27 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	servicebusValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -39,14 +47,23 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 }
 
 // nolint unparam
-func supressWhenAll(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
+func suppressIfTypeIs(t string) pluginsdk.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
+		path := strings.Split(k, ".")
+		path[len(path)-1] = "type"
+		return d.Get(strings.Join(path, ".")).(string) == t
+	}
+}
+
+// nolint unparam
+func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		for _, f := range fs {
-			if !f(k, old, new, d) {
-				return false
+			if f(k, old, new, d) {
+				return true
 			}
 		}
-		return true
+		return false
 	}
 }
 
@@ -158,19 +175,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
 						},
 						"container_name": {
 							Type:     pluginsdk.TypeString,
@@ -227,9 +235,42 @@ func resourceIotHub() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"authentication_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.AuthenticationTypeKeyBased),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.AuthenticationTypeKeyBased),
+								string(devices.AuthenticationTypeIdentityBased),
+							}, false),
+						},
+
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+						},
+
+						"endpoint_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"entity_path": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfTypeIs("AzureIotHub.StorageContainer"),
+							ValidateFunc: validation.Any(
+								servicebusValidate.QueueName(),
+								servicebusValidate.TopicName(),
+								eventhubValidate.ValidateEventHubName(),
+							),
+						},
+
 						"connection_string": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
 								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
@@ -271,10 +312,14 @@ func resourceIotHub() *pluginsdk.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
 
+						// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
+						// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 						"encoding": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							DiffSuppressFunc: supressWhenAll(
+							ForceNew: true,
+							Default:  string(devices.EncodingAvro),
+							DiffSuppressFunc: suppressWhenAny(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -285,9 +330,11 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"file_name_format": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: iothubValidate.FileNameFormat,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     iothubValidate.FileNameFormat,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
@@ -387,14 +434,14 @@ func resourceIotHub() *pluginsdk.Resource {
 						"source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "DeviceMessages",
+							Default:  string(devices.RoutingSourceDeviceMessages),
 							ValidateFunc: validation.StringInSlice([]string{
-								"DeviceConnectionStateEvents",
-								"DeviceJobLifecycleEvents",
-								"DeviceLifecycleEvents",
-								"DeviceMessages",
-								"Invalid",
-								"TwinChangeEvents",
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
 						"condition": {
@@ -449,6 +496,55 @@ func resourceIotHub() *pluginsdk.Resource {
 				},
 			},
 
+			"cloud_to_device": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"max_delivery_count": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"default_ttl": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "PT1H",
+							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+						},
+						"feedback": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"time_to_live": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT1H",
+										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+									},
+									"max_delivery_count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      10,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"lock_duration": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT60S",
+										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -477,6 +573,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"event_hub_events_namespace": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 			"event_hub_operations_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -490,6 +590,8 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
@@ -515,8 +617,8 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iothub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iothub", id.ID())
 		}
 	}
 
@@ -545,15 +647,36 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
+	} else if features.ThreePointOhBeta() {
+		// TODO update docs for 3.0
+		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
+			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
+			Condition:     utils.String("true"),
+			EndpointNames: &[]string{"events"},
+			IsEnabled:     utils.Bool(true),
+		}
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {
-		routingProperties.Endpoints = expandIoTHubEndpoints(d, subscriptionId)
+		routingProperties.Endpoints, err = expandIoTHubEndpoints(d, subscriptionId)
+		if err != nil {
+			return fmt.Errorf("expanding `endpoint`: %+v", err)
+		}
 	}
 
 	storageEndpoints, messagingEndpoints, enableFileUploadNotifications := expandIoTHubFileUpload(d)
 	if err != nil {
 		return fmt.Errorf("expanding `file_upload`: %+v", err)
+	}
+
+	cloudToDeviceProperties := &devices.CloudToDeviceProperties{}
+	if _, ok := d.GetOk("cloud_to_device"); ok {
+		cloudToDeviceProperties = expandIoTHubCloudToDevice(d)
+	}
+
+	identity, err := expandIotHubIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	props := devices.IotHubDescription{
@@ -566,8 +689,10 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
+			CloudToDevice:                 cloudToDeviceProperties,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// nolint staticcheck
@@ -661,6 +786,14 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if k == "events" {
 				d.Set("event_hub_events_endpoint", v.Endpoint)
+
+				if *v.Endpoint != "" {
+					uri, err := url.Parse(*v.Endpoint)
+					if err == nil {
+						d.Set("event_hub_events_namespace", strings.Split(uri.Hostname(), ".")[0])
+					}
+				}
+
 				d.Set("event_hub_events_path", v.Path)
 				d.Set("event_hub_partition_count", v.PartitionCount)
 				d.Set("event_hub_retention_in_days", v.RetentionTimeInDays)
@@ -706,7 +839,20 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
+		cloudToDevice := flattenIoTHubCloudToDevice(properties.CloudToDevice)
+		if err := d.Set("cloud_to_device", cloudToDevice); err != nil {
+			return fmt.Errorf("setting `cloudToDevice` in IoTHub %q: %+v", id.Name, err)
+		}
+
 		d.Set("min_tls_version", properties.MinTLSVersion)
+	}
+
+	identity, err := flattenIotHubIdentity(hub.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("name", id.Name)
@@ -750,7 +896,6 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-
 		return err
 	}
 
@@ -897,7 +1042,7 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 	return storageEndpointProperties, messagingEndpointProperties, notifications
 }
 
-func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) *devices.RoutingEndpoints {
+func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
 	routeEndpointList := d.Get("endpoint").([]interface{})
 
 	serviceBusQueueEndpointProperties := make([]devices.RoutingServiceBusQueueEndpointProperties, 0)
@@ -909,21 +1054,68 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) *de
 		endpoint := endpointRaw.(map[string]interface{})
 
 		t := endpoint["type"]
-		connectionStr := endpoint["connection_string"].(string)
 		name := endpoint["name"].(string)
 		resourceGroup := endpoint["resource_group_name"].(string)
+		authenticationType := devices.AuthenticationType(endpoint["authentication_type"].(string))
 		subscriptionID := subscriptionId
+
+		var identity *devices.ManagedIdentity
+		var endpointUri *string
+		var entityPath *string
+		var connectionStr *string
+		if v := endpoint["identity_id"].(string); v != "" {
+			identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: utils.String(v),
+			}
+		}
+		if v := endpoint["endpoint_uri"].(string); v != "" {
+			endpointUri = utils.String(v)
+		}
+		if v := endpoint["entity_path"].(string); v != "" {
+			entityPath = utils.String(v)
+		}
+		if v := endpoint["connection_string"].(string); v != "" {
+			connectionStr = utils.String(v)
+		}
+
+		if authenticationType == devices.AuthenticationTypeKeyBased {
+			if connectionStr == nil {
+				return nil, fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+			}
+			if identity != nil || endpointUri != nil || entityPath != nil {
+				return nil, fmt.Errorf("`identity_id`, `endpoint_uri` or `entity_path` cannot be specified when `authentication_type` is `keyBased`")
+			}
+		} else {
+			if endpointUri == nil {
+				return nil, fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
+			}
+
+			if entityPath == nil && t != "AzureIotHub.StorageContainer" {
+				return nil, fmt.Errorf("`entity_path` must be specified when `authentication_type` is `identityBased` and `type` is `%s`", t)
+			}
+
+			if connectionStr != nil {
+				return nil, fmt.Errorf("`connection_string` cannot be specified when `authentication_type` is `identityBased`")
+			}
+		}
 
 		switch t {
 		case "AzureIotHub.StorageContainer":
 			containerName := endpoint["container_name"].(string)
+			if containerName == "" {
+				return nil, fmt.Errorf("`container_name` must be specified when `type` is `AzureIotHub.StorageContainer`")
+			}
+
 			fileNameFormat := endpoint["file_name_format"].(string)
 			batchFrequencyInSeconds := int32(endpoint["batch_frequency_in_seconds"].(int))
 			maxChunkSizeInBytes := int32(endpoint["max_chunk_size_in_bytes"].(int))
 			encoding := endpoint["encoding"].(string)
 
 			storageContainer := devices.RoutingStorageContainerProperties{
-				ConnectionString:        &connectionStr,
+				AuthenticationType:      authenticationType,
+				Identity:                identity,
+				EndpointURI:             endpointUri,
+				ConnectionString:        connectionStr,
 				Name:                    &name,
 				SubscriptionID:          &subscriptionID,
 				ResourceGroup:           &resourceGroup,
@@ -937,28 +1129,40 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) *de
 
 		case "AzureIotHub.ServiceBusQueue":
 			sbQueue := devices.RoutingServiceBusQueueEndpointProperties{
-				ConnectionString: &connectionStr,
-				Name:             &name,
-				SubscriptionID:   &subscriptionID,
-				ResourceGroup:    &resourceGroup,
+				AuthenticationType: authenticationType,
+				Identity:           identity,
+				EndpointURI:        endpointUri,
+				EntityPath:         entityPath,
+				ConnectionString:   connectionStr,
+				Name:               &name,
+				SubscriptionID:     &subscriptionID,
+				ResourceGroup:      &resourceGroup,
 			}
 			serviceBusQueueEndpointProperties = append(serviceBusQueueEndpointProperties, sbQueue)
 
 		case "AzureIotHub.ServiceBusTopic":
 			sbTopic := devices.RoutingServiceBusTopicEndpointProperties{
-				ConnectionString: &connectionStr,
-				Name:             &name,
-				SubscriptionID:   &subscriptionID,
-				ResourceGroup:    &resourceGroup,
+				AuthenticationType: authenticationType,
+				Identity:           identity,
+				EndpointURI:        endpointUri,
+				EntityPath:         entityPath,
+				ConnectionString:   connectionStr,
+				Name:               &name,
+				SubscriptionID:     &subscriptionID,
+				ResourceGroup:      &resourceGroup,
 			}
 			serviceBusTopicEndpointProperties = append(serviceBusTopicEndpointProperties, sbTopic)
 
 		case "AzureIotHub.EventHub":
 			eventHub := devices.RoutingEventHubProperties{
-				ConnectionString: &connectionStr,
-				Name:             &name,
-				SubscriptionID:   &subscriptionID,
-				ResourceGroup:    &resourceGroup,
+				AuthenticationType: authenticationType,
+				Identity:           identity,
+				EndpointURI:        endpointUri,
+				EntityPath:         entityPath,
+				ConnectionString:   connectionStr,
+				Name:               &name,
+				SubscriptionID:     &subscriptionID,
+				ResourceGroup:      &resourceGroup,
 			}
 			eventHubProperties = append(eventHubProperties, eventHub)
 		}
@@ -969,7 +1173,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) *de
 		ServiceBusTopics:  &serviceBusTopicEndpointProperties,
 		EventHubs:         &eventHubProperties,
 		StorageContainers: &storageContainerProperties,
-	}
+	}, nil
 }
 
 func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRouteProperties {
@@ -1000,6 +1204,36 @@ func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
 		Name:     devices.IotHubSku(skuMap["name"].(string)),
 		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
 	}
+}
+
+func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDeviceProperties {
+	ctdList := d.Get("cloud_to_device").([]interface{})
+	if len(ctdList) == 0 {
+		return nil
+	}
+	cloudToDevice := devices.CloudToDeviceProperties{}
+	ctdMap := ctdList[0].(map[string]interface{})
+	defaultTimeToLive := ctdMap["default_ttl"].(string)
+
+	cloudToDevice.DefaultTTLAsIso8601 = &defaultTimeToLive
+	cloudToDevice.MaxDeliveryCount = utils.Int32(int32(ctdMap["max_delivery_count"].(int)))
+	feedback := ctdMap["feedback"].([]interface{})
+
+	cloudToDeviceFeedback := devices.FeedbackProperties{}
+	if len(feedback) > 0 {
+		feedbackMap := feedback[0].(map[string]interface{})
+
+		lockDuration := feedbackMap["lock_duration"].(string)
+		timeToLive := feedbackMap["time_to_live"].(string)
+
+		cloudToDeviceFeedback.TTLAsIso8601 = &timeToLive
+		cloudToDeviceFeedback.LockDurationAsIso8601 = &lockDuration
+		cloudToDeviceFeedback.MaxDeliveryCount = utils.Int32(int32(feedbackMap["max_delivery_count"].(int)))
+	}
+
+	cloudToDevice.Feedback = &cloudToDeviceFeedback
+
+	return &cloudToDevice
 }
 
 func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
@@ -1085,9 +1319,30 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 			for _, container := range *containers {
 				output := make(map[string]interface{})
 
-				if connString := container.ConnectionString; connString != nil {
-					output["connection_string"] = *connString
+				authenticationType := string(devices.AuthenticationTypeKeyBased)
+				if string(container.AuthenticationType) != "" {
+					authenticationType = string(container.AuthenticationType)
 				}
+				output["authentication_type"] = authenticationType
+
+				connectionStr := ""
+				if container.ConnectionString != nil {
+					connectionStr = *container.ConnectionString
+				}
+				output["connection_string"] = connectionStr
+
+				endpointUri := ""
+				if container.EndpointURI != nil {
+					endpointUri = *container.EndpointURI
+				}
+				output["endpoint_uri"] = endpointUri
+
+				identityId := ""
+				if container.Identity != nil && container.Identity.UserAssignedIdentity != nil {
+					identityId = *container.Identity.UserAssignedIdentity
+				}
+				output["identity_id"] = identityId
+
 				if name := container.Name; name != nil {
 					output["name"] = *name
 				}
@@ -1118,9 +1373,36 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 			for _, queue := range *queues {
 				output := make(map[string]interface{})
 
-				if connString := queue.ConnectionString; connString != nil {
-					output["connection_string"] = *connString
+				authenticationType := string(devices.AuthenticationTypeKeyBased)
+				if string(queue.AuthenticationType) != "" {
+					authenticationType = string(queue.AuthenticationType)
 				}
+				output["authentication_type"] = authenticationType
+
+				connectionStr := ""
+				if queue.ConnectionString != nil {
+					connectionStr = *queue.ConnectionString
+				}
+				output["connection_string"] = connectionStr
+
+				endpointUri := ""
+				if queue.EndpointURI != nil {
+					endpointUri = *queue.EndpointURI
+				}
+				output["endpoint_uri"] = endpointUri
+
+				entityPath := ""
+				if queue.EntityPath != nil {
+					entityPath = *queue.EntityPath
+				}
+				output["entity_path"] = entityPath
+
+				identityId := ""
+				if queue.Identity != nil && queue.Identity.UserAssignedIdentity != nil {
+					identityId = *queue.Identity.UserAssignedIdentity
+				}
+				output["identity_id"] = identityId
+
 				if name := queue.Name; name != nil {
 					output["name"] = *name
 				}
@@ -1138,9 +1420,36 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 			for _, topic := range *topics {
 				output := make(map[string]interface{})
 
-				if connString := topic.ConnectionString; connString != nil {
-					output["connection_string"] = *connString
+				authenticationType := string(devices.AuthenticationTypeKeyBased)
+				if string(topic.AuthenticationType) != "" {
+					authenticationType = string(topic.AuthenticationType)
 				}
+				output["authentication_type"] = authenticationType
+
+				connectionStr := ""
+				if topic.ConnectionString != nil {
+					connectionStr = *topic.ConnectionString
+				}
+				output["connection_string"] = connectionStr
+
+				endpointUri := ""
+				if topic.EndpointURI != nil {
+					endpointUri = *topic.EndpointURI
+				}
+				output["endpoint_uri"] = endpointUri
+
+				entityPath := ""
+				if topic.EntityPath != nil {
+					entityPath = *topic.EntityPath
+				}
+				output["entity_path"] = entityPath
+
+				identityId := ""
+				if topic.Identity != nil && topic.Identity.UserAssignedIdentity != nil {
+					identityId = *topic.Identity.UserAssignedIdentity
+				}
+				output["identity_id"] = identityId
+
 				if name := topic.Name; name != nil {
 					output["name"] = *name
 				}
@@ -1158,9 +1467,36 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 			for _, eventHub := range *eventHubs {
 				output := make(map[string]interface{})
 
-				if connString := eventHub.ConnectionString; connString != nil {
-					output["connection_string"] = *connString
+				authenticationType := string(devices.AuthenticationTypeKeyBased)
+				if string(eventHub.AuthenticationType) != "" {
+					authenticationType = string(eventHub.AuthenticationType)
 				}
+				output["authentication_type"] = authenticationType
+
+				connectionStr := ""
+				if eventHub.ConnectionString != nil {
+					connectionStr = *eventHub.ConnectionString
+				}
+				output["connection_string"] = connectionStr
+
+				endpointUri := ""
+				if eventHub.EndpointURI != nil {
+					endpointUri = *eventHub.EndpointURI
+				}
+				output["endpoint_uri"] = endpointUri
+
+				entityPath := ""
+				if eventHub.EntityPath != nil {
+					entityPath = *eventHub.EntityPath
+				}
+				output["entity_path"] = entityPath
+
+				identityId := ""
+				if eventHub.Identity != nil && eventHub.Identity.UserAssignedIdentity != nil {
+					identityId = *eventHub.Identity.UserAssignedIdentity
+				}
+				output["identity_id"] = identityId
+
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
 				}
@@ -1253,6 +1589,44 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	return []interface{}{output}
 }
 
+func flattenIoTHubCloudToDevice(input *devices.CloudToDeviceProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if maxDeliveryCount := input.MaxDeliveryCount; maxDeliveryCount != nil {
+		output["max_delivery_count"] = *maxDeliveryCount
+	}
+	if defaultTimeToLive := input.DefaultTTLAsIso8601; defaultTimeToLive != nil {
+		output["default_ttl"] = *defaultTimeToLive
+	}
+
+	output["feedback"] = flattenIoTHubCloudToDeviceFeedback(input.Feedback)
+
+	return []interface{}{output}
+}
+
+func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	feedback := make(map[string]interface{})
+	if feedbackMaxDeliveryCount := input.MaxDeliveryCount; feedbackMaxDeliveryCount != nil {
+		feedback["max_delivery_count"] = *feedbackMaxDeliveryCount
+	}
+	if feedbackTimeToLive := input.TTLAsIso8601; feedbackTimeToLive != nil {
+		feedback["time_to_live"] = *feedbackTimeToLive
+	}
+	if feedbackLockDuration := input.LockDurationAsIso8601; feedbackLockDuration != nil {
+		feedback["lock_duration"] = *feedbackLockDuration
+	}
+
+	return []interface{}{feedback}
+}
+
 func expandIPFilterRules(d *pluginsdk.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
@@ -1295,4 +1669,78 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	identity := devices.ArmIdentity{
+		Type: devices.ResourceIdentityType(config.Type),
+	}
+
+	if len(config.IdentityIds) != 0 {
+		identityIds := make(map[string]*devices.ArmUserIdentity, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = &devices.ArmUserIdentity{}
+		}
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
+func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// The access keys are always masked by Azure and the ordering of the parameters in the connection string
+	// differs across services, so we will compare the fields individually instead.
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+
+	if secretKeyRegex.MatchString(new) {
+		maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+
+		oldSplit := strings.Split(old, ";")
+		newSplit := strings.Split(maskedNew, ";")
+
+		sort.Strings(oldSplit)
+		sort.Strings(newSplit)
+
+		if len(oldSplit) != len(newSplit) {
+			return false
+		}
+
+		for i := range oldSplit {
+			if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }

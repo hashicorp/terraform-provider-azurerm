@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeSelfHostedResource struct {
-}
+type IntegrationRuntimeSelfHostedResource struct{}
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")

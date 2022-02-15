@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsSolutionResource struct {
-}
+type LogAnalyticsSolutionResource struct{}
 
 func TestAccLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
@@ -65,16 +64,14 @@ func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
 }
 
 func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LogAnalyticsSolutionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["solutions"]
 
-	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, resGroup, name)
+	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, id.ResourceGroup, id.SolutionName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Log Analytics Solution (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

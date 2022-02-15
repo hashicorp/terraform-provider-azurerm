@@ -92,6 +92,7 @@ func TestAccConsumptionBudgetSubscription_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionResource{}
@@ -115,15 +116,14 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetSubscriptionID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	scope := fmt.Sprintf("/subscriptions/%s", id.SubscriptionId)
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, scope, id.BudgetName)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.BudgetProperties != nil), nil
@@ -135,11 +135,11 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "test" {}
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.test.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -197,9 +197,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Changed threshold and operator
   notification {
-    enabled   = true
-    threshold = 95.0
-    operator  = "GreaterThan"
+    enabled        = true
+    threshold      = 95.0
+    threshold_type = "Forecasted"
+    operator       = "GreaterThan"
 
     contact_emails = [
       "foo@example.com",
@@ -325,9 +326,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -399,9 +401,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Actual"
 
     contact_emails = [
       // Added baz@example.com
@@ -418,8 +421,9 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   notification {
     // Set enabled to true
-    enabled   = true
-    threshold = 100.0
+    enabled        = true
+    threshold      = 100.0
+    threshold_type = "Forecasted"
     // Changed from EqualTo to GreaterThanOrEqualTo 
     operator = "GreaterThanOrEqualTo"
 

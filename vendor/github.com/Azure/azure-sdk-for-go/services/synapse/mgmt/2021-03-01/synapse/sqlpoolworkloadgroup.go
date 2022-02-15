@@ -74,7 +74,7 @@ func (client SQLPoolWorkloadGroupClient) CreateOrUpdate(ctx context.Context, res
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -110,6 +110,7 @@ func (client SQLPoolWorkloadGroupClient) CreateOrUpdatePreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client SQLPoolWorkloadGroupClient) CreateOrUpdateSender(req *http.Request) (future SQLPoolWorkloadGroupCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -168,7 +169,7 @@ func (client SQLPoolWorkloadGroupClient) Delete(ctx context.Context, resourceGro
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -202,6 +203,7 @@ func (client SQLPoolWorkloadGroupClient) DeletePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client SQLPoolWorkloadGroupClient) DeleteSender(req *http.Request) (future SQLPoolWorkloadGroupDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

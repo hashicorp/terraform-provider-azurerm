@@ -136,8 +136,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 		{
 			Config: r.basicLinuxMachineDeleteVM_managedDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(r.managedDiskExists(osDiskId, true)),
-				data.CheckWithClient(r.managedDiskExists(dataDiskId, true)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&osDiskId, true)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&dataDiskId, true)),
 			),
 		},
 	})
@@ -163,8 +163,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 		{
 			Config: r.basicLinuxMachine_managedDisk_DestroyDisksAfter(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(r.managedDiskExists(osDiskId, false)),
-				data.CheckWithClient(r.managedDiskExists(dataDiskId, false)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&osDiskId, false)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&dataDiskId, false)),
 			),
 		},
 	})
@@ -177,7 +177,7 @@ func TestAccVirtualMachine_osDiskTypeConflict(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.osDiskTypeConflict(data),
-			ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
+			ExpectError: regexp.MustCompile("Conflicting configuration arguments"),
 		},
 	})
 }
@@ -424,6 +424,27 @@ func TestAccVirtualMachine_ultraSSD(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ultraSSD(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAvailabilitySet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+
+		{
+			Config: r.updateAvailabilitySet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2483,4 +2504,164 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualMachineResource) withAvailabilitySet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_availability_set" "test" {
+  name                = "availabilityset%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                          = "acctvm-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
+  vm_size                       = "Standard_D1_v2"
+  availability_set_id           = azurerm_availability_set.test.id
+  delete_os_disk_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "osd-%d"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "50"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualMachineResource) updateAvailabilitySet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_availability_set" "test" {
+  name                = "updatedAvailabilitySet%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                          = "acctvm-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
+  vm_size                       = "Standard_D1_v2"
+  availability_set_id           = azurerm_availability_set.test.id
+  delete_os_disk_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "osd-%d"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "50"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

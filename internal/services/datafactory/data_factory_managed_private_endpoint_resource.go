@@ -3,6 +3,7 @@ package datafactory
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -11,8 +12,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,9 +61,19 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 
 			"subresource_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 		},
 	}
@@ -95,15 +108,55 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
 	}
 
+	targetResourceId := d.Get("target_resource_id").(string)
+	subResourceName := d.Get("subresource_name").(string)
+	fqdns := d.Get("fqdns").([]interface{})
+
+	if _, err := networkParse.PrivateLinkServiceID(targetResourceId); err == nil {
+		if len(subResourceName) > 0 {
+			return fmt.Errorf("`subresource_name` should not be specified when target resource is `Private Link Service`")
+		}
+
+		if len(fqdns) == 0 {
+			return fmt.Errorf("`fqdns` should be specified when target resource is `Private Link Service`")
+		}
+	} else {
+		if len(strings.TrimSpace(subResourceName)) < 3 {
+			return fmt.Errorf("`subresource_name` must be at least 3 character in length")
+		}
+
+		if len(fqdns) > 0 {
+			return fmt.Errorf("`fqdns` should not be specified for the target resource: %q", targetResourceId)
+		}
+	}
+
 	managedPrivateEndpoint := datafactory.ManagedPrivateEndpointResource{
 		Properties: &datafactory.ManagedPrivateEndpoint{
-			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
-			GroupID:               utils.String(d.Get("subresource_name").(string)),
+			PrivateLinkResourceID: utils.String(targetResourceId),
 		},
+	}
+
+	if len(subResourceName) > 0 {
+		managedPrivateEndpoint.Properties.GroupID = utils.String(subResourceName)
+	}
+
+	if len(fqdns) > 0 {
+		managedPrivateEndpoint.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint, ""); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Provisioning"},
+		Target:     []string{"Succeeded"},
+		Refresh:    getManagedPrivateEndpointProvisionStatus(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
@@ -138,6 +191,9 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 	if props := resp.Properties; props != nil {
 		d.Set("target_resource_id", props.PrivateLinkResourceID)
 		d.Set("subresource_name", props.GroupID)
+		if props.Fqdns != nil {
+			d.Set("fqdns", props.Fqdns)
+		}
 	}
 
 	return nil
@@ -178,4 +234,15 @@ func getManagedPrivateEndpoint(ctx context.Context, client *datafactory.ManagedP
 		}
 	}
 	return nil, nil
+}
+
+func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *datafactory.ManagedPrivateEndpointsClient, id parse.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, "")
+		if err != nil || resp.Properties == nil || resp.Properties.ProvisioningState == nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, *resp.Properties.ProvisioningState, nil
+	}
 }

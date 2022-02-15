@@ -22,7 +22,6 @@ func TestPortalTenantConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *PortalTenantConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

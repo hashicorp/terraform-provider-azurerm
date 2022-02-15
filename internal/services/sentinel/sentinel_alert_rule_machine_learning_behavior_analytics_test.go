@@ -158,7 +158,6 @@ resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test2.name
   enabled                    = false
 }
-
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 

@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `routing` - (Optional) A `routing` block as defined below. If this is not specified, there will be a default route table created implicitly.
 
+* `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks as defined below.
+
 ---
 
 A `ipsec_policy` block supports the following:
@@ -113,11 +115,17 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
+* `egress_nat_rule_ids` - (Optional) A list of the egress Nat Rule Ids.
+
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress Nat Rule Ids.
+
 * `vpn_site_link_id` - (Required) The ID of the connected VPN Site Link. Changing this forces a new VPN Gateway Connection to be created.
 
 * `bandwidth_mbps` - (Optional) The expected connection bandwidth in MBPS. Defaults to `10`.
 
 * `bgp_enabled` - (Optional) Should the BGP be enabled? Defaults to `false`. Changing this forces a new VPN Gateway Connection to be created.
+
+* `connection_mode` - (Optional) The connection mode of this VPN Link. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`.
 
 * `ipsec_policy` - (Optional) One or more `ipsec_policy` blocks as defined above.
 
@@ -137,9 +145,25 @@ A `vpn_link` block supports the following:
 
 A `routing` block supports the following:
 
-* `associated_route_table` - The ID of the Route Table associated with this VPN Connection.
+* `associated_route_table` - (Required) The ID of the Route Table associated with this VPN Connection.
 
-* `propagated_route_tables` - The list IDs of Route Tables to advertise the routes of this VPN Connection.
+* `propagated_route_table` - (Required) A `propagated_route_table` block as defined below.
+
+---
+
+A `traffic_selector_policy` block supports the following:
+
+* `local_address_ranges` - (Required) A list of local address spaces in CIDR format for this VPN Gateway Connection.
+
+* `remote_address_ranges` - (Required) A list of remote address spaces in CIDR format for this VPN Gateway Connection.
+
+---
+
+A `propagated_route_table` block supports the following:
+
+* `route_table_ids` - (Required) A list of Route Table ID's to associated with this VPN Gateway Connection.
+
+* `labels` - (Optional) A list of labels to assign to this route table.
 
 ## Attributes Reference
 

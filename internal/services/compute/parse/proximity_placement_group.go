@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ProximityPlacementGroupId struct {
@@ -39,7 +39,7 @@ func (id ProximityPlacementGroupId) ID() string {
 
 // ProximityPlacementGroupID parses a ProximityPlacementGroup ID into an ProximityPlacementGroupId struct
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

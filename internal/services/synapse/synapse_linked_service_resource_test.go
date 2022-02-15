@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceResource struct {
-}
+type LinkedServiceResource struct{}
 
 func TestAccSynapseLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")

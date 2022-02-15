@@ -10,6 +10,8 @@ description: |-
 
 Manages a Azure Data Lake Store File.
 
+~> **Note:** This resoruce manages an `Azure Data Lake Storage Gen1`, previously known as `Azure Data Lake Store`.
+
 ~> **Note:** If you want to change the data in the remote file without changing the `local_file_path`, then
 taint the resource so the `azurerm_data_lake_store_file` gets recreated with the new data.
 
@@ -65,5 +67,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Lake Store File's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_store_file.exampleexample.azuredatalakestore.net/test/example.txt
+terraform import azurerm_data_lake_store_file.example example.azuredatalakestore.net/test/example.txt
 ```

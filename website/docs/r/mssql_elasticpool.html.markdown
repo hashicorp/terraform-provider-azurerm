@@ -36,9 +36,9 @@ resource "azurerm_mssql_elasticpool" "example" {
   max_size_gb         = 756
 
   sku {
-    name     = "GP_Gen5"
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
+    name     = "BasicPool"
+    tier     = "Basic"
+    family   = "Gen4"
     capacity = 4
   }
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `tier` - (Required) The tier of the particular SKU. Possible values are `GeneralPurpose`, `BusinessCritical`, `Basic`, `Standard`, or `Premium`. For more information see the documentation for your Elasticpool configuration: [vCore-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-vcore-resource-limits-elastic-pools) or [DTU-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-dtu-resource-limits-elastic-pools).
 
-* `family` - (Optional) The `family` of hardware `Gen4` or `Gen5`.
+* `family` - (Optional) The `family` of hardware `Gen4`, `Gen5`, `Fsv2` or `DC`.
 
 ---
 

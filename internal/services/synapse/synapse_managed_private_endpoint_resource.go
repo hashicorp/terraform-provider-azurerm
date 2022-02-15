@@ -88,40 +88,34 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	}
 	virtualNetworkName := *workspace.WorkspaceProperties.ManagedVirtualNetwork
 
-	privateEndpointName := d.Get("name").(string)
+	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, virtualNetworkName, d.Get("name").(string))
 	client, err := synapseClient.ManagedPrivateEndpointsClient(workspaceId.Name, environment.SynapseEndpointSuffix)
 	if err != nil {
-		return err
+		return fmt.Errorf("building Client for %s: %+v", id, err)
 	}
 
 	// check exist
-	existing, err := client.Get(ctx, virtualNetworkName, privateEndpointName)
+	existing, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q): %+v", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 	}
 
-	// create
 	managedPrivateEndpoint := managedvirtualnetwork.ManagedPrivateEndpoint{
 		Properties: &managedvirtualnetwork.ManagedPrivateEndpointProperties{
 			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
 			GroupID:               utils.String(d.Get("subresource_name").(string)),
 		},
 	}
-	resp, err := client.Create(ctx, virtualNetworkName, privateEndpointName, managedPrivateEndpoint)
-	if err != nil {
-		return fmt.Errorf("creating Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q): %+v", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup, err)
+	if _, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q)", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 
@@ -138,16 +132,17 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta i
 
 	client, err := synapseClient.ManagedPrivateEndpointsClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
 	if err != nil {
-		return err
+		return fmt.Errorf("building Client for %s: %v", *id, err)
 	}
+
 	resp, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Synapse Managed Private Endpoint %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse Managed Private Endpoint (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
@@ -174,10 +169,11 @@ func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta
 
 	client, err := synapseClient.ManagedPrivateEndpointsClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
 	if err != nil {
-		return err
+		return fmt.Errorf("building Client for %s: %v", *id, err)
 	}
+
 	if _, err := client.Delete(ctx, id.ManagedVirtualNetworkName, id.Name); err != nil {
-		return fmt.Errorf("deleting Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q): %+v", id, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

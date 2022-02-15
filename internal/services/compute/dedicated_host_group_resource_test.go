@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DedicatedHostGroupResource struct {
-}
+type DedicatedHostGroupResource struct{}
 
 func TestAccDedicatedHostGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
@@ -81,14 +80,12 @@ func TestAccDedicatedHostGroup_complete(t *testing.T) {
 }
 
 func (r DedicatedHostGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.HostGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroupName := id.ResourceGroup
-	name := id.Path["hostGroups"]
 
-	resp, err := clients.Compute.DedicatedHostGroupsClient.Get(ctx, resourceGroupName, name, "")
+	resp, err := clients.Compute.DedicatedHostGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Dedicated Host Group %q", id)
 	}

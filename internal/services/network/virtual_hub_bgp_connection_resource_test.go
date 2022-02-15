@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubBGPConnectionResource struct {
-}
+type VirtualHubBGPConnectionResource struct{}
 
 func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
@@ -80,7 +79,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-PIP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network" "test" {

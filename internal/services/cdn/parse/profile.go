@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ProfileId struct {
@@ -39,7 +39,7 @@ func (id ProfileId) ID() string {
 
 // ProfileID parses a Profile ID into an ProfileId struct
 func ProfileID(input string) (*ProfileId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,50 @@ func ProfileID(input string) (*ProfileId, error) {
 	}
 
 	if resourceId.Name, err = id.PopSegment("profiles"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ProfileIDInsensitively parses an Profile ID into an ProfileId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ProfileID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ProfileIDInsensitively(input string) (*ProfileId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ProfileId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'profiles' segment
+	profilesKey := "profiles"
+	for key := range id.Path {
+		if strings.EqualFold(key, profilesKey) {
+			profilesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(profilesKey); err != nil {
 		return nil, err
 	}
 

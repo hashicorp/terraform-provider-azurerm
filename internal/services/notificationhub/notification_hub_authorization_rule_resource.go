@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
-
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -211,15 +210,15 @@ func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen
 	rights := make([]notificationhubs.AccessRights, 0)
 
 	if manage {
-		rights = append(rights, notificationhubs.Manage)
+		rights = append(rights, notificationhubs.AccessRightsManage)
 	}
 
 	if send {
-		rights = append(rights, notificationhubs.SendEnumValue)
+		rights = append(rights, notificationhubs.AccessRightsSend)
 	}
 
 	if listen {
-		rights = append(rights, notificationhubs.Listen)
+		rights = append(rights, notificationhubs.AccessRightsListen)
 	}
 
 	return &rights
@@ -232,13 +231,13 @@ func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.Acc
 
 	for _, right := range *input {
 		switch right {
-		case notificationhubs.Manage:
+		case notificationhubs.AccessRightsManage:
 			manage = true
 			continue
-		case notificationhubs.SendEnumValue:
+		case notificationhubs.AccessRightsSend:
 			send = true
 			continue
-		case notificationhubs.Listen:
+		case notificationhubs.AccessRightsListen:
 			listen = true
 			continue
 		}

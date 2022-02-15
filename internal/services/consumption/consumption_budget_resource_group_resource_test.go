@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -86,6 +85,7 @@ func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
 	r := ConsumptionBudgetResourceGroupResource{}
@@ -109,15 +109,14 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetResourceGroupID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, resourceGroupId.ID(), id.BudgetName)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.BudgetProperties != nil), nil
@@ -201,9 +200,10 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 
   // Changed threshold and operator
   notification {
-    enabled   = true
-    threshold = 95.0
-    operator  = "GreaterThan"
+    enabled        = true
+    threshold      = 95.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -310,9 +310,10 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -406,6 +407,9 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     enabled   = true
     threshold = 90.0
     operator  = "EqualTo"
+    // We don't update the value of threshold_type because toggling between the two seems to be broken
+    // See the comment on threshold_type in the schema for more details
+    threshold_type = "Forecasted"
 
     contact_emails = [
       // Added baz@example.com

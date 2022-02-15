@@ -5,10 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,9 +24,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyCreateUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -224,7 +226,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 												},
 												"disabled_rules": {
 													Type:     pluginsdk.TypeList,
-													Required: true,
+													Optional: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -267,13 +269,13 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 750),
+							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(8, 128),
+							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
 					},
@@ -299,17 +301,17 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -333,18 +335,11 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData,
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Web Application Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
@@ -354,25 +349,23 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["ApplicationGatewayWebApplicationFirewallPolicies"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Web Application Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -402,20 +395,18 @@ func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["ApplicationGatewayWebApplicationFirewallPolicies"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -532,11 +523,13 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *
 		v := item.(map[string]interface{})
 
 		ruleGroupName := v["rule_group_name"].(string)
-		disabledRules := v["disabled_rules"].([]interface{})
 
 		result := network.ManagedRuleGroupOverride{
 			RuleGroupName: utils.String(ruleGroupName),
-			Rules:         expandWebApplicationFirewallPolicyRules(disabledRules),
+		}
+
+		if disabledRules := v["disabled_rules"].([]interface{}); len(disabledRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
 		}
 
 		results = append(results, result)
@@ -719,12 +712,12 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]network.Mana
 
 func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.ManagedRuleOverride) []string {
 	results := make([]string, 0)
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled {
+		if (item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled) && item.RuleID != nil {
 			v := *item.RuleID
 
 			results = append(results, v)

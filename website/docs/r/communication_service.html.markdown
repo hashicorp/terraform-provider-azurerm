@@ -44,6 +44,10 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Communication Service.
+* `primary_connection_string` - The primary connection string of the Communication Service.
+* `secondary_connection_string` - The secondary connection string of the Communication Service.
+* `primary_key` - The primary key of the Communication Service.
+* `secondary_key` - The secondary key of the Communication Service.
 
 ## Timeouts
 

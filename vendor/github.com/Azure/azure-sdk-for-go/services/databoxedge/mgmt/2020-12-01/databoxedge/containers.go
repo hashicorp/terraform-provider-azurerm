@@ -63,7 +63,7 @@ func (client ContainersClient) CreateOrUpdate(ctx context.Context, deviceName st
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client ContainersClient) CreateOrUpdatePreparer(ctx context.Context, devic
 // http.Response Body if it receives an error.
 func (client ContainersClient) CreateOrUpdateSender(req *http.Request) (future ContainersCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -147,7 +148,7 @@ func (client ContainersClient) Delete(ctx context.Context, deviceName string, st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -181,6 +182,7 @@ func (client ContainersClient) DeletePreparer(ctx context.Context, deviceName st
 // http.Response Body if it receives an error.
 func (client ContainersClient) DeleteSender(req *http.Request) (future ContainersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -428,7 +430,7 @@ func (client ContainersClient) Refresh(ctx context.Context, deviceName string, s
 
 	result, err = client.RefreshSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Refresh", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Refresh", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -462,6 +464,7 @@ func (client ContainersClient) RefreshPreparer(ctx context.Context, deviceName s
 // http.Response Body if it receives an error.
 func (client ContainersClient) RefreshSender(req *http.Request) (future ContainersRefreshFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

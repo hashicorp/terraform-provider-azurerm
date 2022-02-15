@@ -4,7 +4,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -32,7 +32,11 @@ resource "azurerm_cosmosdb_account" "example" {
 
   enable_automatic_failover         = false
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+
+  // set ip_range_filter to allow azure services (0.0.0.0) and azure portal.
+  // https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
+  // https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
+  ip_range_filter = "0.0.0.0,104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
 
   capabilities {
     name = "EnableMongo"
@@ -52,10 +56,10 @@ resource "azurerm_cosmosdb_account" "example" {
 }
 
 resource "azurerm_private_endpoint" "example" {
-  name                 = "${var.prefix}-pe"
-  location             = azurerm_resource_group.example.location
-  resource_group_name  = azurerm_resource_group.example.name
-  subnet_id            = azurerm_subnet.endpoint.id
+  name                = "${var.prefix}-pe"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
     name                           = "tfex-cosmosdb-connection"

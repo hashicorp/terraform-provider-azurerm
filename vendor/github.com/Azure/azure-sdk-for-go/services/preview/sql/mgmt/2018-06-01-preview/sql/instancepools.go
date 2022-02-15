@@ -69,7 +69,7 @@ func (client InstancePoolsClient) CreateOrUpdate(ctx context.Context, resourceGr
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client InstancePoolsClient) CreateOrUpdatePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client InstancePoolsClient) CreateOrUpdateSender(req *http.Request) (future InstancePoolsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -150,7 +151,7 @@ func (client InstancePoolsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -182,6 +183,7 @@ func (client InstancePoolsClient) DeletePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client InstancePoolsClient) DeleteSender(req *http.Request) (future InstancePoolsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -536,7 +538,7 @@ func (client InstancePoolsClient) Update(ctx context.Context, resourceGroupName 
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -570,6 +572,7 @@ func (client InstancePoolsClient) UpdatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client InstancePoolsClient) UpdateSender(req *http.Request) (future InstancePoolsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

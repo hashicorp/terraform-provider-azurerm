@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BlueprintAssignmentResource struct {
-}
+type BlueprintAssignmentResource struct{}
 
 // Scenario: Basic BP, no artefacts etc.  Stored and applied at Subscription.
 func TestAccBlueprintAssignment_basic(t *testing.T) {
@@ -240,6 +239,10 @@ resource "azurerm_blueprint_assignment" "test" {
 
   lock_exclude_principals = [
     data.azurerm_client_config.current.object_id,
+  ]
+
+  lock_exclude_actions = [
+    "Microsoft.Resources/subscriptions/resourceGroups/write"
   ]
 
   identity {

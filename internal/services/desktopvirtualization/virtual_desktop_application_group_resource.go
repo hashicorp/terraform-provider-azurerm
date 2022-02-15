@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,6 +87,12 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 
+			"default_desktop_display_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -145,6 +151,29 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if desktopvirtualization.ApplicationGroupType(d.Get("type").(string)) == desktopvirtualization.ApplicationGroupTypeDesktop {
+		if desktopFriendlyName := utils.String(d.Get("default_desktop_display_name").(string)); desktopFriendlyName != nil {
+			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
+			// default desktop name created for Application Group is 'sessionDesktop'
+			desktop, err := desktopClient.Get(ctx, resourceGroup, name, "sessionDesktop")
+			if err != nil {
+				if !utils.ResponseWasNotFound(desktop.Response) {
+					return fmt.Errorf("checking for presence of default desktop in Application Group %q (Resource Group %q): %s", name, resourceGroup, err)
+				}
+			}
+
+			desktopPatch := desktopvirtualization.DesktopPatch{
+				DesktopPatchProperties: &desktopvirtualization.DesktopPatchProperties{
+					FriendlyName: desktopFriendlyName,
+				},
+			}
+
+			if _, err := desktopClient.Update(ctx, resourceGroup, name, "sessionDesktop", &desktopPatch); err != nil {
+				return fmt.Errorf("setting default desktop friendly name for Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
+
 	d.SetId(resourceId)
 	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
@@ -181,6 +210,17 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("description", props.Description)
 		d.Set("type", string(props.ApplicationGroupType))
+		if props.ApplicationGroupType == desktopvirtualization.ApplicationGroupTypeDesktop {
+			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
+			// default desktop name created for Application Group is 'sessionDesktop'
+			desktop, err := desktopClient.Get(ctx, id.ResourceGroup, id.Name, "sessionDesktop")
+			// if the default desktop was found then set the display name attribute
+			if err == nil {
+				if desktopProps := desktop.DesktopProperties; desktopProps != nil {
+					d.Set("default_desktop_display_name", desktopProps.FriendlyName)
+				}
+			}
+		}
 
 		hostPoolIdStr := ""
 		if props.HostPoolArmPath != nil {

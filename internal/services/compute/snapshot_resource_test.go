@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SnapshotResource struct {
-}
+type SnapshotResource struct{}
 
 func TestAccSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
@@ -127,15 +126,12 @@ func TestAccSnapshot_fromUnmanagedDisk(t *testing.T) {
 }
 
 func (t SnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SnapshotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["snapshots"]
-
-	resp, err := clients.Compute.SnapshotsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Compute.SnapshotsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id)
 	}
@@ -224,7 +220,12 @@ resource "azurerm_snapshot" "test" {
 func (SnapshotResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -485,6 +486,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = azurerm_resource_group.test.name
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
   depends_on = [
     azurerm_virtual_machine.test,
   ]

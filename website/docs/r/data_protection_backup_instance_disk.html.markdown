@@ -33,6 +33,9 @@ resource "azurerm_data_protection_backup_vault" "example" {
   location            = azurerm_resource_group.rg.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_role_assignment" "example1" {
@@ -49,9 +52,8 @@ resource "azurerm_role_assignment" "example2" {
 
 
 resource "azurerm_data_protection_backup_policy_disk" "example" {
-  name                = "example-backup-policy"
-  resource_group_name = azurerm_resource_group.rg.name
-  vault_name          = azurerm_data_protection_backup_vault.example.name
+  name     = "example-backup-policy"
+  vault_id = azurerm_data_protection_backup_vault.example.id
 
   backup_repeating_time_intervals = ["R/2021-05-19T06:33:16+00:00/PT4H"]
   default_retention_duration      = "P7D"

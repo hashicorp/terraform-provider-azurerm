@@ -67,7 +67,7 @@ func (client SharesClient) CreateOrUpdate(ctx context.Context, deviceName string
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -102,6 +102,7 @@ func (client SharesClient) CreateOrUpdatePreparer(ctx context.Context, deviceNam
 // http.Response Body if it receives an error.
 func (client SharesClient) CreateOrUpdateSender(req *http.Request) (future SharesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -149,7 +150,7 @@ func (client SharesClient) Delete(ctx context.Context, deviceName string, name s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -182,6 +183,7 @@ func (client SharesClient) DeletePreparer(ctx context.Context, deviceName string
 // http.Response Body if it receives an error.
 func (client SharesClient) DeleteSender(req *http.Request) (future SharesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -424,7 +426,7 @@ func (client SharesClient) Refresh(ctx context.Context, deviceName string, name 
 
 	result, err = client.RefreshSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Refresh", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Refresh", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -457,6 +459,7 @@ func (client SharesClient) RefreshPreparer(ctx context.Context, deviceName strin
 // http.Response Body if it receives an error.
 func (client SharesClient) RefreshSender(req *http.Request) (future SharesRefreshFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

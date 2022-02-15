@@ -306,7 +306,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -338,6 +338,7 @@ func (client NamespacesClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client NamespacesClient) DeleteSender(req *http.Request) (future NamespacesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -944,7 +945,7 @@ func (client NamespacesClient) ListAuthorizationRulesComplete(ctx context.Contex
 // resourceGroupName - the name of the resource group.
 // namespaceName - the namespace name.
 // authorizationRuleName - the connection string of the namespace for the specified authorizationRule.
-func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, authorizationRuleName string) (result SharedAccessAuthorizationRuleListResult, err error) {
+func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, authorizationRuleName string) (result ResourceListKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/NamespacesClient.ListKeys")
 		defer func() {
@@ -1007,7 +1008,7 @@ func (client NamespacesClient) ListKeysSender(req *http.Request) (*http.Response
 
 // ListKeysResponder handles the response to the ListKeys request. The method always
 // closes the http.Response Body.
-func (client NamespacesClient) ListKeysResponder(resp *http.Response) (result SharedAccessAuthorizationRuleListResult, err error) {
+func (client NamespacesClient) ListKeysResponder(resp *http.Response) (result ResourceListKeys, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

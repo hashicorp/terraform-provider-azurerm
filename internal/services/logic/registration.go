@@ -1,10 +1,17 @@
 package logic
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/logic"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -23,6 +30,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 		"azurerm_logic_app_integration_account": dataSourceLogicAppIntegrationAccount(),
+		"azurerm_logic_app_standard":            dataSourceLogicAppStandard(),
 	}
 }
 
@@ -45,5 +53,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
 		"azurerm_integration_service_environment":                   resourceIntegrationServiceEnvironment(),
+		"azurerm_logic_app_standard":                                resourceLogicAppStandard(),
 	}
 }

@@ -10,6 +10,9 @@ func NodeDefinitionVMSize() pluginsdk.SchemaValidateFunc {
 		// short of deploying every VM Sku for every node type for every HDInsight Cluster
 		// this is the list I've (@tombuildsstuff) found for valid SKU's from an endpoint in the Portal
 		// using another SKU causes a bad request from the API - as such this is a best effort UX
+		// Edit: added new instance types based on these documentation pages:
+		// - https://azure.microsoft.com/en-in/pricing/details/hdinsight/
+		// - https://docs.microsoft.com/en-us/azure/virtual-machines
 		"ExtraSmall",
 		"Small",
 		"Medium",
@@ -56,7 +59,6 @@ func NodeDefinitionVMSize() pluginsdk.SchemaValidateFunc {
 		"Standard_DS12_V2",
 		"Standard_DS13_V2",
 		"Standard_DS14_V2",
-		"Standard_D4a_V4",
 		"Standard_E2_V3",
 		"Standard_E4_V3",
 		"Standard_E8_V3",
@@ -73,6 +75,23 @@ func NodeDefinitionVMSize() pluginsdk.SchemaValidateFunc {
 		"Standard_E32s_V3",
 		"Standard_E64s_V3",
 		"Standard_E64is_V3",
+		"Standard_D2a_V4",
+		"Standard_D4a_V4",
+		"Standard_D8a_V4",
+		"Standard_D16a_V4",
+		"Standard_D32a_V4",
+		"Standard_D48a_V4",
+		"Standard_D64a_V4",
+		"Standard_D96a_V4",
+		"Standard_E2a_V4",
+		"Standard_E4a_V4",
+		"Standard_E8a_V4",
+		"Standard_E16a_V4",
+		"Standard_E20a_V4",
+		"Standard_E32a_V4",
+		"Standard_E48a_V4",
+		"Standard_E64a_V4",
+		"Standard_E96a_V4",
 		"Standard_G1",
 		"Standard_G2",
 		"Standard_G3",

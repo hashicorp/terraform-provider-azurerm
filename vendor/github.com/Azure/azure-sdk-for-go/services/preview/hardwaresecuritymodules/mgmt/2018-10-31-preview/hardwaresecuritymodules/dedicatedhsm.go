@@ -64,7 +64,7 @@ func (client DedicatedHsmClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -98,6 +98,7 @@ func (client DedicatedHsmClient) CreateOrUpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client DedicatedHsmClient) CreateOrUpdateSender(req *http.Request) (future DedicatedHsmCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -144,7 +145,7 @@ func (client DedicatedHsmClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,6 +177,7 @@ func (client DedicatedHsmClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DedicatedHsmClient) DeleteSender(req *http.Request) (future DedicatedHsmDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -543,7 +545,7 @@ func (client DedicatedHsmClient) Update(ctx context.Context, resourceGroupName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -577,6 +579,7 @@ func (client DedicatedHsmClient) UpdatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DedicatedHsmClient) UpdateSender(req *http.Request) (future DedicatedHsmUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

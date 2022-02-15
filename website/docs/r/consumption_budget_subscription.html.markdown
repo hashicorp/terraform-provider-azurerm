@@ -28,7 +28,7 @@ resource "azurerm_monitor_action_group" "example" {
 
 resource "azurerm_consumption_budget_subscription" "example" {
   name            = "example"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -75,9 +75,10 @@ resource "azurerm_consumption_budget_subscription" "example" {
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -91,9 +92,11 @@ resource "azurerm_consumption_budget_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `subscription_id` - (Required) The ID of the Subscription for which to create a Consumption Budget. Changing this forces a new resource to be created.
+
+~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
@@ -130,6 +133,8 @@ A `notification` block supports the following:
 * `operator` - (Required) The comparison operator for the notification. Must be one of `EqualTo`, `GreaterThan`, or `GreaterThanOrEqualTo`.
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
+
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
 
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
@@ -174,6 +179,8 @@ A `time_period` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Subscription Consumption Budget.
+
+* `etag` - The ETag of the Subscription Consumption Budget.
 
 ## Timeouts
 

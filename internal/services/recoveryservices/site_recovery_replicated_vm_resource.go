@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -148,10 +148,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.StandardLRS),
-								string(compute.PremiumLRS),
-								string(compute.StandardSSDLRS),
-								string(compute.UltraSSDLRS),
+								string(compute.DiskStorageAccountTypesStandardLRS),
+								string(compute.DiskStorageAccountTypesPremiumLRS),
+								string(compute.DiskStorageAccountTypesStandardSSDLRS),
+								string(compute.DiskStorageAccountTypesUltraSSDLRS),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -160,10 +160,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.StandardLRS),
-								string(compute.PremiumLRS),
-								string(compute.StandardSSDLRS),
-								string(compute.UltraSSDLRS),
+								string(compute.DiskStorageAccountTypesStandardLRS),
+								string(compute.DiskStorageAccountTypesPremiumLRS),
+								string(compute.DiskStorageAccountTypesStandardSSDLRS),
+								string(compute.DiskStorageAccountTypesUltraSSDLRS),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},

@@ -40,7 +40,7 @@ output "api_management_api_version_set_id" {
 
 * `display_name` - The display name of this API Version Set.
 
-* `versioning_schema` - The value that determines where the API Version identifer will be located in a HTTP request.
+* `versioning_schema` - The value that determines where the API Version identifier will be located in a HTTP request.
 
 * `version_header_name` - The name of the Header which should be read from Inbound Requests which defines the API Version.
 

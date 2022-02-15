@@ -158,7 +158,6 @@ resource "azurerm_data_protection_backup_policy_disk" "another" {
   backup_repeating_time_intervals = ["R/2021-05-20T04:54:23+00:00/PT4H"]
   default_retention_duration      = "P10D"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

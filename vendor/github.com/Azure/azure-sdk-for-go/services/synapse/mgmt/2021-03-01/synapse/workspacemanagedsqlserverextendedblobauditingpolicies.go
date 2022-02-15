@@ -67,7 +67,7 @@ func (client WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient) Create
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -102,6 +102,7 @@ func (client WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient) Create
 // http.Response Body if it receives an error.
 func (client WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Request) (future WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

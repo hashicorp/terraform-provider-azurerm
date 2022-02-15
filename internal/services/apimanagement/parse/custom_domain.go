@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type CustomDomainId struct {
@@ -42,7 +42,7 @@ func (id CustomDomainId) ID() string {
 
 // CustomDomainID parses a CustomDomain ID into an CustomDomainId struct
 func CustomDomainID(input string) (*CustomDomainId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

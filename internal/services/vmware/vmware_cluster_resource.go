@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/clusters"
@@ -96,7 +96,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	id := clusters.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	id := clusters.NewClusterID(subscriptionId, privateCloudId.ResourceGroupName, privateCloudId.PrivateCloudName, name)
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -144,8 +144,8 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("vmware_cloud_id", privateclouds.NewPrivateCloudID(id.SubscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+	d.Set("name", id.ClusterName)
+	d.Set("vmware_cloud_id", privateclouds.NewPrivateCloudID(id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName).ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)

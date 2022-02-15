@@ -4,27 +4,27 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "${var.prefix}sa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "${var.prefix}-sc"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_app_service_plan" "test" {
   name                = "${var.prefix}-splan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -33,7 +33,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 data "azurerm_storage_account_sas" "test" {
-  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
 
   resource_types {
@@ -66,9 +66,9 @@ data "azurerm_storage_account_sas" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "${var.prefix}-appservice"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 
   backup {
     name                = "Example"

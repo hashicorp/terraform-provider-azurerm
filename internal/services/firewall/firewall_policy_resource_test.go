@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyResource struct {
-}
+type FirewallPolicyResource struct{}
 
 func TestAccFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
@@ -164,8 +164,37 @@ func TestAccFirewallPolicy_inherit(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicy_insights(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultWorkspaceOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.regionalWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultWorkspaceOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyID(state.ID)
+	id, err := parse.FirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +245,7 @@ resource "azurerm_firewall_policy" "test" {
   location                 = azurerm_resource_group.test.location
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
@@ -233,7 +262,10 @@ resource "azurerm_firewall_policy" "test" {
 func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	r := FirewallPolicyResource{}
 	template := r.templatePremium(data)
-	return fmt.Sprintf(`
+
+	if !features.ThreePointOhBeta() {
+
+		return fmt.Sprintf(`
 %s
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
@@ -242,7 +274,7 @@ resource "azurerm_firewall_policy" "test" {
   sku                      = "Premium"
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
@@ -271,6 +303,59 @@ resource "azurerm_firewall_policy" "test" {
   identity {
     type = "UserAssigned"
     user_assigned_identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  tls_certificate {
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
+    name                = azurerm_key_vault_certificate.test.name
+  }
+  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%s
+resource "azurerm_firewall_policy" "test" {
+  name                     = "acctest-networkfw-Policy-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Premium"
+  threat_intelligence_mode = "Off"
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers       = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled = true
+  }
+  intrusion_detection {
+    mode = "Alert"
+    signature_overrides {
+      state = "Alert"
+      id    = "1"
+    }
+    traffic_bypass {
+      name              = "Name bypass traffic settings"
+      description       = "Description bypass traffic settings"
+      protocol          = "Any"
+      destination_ports = ["*"]
+      source_ip_groups = [
+        azurerm_ip_group.test_source.id,
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.test_destination.id,
+      ]
+    }
+  }
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
   }
@@ -493,4 +578,70 @@ resource "azurerm_key_vault_certificate" "test" {
   depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) defaultWorkspaceOnly(data acceptance.TestData) string {
+	r := FirewallPolicyResource{}
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "default" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  insights {
+    enabled                            = true
+    retention_in_days                  = 7
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) regionalWorkspace(data acceptance.TestData) string {
+	r := FirewallPolicyResource{}
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "default" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace" "regional" {
+  name                = "acctestLAW-region-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  insights {
+    enabled                            = true
+    retention_in_days                  = 7
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
+    log_analytics_workspace {
+      id                = azurerm_log_analytics_workspace.regional.id
+      firewall_location = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }

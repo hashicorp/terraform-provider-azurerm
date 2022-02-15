@@ -11,7 +11,7 @@ import (
 	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -228,7 +228,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				},
 			}
 
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				rSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Optional:   true,
@@ -651,7 +651,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 
 	// TODO: remove in 3.0
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		d.Set("soft_delete_enabled", true)
 	}
 
@@ -970,7 +970,7 @@ Terraform can automatically recover the soft-deleted Key Vault when this behavio
 enabled within the "features" block (located within the "provider" block) - more
 information can be found here:
 
-https://www.terraform.io/docs/providers/azurerm/index.html#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
 
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.

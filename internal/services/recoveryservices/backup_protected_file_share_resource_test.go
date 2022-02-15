@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectedFileShareResource struct {
-}
+type BackupProtectedFileShareResource struct{}
 
 // TODO: These tests fail because enabling backup on file shares with no content
 func TestAccBackupProtectedFileShare_basic(t *testing.T) {
@@ -361,5 +360,23 @@ resource "azurerm_backup_protected_file_share" "test" {
   source_file_share_name    = azurerm_storage_share.testshare3.name
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
-`, r.baseMultiple(data))
+
+resource "azurerm_storage_share" "testshare" {
+  name                 = "acctest-ss-%[2]d"
+  storage_account_name = "${azurerm_storage_account.test2.name}"
+  metadata             = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
+resource "azurerm_backup_protected_file_share" "test1" {
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test2.storage_account_id
+  source_file_share_name    = azurerm_storage_share.testshare.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test.id
+}
+`, r.baseMultiple(data), data.RandomInteger)
 }

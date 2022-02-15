@@ -22,7 +22,6 @@ resource "azurerm_purview_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_name            = "Standard_4"
 }
 ```
 
@@ -36,11 +35,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Purview Account should exist. Changing this forces a new Purview Account to be created.
 
-* `sku_name` - (Required) The SKU's capacity for platform size and catalog capabilities. Accepted values are `Standard_4` and `Standard_16`.
-
 ---
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
+
+* `managed_resource_group_name` - (Optional) The name which should be used for the new Resource Group where Purview Account creates the managed resources. Changing this forces a new Purview Account to be created.
+
+~> **Note:** `managed_resource_group_name` must be a new Resource Group
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
 
@@ -62,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `managed_resources` - A `managed_resources` block as defined below.
+
 ---
 
 A `identity` block exports the following:
@@ -71,6 +74,16 @@ A `identity` block exports the following:
 * `tenant_id` - The ID of the Azure Active Directory Tenant.
 
 * `type` - The type of Managed Identity assigned to this Purview Account.
+
+---
+
+A `managed_resources` block exports the following:
+
+* `event_hub_namespace_id` - The ID of the managed event hub namespace.
+
+* `resource_group_id` - The ID of the managed resource group.
+
+* `storage_account_id` - The ID of the managed storage account.
 
 ## Timeouts
 

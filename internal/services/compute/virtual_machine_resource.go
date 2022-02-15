@@ -9,15 +9,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,8 +58,10 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineRead,
 		Update: resourceVirtualMachineCreateUpdate,
 		Delete: resourceVirtualMachineDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualMachineID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -177,7 +181,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -232,8 +236,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Linux),
-								string(compute.Windows),
+								string(compute.OperatingSystemTypesLinux),
+								string(compute.OperatingSystemTypesWindows),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -420,7 +424,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -456,7 +460,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -543,7 +547,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -627,24 +631,23 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
 		}
 	}
 
@@ -726,7 +729,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	vm := compute.VirtualMachine{
-		Name:                     &name,
+		Name:                     &id.Name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
 		Tags:                     expandedTags,
@@ -741,10 +744,10 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vm)
 	if err != nil {
 		return err
 	}
@@ -753,19 +756,19 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Machine %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("cannot read %s", id)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
 	if err != nil {
-		return fmt.Errorf("determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("determining IP Address for %s: %+v", id, err)
 	}
 
 	provisionerType := "ssh"
@@ -789,24 +792,22 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachines"]
 
-	resp, err := vmclient.Get(ctx, resGroup, name, "")
+	resp, err := vmclient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -923,31 +924,29 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachines"]
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, resGroup, name, "")
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine %q : %s", id.String(), err)
 	}
 
 	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
 	// the previous behaviour - we're only splitting this out so it's clear why
 	var forceDeletion *bool = nil
-	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("deleting Virtual Machine %q : %s", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Machine %q : %s", id.String(), err)
 	}
 
 	// delete OS Disk if opted in
@@ -959,21 +958,21 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
-			return fmt.Errorf("deleting Disks for Virtual Machine %q - `props` was nil", name)
+			return fmt.Errorf("deleting Disks for Virtual Machine %q - `props` was nil", id.Name)
 		}
 		storageProfile := props.StorageProfile
 		if storageProfile == nil {
-			return fmt.Errorf("deleting Disks for Virtual Machine %q - `storageProfile` was nil", name)
+			return fmt.Errorf("deleting Disks for Virtual Machine %q - `storageProfile` was nil", id.Name)
 		}
 
 		if deleteOsDisk {
-			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", name)
+			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", id.Name)
 			osDisk := storageProfile.OsDisk
 			if osDisk == nil {
-				return fmt.Errorf("deleting OS Disk for Virtual Machine %q - `osDisk` was nil", name)
+				return fmt.Errorf("deleting OS Disk for Virtual Machine %q - `osDisk` was nil", id.Name)
 			}
 			if osDisk.Vhd == nil && osDisk.ManagedDisk == nil {
-				return fmt.Errorf("Unable to determine OS Disk Type to Delete it for Virtual Machine %q", name)
+				return fmt.Errorf("Unable to determine OS Disk Type to Delete it for Virtual Machine %q", id.Name)
 			}
 
 			if osDisk.Vhd != nil {
@@ -989,16 +988,16 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// delete Data disks if opted in
 		if deleteDataDisks {
-			log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %q", name)
+			log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %q", id.Name)
 
 			dataDisks := storageProfile.DataDisks
 			if dataDisks == nil {
-				return fmt.Errorf("deleting Data Disks for Virtual Machine %q: `dataDisks` was nil", name)
+				return fmt.Errorf("deleting Data Disks for Virtual Machine %q: `dataDisks` was nil", id.Name)
 			}
 
 			for _, disk := range *dataDisks {
 				if disk.Vhd == nil && disk.ManagedDisk == nil {
-					return fmt.Errorf("Unable to determine Data Disk Type to Delete it for Virtual Machine %q / Disk %q", name, *disk.Name)
+					return fmt.Errorf("Unable to determine Data Disk Type to Delete it for Virtual Machine %q / Disk %q", id.Name, *disk.Name)
 				}
 
 				if disk.Vhd != nil {
@@ -1071,20 +1070,18 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(managedDiskID)
+	id, err := parse.ManagedDiskID(managedDiskID)
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["disks"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
+		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q) %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q) %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -1705,7 +1702,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]compute.D
 		if vhdURI != "" && managedDiskType != "" {
 			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
-		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
+		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.DiskCreateOptionAttach)) {
 			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
@@ -1862,7 +1859,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*compute.OSDi
 		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
-	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.Attach)) {
+	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.DiskCreateOptionAttach)) {
 		return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 
@@ -1961,16 +1958,14 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *c
 	}
 
 	diskId := *disk.ID
-	id, err := azure.ParseAzureResourceID(diskId)
+	id, err := parse.ManagedDiskID(diskId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Disk ID %q: %+v", diskId, err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["disks"]
-	diskResp, err := client.Get(ctx, resourceGroup, name)
+	diskResp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving Disk %q : %+v", id.String(), err)
 	}
 
 	return &diskResp, nil
@@ -1996,17 +1991,14 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 					}
 				}
 
-				id, err := azure.ParseAzureResourceID(*nicReference.ID)
+				id, err := networkParse.NetworkInterfaceID(*nicReference.ID)
 				if err != nil {
 					return "", err
 				}
 
-				resourceGroup := id.ResourceGroup
-				name := id.Path["networkInterfaces"]
-
-				nic, err := nicClient.Get(ctx, resourceGroup, name, "")
+				nic, err := nicClient.Get(ctx, id.ResourceGroup, id.Name, "")
 				if err != nil {
-					return "", fmt.Errorf("obtaining NIC %q (Resource Group %q): %+v", name, resourceGroup, err)
+					return "", fmt.Errorf("obtaining NIC %q : %+v", id.String(), err)
 				}
 
 				networkInterface = &nic
@@ -2023,17 +2015,14 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
 				if config.PublicIPAddress != nil {
-					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
+					id, err := networkParse.PublicIpAddressID(*config.PublicIPAddress.ID)
 					if err != nil {
 						return "", err
 					}
 
-					resourceGroup := id.ResourceGroup
-					name := id.Path["publicIPAddresses"]
-
-					pip, err := pipClient.Get(ctx, resourceGroup, name, "")
+					pip, err := pipClient.Get(ctx, id.ResourceGroup, id.Name, "")
 					if err != nil {
-						return "", fmt.Errorf("obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
+						return "", fmt.Errorf("obtaining Public IP %q : %+v", id.String(), err)
 					}
 
 					if pipProps := pip.PublicIPAddressPropertiesFormat; pipProps != nil {

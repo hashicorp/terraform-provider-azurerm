@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MediaServicesAccountResource struct {
-}
+type MediaServicesAccountResource struct{}
 
 func TestAccMediaServicesAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")

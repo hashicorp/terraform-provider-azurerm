@@ -69,7 +69,7 @@ func (client RoutesClient) Create(ctx context.Context, resourceGroupName string,
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client RoutesClient) CreatePreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client RoutesClient) CreateSender(req *http.Request) (future RoutesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -162,7 +163,7 @@ func (client RoutesClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -196,6 +197,7 @@ func (client RoutesClient) DeletePreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client RoutesClient) DeleteSender(req *http.Request) (future RoutesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -470,7 +472,7 @@ func (client RoutesClient) Update(ctx context.Context, resourceGroupName string,
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RoutesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -506,6 +508,7 @@ func (client RoutesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client RoutesClient) UpdateSender(req *http.Request) (future RoutesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

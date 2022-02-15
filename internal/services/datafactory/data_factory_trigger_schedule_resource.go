@@ -25,8 +25,11 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 		Read:   resourceDataFactoryTriggerScheduleRead,
 		Update: resourceDataFactoryTriggerScheduleCreateUpdate,
 		Delete: resourceDataFactoryTriggerScheduleDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.TriggerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -47,11 +50,24 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			// TODO remove in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
+				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
+				ExactlyOneOf: []string{"data_factory_id"},
+			},
+
+			"data_factory_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true, // TODO set to Required in 3.0
+				Computed:     true, // TODO remove in 3.0
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryID,
+				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			"description": {
@@ -210,30 +226,35 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 
 func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Data Factory Trigger Schedule creation.")
-
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceGroupName := d.Get("resource_group_name").(string)
-	triggerName := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-
-	dataFactoryId := parse.NewDataFactoryID(subscriptionId, resourceGroupName, dataFactoryName)
-
+	// TODO remove/simplify this after deprecation in 3.0
+	var err error
+	var dataFactoryId *parse.DataFactoryId
+	if v := d.Get("data_factory_name").(string); v != "" {
+		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
+		dataFactoryId = &newDataFactoryId
+	}
+	if v := d.Get("data_factory_id").(string); v != "" {
+		dataFactoryId, err = parse.DataFactoryID(v)
+		if err != nil {
+			return err
+		}
+	}
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %s", triggerName, resourceGroupName, dataFactoryName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
 		}
 	}
 
@@ -249,7 +270,8 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		props.Recurrence.StartTime = &date.Time{Time: t}
 	} else {
-		props.Recurrence.StartTime = &date.Time{Time: time.Now()}
+		t, _ := time.Parse(time.RFC3339, time.Now().UTC().Format(time.RFC3339))
+		props.Recurrence.StartTime = &date.Time{Time: t}
 	}
 
 	if v, ok := d.GetOk("end_time"); ok {
@@ -282,17 +304,8 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		Properties: scheduleProps,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, triggerName, trigger, ""); err != nil {
-		return fmt.Errorf("creating Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q) ID", triggerName, resourceGroupName, dataFactoryName)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, trigger, ""); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if d.Get("activated").(bool) {
@@ -305,7 +318,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerScheduleRead(d, meta)
 }
@@ -315,30 +328,32 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
 	}
-	dataFactoryName := id.Path["factories"]
-	triggerName := id.Path["triggers"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, dataFactoryName, triggerName, "")
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Data Factory Trigger Schedule %q was not found in Resource Group %q - removing from state!", triggerName, id.ResourceGroup)
+			log.Printf("[DEBUG] Data Factory Trigger Schedule %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("reading the state of Data Factory Trigger Schedule %q: %+v", triggerName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	// TODO remove in 3.0
+	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
+		return fmt.Errorf("classifying Data Factory %s: Expected: %q Received: %q", *id, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
 	if scheduleTriggerProps != nil {
@@ -385,14 +400,12 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
 	}
-	dataFactoryName := id.Path["factories"]
-	triggerName := id.Path["triggers"]
 
-	future, err := client.Stop(ctx, id.ResourceGroup, dataFactoryName, triggerName)
+	future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		return fmt.Errorf("stopping %s: %+v", id, err)
 	}
@@ -400,8 +413,8 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting to stop %s: %+v", id, err)
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, dataFactoryName, triggerName); err != nil {
-		return fmt.Errorf("deleting Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, id.ResourceGroup, dataFactoryName, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -411,11 +424,18 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
+	schedule := datafactory.RecurrenceSchedule{}
+
 	value := input[0].(map[string]interface{})
 	weekDays := make([]datafactory.DaysOfWeek, 0)
 	for _, v := range value["days_of_week"].([]interface{}) {
 		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
 	}
+	if len(weekDays) > 0 {
+		schedule.WeekDays = &weekDays
+	}
+
 	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
 	for _, v := range value["monthly"].([]interface{}) {
 		value := v.(map[string]interface{})
@@ -424,13 +444,21 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 			Occurrence: utils.Int32(int32(value["week"].(int))),
 		})
 	}
-	return &datafactory.RecurrenceSchedule{
-		Minutes:            utils.ExpandInt32Slice(value["minutes"].([]interface{})),
-		Hours:              utils.ExpandInt32Slice(value["hours"].([]interface{})),
-		WeekDays:           &weekDays,
-		MonthDays:          utils.ExpandInt32Slice(value["days_of_month"].([]interface{})),
-		MonthlyOccurrences: &monthlyOccurrences,
+	if len(monthlyOccurrences) > 0 {
+		schedule.MonthlyOccurrences = &monthlyOccurrences
 	}
+
+	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
+		schedule.MonthDays = utils.ExpandInt32Slice(monthdays)
+	}
+	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
+		schedule.Minutes = utils.ExpandInt32Slice(minutes)
+	}
+	if hours := value["hours"].([]interface{}); len(hours) > 0 {
+		schedule.Hours = utils.ExpandInt32Slice(hours)
+	}
+
+	return &schedule
 }
 
 func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []interface{} {

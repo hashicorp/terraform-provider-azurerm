@@ -45,7 +45,7 @@ resource "azurerm_log_analytics_linked_storage_account" "example" {
 
 The following arguments are supported:
 
-* `data_source_type` - (Required) The data source type which should be used for this Log Analytics Linked Storage Account. Possible values are "customlogs", "azurewatson", "query", "ingestion" and "alerts". Changing this forces a new Log Analytics Linked Storage Account to be created.
+* `data_source_type` - (Required) The data source type which should be used for this Log Analytics Linked Storage Account. Possible values are "customlogs", "azurewatson", "query", "Ingestion" and "alerts". Changing this forces a new Log Analytics Linked Storage Account to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Linked Storage Account should exist. Changing this forces a new Log Analytics Linked Storage Account to be created.
 

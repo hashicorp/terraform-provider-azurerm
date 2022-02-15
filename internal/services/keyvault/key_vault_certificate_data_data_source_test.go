@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KeyVaultCertificateDataDataSource struct {
-}
+type KeyVaultCertificateDataDataSource struct{}
 
 func TestAccDataSourceKeyVaultCertificateData_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate_data", "test")
@@ -22,6 +21,7 @@ func TestAccDataSourceKeyVaultCertificateData_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("hex").Exists(),
 				check.That(data.ResourceName).Key("pem").Exists(),
 				check.That(data.ResourceName).Key("key").Exists(),
+				check.That(data.ResourceName).Key("not_before").HasValue("2017-10-10T08:27:55Z"),
 				check.That(data.ResourceName).Key("expires").HasValue("2027-10-08T08:27:55Z"),
 			),
 		},

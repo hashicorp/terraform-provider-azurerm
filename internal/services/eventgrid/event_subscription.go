@@ -6,11 +6,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,12 +81,53 @@ func eventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
 		ForceNew: true,
-		Default:  string(eventgrid.EventGridSchema),
+		Default:  string(eventgrid.EventDeliverySchemaEventGridSchema),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(eventgrid.EventGridSchema),
-			string(eventgrid.CloudEventSchemaV10),
-			string(eventgrid.CustomInputSchema),
+			string(eventgrid.EventDeliverySchemaEventGridSchema),
+			string(eventgrid.EventDeliverySchemaCloudEventSchemaV10),
+			string(eventgrid.EventDeliverySchemaCustomInputSchema),
 		}, false),
+	}
+}
+
+func eventSubscriptionSchemaDeliveryProperty() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"header_name": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Static",
+						"Dynamic",
+					}, false),
+				},
+
+				"value": {
+					Type:      pluginsdk.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
+
+				"source_field": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"secret": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+			},
+		},
 	}
 }
 
@@ -223,6 +265,10 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"queue_message_time_to_live_in_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -316,7 +362,8 @@ func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 }
 
 func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
-	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+	atLeastOneOf := []string{
+		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
 		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
@@ -790,8 +837,13 @@ func eventSubscriptionSchemaIdentity() *schema.Schema {
 					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.SystemAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeSystemAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeUserAssigned),
 					}, false),
+				},
+				"user_assigned_identity": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -816,108 +868,144 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 }
 
 func expandEventGridEventSubscriptionDestination(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	if v, ok := d.GetOk("azure_function_endpoint"); ok {
-		return expandEventGridEventSubscriptionAzureFunctionEndpoint(v)
+	if _, ok := d.GetOk("azure_function_endpoint"); ok {
+		return expandEventGridEventSubscriptionAzureFunctionEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("eventhub_endpoint_id"); ok {
-		return &eventgrid.EventHubEventSubscriptionDestination{
-			EndpointType: eventgrid.EndpointTypeEventHub,
-			EventHubEventSubscriptionDestinationProperties: &eventgrid.EventHubEventSubscriptionDestinationProperties{
-				ResourceID: utils.String(v.(string)),
-			},
-		}
+	if _, ok := d.GetOk("eventhub_endpoint_id"); ok {
+		return expandEventGridEventSubscriptionEventhubEndpoint(d)
 	} else if _, ok := d.GetOk("eventhub_endpoint"); ok {
 		return expandEventGridEventSubscriptionEventhubEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
-		return &eventgrid.HybridConnectionEventSubscriptionDestination{
-			EndpointType: eventgrid.EndpointTypeHybridConnection,
-			HybridConnectionEventSubscriptionDestinationProperties: &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{
-				ResourceID: utils.String(v.(string)),
-			},
-		}
+	if _, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
+		return expandEventGridEventSubscriptionHybridConnectionEndpoint(d)
 	} else if _, ok := d.GetOk("hybrid_connection_endpoint"); ok {
 		return expandEventGridEventSubscriptionHybridConnectionEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
-		return &eventgrid.ServiceBusQueueEventSubscriptionDestination{
-			EndpointType: eventgrid.EndpointTypeServiceBusQueue,
-			ServiceBusQueueEventSubscriptionDestinationProperties: &eventgrid.ServiceBusQueueEventSubscriptionDestinationProperties{
-				ResourceID: utils.String(v.(string)),
-			},
-		}
+	if _, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
+		return expandEventGridEventSubscriptionServiceBusQueueEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
-		return &eventgrid.ServiceBusTopicEventSubscriptionDestination{
-			EndpointType: eventgrid.EndpointTypeServiceBusTopic,
-			ServiceBusTopicEventSubscriptionDestinationProperties: &eventgrid.ServiceBusTopicEventSubscriptionDestinationProperties{
-				ResourceID: utils.String(v.(string)),
-			},
-		}
+	if _, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
+		return expandEventGridEventSubscriptionServiceBusTopicEndpoint(d)
 	}
 
 	if _, ok := d.GetOk("storage_queue_endpoint"); ok {
 		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(v)
+	if _, ok := d.GetOk("webhook_endpoint"); ok {
+		return expandEventGridEventSubscriptionWebhookEndpoint(d)
 	}
 
 	return nil
+}
+
+func expandEventGridEventSubscriptionServiceBusQueueEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	endpoint := d.Get("service_bus_queue_endpoint_id")
+
+	props := &eventgrid.ServiceBusQueueEventSubscriptionDestinationProperties{
+		ResourceID: utils.String(endpoint.(string)),
+	}
+
+	deliveryMappings := expandDeliveryProperties(d)
+	props.DeliveryAttributeMappings = &deliveryMappings
+
+	return &eventgrid.ServiceBusQueueEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeServiceBusQueue,
+		ServiceBusQueueEventSubscriptionDestinationProperties: props,
+	}
+}
+
+func expandEventGridEventSubscriptionServiceBusTopicEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	endpoint := d.Get("service_bus_topic_endpoint_id")
+
+	props := &eventgrid.ServiceBusTopicEventSubscriptionDestinationProperties{
+		ResourceID: utils.String(endpoint.(string)),
+	}
+
+	deliveryMappings := expandDeliveryProperties(d)
+	props.DeliveryAttributeMappings = &deliveryMappings
+
+	return &eventgrid.ServiceBusTopicEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeServiceBusTopic,
+		ServiceBusTopicEventSubscriptionDestinationProperties: props,
+	}
 }
 
 func expandEventGridEventSubscriptionStorageQueueEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	props := d.Get("storage_queue_endpoint").([]interface{})[0].(map[string]interface{})
 	storageAccountID := props["storage_account_id"].(string)
 	queueName := props["queue_name"].(string)
+	storageQueueEventSubscriptionDestinationProperties := &eventgrid.StorageQueueEventSubscriptionDestinationProperties{
+		ResourceID: &storageAccountID,
+		QueueName:  &queueName,
+	}
+
+	if v, ok := d.GetOk("storage_queue_endpoint.0.queue_message_time_to_live_in_seconds"); ok {
+		queueMessageTimeToLiveInSeconds := int64(v.(int))
+		storageQueueEventSubscriptionDestinationProperties.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+	}
 
 	return eventgrid.StorageQueueEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeStorageQueue,
-		StorageQueueEventSubscriptionDestinationProperties: &eventgrid.StorageQueueEventSubscriptionDestinationProperties{
-			ResourceID: &storageAccountID,
-			QueueName:  &queueName,
-		},
+		StorageQueueEventSubscriptionDestinationProperties: storageQueueEventSubscriptionDestinationProperties,
 	}
 }
 
 func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	ep := d.Get("eventhub_endpoint").([]interface{})
-	if len(ep) == 0 || ep[0] == nil {
-		return eventgrid.EventHubEventSubscriptionDestination{}
+	destinationProps := &eventgrid.EventHubEventSubscriptionDestinationProperties{}
+
+	if _, ok := d.GetOk("eventhub_endpoint_id"); ok {
+		endpoint := d.Get("eventhub_endpoint_id")
+		destinationProps.ResourceID = utils.String(endpoint.(string))
+	} else if _, ok := d.GetOk("eventhub_endpoint"); ok {
+		ep := d.Get("eventhub_endpoint").([]interface{})
+		if len(ep) == 0 || ep[0] == nil {
+			return eventgrid.EventHubEventSubscriptionDestination{}
+		}
+		props := ep[0].(map[string]interface{})
+		eventHubID := props["eventhub_id"].(string)
+		destinationProps.ResourceID = &eventHubID
 	}
-	props := ep[0].(map[string]interface{})
-	eventHubID := props["eventhub_id"].(string)
+
+	deliveryMappings := expandDeliveryProperties(d)
+	destinationProps.DeliveryAttributeMappings = &deliveryMappings
 
 	return eventgrid.EventHubEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeEventHub,
-		EventHubEventSubscriptionDestinationProperties: &eventgrid.EventHubEventSubscriptionDestinationProperties{
-			ResourceID: &eventHubID,
-		},
+		EventHubEventSubscriptionDestinationProperties: destinationProps,
 	}
 }
 
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	ep := d.Get("hybrid_connection_endpoint").([]interface{})
-	if len(ep) == 0 || ep[0] == nil {
-		return eventgrid.HybridConnectionEventSubscriptionDestination{}
+	destinationProps := &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{}
+
+	if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
+		destinationProps.ResourceID = utils.String(v.(string))
+	} else if _, ok := d.GetOk("hybrid_connection_endpoint"); ok {
+		ep := d.Get("hybrid_connection_endpoint").([]interface{})
+		if len(ep) == 0 || ep[0] == nil {
+			return eventgrid.HybridConnectionEventSubscriptionDestination{}
+		}
+		props := ep[0].(map[string]interface{})
+		hybridConnectionID := props["hybrid_connection_id"].(string)
+		destinationProps.ResourceID = &hybridConnectionID
 	}
-	props := ep[0].(map[string]interface{})
-	hybridConnectionID := props["hybrid_connection_id"].(string)
+
+	deliveryMappings := expandDeliveryProperties(d)
+	destinationProps.DeliveryAttributeMappings = &deliveryMappings
 
 	return eventgrid.HybridConnectionEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeHybridConnection,
-		HybridConnectionEventSubscriptionDestinationProperties: &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{
-			ResourceID: &hybridConnectionID,
-		},
+		HybridConnectionEventSubscriptionDestinationProperties: destinationProps,
 	}
 }
 
-func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	input := d.Get("azure_function_endpoint")
 	configs := input.([]interface{})
 
 	props := eventgrid.AzureFunctionEventSubscriptionDestinationProperties{}
@@ -944,10 +1032,53 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) ev
 		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
 	}
 
+	deliveryMappings := expandDeliveryProperties(d)
+	props.DeliveryAttributeMappings = &deliveryMappings
+
 	return azureFunctionDestination
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDeliveryAttributeMapping {
+	var basicDeliveryAttributeMapping []eventgrid.BasicDeliveryAttributeMapping
+
+	deliveryMappingsConfig, deliveryMappingsExists := d.GetOk("delivery_property")
+	if !deliveryMappingsExists {
+		return basicDeliveryAttributeMapping
+	}
+
+	input := deliveryMappingsConfig.([]interface{})
+	if len(input) == 0 {
+		return basicDeliveryAttributeMapping
+	}
+
+	for _, r := range input {
+		mappingBlock := r.(map[string]interface{})
+
+		if mappingBlock["type"].(string) == "Static" {
+			basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.StaticDeliveryAttributeMapping{
+				Name: utils.String(mappingBlock["header_name"].(string)),
+				Type: eventgrid.TypeStatic,
+				StaticDeliveryAttributeMappingProperties: &eventgrid.StaticDeliveryAttributeMappingProperties{
+					Value:    utils.String(mappingBlock["value"].(string)),
+					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
+				},
+			})
+		} else if mappingBlock["type"].(string) == "Dynamic" {
+			basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.DynamicDeliveryAttributeMapping{
+				Name: utils.String(mappingBlock["header_name"].(string)),
+				Type: eventgrid.TypeDynamic,
+				DynamicDeliveryAttributeMappingProperties: &eventgrid.DynamicDeliveryAttributeMappingProperties{
+					SourceField: utils.String(mappingBlock["source_field"].(string)),
+				},
+			})
+		}
+	}
+
+	return basicDeliveryAttributeMapping
+}
+
+func expandEventGridEventSubscriptionWebhookEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	input := d.Get("webhook_endpoint")
 	configs := input.([]interface{})
 
 	props := eventgrid.WebHookEventSubscriptionDestinationProperties{}
@@ -981,6 +1112,9 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}) eventgri
 	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
 		props.AzureActiveDirectoryApplicationIDOrURI = utils.String(v.(string))
 	}
+
+	deliveryMappings := expandDeliveryProperties(d)
+	props.DeliveryAttributeMappings = &deliveryMappings
 
 	return webhookDestination
 }
@@ -1096,7 +1230,7 @@ func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *plugins
 		resourceID := dest["storage_account_id"].(string)
 		blobName := dest["storage_blob_container_name"].(string)
 		return eventgrid.StorageBlobDeadLetterDestination{
-			EndpointType: eventgrid.EndpointTypeStorageBlob,
+			EndpointType: eventgrid.EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob,
 			StorageBlobDeadLetterDestinationProperties: &eventgrid.StorageBlobDeadLetterDestinationProperties{
 				ResourceID:        &resourceID,
 				BlobContainerName: &blobName,
@@ -1121,20 +1255,27 @@ func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eve
 	return nil
 }
 
-func expandEventGridEventSubscriptionIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
+func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.EventSubscriptionIdentity, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &eventgrid.EventSubscriptionIdentity{
 			Type: eventgrid.EventSubscriptionIdentityType("None"),
-		}
+		}, nil
 	}
+
 	identity := input[0].(map[string]interface{})
 	identityType := eventgrid.EventSubscriptionIdentityType(identity["type"].(string))
-
 	eventgridIdentity := eventgrid.EventSubscriptionIdentity{
 		Type: identityType,
 	}
 
-	return &eventgridIdentity
+	userAssignedIdentity := identity["user_assigned_identity"].(string)
+	if identityType == eventgrid.EventSubscriptionIdentityTypeUserAssigned {
+		eventgridIdentity.UserAssignedIdentity = utils.String(userAssignedIdentity)
+	} else if len(userAssignedIdentity) > 0 {
+		return nil, fmt.Errorf("`user_assigned_identity` can only be specified when `type` is `UserAssigned`; but `type` is currently %q", identityType)
+	}
+
+	return &eventgridIdentity, nil
 }
 
 func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
@@ -1148,6 +1289,57 @@ func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHub
 	}
 
 	return []interface{}{result}
+}
+
+func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	deliveryProperties := make([]interface{}, len(*input))
+	for i, element := range *input {
+		attributeMapping := make(map[string]interface{})
+
+		if staticMapping, ok := element.AsStaticDeliveryAttributeMapping(); ok {
+			attributeMapping["type"] = staticMapping.Type
+			if staticMapping.Name != nil {
+				attributeMapping["header_name"] = staticMapping.Name
+			}
+			if staticMapping.IsSecret != nil {
+				attributeMapping["secret"] = staticMapping.IsSecret
+			}
+
+			if *staticMapping.IsSecret {
+				// If this is a secret, the Azure API just returns a value of 'Hidden',
+				// so we need to lookup the value that was provided from config to return
+				propertiesFromConfig := expandDeliveryProperties(d)
+				for _, v := range propertiesFromConfig {
+					if configMap, ok := v.AsStaticDeliveryAttributeMapping(); ok {
+						if *configMap.Name == *staticMapping.Name {
+							if configMap.Value != nil {
+								attributeMapping["value"] = configMap.Value
+							}
+							break
+						}
+					}
+				}
+			} else {
+				attributeMapping["value"] = staticMapping.Value
+			}
+		} else if dynamicMapping, ok := element.AsDynamicDeliveryAttributeMapping(); ok {
+			attributeMapping["type"] = dynamicMapping.Type
+			if dynamicMapping.Name != nil {
+				attributeMapping["header_name"] = dynamicMapping.Name
+			}
+			if dynamicMapping.SourceField != nil {
+				attributeMapping["source_field"] = dynamicMapping.SourceField
+			}
+		}
+
+		deliveryProperties[i] = attributeMapping
+	}
+
+	return deliveryProperties
 }
 
 func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {
@@ -1178,6 +1370,10 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	}
 	if input.QueueName != nil {
 		result["queue_name"] = *input.QueueName
+	}
+
+	if input.QueueMessageTimeToLiveInSeconds != nil {
+		result["queue_message_time_to_live_in_seconds"] = *input.QueueMessageTimeToLiveInSeconds
 	}
 
 	return []interface{}{result}
@@ -1488,9 +1684,15 @@ func flattenEventGridEventSubscriptionIdentity(input *eventgrid.EventSubscriptio
 		return []interface{}{}
 	}
 
+	result := map[string]interface{}{
+		"type": string(input.Type),
+	}
+
+	if input.UserAssignedIdentity != nil {
+		result["user_assigned_identity"] = *input.UserAssignedIdentity
+	}
+
 	return []interface{}{
-		map[string]interface{}{
-			"type": string(input.Type),
-		},
+		result,
 	}
 }

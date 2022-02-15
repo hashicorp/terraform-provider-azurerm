@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service: Service Plan.
 
-!> **NOTE:** This is a 3.0 beta resource and is intended to replace the older `azurerm_app_service_plan`. This older resource will be removed in 3.0 and this resource will be renamed to supersede it. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the AppService should exist. Changing this forces a new AppService to be created.
 
-* `sku_name` - (Required) The SKU for the plan. Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `FREE`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `P1v2`, `P2v2`, `P3v2`, `P1v3`, `P2v3`, `P3v3`, `S1`, `S2`, `S3`, `SHARED`, `PC2`, `PC3`, `PC4`, `EP1`, `EP2`, and `EP3`. 
+* `sku_name` - (Required) The SKU for the plan. Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `FREE`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `P1v2`, `P2v2`, `P3v2`, `P1v3`, `P2v3`, `P3v3`, `S1`, `S2`, `S3`, `SHARED`, `PC2`, `PC3`, `PC4`, `EP1`, `EP2`, `EP3`, `WS1`, `WS2`, and `WS3`,. 
 
 ~> **NOTE:** Isolated SKUs (`I1`, `I2`, `I3`, `I1v2`, `I2v2`, and `I3v2`) can only be used with App Service Environments
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
-* `number_of_workers` - (Optional) The number of Workers (instances) to be allocated. 
+* `worker_count` - (Optional) The number of Workers (instances) to be allocated. 
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 

@@ -24,7 +24,9 @@ website/node_modules
 .idea
 *.iml
 *.test
+.python-version
 .terraform.tfstate.lock.info
+.terraform.lock.hcl
 
 website/vendor
 
@@ -45,3 +47,6 @@ examples/**/terraform.zip
 # never upload the build to git
 terraform-provider-azurerm
 tf.zip
+
+# do not upload secrets
+.env

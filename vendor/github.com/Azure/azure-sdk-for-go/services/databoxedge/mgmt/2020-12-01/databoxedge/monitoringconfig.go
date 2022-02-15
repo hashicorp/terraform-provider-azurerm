@@ -64,7 +64,7 @@ func (client MonitoringConfigClient) CreateOrUpdate(ctx context.Context, deviceN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.MonitoringConfigClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.MonitoringConfigClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client MonitoringConfigClient) CreateOrUpdatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client MonitoringConfigClient) CreateOrUpdateSender(req *http.Request) (future MonitoringConfigCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -146,7 +147,7 @@ func (client MonitoringConfigClient) Delete(ctx context.Context, deviceName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.MonitoringConfigClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.MonitoringConfigClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -179,6 +180,7 @@ func (client MonitoringConfigClient) DeletePreparer(ctx context.Context, deviceN
 // http.Response Body if it receives an error.
 func (client MonitoringConfigClient) DeleteSender(req *http.Request) (future MonitoringConfigDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

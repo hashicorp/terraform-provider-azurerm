@@ -13,7 +13,7 @@ func AppConfigurationKeyID(input interface{}, key string) (warnings []string, er
 		return
 	}
 
-	if _, err := parse.AppConfigurationKeyID(v); err != nil {
+	if _, err := parse.KeyId(v); err != nil {
 		errors = append(errors, err)
 	}
 

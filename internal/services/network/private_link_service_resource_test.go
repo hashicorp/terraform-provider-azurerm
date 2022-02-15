@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateLinkServiceResource struct {
-}
+type PrivateLinkServiceResource struct{}
 
 func TestAccPrivateLinkService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
@@ -213,16 +212,14 @@ func TestAccPrivateLinkService_complete(t *testing.T) {
 }
 
 func (t PrivateLinkServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PrivateLinkServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["privateLinkServices"]
 
-	resp, err := clients.Network.PrivateLinkServiceClient.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.Network.PrivateLinkServiceClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Private Link Service (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -38,7 +39,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
-		}, importVirtualMachine(compute.Windows, "azurerm_windows_virtual_machine")),
+		}, importVirtualMachine(compute.OperatingSystemTypesWindows, "azurerm_windows_virtual_machine")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -139,9 +140,24 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// same for `dedicated_host_group_id`
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_group_id",
+				},
 				// TODO: raise a GH issue for the broken API
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
+			},
+
+			"dedicated_host_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_id",
+				},
 			},
 
 			"enable_automatic_updates": {
@@ -163,7 +179,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
-					string(compute.Deallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
 				}, false),
 			},
 
@@ -174,7 +190,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -200,7 +216,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.FloatAtLeast(-1.0),
 			},
 
-			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
 			"patch_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -212,16 +227,22 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"hotpatching_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"plan": planSchema(),
 
 			"priority": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -241,6 +262,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"secret": windowsSecretSchema(),
+
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -280,6 +307,18 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:     true,
 				RequiredWith: []string{"virtual_machine_scale_set_id"},
 				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"winrm_listener": winRmListenerSchema(),
@@ -330,19 +369,19 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, virtualMachineResourceName)
-	defer locks.UnlockByName(name, virtualMachineResourceName)
+	locks.ByName(id.Name, virtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
 		}
 	}
 
@@ -371,19 +410,23 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
-		computerName = name
+		computerName = id.Name
 	}
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandVirtualMachineIdentity(identityRaw)
+
+	identity, err := expandVirtualMachineIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
+
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
+	patchMode := d.Get("patch_mode").(string)
+	hotPatch := d.Get("hotpatching_enabled").(bool)
 	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -391,7 +434,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Windows)
+	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
@@ -407,7 +450,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		Identity: identity,
 		Plan:     plan,
@@ -456,11 +499,41 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
 	}
 
-	patchMode := d.Get("patch_mode").(string)
-	if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByOS) {
-		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.WindowsVMGuestPatchMode(patchMode),
+	isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
+	// Validate VM Guest Patch Mode configuration
+	if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+	}
+
+	if isHotpatchImage && patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+		return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
+	}
+
+	// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
+	// and if the image reference is using one of the following skus:
+	// 2022-datacenter-azure-edition-core or 2022-datacenter-azure-edition-core-smalldisk
+	if hotPatch {
+		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
 		}
+
+		if !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
+		}
+
+		if !isHotpatchImage {
+			if sourceImageId != "" {
+				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+			}
+
+			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+		}
+	}
+
+	params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+		PatchMode:         compute.WindowsVMGuestPatchMode(patchMode),
+		EnableHotpatching: utils.Bool(hotPatch),
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -479,20 +552,60 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+		params.HostGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
 		}
 	}
 
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+		params.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
+	}
+
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
+	}
+
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if params.Priority != compute.Spot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -500,7 +613,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -530,31 +643,26 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("user_data"); ok {
+		params.UserData = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("zone"); ok {
 		params.Zones = &[]string{
 			v.(string),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
@@ -571,7 +679,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Windows Virtual Machine %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -590,7 +698,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -650,6 +758,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
 
+	dedicatedHostGroupId := ""
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		dedicatedHostGroupId = *props.HostGroup.ID
+	}
+	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
+
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
 		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
@@ -677,6 +791,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 			if patchSettings := config.PatchSettings; patchSettings != nil {
 				d.Set("patch_mode", patchSettings.PatchMode)
+				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
 			}
 
 			d.Set("timezone", config.TimeZone)
@@ -692,7 +807,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
 	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
-	priority := string(compute.Regular)
+	priority := string(compute.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
 	}
@@ -725,12 +840,30 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	vtpmEnabled := false
+	secureBootEnabled := false
+
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		if secprofile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+		}
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			if uefi.VTpmEnabled != nil {
+				vtpmEnabled = *uefi.VTpmEnabled
+			}
+			if uefi.SecureBootEnabled != nil {
+				secureBootEnabled = *uefi.SecureBootEnabled
+			}
+		}
 	}
+
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
+
+	d.Set("user_data", props.UserData)
 
 	zone := ""
 	if resp.Zones != nil {
@@ -765,7 +898,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
@@ -786,7 +919,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		if storage := props.StorageProfile; storage != nil {
 			if disk := storage.OsDisk; disk != nil {
 				if settings := disk.DiffDiskSettings; settings != nil {
-					hasEphemeralOSDisk = settings.Option == compute.Local
+					hasEphemeralOSDisk = settings.Option == compute.DiffDiskOptionsLocal
 				}
 			}
 		}
@@ -843,9 +976,29 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
 		}
 
-		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)),
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
 		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string))
+	}
+
+	if d.HasChange("hotpatching_enabled") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(d.Get("hotpatching_enabled").(bool))
 	}
 
 	if d.HasChange("identity") {
@@ -871,6 +1024,21 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 		} else {
 			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("dedicated_host_group_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+			update.HostGroup = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.HostGroup = &compute.SubResource{}
 		}
 	}
 
@@ -922,7 +1090,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Windows)
+		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}
@@ -1009,10 +1177,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("encryption_at_host_enabled") {
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-
-		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		if update.SecurityProfile == nil {
+			update.SecurityProfile = &compute.SecurityProfile{}
 		}
+		update.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
 	}
 
 	if d.HasChange("license_type") {
@@ -1026,6 +1194,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			license = "None"
 		}
 		update.VirtualMachineProperties.LicenseType = &license
+	}
+
+	if d.HasChange("user_data") {
+		shouldUpdate = true
+		update.UserData = utils.String(d.Get("user_data").(string))
 	}
 
 	if instanceView.Statuses != nil {
@@ -1076,9 +1249,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if shouldDeallocate {
 		if !hasEphemeralOSDisk {
 			log.Printf("[DEBUG] Deallocating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
+			// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the Deallocate method
+			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1125,12 +1299,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			diskName := d.Get("os_disk.0.name").(string)
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                *encryptionType,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
@@ -1147,7 +1326,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
@@ -1211,7 +1390,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
 			log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
 		} else {
-			//ISSUE: 4920
+			// ISSUE: 4920
 			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
 			// thus this can be a large cost-saving when deleting larger instances
 			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle

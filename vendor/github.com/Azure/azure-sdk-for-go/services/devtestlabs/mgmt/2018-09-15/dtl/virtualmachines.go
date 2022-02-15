@@ -56,7 +56,7 @@ func (client VirtualMachinesClient) AddDataDisk(ctx context.Context, resourceGro
 
 	result, err = client.AddDataDiskSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "AddDataDisk", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "AddDataDisk", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -91,6 +91,7 @@ func (client VirtualMachinesClient) AddDataDiskPreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) AddDataDiskSender(req *http.Request) (future VirtualMachinesAddDataDiskFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -138,7 +139,7 @@ func (client VirtualMachinesClient) ApplyArtifacts(ctx context.Context, resource
 
 	result, err = client.ApplyArtifactsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "ApplyArtifacts", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "ApplyArtifacts", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -173,6 +174,7 @@ func (client VirtualMachinesClient) ApplyArtifactsPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) ApplyArtifactsSender(req *http.Request) (future VirtualMachinesApplyArtifactsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -219,7 +221,7 @@ func (client VirtualMachinesClient) Claim(ctx context.Context, resourceGroupName
 
 	result, err = client.ClaimSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Claim", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Claim", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -252,6 +254,7 @@ func (client VirtualMachinesClient) ClaimPreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) ClaimSender(req *http.Request) (future VirtualMachinesClaimFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -314,7 +317,7 @@ func (client VirtualMachinesClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -349,6 +352,7 @@ func (client VirtualMachinesClient) CreateOrUpdatePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) CreateOrUpdateSender(req *http.Request) (future VirtualMachinesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -396,7 +400,7 @@ func (client VirtualMachinesClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -429,6 +433,7 @@ func (client VirtualMachinesClient) DeletePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) DeleteSender(req *http.Request) (future VirtualMachinesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -476,7 +481,7 @@ func (client VirtualMachinesClient) DetachDataDisk(ctx context.Context, resource
 
 	result, err = client.DetachDataDiskSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "DetachDataDisk", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "DetachDataDisk", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -511,6 +516,7 @@ func (client VirtualMachinesClient) DetachDataDiskPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) DetachDataDiskSender(req *http.Request) (future VirtualMachinesDetachDataDiskFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -931,7 +937,7 @@ func (client VirtualMachinesClient) Redeploy(ctx context.Context, resourceGroupN
 
 	result, err = client.RedeploySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Redeploy", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Redeploy", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -964,6 +970,7 @@ func (client VirtualMachinesClient) RedeployPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) RedeploySender(req *http.Request) (future VirtualMachinesRedeployFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1011,7 +1018,7 @@ func (client VirtualMachinesClient) Resize(ctx context.Context, resourceGroupNam
 
 	result, err = client.ResizeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Resize", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Resize", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1046,6 +1053,7 @@ func (client VirtualMachinesClient) ResizePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) ResizeSender(req *http.Request) (future VirtualMachinesResizeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1092,7 +1100,7 @@ func (client VirtualMachinesClient) Restart(ctx context.Context, resourceGroupNa
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Restart", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Restart", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1125,6 +1133,7 @@ func (client VirtualMachinesClient) RestartPreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) RestartSender(req *http.Request) (future VirtualMachinesRestartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1171,7 +1180,7 @@ func (client VirtualMachinesClient) Start(ctx context.Context, resourceGroupName
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1204,6 +1213,7 @@ func (client VirtualMachinesClient) StartPreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) StartSender(req *http.Request) (future VirtualMachinesStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1250,7 +1260,7 @@ func (client VirtualMachinesClient) Stop(ctx context.Context, resourceGroupName 
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1283,6 +1293,7 @@ func (client VirtualMachinesClient) StopPreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) StopSender(req *http.Request) (future VirtualMachinesStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1330,7 +1341,7 @@ func (client VirtualMachinesClient) TransferDisks(ctx context.Context, resourceG
 
 	result, err = client.TransferDisksSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "TransferDisks", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "TransferDisks", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1363,6 +1374,7 @@ func (client VirtualMachinesClient) TransferDisksPreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) TransferDisksSender(req *http.Request) (future VirtualMachinesTransferDisksFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1409,7 +1421,7 @@ func (client VirtualMachinesClient) UnClaim(ctx context.Context, resourceGroupNa
 
 	result, err = client.UnClaimSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "UnClaim", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "UnClaim", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1442,6 +1454,7 @@ func (client VirtualMachinesClient) UnClaimPreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) UnClaimSender(req *http.Request) (future VirtualMachinesUnClaimFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

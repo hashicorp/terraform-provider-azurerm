@@ -10,7 +10,7 @@ description: |-
 
 Manages a Windows Web App.
 
-!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -59,15 +59,15 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs of App Settings.
 
-* `auth_settings` - (Optional) A `auth_settings` block as defined below.
+* `auth_settings` - (Optional) An `auth_settings` block as defined below.
 
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should Client Affinity be enabled?
 
-* `client_cert_enabled` - (Optional) Should Client Certificates be enabled?
+* `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_cert_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Windows Web App require HTTPS connections.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `logs` - (Optional) A `logs` block as defined below.
 
@@ -111,7 +111,7 @@ A `active_directory` block supports the following:
 
 A `application_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined below.
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
 * `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
@@ -159,7 +159,7 @@ A `auth_settings` block supports the following:
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
-* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `BuiltInAuthenticationProviderAzureActiveDirectory`, `BuiltInAuthenticationProviderFacebook`, `BuiltInAuthenticationProviderGoogle`, `BuiltInAuthenticationProviderMicrosoftAccount`, `BuiltInAuthenticationProviderTwitter`, `BuiltInAuthenticationProviderGithub`
+* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
 ~> **NOTE:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
 
@@ -189,7 +189,7 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Required) A `action` block as defined above.
+* `action` - (Required) An `action` block as defined above.
 
 * `trigger` - (Required) A `trigger` block as defined below.
 
@@ -217,7 +217,7 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -405,17 +405,19 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
 
-* `api_management_config_id` - (Optional) The ID of the APIM configuration for this Windows Web App.
+* `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
+* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
-* `auto_swap_slot_name` - (Optional) The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
+
+* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
 
 * `cors` - (Optional) A `cors` block as defined above.
 
@@ -427,19 +429,19 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to the Health Check.
 
+* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
-* `local_mysql` - (Optional) Use Local MySQL. Defaults to `false`.
+* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`. 
-
-* `number_of_workers` - (Optional) The number of Workers for this Windows App Service. 
 
 * `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
@@ -456,6 +458,8 @@ A `site_config` block supports the following:
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
 * `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+
+* `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
 ---
 

@@ -74,8 +74,8 @@ func resourceArmSqlManagedDatabaseCreateUpdate(d *schema.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_managed_database", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_managed_database", id.ID())
 		}
 	}
 

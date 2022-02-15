@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -71,9 +72,15 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
@@ -198,7 +205,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								string(mariadb.StorageAutogrowEnabled),
 								string(mariadb.StorageAutogrowDisabled),
 							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -210,7 +218,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -227,7 +236,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
 							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -241,7 +251,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								validation.IntBetween(5120, 4096000),
 								validation.IntDivisibleBy(1024),
 							),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -266,35 +277,32 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 
 func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
-
-	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mariadb_server", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mariadb_server", id.ID())
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	mode := mariadb.CreateMode(d.Get("create_mode").(string))
 	source := d.Get("creation_source_server_id").(string)
 	version := mariadb.ServerVersion(d.Get("version").(string))
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
 	publicAccess := mariadb.PublicNetworkAccessEnumEnabled
@@ -379,26 +387,16 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
 	if err != nil {
-		return fmt.Errorf("creating MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceMariaDbServerRead(d, meta)
 }
 
@@ -411,12 +409,12 @@ func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
 	publicAccess := mariadb.PublicNetworkAccessEnumEnabled
@@ -445,23 +443,12 @@ func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for MariaDB Server %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB Server %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceMariaDbServerRead(d, meta)
 }
@@ -473,21 +460,21 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB Server %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -530,18 +517,16 @@ func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
-		return fmt.Errorf("deleting MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
-		return fmt.Errorf("waiting for deletion of MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -567,7 +552,7 @@ func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
 
 	capacity, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+		return nil, fmt.Errorf("cannot convert `sku_name` %q capacity %s to int", skuName, parts[2])
 	}
 
 	return &mariadb.Sku{

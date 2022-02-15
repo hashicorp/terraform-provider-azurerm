@@ -24,8 +24,10 @@ func resourceSqlFirewallRule() *pluginsdk.Resource {
 		Update: resourceSqlFirewallRuleCreateUpdate,
 		Delete: resourceSqlFirewallRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,46 +75,36 @@ func resourceSqlFirewallRule() *pluginsdk.Resource {
 
 func resourceSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FirewallRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	startIPAddress := d.Get("start_ip_address").(string)
-	endIPAddress := d.Get("end_ip_address").(string)
-
+	id := parse.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_firewall_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_firewall_rule", id.ID())
 		}
 	}
 
 	parameters := sql.FirewallRule{
 		FirewallRuleProperties: &sql.FirewallRuleProperties{
-			StartIPAddress: utils.String(startIPAddress),
-			EndIPAddress:   utils.String(endIPAddress),
+			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
+			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
-		return fmt.Errorf("creating SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSqlFirewallRuleRead(d, meta)
 }
 
@@ -129,19 +121,22 @@ func resourceSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] SQL Firewall Rule %q (Server %q / Resource Group %q) was not found - removing from state", id.Name, id.ServerName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving SQL Firewall Rule %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("server_name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("start_ip_address", resp.StartIPAddress)
-	d.Set("end_ip_address", resp.EndIPAddress)
+
+	if props := resp.FirewallRuleProperties; props != nil {
+		d.Set("start_ip_address", props.StartIPAddress)
+		d.Set("end_ip_address", props.EndIPAddress)
+	}
 
 	return nil
 }
@@ -156,11 +151,8 @@ func resourceSqlFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting SQL Firewall Rule %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
-		}
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopApplicationResource struct {
-}
+type VirtualDesktopApplicationResource struct{}
 
 func TestAccVirtualDesktopApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application", "test")
@@ -184,7 +183,6 @@ resource "azurerm_virtual_desktop_application" "test" {
   icon_path                    = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
   icon_index                   = 1
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 

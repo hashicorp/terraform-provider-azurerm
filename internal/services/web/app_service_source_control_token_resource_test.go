@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct {
-}
+type AppServiceSourceControlResource struct{}
 
 func TestAccAppServiceSourceControlToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")
@@ -44,7 +43,7 @@ func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *cli
 		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.SourceControlProperties != nil), nil
+	return utils.Bool(resp.SourceControlProperties != nil && resp.SourceControlProperties.Token != nil && *resp.SourceControlProperties.Token != ""), nil
 }
 
 func testAccAppServiceSourceControlToken(token, tokenSecret string) string {
