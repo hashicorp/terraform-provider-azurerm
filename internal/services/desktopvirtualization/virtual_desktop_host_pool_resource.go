@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
@@ -26,9 +28,9 @@ var hostpoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopHostPoolCreateUpdate,
+		Create: resourceVirtualDesktopHostPoolCreate,
 		Read:   resourceVirtualDesktopHostPoolRead,
-		Update: resourceVirtualDesktopHostPoolCreateUpdate,
+		Update: resourceVirtualDesktopHostPoolUpdate,
 		Delete: resourceVirtualDesktopHostPoolDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -178,40 +180,27 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Host Pool create/update")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID()
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
-		}
-
-		if existing.HostPoolProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", resourceId)
+	id := parse.NewHostPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	locks.ByName(name, hostpoolResourceType)
-	defer locks.UnlockByName(name, hostpoolResourceType)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", id.ID())
+	}
 
 	context := desktopvirtualization.HostPool{
-		Location: &location,
-		Tags:     tags.Expand(t),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		HostPoolProperties: &desktopvirtualization.HostPoolProperties{
 			HostPoolType:                  desktopvirtualization.HostPoolType(d.Get("type").(string)),
 			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
@@ -226,11 +215,68 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
-		return fmt.Errorf("creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, context); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
+	return resourceVirtualDesktopHostPoolRead(d, meta)
+}
+
+func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.HostPoolID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.Name, hostpoolResourceType)
+	defer locks.UnlockByName(id.Name, hostpoolResourceType)
+
+	update := &desktopvirtualization.HostPoolPatch{}
+
+	if d.HasChange("tags") {
+		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment") {
+		update.HostPoolPatchProperties = &desktopvirtualization.HostPoolPatchProperties{}
+
+		if d.HasChange("custom_rdp_properties") {
+			update.HostPoolPatchProperties.CustomRdpProperty = utils.String(d.Get("custom_rdp_properties").(string))
+		}
+
+		if d.HasChange("description") {
+			update.HostPoolPatchProperties.Description = utils.String(d.Get("description").(string))
+		}
+
+		if d.HasChange("friendly_name") {
+			update.HostPoolPatchProperties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+		}
+
+		if d.HasChange("maximum_sessions_allowed") {
+			update.HostPoolPatchProperties.MaxSessionLimit = utils.Int32(int32(d.Get("maximum_sessions_allowed").(int)))
+		}
+
+		if d.HasChange("preferred_app_group_type") {
+			update.HostPoolPatchProperties.PreferredAppGroupType = desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string))
+		}
+
+		if d.HasChange("start_vm_on_connect") {
+			update.HostPoolPatchProperties.StartVMOnConnect = utils.Bool(d.Get("start_vm_on_connect").(bool))
+		}
+
+		if d.HasChange("validate_environment") {
+			update.HostPoolPatchProperties.ValidationEnvironment = utils.Bool(d.Get("validate_environment").(bool))
+		}
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceVirtualDesktopHostPoolRead(d, meta)
 }
@@ -248,19 +294,17 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Host Pool %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.HostPoolProperties; props != nil {
 		maxSessionLimit := 0
@@ -268,16 +312,20 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 			maxSessionLimit = int(*props.MaxSessionLimit)
 		}
 
+		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("maximum_sessions_allowed", maxSessionLimit)
 		d.Set("load_balancer_type", string(props.LoadBalancerType))
 		d.Set("personal_desktop_assignment_type", string(props.PersonalDesktopAssignmentType))
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
+		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
-		d.Set("start_vm_on_connect", props.StartVMOnConnect)
-		d.Set("custom_rdp_properties", props.CustomRdpProperty)
+
+		if !features.ThreePointOhBeta() {
+			d.Set("registration_info", []interface{}{})
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -297,8 +345,9 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true)); err != nil {
-		return fmt.Errorf("deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	forceDeleteSessionHost := utils.Bool(true)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name, forceDeleteSessionHost); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
