@@ -55,9 +55,9 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_share_dataset_kusto_cluster" "example" {
-  name                          = "example-dskc"
-  share_id                      = azurerm_data_share.example.id
-  kusto_cluster_id              = azurerm_kusto_cluster.example.id
+  name             = "example-dskc"
+  share_id         = azurerm_data_share.example.id
+  kusto_cluster_id = azurerm_kusto_cluster.example.id
   depends_on = [
     azurerm_role_assignment.example,
   ]
