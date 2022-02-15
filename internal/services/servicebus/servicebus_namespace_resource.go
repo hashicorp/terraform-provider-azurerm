@@ -8,12 +8,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -64,11 +64,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.NamespaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": identity.SystemAssignedUserAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -268,61 +268,41 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func expandServiceBusNamespaceIdentity(input []interface{}) (*servicebus.Identity, error) {
-	if len(input) == 0 || input[0] == nil {
-		return &servicebus.Identity{
-			Type: servicebus.ManagedServiceIdentityTypeNone,
-		}, nil
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-
-	config := &servicebus.Identity{
-		Type: servicebus.ManagedServiceIdentityType(v["type"].(string)),
+	out := servicebus.Identity{
+		Type: servicebus.ManagedServiceIdentityType(string(expanded.Type)),
 	}
 
-	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
-
-	if len(identityIds) != 0 {
-		if config.Type != servicebus.ManagedServiceIdentityTypeSystemAssignedUserAssigned && config.Type != servicebus.ManagedServiceIdentityTypeUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
-		}
-		config.UserAssignedIdentities = map[string]*servicebus.UserAssignedIdentity{}
-		for _, id := range identityIds {
-			config.UserAssignedIdentities[id.(string)] = &servicebus.UserAssignedIdentity{}
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = map[string]*servicebus.UserAssignedIdentity{}
+		for id := range expanded.IdentityIds {
+			out.UserAssignedIdentities[id] = &servicebus.UserAssignedIdentity{
+				// intentionally empty
+			}
 		}
 	}
-
-	return config, nil
+	return &out, nil
 }
 
-func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) ([]interface{}, error) {
-	if input == nil || input.Type == servicebus.ManagedServiceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
+func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	coalesce := func(input *string) string {
-		if input == nil {
-			return ""
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-
-		return *input
-	}
-
-	var identityIds []string
-	for id := range input.UserAssignedIdentities {
-		parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(id)
-		if err != nil {
-			return nil, err
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
 		}
-		identityIds = append(identityIds, parsedId.ID())
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":         input.Type,
-			"identity_ids": identityIds,
-			"principal_id": coalesce(input.PrincipalID),
-			"tenant_id":    coalesce(input.TenantID),
-		},
-	}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
