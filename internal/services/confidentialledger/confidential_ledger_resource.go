@@ -228,8 +228,6 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	ledgerType := confidentialledger.LedgerType(d.Get("ledger_type").(string))
 
 	parameters := confidentialledger.ConfidentialLedger{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Name:     &resourceId.LedgerName,
 		Properties: &confidentialledger.LedgerProperties{
 			AadBasedSecurityPrincipals:  aadBasedUsers,
 			CertBasedSecurityPrincipals: certBasedUsers,
