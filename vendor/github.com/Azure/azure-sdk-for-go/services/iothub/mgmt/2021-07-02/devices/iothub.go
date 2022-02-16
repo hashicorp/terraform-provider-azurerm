@@ -78,7 +78,7 @@ func (client IotHubClient) ManualFailoverPreparer(ctx context.Context, iotHubNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-31"
+	const APIVersion = "2021-07-02"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

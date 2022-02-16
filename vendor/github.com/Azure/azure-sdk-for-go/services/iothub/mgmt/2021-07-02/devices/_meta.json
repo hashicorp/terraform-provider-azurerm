@@ -1,0 +1,11 @@
+{
+  "commit": "3587a60ea8f18e76a41e4b56b72aeddce879aae9",
+  "readme": "/_/azure-rest-api-specs/specification/iothub/resource-manager/readme.md",
+  "tag": "package-2021-07-02",
+  "use": "@microsoft.azure/autorest.go@2.1.187",
+  "repository_url": "https://github.com/Azure/azure-rest-api-specs.git",
+  "autorest_command": "autorest --use=@microsoft.azure/autorest.go@2.1.187 --tag=package-2021-07-02 --go-sdk-folder=/_/azure-sdk-for-go --go --verbose --use-onever --version=V2 --go.license-header=MICROSOFT_MIT_NO_VERSION --pass-thru:schema-validator-swagger --enum-prefix /_/azure-rest-api-specs/specification/iothub/resource-manager/readme.md",
+  "additional_properties": {
+    "additional_options": "--go --verbose --use-onever --version=V2 --go.license-header=MICROSOFT_MIT_NO_VERSION --pass-thru:schema-validator-swagger --enum-prefix"
+  }
+}

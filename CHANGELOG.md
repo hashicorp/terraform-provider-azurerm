@@ -3,9 +3,20 @@
 FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_storage` [GH-15375]
+* **New Resource:** `azurerm_mssql_outbound_firewall_rule` [GH-14795]
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` [GH-15430]
+* `azurerm_kusto_cluster` - supports for the `public_network_access` enabled [GH-15428]
+* `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
+* `azurerm_storage_management_policy` - add support for `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than,` and `delete_after_days_since_last_access_time_greater_than` [GH-15423]
+* `azurerm_monitor_activity_log_alert` support for the `resource_health` block [GH-14917]
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - fixing a regression where the `identity` block wasn't set into the state [GH-15412]
+* `azurerm_logic_app_integration_account_map` - set `content_type` to `text/plain` when `map_type` is `Liquid` [GH-15370]
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
 * `azurerm_web_application_firewall_policy` - `disabled_rules` is now optional [GH-15386]
 
