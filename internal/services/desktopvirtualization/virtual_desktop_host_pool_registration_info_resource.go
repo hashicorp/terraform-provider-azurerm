@@ -141,8 +141,8 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		d.SetId("")
 		return nil
 	}
-	hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
-	d.Set("hostpool_id", hostpoolId.ID())
+
+	d.Set("hostpool_id", parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName).ID())
 	d.Set("expiration_date", resp.ExpirationTime.Format(time.RFC3339))
 	d.Set("token", resp.Token)
 
