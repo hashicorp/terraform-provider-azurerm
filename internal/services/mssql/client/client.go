@@ -20,6 +20,7 @@ type Client struct {
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
+	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *sql.ReplicationLinksClient
@@ -76,6 +77,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	longTermRetentionPoliciesClient := sql.NewLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&longTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	managedDatabasesClient := sql.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
 
 	managedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
@@ -136,6 +140,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		JobAgentsClient:                          &jobAgentsClient,
 		JobCredentialsClient:                     &jobCredentialsClient,
 		LongTermRetentionPoliciesClient:          &longTermRetentionPoliciesClient,
+		ManagedDatabasesClient:                   &managedDatabasesClient,
 		ManagedInstancesClient:                   &managedInstancesClient,
 		OutboundFirewallRulesClient:              &outboundFirewallRulesClient,
 		ReplicationLinksClient:                   &replicationLinksClient,
