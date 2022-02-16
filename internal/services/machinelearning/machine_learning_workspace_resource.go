@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -144,9 +146,9 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 						"user_assigned_identity_id": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: msiValidate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -319,7 +321,11 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	if err := d.Set("encryption", flattenMachineLearningWorkspaceEncryption(resp.Encryption)); err != nil {
+	flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(resp.Encryption)
+	if err != nil {
+		return fmt.Errorf("flattening `encryption`: %+v", err)
+	}
+	if err := d.Set("encryption", flattenedEncryption); err != nil {
 		return fmt.Errorf("flattening encryption on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -474,21 +480,37 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) (*machinelear
 	}, nil
 }
 
-func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservices.EncryptionProperty) []interface{} {
-	if encryption == nil {
-		return []interface{}{}
+func flattenMachineLearningWorkspaceEncryption(input *machinelearningservices.EncryptionProperty) (*[]interface{}, error) {
+	if input == nil || input.Status != machinelearningservices.EncryptionStatusEnabled {
+		return &[]interface{}{}, nil
 	}
 
-	userAssignedIdentityID := ""
-	if encryption.Identity.UserAssignedIdentity != nil {
-		userAssignedIdentityID = *encryption.Identity.UserAssignedIdentity
+	keyVaultId := ""
+	keyVaultKeyId := ""
+	if input.KeyVaultProperties != nil {
+		if input.KeyVaultProperties.KeyIdentifier != nil {
+			keyVaultKeyId = *input.KeyVaultProperties.KeyIdentifier
+		}
+		if input.KeyVaultProperties.KeyVaultArmID != nil {
+			keyVaultId = *input.KeyVaultProperties.KeyVaultArmID
+		}
 	}
 
-	return []interface{}{
+	userAssignedIdentityId := ""
+	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity)
+		}
+
+		userAssignedIdentityId = id.ID()
+	}
+
+	return &[]interface{}{
 		map[string]interface{}{
-			"user_assigned_identity_id": userAssignedIdentityID,
-			"key_vault_id":              *encryption.KeyVaultProperties.KeyVaultArmID,
-			"key_id":                    *encryption.KeyVaultProperties.KeyIdentifier,
+			"user_assigned_identity_id": userAssignedIdentityId,
+			"key_vault_id":              keyVaultId,
+			"key_id":                    keyVaultKeyId,
 		},
-	}
+	}, nil
 }
