@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_application_gateway` - fixing a regression where the `identity` block wasn't set into the state [GH-15412]
+* `azurerm_logic_app_integration_account_map` - set `content_type` to `text/plain` when `map_type` is `Liquid` [GH-15370]
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
 * `azurerm_web_application_firewall_policy` - `disabled_rules` is now optional [GH-15386]
 
