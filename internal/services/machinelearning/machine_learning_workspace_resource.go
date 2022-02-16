@@ -500,7 +500,7 @@ func flattenMachineLearningWorkspaceEncryption(input *machinelearningservices.En
 	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity)
+			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity, err)
 		}
 
 		userAssignedIdentityId = id.ID()
