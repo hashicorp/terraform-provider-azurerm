@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_storage` [GH-15375]
+* **New Resource:** `azurerm_mssql_outbound_firewall_rule` [GH-14795]
 
 ENHANCEMENTS:
 
