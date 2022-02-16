@@ -235,6 +235,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				return commonschema.ZonesMultipleOptionalForceNew()
 			}(),
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -290,6 +296,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
+	publicNetworkAccess := kusto.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = kusto.PublicNetworkAccessDisabled
+	}
+
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:     optimizedAutoScale,
 		EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
@@ -298,6 +309,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
 		EngineType:             engine,
+		PublicNetworkAccess:    publicNetworkAccess,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -415,6 +427,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("zones", zones.Flatten(resp.Zones))
+
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == kusto.PublicNetworkAccessEnabled)
 
 	identity, err := flattenClusterIdentity(resp.Identity)
 	if err != nil {
