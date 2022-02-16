@@ -130,7 +130,7 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if props := resp.Properties; props != nil {
 		d.Set("is_verified", props.IsVerified)
-		d.Set("certificate_content", *props.Certificate)
+		d.Set("certificate_content", props.Certificate)
 	}
 
 	return nil
