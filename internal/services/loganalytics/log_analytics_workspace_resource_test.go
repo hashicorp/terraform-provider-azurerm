@@ -74,6 +74,12 @@ func TestAccLogAnalyticsWorkspace_freeTier(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		{
+			Config: r.freeTierWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -304,6 +310,31 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Free"
   retention_in_days   = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceResource) freeTierWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Free"
+  retention_in_days   = 7
+
+  tags = {
+    Environment = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
