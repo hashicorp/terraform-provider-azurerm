@@ -46,5 +46,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_log_analytics_solution":                               resourceLogAnalyticsSolution(),
 		"azurerm_log_analytics_storage_insights":                       resourceLogAnalyticsStorageInsights(),
 		"azurerm_log_analytics_workspace":                              resourceLogAnalyticsWorkspace(),
+		"azurerm_log_analytics_workspace_table":                        resourceLogAnalyticsWorkspaceTable(),
 	}
 }

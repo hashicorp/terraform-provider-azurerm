@@ -17,6 +17,7 @@ type Client struct {
 	SolutionsClient            *operationsmanagement.SolutionsClient
 	StorageInsightsClient      *operationalinsights.StorageInsightConfigsClient
 	WorkspacesClient           *operationalinsights.WorkspacesClient
+	TablesClient               *operationalinsights.TablesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -50,6 +51,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedStorageAccountClient := operationalinsights.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
 
+	TablesClient := operationalinsights.NewTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&TablesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ClusterClient:              &ClusterClient,
 		DataExportClient:           &DataExportClient,
@@ -61,5 +65,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		SolutionsClient:            &SolutionsClient,
 		StorageInsightsClient:      &StorageInsightsClient,
 		WorkspacesClient:           &WorkspacesClient,
+		TablesClient:               &TablesClient,
 	}
 }
