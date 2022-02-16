@@ -104,7 +104,7 @@ func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 	})
 }
 
-func (t LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err

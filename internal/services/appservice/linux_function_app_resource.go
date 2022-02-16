@@ -378,8 +378,12 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					functionApp.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+				}
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
