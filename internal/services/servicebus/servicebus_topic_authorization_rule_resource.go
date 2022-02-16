@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -35,25 +37,40 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AuthorizationRuleName(),
-			},
+		Schema: authorizationRuleSchemaFrom(resourceServiceBusTopicAuthorizationRuleSchema()),
 
-			// TODO 3.0 - Make it required
-			"topic_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.TopicID,
-				ConflictsWith: []string{"topic_name", "namespace_name", "resource_group_name"},
-			},
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
+	}
+}
 
-			// TODO 3.0 - Remove in favor of topic_id
+func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+
+		"topic_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			Computed:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.TopicID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"topic_name", "namespace_name", "resource_group_name"}
+				}
+				return []string{}
+			}(),
+		},
+	}
+
+	oldSchema := make(map[string]*pluginsdk.Schema)
+	if !features.ThreePointOhBeta() {
+		oldSchema = map[string]*pluginsdk.Schema{
 			"topic_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -64,7 +81,6 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"topic_id"},
 			},
 
-			// TODO 3.0 - Remove in favor of topic_id
 			"namespace_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -75,7 +91,6 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"topic_id"},
 			},
 
-			// TODO 3.0 - Remove in favor of topic_id
 			"resource_group_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -85,10 +100,10 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				Deprecated:    `Deprecated in favor of "topic_id"`,
 				ConflictsWith: []string{"topic_id"},
 			},
-		}),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
+		}
 	}
+
+	return azure.MergeSchema(out, oldSchema)
 }
 
 func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -102,7 +117,7 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := parse.TopicID(topicIdLit)
 		resourceId = parse.NewTopicAuthorizationRuleID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
-	} else {
+	} else if !features.ThreePointOhBeta() {
 		resourceId = parse.NewTopicAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
 	}
 
@@ -158,10 +173,12 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if !features.ThreePointOhBeta() {
+		d.Set("topic_name", id.TopicName)
+		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("topic_name", id.TopicName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
