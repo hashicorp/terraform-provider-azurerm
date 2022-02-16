@@ -48,11 +48,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridkubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
@@ -179,10 +179,10 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		hsm.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
+		hybridkubernetes.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
-		kubernetes.Registration{},
 		kusto.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},

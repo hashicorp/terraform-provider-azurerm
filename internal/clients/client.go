@@ -52,11 +52,11 @@ import (
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
+	hybridkubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridkubernetes/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	iothub "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	kubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/kubernetes/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
@@ -163,11 +163,11 @@ type Client struct {
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
 	HealthCare            *healthcare.Client
+	HybridKubernetes      *hybridkubernetes.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
-	Kubernetes            *kubernetes.Client
 	Kusto                 *kusto.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
@@ -276,11 +276,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
+	client.HybridKubernetes = hybridkubernetes.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
-	client.Kubernetes = kubernetes.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
