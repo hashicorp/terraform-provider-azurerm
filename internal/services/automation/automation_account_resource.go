@@ -117,6 +117,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -149,6 +150,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
