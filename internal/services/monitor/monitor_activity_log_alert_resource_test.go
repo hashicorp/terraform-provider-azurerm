@@ -146,7 +146,7 @@ func TestAccMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
 				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
 				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
 				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
 				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
 				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
