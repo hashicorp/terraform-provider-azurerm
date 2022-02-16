@@ -58,11 +58,12 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoints": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+				Set: pluginsdk.HashString,
 			},
 
 			"enforce_private_link_endpoint_network_policies": {
