@@ -192,7 +192,11 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("public_network_access_enabled", resp.PublicNetworkAccess)
+	publicNetworkAccessEnabled := true
+	if resp.PublicNetworkAccess != nil {
+		publicNetworkAccessEnabled = *resp.PublicNetworkAccess
+	}
+	d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 	skuName := ""
 	if sku := resp.Sku; sku != nil {
 		skuName = string(resp.Sku.Name)
