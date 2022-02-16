@@ -571,7 +571,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id.ResourceGroup, id.RediName),
 		MinTimeout: 15 * time.Second,
