@@ -277,6 +277,8 @@ resource "azurerm_mssql_server" "test" {
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
   extended_auditing_policy     = []
+
+  outbound_network_restriction_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
