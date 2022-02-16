@@ -126,7 +126,7 @@ The following arguments are supported:
 ~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than` and `tier_to_cool_after_days_since_last_access_time_greater_than` can not be set at the same time.
 
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
-* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0 and `99999`.
 
 ~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` can not be set at the same time.
 
