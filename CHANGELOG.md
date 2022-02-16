@@ -2,8 +2,9 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_spring_cloud_storage` [GH-15375]
+* **New Data Source:** `azurerm_extended_locations` [GH-15181]
 * **New Resource:** `azurerm_mssql_outbound_firewall_rule` [GH-14795]
+* **New Resource:** `azurerm_spring_cloud_storage` [GH-15375]
 
 ENHANCEMENTS:
 
