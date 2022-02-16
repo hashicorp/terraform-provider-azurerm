@@ -375,8 +375,8 @@ resource "azurerm_web_pubsub" "test" {
   aad_auth_enabled   = true
 
   identity {
-    type                      = "UserAssigned"
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
