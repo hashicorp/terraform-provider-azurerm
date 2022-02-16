@@ -14,17 +14,17 @@ Manages a HybridKubernetes connected cluster.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "example-hybridkubernetes"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_hybrid_kubernetes_connected_cluster" "test" {
-  name                         = "acctest-k-%d"
+  name                         = "example-connected-cluster"
   resource_group_name          = azurerm_resource_group.test.name
   agent_public_key_certificate = "xxxxxxxxxxxxxxxxxxx"
   distribution                 = "gke"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
   infrastructure = "gcp"
