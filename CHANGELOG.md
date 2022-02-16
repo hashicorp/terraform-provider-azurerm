@@ -9,10 +9,11 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` [GH-15430]
 * `azurerm_kusto_cluster` - supports for the `public_network_access` enabled [GH-15428]
-* `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
-* `azurerm_storage_management_policy` - add support for `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than,` and `delete_after_days_since_last_access_time_greater_than` [GH-15423]
 * `azurerm_monitor_activity_log_alert` support for the `resource_health` block [GH-14917]
 * `azurerm_iothub_dps` - support for `ip_filter_rule` block and `public_network_access_enabled` [GH-15343]
+* `azurerm_servicebus_namespace` - support for the `identity` block [GH-15371]
+* `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account [GH-15082]
+* `azurerm_storage_management_policy` - add support for `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than,` and `delete_after_days_since_last_access_time_greater_than` [GH-15423]
 
 BUG FIXES:
 
