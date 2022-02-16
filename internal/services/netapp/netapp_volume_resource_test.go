@@ -143,7 +143,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("100"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
 			),
 		},
 		data.ImportStep(),
@@ -162,6 +162,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
 			),
 		},
 		data.ImportStep(),
@@ -173,6 +174,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
 			),
 		},
 		data.ImportStep(),
@@ -183,6 +185,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
 			),
 		},
 		data.ImportStep(),
@@ -276,6 +279,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -297,6 +301,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv4.1"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -341,6 +346,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   data_protection_snapshot_policy {
     snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
@@ -387,6 +393,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  throughput_in_mibps        = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -422,6 +429,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -453,6 +461,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
+  throughput_in_mibps              = 3.2
 
   export_policy_rule {
     rule_index        = 1
@@ -481,6 +490,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  throughput_in_mibps        = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -507,6 +517,7 @@ resource "azurerm_netapp_volume" "import" {
   service_level       = azurerm_netapp_volume.test.service_level
   subnet_id           = azurerm_netapp_volume.test.subnet_id
   storage_quota_in_gb = azurerm_netapp_volume.test.storage_quota_in_gb
+  throughput_in_mibps = azurerm_netapp_volume.test.throughput_in_mibps
 }
 `, r.basic(data))
 }
@@ -526,7 +537,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 100
+  throughput_in_mibps = 65
 
   export_policy_rule {
     rule_index        = 1
@@ -597,6 +608,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.updated.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -616,6 +628,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
+  throughput_in_mibps = 65
 
   export_policy_rule {
     rule_index          = 1
@@ -673,6 +686,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   account_name        = azurerm_netapp_account.test_secondary.name
   service_level       = "Standard"
   size_in_tb          = 4
+  qos_type            = "Manual"
 }
 `, r.template(data), data.RandomInteger, "germanywestcentral")
 }
@@ -724,6 +738,7 @@ resource "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
   size_in_tb          = 4
+  qos_type            = "Manual"
 }
 `, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
