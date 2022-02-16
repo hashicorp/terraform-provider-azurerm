@@ -7,14 +7,18 @@ import (
 )
 
 type Client struct {
-	ResourceClient       *devices.IotHubResourceClient
-	DPSResourceClient    *iothub.IotDpsResourceClient
-	DPSCertificateClient *iothub.DpsCertificateClient
+	ResourceClient          *devices.IotHubResourceClient
+	IotHubCertificateClient *devices.CertificatesClient
+	DPSResourceClient       *iothub.IotDpsResourceClient
+	DPSCertificateClient    *iothub.DpsCertificateClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	ResourceClient := devices.NewIotHubResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceClient.Client, o.ResourceManagerAuthorizer)
+
+	IotHubCertificateClient := devices.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&IotHubCertificateClient.Client, o.ResourceManagerAuthorizer)
 
 	DPSResourceClient := iothub.NewIotDpsResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DPSResourceClient.Client, o.ResourceManagerAuthorizer)
@@ -23,8 +27,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&DPSCertificateClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ResourceClient:       &ResourceClient,
-		DPSResourceClient:    &DPSResourceClient,
-		DPSCertificateClient: &DPSCertificateClient,
+		ResourceClient:          &ResourceClient,
+		IotHubCertificateClient: &IotHubCertificateClient,
+		DPSResourceClient:       &DPSResourceClient,
+		DPSCertificateClient:    &DPSCertificateClient,
 	}
 }
