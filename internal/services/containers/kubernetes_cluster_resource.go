@@ -283,27 +283,57 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.object_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.object_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},

@@ -480,6 +480,16 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -487,13 +497,13 @@ resource "azurerm_monitor_action_group" "test" {
 
   itsm_receiver {
     name                 = "createorupdateticket"
-    workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
+    workspace_id         = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.test.workspace_id}"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
     ticket_configuration = "{}"
     region               = "eastus"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (MonitorActionGroupResource) azureAppPushReceiver(data acceptance.TestData) string {
@@ -872,6 +882,16 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -890,7 +910,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   itsm_receiver {
     name                 = "createorupdateticket"
-    workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
+    workspace_id         = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.test.workspace_id}"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
     ticket_configuration = "{}"
     region               = "eastus"
@@ -1057,7 +1077,7 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MonitorActionGroupResource) disabledBasic(data acceptance.TestData) string {

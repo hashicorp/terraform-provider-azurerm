@@ -49,8 +49,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{2,16}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 2 and 16 characters in length."),
+					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{2,23}$`),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
 			},
 
 			"machine_learning_workspace_id": {

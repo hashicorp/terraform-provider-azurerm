@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 
 // ArmIdentity ...
 type ArmIdentity struct {
@@ -61,6 +61,8 @@ func (aui ArmUserIdentity) MarshalJSON() ([]byte, error) {
 type CertificateBodyDescription struct {
 	// Certificate - base-64 representation of the X509 leaf certificate .cer file or just .pem file content.
 	Certificate *string `json:"certificate,omitempty"`
+	// IsVerified - True indicates that the certificate will be created in verified state and proof of possession will not be required.
+	IsVerified *bool `json:"isVerified,omitempty"`
 }
 
 // CertificateDescription the X509 Certificate.
@@ -101,7 +103,7 @@ type CertificateProperties struct {
 	Expiry *date.TimeRFC1123 `json:"expiry,omitempty"`
 	// Thumbprint - READ-ONLY; The certificate's thumbprint.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// IsVerified - READ-ONLY; Determines whether certificate has been verified.
+	// IsVerified - Determines whether certificate has been verified.
 	IsVerified *bool `json:"isVerified,omitempty"`
 	// Created - READ-ONLY; The certificate's create date and time.
 	Created *date.TimeRFC1123 `json:"created,omitempty"`
@@ -114,6 +116,9 @@ type CertificateProperties struct {
 // MarshalJSON is the custom marshaler for CertificateProperties.
 func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if cp.IsVerified != nil {
+		objectMap["isVerified"] = cp.IsVerified
+	}
 	if cp.Certificate != nil {
 		objectMap["certificate"] = cp.Certificate
 	}
@@ -758,6 +763,8 @@ type IotHubDescription struct {
 	Sku *IotHubSkuInfo `json:"sku,omitempty"`
 	// Identity - The managed identities for the IotHub.
 	Identity *ArmIdentity `json:"identity,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The resource name.
@@ -1031,6 +1038,16 @@ func (ihnai IotHubNameAvailabilityInfo) MarshalJSON() ([]byte, error) {
 type IotHubProperties struct {
 	// AuthorizationPolicies - The shared access policies you can use to secure a connection to the IoT hub.
 	AuthorizationPolicies *[]SharedAccessSignatureAuthorizationRule `json:"authorizationPolicies,omitempty"`
+	// DisableLocalAuth - If true, SAS tokens with Iot hub scoped SAS keys cannot be used for authentication.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+	// DisableDeviceSAS - If true, all device(including Edge devices but excluding modules) scoped SAS keys cannot be used for authentication.
+	DisableDeviceSAS *bool `json:"disableDeviceSAS,omitempty"`
+	// DisableModuleSAS - If true, all module scoped SAS keys cannot be used for authentication.
+	DisableModuleSAS *bool `json:"disableModuleSAS,omitempty"`
+	// RestrictOutboundNetworkAccess - If true, egress from IotHub will be restricted to only the allowed FQDNs that are configured via allowedFqdnList.
+	RestrictOutboundNetworkAccess *bool `json:"restrictOutboundNetworkAccess,omitempty"`
+	// AllowedFqdnList - List of allowed FQDNs(Fully Qualified Domain Name) for egress from Iot Hub.
+	AllowedFqdnList *[]string `json:"allowedFqdnList,omitempty"`
 	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// IPFilterRules - The IP filter rules.
@@ -1062,6 +1079,8 @@ type IotHubProperties struct {
 	Features Capabilities `json:"features,omitempty"`
 	// Locations - READ-ONLY; Primary and secondary location for iot hub
 	Locations *[]IotHubLocationDescription `json:"locations,omitempty"`
+	// EnableDataResidency - This property when set to true, will enable data residency, thus, disabling disaster recovery.
+	EnableDataResidency *bool `json:"enableDataResidency,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotHubProperties.
@@ -1069,6 +1088,21 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ihp.AuthorizationPolicies != nil {
 		objectMap["authorizationPolicies"] = ihp.AuthorizationPolicies
+	}
+	if ihp.DisableLocalAuth != nil {
+		objectMap["disableLocalAuth"] = ihp.DisableLocalAuth
+	}
+	if ihp.DisableDeviceSAS != nil {
+		objectMap["disableDeviceSAS"] = ihp.DisableDeviceSAS
+	}
+	if ihp.DisableModuleSAS != nil {
+		objectMap["disableModuleSAS"] = ihp.DisableModuleSAS
+	}
+	if ihp.RestrictOutboundNetworkAccess != nil {
+		objectMap["restrictOutboundNetworkAccess"] = ihp.RestrictOutboundNetworkAccess
+	}
+	if ihp.AllowedFqdnList != nil {
+		objectMap["allowedFqdnList"] = ihp.AllowedFqdnList
 	}
 	if ihp.PublicNetworkAccess != "" {
 		objectMap["publicNetworkAccess"] = ihp.PublicNetworkAccess
@@ -1108,6 +1142,9 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
+	}
+	if ihp.EnableDataResidency != nil {
+		objectMap["enableDataResidency"] = ihp.EnableDataResidency
 	}
 	return json.Marshal(objectMap)
 }
@@ -2697,6 +2734,22 @@ type StorageEndpointProperties struct {
 	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 	// Identity - Managed identity properties of storage endpoint for file upload.
 	Identity *ManagedIdentity `json:"identity,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on
