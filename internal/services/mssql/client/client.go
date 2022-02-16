@@ -17,6 +17,7 @@ type Client struct {
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
 	GeoBackupPoliciesClient                            *sql.GeoBackupPoliciesClient
+	InstanceFailoverGroupsClient                       *sql.InstanceFailoverGroupsClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
@@ -68,6 +69,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	geoBackupPoliciesClient := sql.NewGeoBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&geoBackupPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	instanceFailoverGroupsClient := sql.NewInstanceFailoverGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&instanceFailoverGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	jobAgentsClient := sql.NewJobAgentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&jobAgentsClient.Client, o.ResourceManagerAuthorizer)
@@ -137,6 +141,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FailoverGroupsClient:                     &failoverGroupsClient,
 		FirewallRulesClient:                      &firewallRulesClient,
 		GeoBackupPoliciesClient:                  &geoBackupPoliciesClient,
+		InstanceFailoverGroupsClient:             &instanceFailoverGroupsClient,
 		JobAgentsClient:                          &jobAgentsClient,
 		JobCredentialsClient:                     &jobCredentialsClient,
 		LongTermRetentionPoliciesClient:          &longTermRetentionPoliciesClient,
