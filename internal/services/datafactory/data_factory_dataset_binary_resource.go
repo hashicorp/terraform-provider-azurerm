@@ -232,12 +232,12 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(datafactory.TypeBasicDatasetCompressionTypeBZip2),
-								string(datafactory.TypeBasicDatasetCompressionTypeDeflate),
-								string(datafactory.TypeBasicDatasetCompressionTypeGZip),
-								string(datafactory.TypeBasicDatasetCompressionTypeTar),
-								string(datafactory.TypeBasicDatasetCompressionTypeTarGZip),
-								string(datafactory.TypeBasicDatasetCompressionTypeZipDeflate),
+								TypeBasicDatasetCompressionTypeBZip2,
+								TypeBasicDatasetCompressionTypeDeflate,
+								TypeBasicDatasetCompressionTypeGZip,
+								TypeBasicDatasetCompressionTypeTar,
+								TypeBasicDatasetCompressionTypeTarGZip,
+								TypeBasicDatasetCompressionTypeZipDeflate,
 							}, false),
 						},
 					},
@@ -277,8 +277,8 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_binary", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_binary", id.ID())
 		}
 	}
 

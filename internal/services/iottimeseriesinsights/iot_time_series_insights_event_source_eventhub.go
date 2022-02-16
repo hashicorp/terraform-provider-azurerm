@@ -70,6 +70,7 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhub() *pluginsdk.Resource {
 			"shared_access_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

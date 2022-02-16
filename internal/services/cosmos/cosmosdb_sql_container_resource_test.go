@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosSqlContainerResource struct {
-}
+type CosmosSqlContainerResource struct{}
 
 func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
@@ -23,7 +22,6 @@ func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -39,7 +37,6 @@ func TestAccCosmosDbSqlContainer_basic_serverless(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basic_serverless(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -55,7 +52,6 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -71,7 +67,6 @@ func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.analyticalStorageTTL(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -87,7 +82,6 @@ func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -97,7 +91,6 @@ func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -115,7 +108,6 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.autoscale(data, 4000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -124,7 +116,6 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.autoscale(data, 5000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -133,7 +124,6 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.autoscale(data, 4000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -150,7 +140,6 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -158,7 +147,6 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.indexing_policy(data, "/includedPath01/*", "/excludedPath01/?"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -166,14 +154,12 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.indexing_policy(data, "/includedPath02/*", "/excludedPath02/?"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-
 			Config: r.indexing_policy_update_spatialIndex(data, "/includedPath02/*", "/excludedPath02/?"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -181,7 +167,6 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -197,7 +182,6 @@ func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.partition_key_version(data, 2),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

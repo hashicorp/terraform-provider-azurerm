@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgresqlFlexibleServerFirewallRuleResource struct {
-}
+type PostgresqlFlexibleServerFirewallRuleResource struct{}
 
 func TestAccPostgresqlFlexibleServerFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "test")

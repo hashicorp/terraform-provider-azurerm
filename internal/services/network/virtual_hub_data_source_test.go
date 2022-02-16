@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualHubDataSource struct {
-}
+type VirtualHubDataSource struct{}
 
 func TestAccDataSourceAzureRMVirtualHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_hub", "test")

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,16 +123,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"1",
-								"2",
-								"3",
-							}, false),
-						},
+						"standby_availability_zone": commonschema.ZoneSingleOptional(),
 					},
 				},
 			},
@@ -244,16 +236,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
-			},
+			"zone": commonschema.ZoneSingleOptional(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubnetNatGatewayAssociationResource struct {
-}
+type SubnetNatGatewayAssociationResource struct{}
 
 func TestAccAzureRMSubnetNatGatewayAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_nat_gateway_association", "test")

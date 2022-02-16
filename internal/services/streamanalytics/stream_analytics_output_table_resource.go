@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OutputTableResource struct {
-}
+type OutputTableResource struct{}
 
 var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
 
@@ -177,10 +176,14 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if props := resp.OutputProperties; props != nil {
+			if props := resp.OutputProperties; props != nil && props.Datasource != nil {
 				v, ok := props.Datasource.AsAzureTableOutputDataSource()
 				if !ok {
 					return fmt.Errorf("converting output data source to a blob output: %+v", err)
+				}
+
+				if v.AccountName == nil || v.Table == nil || v.PartitionKey == nil || v.RowKey == nil || v.BatchSize == nil {
+					return nil
 				}
 
 				state := OutputTableResourceModel{

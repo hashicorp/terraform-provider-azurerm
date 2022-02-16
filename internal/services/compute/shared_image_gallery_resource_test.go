@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SharedImageGalleryResource struct {
-}
+type SharedImageGalleryResource struct{}
 
 func TestAccSharedImageGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")

@@ -47,15 +47,15 @@ The following arguments are supported:
 
 * `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
 
-~> **NOTE:** When `sku` is set to `Free` this field can be set to a maximum of `0.5` (GB), and has a default value of `0.5`. 
+~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
 * `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
 
-* `reservation_capcity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
+* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
 
-~> **NOTE:** `reservation_capcity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
+~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

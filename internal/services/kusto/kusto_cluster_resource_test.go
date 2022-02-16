@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterResource struct {
-}
+type KustoClusterResource struct{}
 
 func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -25,6 +24,21 @@ func TestAccKustoCluster_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -300,7 +314,7 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is enabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -339,7 +353,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -406,7 +420,30 @@ resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
 
+func (KustoClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                          = "acctestkc%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  public_network_access_enabled = false
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
@@ -591,6 +628,7 @@ resource "azurerm_kusto_cluster" "test" {
   name                    = "acctestkc%s"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
+  enable_auto_stop        = true
   enable_disk_encryption  = true
   enable_streaming_ingest = true
   enable_purge            = true

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDnsPtrRecordResource struct {
-}
+type PrivateDnsPtrRecordResource struct{}
 
 func TestAccPrivateDnsPtrRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_ptr_record", "test")

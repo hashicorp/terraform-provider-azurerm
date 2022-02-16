@@ -10,7 +10,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
-		// lintignore:XS003
+		//lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -100,7 +100,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		// lintignore:XS003
+		//lintignore:XS003
 		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -160,7 +160,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		f := featuresMap["key_vault"].Elem.(*pluginsdk.Resource)
 		// TODO: Add this to 3.0 Upgrade guide
 		// `recover_soft_deleted_keys` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.
@@ -284,7 +284,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 			featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 				}
@@ -303,7 +303,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 				if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
 					featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
 				}
-
 			}
 		}
 	}

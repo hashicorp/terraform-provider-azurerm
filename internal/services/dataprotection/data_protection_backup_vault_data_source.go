@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
@@ -42,9 +42,9 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": location.SchemaComputed(),
+			"location": commonschema.LocationComputed(),
 
 			"datastore_type": {
 				Type:     pluginsdk.TypeString,
@@ -56,28 +56,9 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -120,7 +101,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 }
 
 func dataSourceFlattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetails) []interface{} {
-	var config *identity.ExpandedConfig
+	var config *identity.SystemAssigned
 	if input != nil {
 		principalId := ""
 		if input.PrincipalID != nil {
@@ -131,11 +112,11 @@ func dataSourceFlattenBackupVaultDppIdentityDetails(input *dataprotection.DppIde
 		if input.TenantID != nil {
 			tenantId = *input.TenantID
 		}
-		config = &identity.ExpandedConfig{
+		config = &identity.SystemAssigned{
 			Type:        identity.Type(*input.Type),
 			PrincipalId: principalId,
 			TenantId:    tenantId,
 		}
 	}
-	return identity.SystemAssigned{}.Flatten(config)
+	return identity.FlattenSystemAssigned(config)
 }

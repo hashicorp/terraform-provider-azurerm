@@ -108,7 +108,7 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_synapse", id.ID())
 		}
 	}

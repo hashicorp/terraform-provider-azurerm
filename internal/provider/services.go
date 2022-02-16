@@ -2,6 +2,7 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
@@ -36,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
@@ -53,6 +55,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz"
@@ -106,6 +109,7 @@ import (
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
+		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
 		appservice.Registration{},
@@ -114,14 +118,15 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		consumption.Registration{},
 		containers.Registration{},
 		costmanagement.Registration{},
+		disks.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		loadtest.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
-		storage.Registration{},
 		streamanalytics.Registration{},
 		web.Registration{},
 	}

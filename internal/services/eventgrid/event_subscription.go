@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -81,11 +81,11 @@ func eventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
 		ForceNew: true,
-		Default:  string(eventgrid.EventGridSchema),
+		Default:  string(eventgrid.EventDeliverySchemaEventGridSchema),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(eventgrid.EventGridSchema),
-			string(eventgrid.CloudEventSchemaV10),
-			string(eventgrid.CustomInputSchema),
+			string(eventgrid.EventDeliverySchemaEventGridSchema),
+			string(eventgrid.EventDeliverySchemaCloudEventSchemaV10),
+			string(eventgrid.EventDeliverySchemaCustomInputSchema),
 		}, false),
 	}
 }
@@ -362,7 +362,8 @@ func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 }
 
 func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
-	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+	atLeastOneOf := []string{
+		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
 		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
@@ -836,8 +837,8 @@ func eventSubscriptionSchemaIdentity() *schema.Schema {
 					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.SystemAssigned),
-						string(eventgrid.UserAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeSystemAssigned),
+						string(eventgrid.EventSubscriptionIdentityTypeUserAssigned),
 					}, false),
 				},
 				"user_assigned_identity": {
@@ -955,7 +956,6 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *pluginsdk.ResourceD
 }
 
 func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	destinationProps := &eventgrid.EventHubEventSubscriptionDestinationProperties{}
 
 	if _, ok := d.GetOk("eventhub_endpoint_id"); ok {
@@ -981,7 +981,6 @@ func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData)
 }
 
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	destinationProps := &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{}
 
 	if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
@@ -1006,7 +1005,6 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.Resou
 }
 
 func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	input := d.Get("azure_function_endpoint")
 	configs := input.([]interface{})
 
@@ -1041,7 +1039,6 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.Resource
 }
 
 func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDeliveryAttributeMapping {
-
 	var basicDeliveryAttributeMapping []eventgrid.BasicDeliveryAttributeMapping
 
 	deliveryMappingsConfig, deliveryMappingsExists := d.GetOk("delivery_property")
@@ -1081,7 +1078,6 @@ func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDelive
 }
 
 func expandEventGridEventSubscriptionWebhookEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	input := d.Get("webhook_endpoint")
 	configs := input.([]interface{})
 
@@ -1234,7 +1230,7 @@ func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *plugins
 		resourceID := dest["storage_account_id"].(string)
 		blobName := dest["storage_blob_container_name"].(string)
 		return eventgrid.StorageBlobDeadLetterDestination{
-			EndpointType: eventgrid.EndpointTypeStorageBlob,
+			EndpointType: eventgrid.EndpointTypeBasicDeadLetterDestinationEndpointTypeStorageBlob,
 			StorageBlobDeadLetterDestinationProperties: &eventgrid.StorageBlobDeadLetterDestinationProperties{
 				ResourceID:        &resourceID,
 				BlobContainerName: &blobName,
@@ -1273,7 +1269,7 @@ func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.E
 	}
 
 	userAssignedIdentity := identity["user_assigned_identity"].(string)
-	if identityType == eventgrid.UserAssigned {
+	if identityType == eventgrid.EventSubscriptionIdentityTypeUserAssigned {
 		eventgridIdentity.UserAssignedIdentity = utils.String(userAssignedIdentity)
 	} else if len(userAssignedIdentity) > 0 {
 		return nil, fmt.Errorf("`user_assigned_identity` can only be specified when `type` is `UserAssigned`; but `type` is currently %q", identityType)
@@ -1305,7 +1301,6 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 		attributeMapping := make(map[string]interface{})
 
 		if staticMapping, ok := element.AsStaticDeliveryAttributeMapping(); ok {
-
 			attributeMapping["type"] = staticMapping.Type
 			if staticMapping.Name != nil {
 				attributeMapping["header_name"] = staticMapping.Name

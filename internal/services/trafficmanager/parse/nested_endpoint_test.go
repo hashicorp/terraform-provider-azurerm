@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = NestedEndpointId{}
+var _ resourceids.Id = NestedEndpointId{}
 
 func TestNestedEndpointIDFormatter(t *testing.T) {
 	actual := NewNestedEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1", "nestedEndpoint1").ID()

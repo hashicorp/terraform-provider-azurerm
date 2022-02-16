@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsClusterCustomerManagedKeyResource struct {
-}
+type LogAnalyticsClusterCustomerManagedKeyResource struct{}
 
 func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
 	if true {

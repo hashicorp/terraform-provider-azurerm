@@ -12,6 +12,8 @@ Manages an API Management Service.
 
 ## Disclaimers
 
+-> When creating a new API Management resource in version 3.0 of the AzureRM Provider and later, please be aware that the AzureRM Provider will now clean up any sample APIs and Products created by the Azure API during the creation of the API Management resource.
+
 ~> **Note:** It's possible to define Custom Domains both within [the `azurerm_api_management` resource](api_management.html) via the `hostname_configurations` block and by using [the `azurerm_api_management_custom_domain` resource](api_management_custom_domain.html). However it's not possible to use both methods to manage Custom Domains within an API Management Service, since there'll be conflicts.
 
 ## Example Usage
@@ -63,6 +65,8 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of availability zones.
 
+~> **NOTE:** Availability zones are only supported in the Premium tier.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.
@@ -81,6 +85,12 @@ The following arguments are supported:
 
 * `tenant_access` - (Optional) A `tenant_access` block as defined below.
 
+* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP. 
+
+~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
+
+* `public_network_access_enabled` - (Optional) Is public access to the service allowed?.
+
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
@@ -93,6 +103,14 @@ The following arguments are supported:
 A `additional_location` block supports the following:
 
 * `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
+
+* `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
+
+* `zones` - (Optional) A list of availability zones.
+
+* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
+
+~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -123,8 +141,6 @@ A `hostname_configuration` block supports the following:
 ---
 
 A `identity` block supports the following:
-
-~> **Note:** User Assigned Managed Identities are in Preview
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 

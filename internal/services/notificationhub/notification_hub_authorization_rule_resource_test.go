@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NotificationHubAuthorizationRuleResource struct {
-}
+type NotificationHubAuthorizationRuleResource struct{}
 
 func TestAccNotificationHubAuthorizationRule_listen(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")

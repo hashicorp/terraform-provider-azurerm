@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppConfigurationKeyResource struct {
-}
+type AppConfigurationKeyResource struct{}
 
 func TestAccAppConfigurationKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
@@ -123,6 +121,7 @@ func TestAccAppConfigurationKey_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -143,6 +142,7 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 		},
 	})
 }
+
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resourceID, err := parse.KeyId(state.ID)
 	if err != nil {

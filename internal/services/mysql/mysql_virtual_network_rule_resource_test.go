@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLVirtualNetworkRuleResource struct {
-}
+type MySQLVirtualNetworkRuleResource struct{}
 
 func TestAccMySQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")

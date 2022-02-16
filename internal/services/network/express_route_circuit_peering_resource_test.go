@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteCircuitPeeringResource struct {
-}
+type ExpressRouteCircuitPeeringResource struct{}
 
 func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")

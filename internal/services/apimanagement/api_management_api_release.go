@@ -58,6 +58,7 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient

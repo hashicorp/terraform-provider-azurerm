@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosSqlDatabaseResource struct {
-}
+type CosmosSqlDatabaseResource struct{}
 
 func TestAccCosmosDbSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
@@ -38,7 +37,6 @@ func TestAccCosmosDbSqlDatabase_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.throughput(data, 700),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -47,7 +45,6 @@ func TestAccCosmosDbSqlDatabase_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.throughput(data, 1700),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -72,7 +69,6 @@ func TestAccCosmosDbSqlDatabase_autoscale(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.autoscale(data, 5000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -81,7 +77,6 @@ func TestAccCosmosDbSqlDatabase_autoscale(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.autoscale(data, 4000),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

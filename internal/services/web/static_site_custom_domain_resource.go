@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,7 +80,6 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 	log.Printf("[INFO] preparing arguments for AzureRM Static Site custom domain creation.")
 
 	staticSiteId, err := parse.StaticSiteID(d.Get("static_site_id").(string))
-
 	if err != nil {
 		return err
 	}
@@ -204,7 +202,6 @@ func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interf
 	log.Printf("[DEBUG] Deleting Static Site Custom Domain %q (resource group %q)", id.CustomDomainName, id.ResourceGroup)
 
 	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
-
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

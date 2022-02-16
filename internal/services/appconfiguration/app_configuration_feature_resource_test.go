@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppConfigurationFeatureResource struct {
-}
+type AppConfigurationFeatureResource struct{}
 
 func TestAccAppConfigurationFeature_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")

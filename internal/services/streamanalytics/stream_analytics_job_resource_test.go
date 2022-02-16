@@ -157,12 +157,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%d"
+  name                                     = "acctestjob-%[1]d"
   resource_group_name                      = azurerm_resource_group.test.name
   location                                 = azurerm_resource_group.test.location
   data_locale                              = "en-GB"
@@ -172,7 +179,7 @@ resource "azurerm_stream_analytics_job" "test" {
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
   streaming_units                          = 3
-
+  stream_analytics_cluster_id              = azurerm_stream_analytics_cluster.test.id
   tags = {
     environment = "Test"
   }
@@ -184,7 +191,7 @@ resource "azurerm_stream_analytics_job" "test" {
 QUERY
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StreamAnalyticsJobResource) requiresImport(data acceptance.TestData) string {

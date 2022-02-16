@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `logs` - (Optional) A `logs` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -175,6 +177,22 @@ The following arguments are supported:
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `storage_account` block supports the following:
+
+* `name` - (Required) The name of the storage account identifier.
+
+* `type` - (Required) The type of storage. Possible values are `AzureBlob` and `AzureFiles`.
+
+* `account_name` - (Required) The name of the storage account.
+
+* `share_name` - (Required) The name of the file share (container name, for Blob storage).
+
+* `access_key` - (Required) The access key for the storage account.
+
+* `mount_path` - (Optional) The path to mount the storage within the site's runtime environment.
 
 ---
 

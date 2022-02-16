@@ -109,6 +109,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.BlobInventoryPoliciesClient

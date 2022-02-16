@@ -16,6 +16,7 @@ type Client struct {
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
+	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
 	ReplicationLinksClient                             *sql.ReplicationLinksClient
@@ -68,6 +69,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	outboundFirewallRulesClient := sql.NewOutboundFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&outboundFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	replicationLinksClient := sql.NewReplicationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&replicationLinksClient.Client, o.ResourceManagerAuthorizer)
@@ -127,6 +131,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		JobCredentialsClient:                               &jobCredentialsClient,
 		FailoverGroupsClient:                               &failoverGroupsClient,
 		FirewallRulesClient:                                &firewallRulesClient,
+		OutboundFirewallRulesClient:                        &outboundFirewallRulesClient,
 		ReplicationLinksClient:                             &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,

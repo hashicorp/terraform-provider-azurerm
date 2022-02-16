@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,7 +41,6 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
@@ -305,7 +304,7 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	if v, ok := d.GetOk("include_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{
@@ -316,7 +315,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	}
 
 	if v, ok := d.GetOk("exclude_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{

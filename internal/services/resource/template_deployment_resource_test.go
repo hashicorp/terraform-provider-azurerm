@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TemplateDeploymentResource struct {
-}
+type TemplateDeploymentResource struct{}
 
 func TestAccTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
@@ -136,7 +135,7 @@ func TestAccTemplateDeployment_withError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withError(data),
-			ExpectError: regexp.MustCompile("Error waiting for deployment"),
+			ExpectError: regexp.MustCompile("Error: waiting for creation/update of Resource Group Template Deployment"),
 		},
 	})
 }

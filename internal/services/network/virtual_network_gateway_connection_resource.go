@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -147,6 +147,18 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 					string(network.VirtualNetworkGatewayConnectionProtocolIKEv1),
 					string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
 				}, false),
+			},
+
+			"connection_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.VirtualNetworkGatewayConnectionModeInitiatorOnly),
+					string(network.VirtualNetworkGatewayConnectionModeResponderOnly),
+					string(network.VirtualNetworkGatewayConnectionModeDefault),
+				}, false),
+				Default: string(network.VirtualNetworkGatewayConnectionModeDefault),
 			},
 
 			"traffic_selector_policy": {
@@ -296,24 +308,24 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 
 func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkGatewayConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Network Gateway Connection %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", id.ID())
 		}
 	}
 
@@ -326,42 +338,34 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	connection := network.VirtualNetworkGatewayConnection{
-		Name:     &name,
+		Name:     &id.ConnectionName,
 		Location: &location,
 		Tags:     tags.Expand(t),
 		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, connection)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ConnectionName, connection)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	if properties.SharedKey != nil && !d.IsNewResource() {
-		future, err := client.SetSharedKey(ctx, resGroup, name, network.ConnectionSharedKey{
+		future, err := client.SetSharedKey(ctx, id.ResourceGroup, id.ConnectionName, network.ConnectionSharedKey{
 			Value: properties.SharedKey,
 		})
 		if err != nil {
-			return fmt.Errorf("Updating Shared Key for Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("updating Shared Key for %s: %+v", id, err)
 		}
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Waiting for updating Shared Key for Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for updating Shared Key for %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway Connection %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
 }
@@ -371,24 +375,24 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
+	id, err := parse.NetworkGatewayConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway Connection %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	conn := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -443,6 +447,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 
 	d.Set("connection_protocol", string(conn.ConnectionProtocol))
 
+	d.Set("connection_mode", string(conn.ConnectionMode))
+
 	if conn.ExpressRouteGatewayBypass != nil {
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
 	}
@@ -468,18 +474,18 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
+	id, err := parse.NetworkGatewayConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
-		return fmt.Errorf("Deleting Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
@@ -487,9 +493,11 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 
 func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
 	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
+	connectionMode := network.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
 
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
+		ConnectionMode:                 connectionMode,
 		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
 		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
@@ -603,15 +611,6 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*n
 	}
 
 	return props, nil
-}
-
-func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGatewayConnectionId string) (string, string, error) {
-	id, err := parse.NetworkGatewayConnectionID(virtualNetworkGatewayConnectionId)
-	if err != nil {
-		return "", "", err
-	}
-
-	return id.ResourceGroup, id.ConnectionName, nil
 }
 
 func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {

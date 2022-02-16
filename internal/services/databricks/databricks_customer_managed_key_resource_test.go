@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabricksWorkspaceCustomerManagedKeyResource struct {
-}
+type DatabricksWorkspaceCustomerManagedKeyResource struct{}
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
@@ -146,7 +145,8 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "premium"
 
-  customer_managed_key_enabled = true
+  customer_managed_key_enabled      = true
+  infrastructure_encryption_enabled = true
 }
 
 %[4]s

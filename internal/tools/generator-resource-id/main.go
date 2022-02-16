@@ -47,12 +47,12 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	}
 
 	parsersPath := path.Join(servicePackagePath, "/parse")
-	if err := os.Mkdir(parsersPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(parsersPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
 
 	validatorPath := path.Join(servicePackagePath, "/validate")
-	if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(validatorPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
 	}
 
@@ -578,7 +578,7 @@ package parse%s
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	%s
 )
 
@@ -596,7 +596,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 	argumentsStr := strings.Join(arguments, ", ")
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-var _ resourceid.Formatter = %[1]sId{}
+var _ resourceids.Id = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
@@ -1038,7 +1038,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 		return err
 	}
 
-	if err := os.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(*fmt), 0o644); err != nil {
 		return err
 	}
 

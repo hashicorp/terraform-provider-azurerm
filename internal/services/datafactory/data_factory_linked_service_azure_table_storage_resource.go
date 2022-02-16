@@ -143,8 +143,8 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_table_storage", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_table_storage", id.ID())
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,15 +103,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
-			},
+			"zone": commonschema.ZoneSingleOptional(),
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -191,6 +184,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
+			"geo_redundant_backup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"high_availability": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -205,15 +205,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"1",
-								"2",
-								"3",
-							}, false),
-						},
+						"standby_availability_zone": commonschema.ZoneSingleOptional(),
 					},
 				},
 			},
@@ -414,6 +406,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 		if backup := props.Backup; backup != nil {
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
+			d.Set("geo_redundant_backup_enabled", backup.GeoRedundantBackup == postgresqlflexibleservers.GeoRedundantBackupEnumEnabled)
 		}
 
 		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
@@ -604,6 +597,12 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *postgresqlflexibleservers
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
 		backup.BackupRetentionDays = utils.Int32(int32(v.(int)))
+	}
+
+	if geoRedundantBackupEnabled := d.Get("geo_redundant_backup_enabled").(bool); geoRedundantBackupEnabled {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumEnabled
+	} else {
+		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumDisabled
 	}
 
 	return &backup
