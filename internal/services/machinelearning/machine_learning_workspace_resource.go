@@ -209,6 +209,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
+
 	workspace := machinelearningservices.Workspace{
 		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -219,18 +221,13 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		},
 		Identity: expandedIdentity,
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
+			Encryption:                      expandedEncryption,
 			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
 			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 	}
-
-	encryption, err := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
-	if err != nil {
-		return err
-	}
-	workspace.Encryption = encryption
 
 	if v, ok := d.GetOk("description"); ok {
 		workspace.WorkspaceProperties.Description = utils.String(v.(string))
@@ -462,9 +459,9 @@ func flattenMachineLearningWorkspaceIdentity(input *machinelearningservices.Iden
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandMachineLearningWorkspaceEncryption(input []interface{}) (*machinelearningservices.EncryptionProperty, error) {
+func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearningservices.EncryptionProperty {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
@@ -477,7 +474,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) (*machinelear
 			KeyIdentifier: utils.String(raw["key_id"].(string)),
 		},
 		Status: machinelearningservices.EncryptionStatusEnabled,
-	}, nil
+	}
 }
 
 func flattenMachineLearningWorkspaceEncryption(input *machinelearningservices.EncryptionProperty) (*[]interface{}, error) {
