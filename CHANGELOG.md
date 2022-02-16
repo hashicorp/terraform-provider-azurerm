@@ -10,6 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` [GH-15430]
+* `azurerm_automation_account` - add support for `public_network_access_enabled` [GH-15429]
 * `azurerm_kusto_cluster` - supports for the `public_network_access` enabled [GH-15428]
 * `azurerm_monitor_activity_log_alert` support for the `resource_health` block [GH-14917]
 * `azurerm_iothub_dps` - support for `ip_filter_rule` block and `public_network_access_enabled` [GH-15343]
