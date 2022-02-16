@@ -466,7 +466,6 @@ func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "agent_pool_profile.0.availability_zones"),
 			),
 		},
 	})
@@ -484,9 +483,6 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.#").HasValue("2"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.0").HasValue("1"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.1").HasValue("2"),
 			),
 		},
 	})

@@ -142,6 +142,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				ResourceGroup:     id.ResourceGroup,
 				Location:          *resp.Location,
 				StreamingCapacity: *resp.Sku.Capacity,
+				Tags:              tags.Flatten(resp.Tags),
 			}
 
 			return metadata.Encode(&state)

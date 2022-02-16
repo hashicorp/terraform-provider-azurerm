@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -164,7 +165,48 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_updateFrontEndConfigsWithZone(t *testing.T) {
+func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("skipping since this requires the 3.0 beta")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_zonesMultiple(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("skipping since this requires the 3.0 beta")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_legacyUpdateFrontEndConfigsWithZone(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("this test is not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
@@ -200,7 +242,10 @@ func TestAccAzureRMLoadBalancer_updateFrontEndConfigsWithZone(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_ZoneRedundant(t *testing.T) {
+func TestAccAzureRMLoadBalancer_legacyZoneRedundant(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("this test is not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
@@ -215,7 +260,10 @@ func TestAccAzureRMLoadBalancer_ZoneRedundant(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_NoZone(t *testing.T) {
+func TestAccAzureRMLoadBalancer_legacyNoZone(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("this test is not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
@@ -230,7 +278,10 @@ func TestAccAzureRMLoadBalancer_NoZone(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_SingleZone(t *testing.T) {
+func TestAccAzureRMLoadBalancer_legacySingleZone(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("this test is not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
@@ -592,6 +643,92 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancer) zonesSingle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+    zones                         = ["1"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancer) zonesMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+    zones                         = ["1", "2", "3"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancer) availability_zone(data acceptance.TestData, zone string) string {
