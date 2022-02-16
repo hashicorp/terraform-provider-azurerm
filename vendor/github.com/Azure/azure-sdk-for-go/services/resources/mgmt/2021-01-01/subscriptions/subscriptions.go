@@ -74,7 +74,7 @@ func (client Client) GetPreparer(ctx context.Context, subscriptionID string) (*h
 		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -146,7 +146,7 @@ func (client Client) List(ctx context.Context) (result ListResultPage, err error
 
 // ListPreparer prepares the List request.
 func (client Client) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -218,7 +218,8 @@ func (client Client) ListComplete(ctx context.Context) (result ListResultIterato
 // resource provider may support a subset of this list.
 // Parameters:
 // subscriptionID - the ID of the target subscription.
-func (client Client) ListLocations(ctx context.Context, subscriptionID string) (result LocationListResult, err error) {
+// includeExtendedLocations - whether to include extended locations.
+func (client Client) ListLocations(ctx context.Context, subscriptionID string, includeExtendedLocations *bool) (result LocationListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.ListLocations")
 		defer func() {
@@ -229,7 +230,7 @@ func (client Client) ListLocations(ctx context.Context, subscriptionID string) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListLocationsPreparer(ctx, subscriptionID)
+	req, err := client.ListLocationsPreparer(ctx, subscriptionID, includeExtendedLocations)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "ListLocations", nil, "Failure preparing request")
 		return
@@ -252,14 +253,17 @@ func (client Client) ListLocations(ctx context.Context, subscriptionID string) (
 }
 
 // ListLocationsPreparer prepares the ListLocations request.
-func (client Client) ListLocationsPreparer(ctx context.Context, subscriptionID string) (*http.Request, error) {
+func (client Client) ListLocationsPreparer(ctx context.Context, subscriptionID string, includeExtendedLocations *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if includeExtendedLocations != nil {
+		queryParameters["includeExtendedLocations"] = autorest.Encode("query", *includeExtendedLocations)
 	}
 
 	preparer := autorest.CreatePreparer(
