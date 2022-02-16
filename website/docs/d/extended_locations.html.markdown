@@ -3,18 +3,16 @@ subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_extended_locations"
 description: |-
-  Get information about the available extended locations per the Azure location for the Subscription ID of the Provider.
+  This data source return the available Extended Locations for a specific Azure Region.
 ---
 
 # Data Source: azurerm_extended_locations
 
-Use this data source to access information about the available extended locations per the Azure Location for the Subscription ID of the Provider.
+This data source return the available Extended Locations for a specific Azure Region.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
-
 data "azurerm_extended_locations" "example" {
   location = "West Europe"
 }
@@ -22,11 +20,11 @@ data "azurerm_extended_locations" "example" {
 
 ## Argument Reference
 
-* `location` - The Azure location that the Extended Location corresponds.
+* `location` - The Azure location to retrieve the Extended Locations for.
 
 ## Attributes Reference
 
-* `id` - The ID of the Extended Locations.
+* `id` - The ID of Location within this Subscription.
 
 * `extended_locations` - The available extended locations for the Azure Location.
 
