@@ -89,12 +89,27 @@ func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
 				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
 				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
 				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
 				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
 				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
 				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
 				check.That(data.ResourceName).Key("action.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_criteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.criteria(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -386,13 +401,17 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 
   criteria {
     operation_name          = "Microsoft.Storage/storageAccounts/write"
-    category                = "Recommendation"
+    category                = "Policy"
     resource_provider       = "Microsoft.Storage"
     resource_type           = "Microsoft.Storage/storageAccounts"
     resource_group          = azurerm_resource_group.test.name
     resource_id             = azurerm_storage_account.test.id
     recommendation_category = "OperationalExcellence"
     recommendation_impact   = "High"
+    caller                  = "test email address"
+    level                   = "Critical"
+    status                  = "Succeeded"
+    sub_status              = "Succeeded"
   }
 
   action {
@@ -406,6 +425,77 @@ resource "azurerm_monitor_activity_log_alert" "test" {
       from = "terraform test"
       to   = "microsoft azure"
     }
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) criteria(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test acceptance."
+
+  scopes = [
+    azurerm_resource_group.test.id,
+    azurerm_storage_account.test.id,
+  ]
+
+  criteria {
+    category            = "Recommendation"
+    recommendation_type = "test type"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test1.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+
+    webhook_properties = {
+      from = "terraform test"
+      to   = "microsoft azure"
+    }
+  }
+
+  tags = {
+    ENV = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
