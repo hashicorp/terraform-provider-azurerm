@@ -20,6 +20,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_application_gateway` - fixing a regression where the `identity` block wasn't set into the state [GH-15412]
+* `azurerm_log_analytics_linked_storage_account` - correct casing for `data_source_type` when using `ingestion` [GH-15451]
 * `azurerm_logic_app_integration_account_map` - set `content_type` to `text/plain` when `map_type` is `Liquid` [GH-15370]
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
 * `azurerm_virtual_desktop_host_pool` - the `registration_info` info block is deprecated in favour of the `azurerm_virtual_desktop_host_pool_registration_info` resource due to changes in the API [GH-14953]
