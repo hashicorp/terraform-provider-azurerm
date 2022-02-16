@@ -151,7 +151,7 @@ func TestAccBatchAccount_cmk(t *testing.T) {
 			Config: r.cmk(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.key_vault_key_id").Exists(),
+				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
 		},
 	})
@@ -398,7 +398,11 @@ resource "azurerm_batch_account" "test" {
 func (BatchAccountResource) cmk(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+        purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {
@@ -458,10 +462,10 @@ resource "azurerm_key_vault" "test" {
     key_permissions = [
       "Get",
       "Create",
+      "Delete",
       "WrapKey",
       "UnwrapKey"
     ]
-
   }
 }
 
