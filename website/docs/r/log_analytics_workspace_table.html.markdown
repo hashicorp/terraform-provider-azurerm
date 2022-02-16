@@ -29,9 +29,9 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_workspace_table" "example" {
-  workspace_id        = azurerm_log_analytics_workspace.example.id
-  name                = "AppMetrics"
-  retention_in_days   = 60
+  workspace_id      = azurerm_log_analytics_workspace.example.id
+  name              = "AppMetrics"
+  retention_in_days = 60
 }
 ```
 
