@@ -73,7 +73,7 @@ func (client TenantsClient) List(ctx context.Context) (result TenantListResultPa
 
 // ListPreparer prepares the List request.
 func (client TenantsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
