@@ -263,8 +263,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"custom_data": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							StateFunc:        userDataStateFunc,
-							DiffSuppressFunc: userDataDiffSuppressFunc,
+							StateFunc:        legacy.userDataStateFunc,
+							DiffSuppressFunc: legacy.userDataDiffSuppressFunc,
 						},
 					},
 				},

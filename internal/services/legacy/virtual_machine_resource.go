@@ -1,4 +1,4 @@
-package compute
+package legacy
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
@@ -747,8 +749,8 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
-	locks.ByName(id.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
+	locks.ByName(id.Name, compute2.VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, compute2.VirtualMachineResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vm)
 	if err != nil {
@@ -932,8 +934,8 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
+	locks.ByName(id.Name, compute2.VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, compute2.VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {

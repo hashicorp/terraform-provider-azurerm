@@ -62,7 +62,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_machine_extension":              resourceVirtualMachineExtension(),
 		"azurerm_virtual_machine_scale_set":              resourceVirtualMachineScaleSet(),
 		"azurerm_orchestrated_virtual_machine_scale_set": resourceOrchestratedVirtualMachineScaleSet(),
-		"azurerm_virtual_machine":                        resourceVirtualMachine(),
+		"azurerm_virtual_machine":                        legacy.resourceVirtualMachine(),
 		"azurerm_linux_virtual_machine":                  resourceLinuxVirtualMachine(),
 		"azurerm_linux_virtual_machine_scale_set":        resourceLinuxVirtualMachineScaleSet(),
 		"azurerm_virtual_machine_scale_set_extension":    resourceVirtualMachineScaleSetExtension(),
