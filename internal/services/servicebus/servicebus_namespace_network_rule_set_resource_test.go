@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceNetworkRuleSetResource struct {
-}
+type ServiceBusNamespaceNetworkRuleSetResource struct{}
 
 func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
@@ -129,8 +128,9 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) complete(data acceptance.Test
 resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  default_action           = "Deny"
-  trusted_services_allowed = true
+  default_action                = "Deny"
+  trusted_services_allowed      = true
+  public_network_access_enabled = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.test.id

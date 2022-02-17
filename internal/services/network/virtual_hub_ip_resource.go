@@ -75,6 +75,7 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			},
 
 			"public_ip_address_id": {
+				// TODO: make this Required in 3.0
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -107,8 +108,8 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
 		}
 
 		if d.Get("public_ip_address_id").(string) == "" {

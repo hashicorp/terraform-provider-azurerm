@@ -292,8 +292,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"asn": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
+							AtLeastOneOf: []string{
+								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							},
 						},
 
 						// TODO 3.0 - Remove this property
@@ -302,15 +304,19 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
-							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
+							AtLeastOneOf: []string{
+								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							},
 						},
 
 						"peer_weight": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
+							AtLeastOneOf: []string{
+								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							},
 						},
 
 						//lintignore:XS003
@@ -354,8 +360,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 									},
 								},
 							},
-							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
+							AtLeastOneOf: []string{
+								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							},
 						},
 					},
 				},

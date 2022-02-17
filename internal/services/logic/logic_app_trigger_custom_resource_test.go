@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LogicAppTriggerCustomResource struct {
-}
+type LogicAppTriggerCustomResource struct{}
 
 func TestAccLogicAppTriggerCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")

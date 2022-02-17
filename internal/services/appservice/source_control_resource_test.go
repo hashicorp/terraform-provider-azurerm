@@ -208,7 +208,7 @@ resource "azurerm_app_service_source_control" "test" {
   branch                 = "master"
   use_manual_integration = true
 }
-`, baseWindowsAppTemplate(data))
+`, r.baseWindowsAppTemplate(data))
 }
 
 func (r AppServiceSourceControlResource) requiresImport(data acceptance.TestData) string {
@@ -238,7 +238,7 @@ resource "azurerm_app_service_source_control" "test" {
   branch                 = "master"
   use_manual_integration = true
 }
-`, baseLinuxAppTemplate(data))
+`, r.baseLinuxAppTemplate(data))
 }
 
 func (r AppServiceSourceControlResource) windowsLocalGit(data acceptance.TestData) string {
@@ -253,7 +253,7 @@ resource "azurerm_app_service_source_control" "test" {
   app_id        = azurerm_windows_web_app.test.id
   use_local_git = true
 }
-`, baseWindowsAppTemplate(data))
+`, r.baseWindowsAppTemplate(data))
 }
 
 func (r AppServiceSourceControlResource) linuxLocalGit(data acceptance.TestData) string {
@@ -268,7 +268,7 @@ resource "azurerm_app_service_source_control" "test" {
   app_id        = azurerm_linux_web_app.test.id
   use_local_git = true
 }
-`, baseLinuxAppTemplate(data))
+`, r.baseLinuxAppTemplate(data))
 }
 
 func (r AppServiceSourceControlResource) windowsGitHubAction(data acceptance.TestData) string {
@@ -299,7 +299,7 @@ resource "azurerm_app_service_source_control" "test" {
     }
   }
 }
-`, baseWindowsAppTemplate(data), token)
+`, r.baseWindowsAppTemplate(data), token)
 }
 
 func (r AppServiceSourceControlResource) windowsGitHub(data acceptance.TestData) string {
@@ -325,7 +325,7 @@ resource "azurerm_app_service_source_control" "test" {
     azurerm_source_control_token.test,
   ]
 }
-`, baseWindowsAppTemplate(data), token)
+`, r.baseWindowsAppTemplate(data), token)
 }
 
 func (r AppServiceSourceControlResource) linuxGitHubAction(data acceptance.TestData) string {
@@ -356,7 +356,7 @@ resource "azurerm_app_service_source_control" "test" {
     }
   }
 }
-`, baseLinuxAppTemplate(data), token)
+`, r.baseLinuxAppTemplate(data), token)
 }
 
 func (r AppServiceSourceControlResource) linuxGitHub(data acceptance.TestData) string {
@@ -383,10 +383,10 @@ resource "azurerm_app_service_source_control" "test" {
     azurerm_source_control_token.test,
   ]
 }
-`, baseLinuxAppTemplate(data), token)
+`, r.baseLinuxAppTemplate(data), token)
 }
 
-func baseWindowsAppTemplate(data acceptance.TestData) string {
+func (r AppServiceSourceControlResource) baseWindowsAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -417,7 +417,7 @@ resource "azurerm_windows_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func baseLinuxAppTemplate(data acceptance.TestData) string {
+func (r AppServiceSourceControlResource) baseLinuxAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {

@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,32 +90,8 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(recoveryservices.ResourceIdentityTypeSystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			// TODO: the API for this also supports UserAssigned & SystemAssigned, UserAssigned
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 
@@ -134,6 +112,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backup.StorageTypeGeoRedundant),
 					string(backup.StorageTypeLocallyRedundant),
+					string(backup.StorageTypeZoneRedundant),
 				}, false),
 			},
 
@@ -187,18 +166,21 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
-		Identity: expandValutIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Sku: &recoveryservices.Sku{
 			Name: recoveryservices.SkuName(d.Get("sku").(string)),
 		},
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault); err != nil {
 		return fmt.Errorf("creating/updating Recovery Service %s: %+v", id.String(), err)
 	}
 
@@ -247,8 +229,40 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if _, err = storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
-		return fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err)
+	err = pluginsdk.Retry(stateConf.Timeout, func() *pluginsdk.RetryError {
+		if resp, err := storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
+			}
+			if utils.ResponseWasBadRequest(resp.Response) {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
+			}
+
+			return pluginsdk.NonRetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	// storage type is not updated instantaneously, so we wait until storage type is correct
+	err = pluginsdk.Retry(stateConf.Timeout, func() *pluginsdk.RetryError {
+		if resp, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup); err == nil {
+			if resp.Properties == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
+			}
+			if resp.Properties.StorageType != storageCfg.Properties.StorageModelType {
+				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
+			}
+		} else {
+			return pluginsdk.NonRetryableError(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
@@ -278,7 +292,6 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id, err := parse.VaultID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -357,39 +370,33 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandValutIdentity(input []interface{}) *recoveryservices.IdentityData {
-	if len(input) == 0 {
-		return nil
+func expandVaultIdentity(input []interface{}) (*recoveryservices.IdentityData, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
 	return &recoveryservices.IdentityData{
-		Type: recoveryservices.ResourceIdentityType(v["type"].(string)),
-	}
+		Type: recoveryservices.ResourceIdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenVaultIdentity(input *recoveryservices.IdentityData) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transition.TenantId = *input.TenantID
+		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }
 
 func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultPropertiesEncryption {

@@ -2,12 +2,12 @@ package eventgrid
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,11 +37,11 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"identity": IdentitySchemaForDataSource(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"source_arm_resource_id": {
 				Type:     pluginsdk.TypeString,
@@ -74,28 +74,28 @@ func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Event Grid System Topic '%s' was not found (resource group '%s')", id.Name, id.ResourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Event Grid System Topic '%s': %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SystemTopicProperties; props != nil {
+		d.Set("metric_arm_resource_id", props.MetricResourceID)
 		d.Set("source_arm_resource_id", props.Source)
 		d.Set("topic_type", props.TopicType)
-		d.Set("metric_arm_resource_id", props.MetricResourceID)
 	}
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenedIdentity, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 

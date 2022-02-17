@@ -7,7 +7,6 @@ func TestManagementGroupAssignmentID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

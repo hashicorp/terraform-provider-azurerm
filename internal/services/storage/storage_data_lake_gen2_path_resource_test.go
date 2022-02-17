@@ -186,6 +186,7 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 }
 `, template)
 }
+
 func (r StorageDataLakeGen2PathResource) withSimpleACLUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

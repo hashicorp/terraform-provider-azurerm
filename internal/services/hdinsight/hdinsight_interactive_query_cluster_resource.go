@@ -193,8 +193,8 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", id.ID())
 	}
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)

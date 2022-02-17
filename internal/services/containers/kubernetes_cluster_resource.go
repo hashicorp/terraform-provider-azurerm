@@ -10,6 +10,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -235,37 +237,43 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"identity": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"identity", "service_principal"},
-				MaxItems:     1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.ResourceIdentityTypeSystemAssigned),
-								string(containerservice.ResourceIdentityTypeUserAssigned),
-							}, false),
+			"identity": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						ExactlyOneOf: []string{"identity", "service_principal"},
+						MaxItems:     1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(containerservice.ResourceIdentityTypeSystemAssigned),
+										string(containerservice.ResourceIdentityTypeUserAssigned),
+									}, false),
+								},
+								"user_assigned_identity_id": {
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: msivalidate.UserAssignedIdentityID,
+									Optional:     true,
+								},
+								"principal_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"tenant_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
 						},
-						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
-							Optional:     true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+					}
+				}
+
+				return commonschema.SystemOrUserAssignedIdentityOptional()
+			}(),
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
@@ -275,27 +283,57 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.object_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.object_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
@@ -685,7 +723,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -695,7 +734,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -706,7 +746,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -718,7 +759,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -727,7 +769,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"managed": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -746,7 +789,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsUUID,
 										},
-										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										AtLeastOneOf: []string{
+											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
 											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
@@ -1043,29 +1087,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 }
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*clients.Client).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	existing, err := client.Get(ctx, resGroup, name)
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
 	}
 
-	if err := validateKubernetesCluster(d, nil, resGroup, name); err != nil {
+	if err := validateKubernetesCluster(d, nil, id.ResourceGroup, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1145,8 +1188,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := containerservice.ManagedCluster{
-		Name:     &name,
-		Location: &location,
+		Name:     utils.String(id.ManagedClusterName),
+		Location: utils.String(location),
 		Sku: &containerservice.ManagedClusterSKU{
 			Name: containerservice.ManagedClusterSKUNameBasic, // the only possible value at this point
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
@@ -1190,7 +1233,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if len(managedClusterIdentityRaw) > 0 {
-		parameters.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+		expandedIdentity, err := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		parameters.Identity = expandedIdentity
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String("msi"),
 		}
@@ -1227,13 +1274,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.DiskEncryptionSetID = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
@@ -1241,14 +1288,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := containerservice.MaintenanceConfiguration{
 			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
 		}
-		if _, err := client.CreateOrUpdate(ctx, resGroup, name, "default", parameters); err != nil {
-			return fmt.Errorf("creating/updating maintenance config for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating maintenance config for %s: %+v", id, err)
 		}
 	}
 
-	id := parse.NewClusterID(client.SubscriptionID, resGroup, name)
 	d.SetId(id.ID())
-
 	return resourceKubernetesClusterRead(d, meta)
 }
 
@@ -1259,9 +1304,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*clients.Client).Account.TenantId
-
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
 	id, err := parse.ClusterID(d.Id())
 	if err != nil {
@@ -1273,10 +1315,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// we need to conditionally update the cluster
 	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
 	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 	}
 
 	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.ManagedClusterName); err != nil {
@@ -1292,7 +1334,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("service_principal") && !d.HasChange("identity") {
-		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating the Service Principal for %s..", *id)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -1306,21 +1348,20 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.ManagedClusterName, params)
 		if err != nil {
-			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving updated %s: %+v", *id, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+			return fmt.Errorf("retrieving updated %s: `properties` was nil", *id)
 		}
 	}
 
@@ -1332,9 +1373,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
-			return fmt.Errorf("reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
 		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		tenantId := meta.(*clients.Client).Account.TenantId
 		rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 		if err != nil {
 			return err
@@ -1350,11 +1392,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
-					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.ManagedClusterName, id.ResourceGroup, err)
+					return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
 				}
 			}
 		} else {
@@ -1462,25 +1504,47 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
-				publicIPAddressIDs := idsToResourceReferences(d.Get(key))
-				loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
-					PublicIPs: publicIPAddressIDs,
-				}
+				outboundIPAddress := d.Get(key)
+				if v := outboundIPAddress.(*pluginsdk.Set).List(); len(v) == 0 {
+					// sending [] to unset `outbound_ip_address_ids` results in 400 / Bad Request
+					// instead we default back to AKS managed outbound which is the default of the AKS API when nothing is provided
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
+						Count: utils.Int32(1),
+					}
+					loadBalancerProfile.OutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				} else {
+					publicIPAddressIDs := idsToResourceReferences(d.Get(key))
+					loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
+						PublicIPs: publicIPAddressIDs,
+					}
 
-				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
-				loadBalancerProfile.ManagedOutboundIPs = nil
-				loadBalancerProfile.OutboundIPPrefixes = nil
+					// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+					loadBalancerProfile.ManagedOutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"; d.HasChange(key) {
-				outboundIPPrefixIDs := idsToResourceReferences(d.Get(key))
-				loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
-					PublicIPPrefixes: outboundIPPrefixIDs,
-				}
+				outboundIPPrefixes := d.Get(key)
+				if v := outboundIPPrefixes.(*pluginsdk.Set).List(); len(v) == 0 {
+					// sending [] to unset `outbound_ip_address_ids` results in 400 / Bad Request
+					// instead we default back to AKS managed outbound which is the default of the AKS API when nothing is specified
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
+						Count: utils.Int32(1),
+					}
+					loadBalancerProfile.OutboundIPs = nil
+					loadBalancerProfile.OutboundIPPrefixes = nil
+				} else {
+					outboundIPPrefixIDs := idsToResourceReferences(d.Get(key))
+					loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
+						PublicIPPrefixes: outboundIPPrefixIDs,
+					}
 
-				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
-				loadBalancerProfile.ManagedOutboundIPs = nil
-				loadBalancerProfile.OutboundIPs = nil
+					// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+					loadBalancerProfile.ManagedOutboundIPs = nil
+					loadBalancerProfile.OutboundIPs = nil
+				}
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
@@ -1527,12 +1591,27 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("identity") {
 		updateCluster = true
 		managedClusterIdentityRaw := d.Get("identity").([]interface{})
-		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+
+		expandedIdentity, err := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		existing.Identity = expandedIdentity
 	}
 
 	if d.HasChange("sku_tier") {
 		updateCluster = true
-		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
+		if existing.Sku == nil {
+			existing.Sku = &containerservice.ManagedClusterSKU{
+				Name: containerservice.ManagedClusterSKUNameBasic,
+			}
+		}
+
+		skuTier := "Free"
+		if v := d.Get("sku_tier").(string); v != "" {
+			skuTier = v
+		}
+		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(skuTier)
 	}
 
 	if d.HasChange("automatic_channel_upgrade") {
@@ -1557,26 +1636,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if updateCluster {
-		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
 	if d.HasChange("kubernetes_version") {
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+			return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 		}
 
 		kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -1585,11 +1664,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -1605,22 +1684,22 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		nodePoolName := *agentProfile.Name
+		defaultNodePoolId := parse.NewNodePoolID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, *agentProfile.Name)
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, nodePoolName, *nodePoolVersion); err != nil {
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, defaultNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
 
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, nodePoolName, agentProfile)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, agentProfile)
 		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 		}
 
 		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Default Node Pool %s: %+v", defaultNodePoolId, err)
 		}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
@@ -1653,20 +1732,20 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -1794,7 +1873,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	identity, err := flattenKubernetesClusterManagedClusterIdentity(resp.Identity)
+	identity, err := flattenClusterIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -1831,17 +1910,17 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		if _, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, "default"); err != nil {
-			return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", *id, err)
 		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -2360,29 +2439,49 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	return rbacEnabled, aad, nil
 }
 
-func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
-	if len(input) == 0 || input[0] == nil {
+func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*containerservice.ManagedClusterIdentity, error) {
+	if !features.ThreePointOhBeta() {
+		if len(input) == 0 || input[0] == nil {
+			return &containerservice.ManagedClusterIdentity{
+				Type: containerservice.ResourceIdentityTypeNone,
+			}, nil
+		}
+
+		values := input[0].(map[string]interface{})
+
+		if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
+			userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
+				values["user_assigned_identity_id"].(string): {},
+			}
+
+			return &containerservice.ManagedClusterIdentity{
+				Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
+				UserAssignedIdentities: userAssignedIdentities,
+			}, nil
+		}
+
 		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.ResourceIdentityTypeNone,
-		}
+			Type: containerservice.ResourceIdentityType(values["type"].(string)),
+		}, nil
 	}
 
-	values := input[0].(map[string]interface{})
-
-	if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
-		userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
-			values["user_assigned_identity_id"].(string): {},
-		}
-
-		return &containerservice.ManagedClusterIdentity{
-			Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
-			UserAssignedIdentities: userAssignedIdentities,
-		}
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	return &containerservice.ManagedClusterIdentity{
-		Type: containerservice.ResourceIdentityType(values["type"].(string)),
+	out := containerservice.ManagedClusterIdentity{
+		Type: containerservice.ResourceIdentityType(string(expanded.Type)),
 	}
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
 }
 
 func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
@@ -2531,42 +2630,69 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	}
 }
 
-func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
-	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
-
-	identity := make(map[string]interface{})
-
-	identity["principal_id"] = ""
-	if input.PrincipalID != nil {
-		identity["principal_id"] = *input.PrincipalID
-	}
-
-	identity["tenant_id"] = ""
-	if input.TenantID != nil {
-		identity["tenant_id"] = *input.TenantID
-	}
-
-	identity["user_assigned_identity_id"] = ""
-	if input.UserAssignedIdentities != nil {
-		keys := []string{}
-		for key := range input.UserAssignedIdentities {
-			keys = append(keys, key)
+func flattenClusterIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
+	if !features.ThreePointOhBeta() {
+		// if it's none, omit the block
+		if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
+			return &[]interface{}{}, nil
 		}
-		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
-			if err != nil {
-				return nil, err
+
+		identity := make(map[string]interface{})
+
+		identity["principal_id"] = ""
+		if input.PrincipalID != nil {
+			identity["principal_id"] = *input.PrincipalID
+		}
+
+		identity["tenant_id"] = ""
+		if input.TenantID != nil {
+			identity["tenant_id"] = *input.TenantID
+		}
+
+		identity["user_assigned_identity_id"] = ""
+		if input.UserAssignedIdentities != nil {
+			keys := []string{}
+			for key := range input.UserAssignedIdentities {
+				keys = append(keys, key)
 			}
-			identity["user_assigned_identity_id"] = parsedId.ID()
+			if len(keys) > 0 {
+				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
+				if err != nil {
+					return nil, err
+				}
+				identity["user_assigned_identity_id"] = parsedId.ID()
+			}
+		}
+
+		identity["type"] = string(input.Type)
+
+		return &[]interface{}{identity}, nil
+	}
+
+	var transform *identity.SystemOrUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: "",
+			TenantId:    "",
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
 		}
 	}
 
-	identity["type"] = string(input.Type)
-
-	return []interface{}{identity}, nil
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }
 
 func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) ([]interface{}, error) {

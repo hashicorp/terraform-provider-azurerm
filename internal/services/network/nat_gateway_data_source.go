@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -28,9 +30,9 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				ValidateFunc: validate.NatGatewayName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"idle_timeout_in_minutes": {
 				Type:     pluginsdk.TypeInt,
@@ -65,15 +67,9 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"zones": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"zones": commonschema.ZonesMultipleComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -101,9 +97,8 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("sku_name", resp.Sku.Name)
 	}
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if props := resp.NatGatewayPropertiesFormat; props != nil {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
@@ -116,10 +111,6 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
 		}
-	}
-
-	if err := d.Set("zones", utils.FlattenStringSlice(resp.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -2639,6 +2639,10 @@ resource "azurerm_resource_group" "test" {
   location = "westus"
 }
 
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
@@ -2661,7 +2665,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  extended_location   = "microsoftlosangeles1"
+  extended_location   = data.azurerm_extended_locations.test.extended_locations.0
 
   disable_password_authentication = false
 

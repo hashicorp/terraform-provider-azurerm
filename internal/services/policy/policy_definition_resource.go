@@ -75,22 +75,22 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				),
 			},
 
-			// TODO: deprecate Name in favour of this
 			"management_group_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				Computed:      true,
+				Computed:      true, // TODO 3.0 - remove this when deprecation resolves
 				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
 			},
 
+			// TODO 3.0 - Remove this
 			"management_group_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
+				Computed:      true,
 				ConflictsWith: []string{"management_group_id"},
+				Deprecated:    "Deprecated in favour of `management_group_id`",
 			},
 
 			"display_name": {

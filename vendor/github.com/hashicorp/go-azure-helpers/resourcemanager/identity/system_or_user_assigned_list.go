@@ -42,7 +42,7 @@ func (s *SystemOrUserAssignedList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
-// ExpandSystemOrAssignedUserAssignedList expands the schema input into a SystemOrUserAssignedList struct
+// ExpandSystemOrUserAssignedList expands the schema input into a SystemOrUserAssignedList struct
 func ExpandSystemOrUserAssignedList(input []interface{}) (*SystemOrUserAssignedList, error) {
 	identityType := TypeNone
 	identityIds := make([]string, 0)
@@ -75,7 +75,12 @@ func ExpandSystemOrUserAssignedList(input []interface{}) (*SystemOrUserAssignedL
 
 // FlattenSystemAssignedOrUserAssignedList turns a SystemOrUserAssignedList into a []interface{}
 func FlattenSystemAssignedOrUserAssignedList(input *SystemOrUserAssignedList) (*[]interface{}, error) {
-	if input == nil || (input.Type != TypeSystemAssigned && input.Type != TypeUserAssigned) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 

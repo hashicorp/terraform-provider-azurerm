@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualNetworkResource struct {
-}
+type VirtualNetworkResource struct{}
 
 func TestAccVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
@@ -543,12 +542,16 @@ resource "azurerm_resource_group" "test" {
   location = "westus"
 }
 
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  extended_location   = "microsoftlosangeles1"
+  extended_location   = data.azurerm_extended_locations.test.extended_locations.0
 
   subnet {
     name           = "subnet1"

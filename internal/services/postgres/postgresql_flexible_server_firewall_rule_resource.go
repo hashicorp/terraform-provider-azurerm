@@ -64,6 +64,7 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient

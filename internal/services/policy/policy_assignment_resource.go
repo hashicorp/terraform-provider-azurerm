@@ -417,7 +417,10 @@ func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	notScopesRes := make([]string, 0)
 
 	for _, notScope := range input {
-		notScopesRes = append(notScopesRes, notScope.(string))
+		s, ok := notScope.(string)
+		if ok {
+			notScopesRes = append(notScopesRes, s)
+		}
 	}
 
 	return &notScopesRes

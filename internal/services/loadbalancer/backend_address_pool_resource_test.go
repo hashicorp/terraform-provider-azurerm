@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LoadBalancerBackendAddressPool struct {
-}
+type LoadBalancerBackendAddressPool struct{}
 
 // Basic and Standard use different API's for reasons, so we need to test both flows
 

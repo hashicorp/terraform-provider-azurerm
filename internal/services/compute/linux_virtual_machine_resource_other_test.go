@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -644,6 +645,86 @@ func TestAccLinuxVirtualMachine_otherExtendedLocation(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r LinuxVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  patch_mode = "%s"
+}
+`, r.template(data), data.RandomInteger, patchMode)
 }
 
 func (r LinuxVirtualMachineResource) otherAllowExtensionOperationsDefault(data acceptance.TestData) string {
@@ -1995,6 +2076,10 @@ resource "azurerm_resource_group" "test" {
   location = "westus"
 }
 
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
@@ -2027,7 +2112,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
-  extended_location   = "microsoftlosangeles1"
+  extended_location   = data.azurerm_extended_locations.test.extended_locations.0
 
   network_interface_ids = [
     azurerm_network_interface.test.id,

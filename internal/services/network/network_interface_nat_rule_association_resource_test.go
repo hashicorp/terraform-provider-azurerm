@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceNATRuleAssociationResource struct {
-}
+type NetworkInterfaceNATRuleAssociationResource struct{}
 
 func TestAccNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")

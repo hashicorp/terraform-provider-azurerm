@@ -121,8 +121,8 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_log_profile", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_log_profile", id.ID())
 		}
 	}
 

@@ -8,6 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -62,9 +64,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.NamespaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -146,8 +150,14 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := servicebus.SBNamespace{
 		Location: &location,
+		Identity: identity,
 		Sku: &servicebus.SBSku{
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
@@ -205,6 +215,14 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	identity, err := flattenServiceBusNamespaceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", strings.ToLower(string(sku.Name)))
 		d.Set("capacity", sku.Capacity)
@@ -249,4 +267,50 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandServiceBusNamespaceIdentity(input []interface{}) (*servicebus.Identity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := servicebus.Identity{
+		Type: servicebus.ManagedServiceIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = map[string]*servicebus.UserAssignedIdentity{}
+		for id := range expanded.IdentityIds {
+			out.UserAssignedIdentities[id] = &servicebus.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
+}
+
+func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

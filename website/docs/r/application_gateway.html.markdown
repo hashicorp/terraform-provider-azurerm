@@ -326,7 +326,7 @@ A `http_listener` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+* `type` - (Required) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
 

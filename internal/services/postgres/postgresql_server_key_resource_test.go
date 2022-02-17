@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLServerKeyResource struct {
-}
+type PostgreSQLServerKeyResource struct{}
 
 func TestAccPostgreSQLServerKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")

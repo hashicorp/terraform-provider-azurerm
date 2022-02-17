@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -46,7 +47,6 @@ type LinuxFunctionAppModel struct {
 	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                 `tfschema:"https_only"`
-	Identity                  []helpers.Identity                   `tfschema:"identity"`
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                      map[string]string                    `tfschema:"tags"`
 
@@ -208,7 +208,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
 
@@ -378,18 +378,27 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					functionApp.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+				}
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: utils.String(functionApp.Location),
 				Tags:     tags.FromTypedObject(functionApp.Tags),
 				Kind:     utils.String("functionapp,linux"),
-				Identity: helpers.ExpandIdentity(functionApp.Identity),
+				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:         utils.String(functionApp.ServicePlanId),
 					Enabled:              utils.Bool(functionApp.Enabled),
@@ -526,10 +535,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
 			}
 
-			if identity := helpers.FlattenIdentity(functionApp.Identity); identity != nil {
-				state.Identity = identity
-			}
-
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
@@ -556,7 +561,19 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -626,7 +643,11 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

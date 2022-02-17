@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteGatewayResource struct {
-}
+type ExpressRouteGatewayResource struct{}
 
 func TestAccExpressRouteGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")

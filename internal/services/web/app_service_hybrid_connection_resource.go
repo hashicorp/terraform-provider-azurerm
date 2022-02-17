@@ -13,6 +13,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -128,8 +129,8 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", id.ID())
 		}
 	}
 
@@ -157,6 +158,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 
 func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	relayClient := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -197,11 +199,17 @@ func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta inte
 		}
 		authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
 		accessKeys, err := relayNamespacesClient.ListKeys(ctx, authRuleId)
-		if err != nil {
-			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
+
+		if err == nil && accessKeys.Model != nil {
+			d.Set("send_key_value", accessKeys.Model.PrimaryKey)
+			return nil
 		}
 
-		if model := accessKeys.Model; model != nil {
+		connAccessKeys, err := relayClient.ListKeys(ctx, hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.Name, *resp.SendKeyName))
+		if err != nil {
+			return fmt.Errorf("unable to List Access Keys for %q (Resource Group %q): %+v", id, id.ResourceGroup, err)
+		}
+		if model := connAccessKeys.Model; model != nil {
 			d.Set("send_key_value", model.PrimaryKey)
 		}
 	}

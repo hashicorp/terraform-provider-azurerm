@@ -9,11 +9,13 @@ import (
 
 var _ resourceids.ResourceId = ResourceGroupId{}
 
+// ResourceGroupId is a struct representing the Resource ID for a Resource Group
 type ResourceGroupId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 }
 
+// NewResourceGroupID returns a new ResourceGroupId struct
 func NewResourceGroupID(subscriptionId string, resourceGroupName string) ResourceGroupId {
 	return ResourceGroupId{
 		SubscriptionId:    subscriptionId,
@@ -21,6 +23,7 @@ func NewResourceGroupID(subscriptionId string, resourceGroupName string) Resourc
 	}
 }
 
+// ParseResourceGroupID parses 'input' into a ResourceGroupId
 func ParseResourceGroupID(input string) (*ResourceGroupId, error) {
 	parser := resourceids.NewParserFromResourceIdType(ResourceGroupId{})
 	parsed, err := parser.Parse(input, false)
@@ -42,6 +45,8 @@ func ParseResourceGroupID(input string) (*ResourceGroupId, error) {
 	return &id, nil
 }
 
+// ParseResourceGroupIDInsensitively parses 'input' case-insensitively into a ResourceGroupId
+// note: this method should only be used for API response data and not user input
 func ParseResourceGroupIDInsensitively(input string) (*ResourceGroupId, error) {
 	parser := resourceids.NewParserFromResourceIdType(ResourceGroupId{})
 	parsed, err := parser.Parse(input, true)
@@ -63,11 +68,28 @@ func ParseResourceGroupIDInsensitively(input string) (*ResourceGroupId, error) {
 	return &id, nil
 }
 
+// ValidateResourceGroupID checks that 'input' can be parsed as a Resource Group ID
+func ValidateResourceGroupID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseResourceGroupID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Resource Group ID
 func (id ResourceGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName)
 }
 
+// Segments returns a slice of Resource ID Segments which comprise this Resource Group ID
 func (id ResourceGroupId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
@@ -77,6 +99,7 @@ func (id ResourceGroupId) Segments() []resourceids.Segment {
 	}
 }
 
+// String returns a human-readable description of this Resource Group ID
 func (id ResourceGroupId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),

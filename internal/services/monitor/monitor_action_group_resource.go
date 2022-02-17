@@ -14,6 +14,7 @@ import (
 	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -103,7 +104,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"workspace_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.IsUUID,
+							ValidateFunc: validate.WorkspaceID,
 						},
 						"connection_id": {
 							Type:         pluginsdk.TypeString,
@@ -422,8 +423,8 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_action_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_action_group", id.ID())
 		}
 	}
 
@@ -735,7 +736,6 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		val := receiverValue.(map[string]interface{})
 
 		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-
 		if err != nil {
 			return nil, err
 		}

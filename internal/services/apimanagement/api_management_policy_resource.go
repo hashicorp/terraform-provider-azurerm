@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,6 +24,11 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 		Delete: resourceApiManagementPolicyDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiManagementApiPolicyV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -64,12 +70,12 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 
 	apiManagementID := d.Get("api_management_id").(string)
-	id, err := parse.ApiManagementID(apiManagementID)
+	apiMgmtId, err := parse.ApiManagementID(apiManagementID)
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
+	resourceGroup := apiMgmtId.ResourceGroup
+	serviceName := apiMgmtId.ServiceName
 
 	/*
 		Other resources would have a check for d.IsNewResource() at this location, and would error out using `tf.ImportAsExistsError` if the resource already existed.
@@ -105,10 +111,12 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, parameters, ""); err != nil {
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, parameters, "")
+	if err != nil {
 		return fmt.Errorf("creating or updating Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
 	}
 
+	id := parse.NewPolicyID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroup, apiMgmtId.ServiceName, "policy")
 	d.SetId(id.ID())
 
 	return resourceApiManagementPolicyRead(d, meta)

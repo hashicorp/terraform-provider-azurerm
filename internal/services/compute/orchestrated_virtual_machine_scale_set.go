@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,11 +68,28 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Default:  true,
 				},
 
+				"hotpatching_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				"provision_vm_agent": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 					ForceNew: true,
+				},
+
+				"patch_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+						string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
+						string(compute.WindowsVMGuestPatchModeManual),
+					}, false),
 				},
 
 				"secret": windowsSecretSchema(),
@@ -127,6 +143,16 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Optional: true,
 					Default:  true,
 					ForceNew: true,
+				},
+
+				"patch_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.LinuxVMGuestPatchModeImageDefault),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.LinuxVMGuestPatchModeImageDefault),
+						string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
+					}, false),
 				},
 
 				"secret": linuxSecretSchema(),
@@ -204,38 +230,6 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.ResourceIdentityTypeUserAssigned),
-					}, false),
-				},
-
-				"identity_ids": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -282,47 +276,6 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
-				},
-			},
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"ip_configuration": orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource(),
-
-				"dns_servers": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-				"enable_accelerated_networking": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-				"enable_ip_forwarding": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-				"network_security_group_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
 				},
 			},
 		},
@@ -389,62 +342,6 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 						string(compute.IPVersionIPv4),
 						string(compute.IPVersionIPv6),
 					}, false),
-				},
-			},
-		},
-	}
-}
-
-func orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"application_gateway_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"application_security_group_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"public_ip_address": virtualMachineScaleSetPublicIPAddressSchemaForDataSource(),
-
-				"subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
 				},
 			},
 		},
@@ -898,6 +795,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	winConfig := compute.WindowsConfiguration{}
+	patchSettings := compute.PatchSettings{}
 
 	if len(input) > 0 {
 		osProfile.CustomData = utils.String(customData)
@@ -916,9 +814,20 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		// winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
 		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
-		winConfig.TimeZone = utils.String(input["timezone"].(string))
 		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
 		winConfig.WinRM = expandWinRMListener(winRmListenersRaw)
+
+		// Automatic VM Guest Patching and Hotpatching settings
+		patchSettings.PatchMode = compute.WindowsVMGuestPatchMode(input["patch_mode"].(string))
+		patchSettings.EnableHotpatching = utils.Bool(input["hotpatching_enabled"].(bool))
+		winConfig.PatchSettings = &patchSettings
+
+		// due to a change in RP behavor, it will now throw and error if we pass an empty
+		// string add check to only include it if it is actually defined in the config file
+		timeZone := input["timezone"].(string)
+		if timeZone != "" {
+			winConfig.TimeZone = utils.String(timeZone)
+		}
 	}
 
 	osProfile.WindowsConfiguration = &winConfig
@@ -929,6 +838,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	linConfig := compute.LinuxConfiguration{}
+	patchSettings := compute.LinuxPatchSettings{}
 
 	if len(input) > 0 {
 		osProfile.CustomData = utils.String(customData)
@@ -955,6 +865,10 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 
 		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
 		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+
+		// Automatic VM Guest Patching
+		patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(input["patch_mode"].(string))
+		linConfig.PatchSettings = &patchSettings
 	}
 
 	osProfile.LinuxConfiguration = &linConfig
@@ -981,37 +895,6 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 
 // 	return &output
 // }
-
-func ExpandOrchestratedVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
-	if len(input) == 0 {
-		// TODO: Does this want to be this, or nil?
-		return &compute.VirtualMachineScaleSetIdentity{
-			Type: compute.ResourceIdentityTypeNone,
-		}, nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	identity := compute.VirtualMachineScaleSetIdentity{
-		Type: compute.ResourceIdentityType(raw["type"].(string)),
-	}
-
-	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
-	}
-
-	if len(identityIds) > 0 {
-		if identity.Type != compute.ResourceIdentityTypeUserAssigned && identity.Type != compute.ResourceIdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
-		}
-
-		identity.UserAssignedIdentities = identityIds
-	}
-
-	return &identity, nil
-}
 
 func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compute.VirtualMachineScaleSetNetworkConfiguration, error) {
 	output := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0)
@@ -1622,6 +1505,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 
 	output := make(map[string]interface{})
 	winConfig := input.WindowsConfiguration
+	patchSettings := winConfig.PatchSettings
 
 	if v := input.AdminUsername; v != nil {
 		output["admin_username"] = *v
@@ -1664,6 +1548,17 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 		output["timezone"] = v
 	}
 
+	output["patch_mode"] = string(compute.WindowsVMGuestPatchModeAutomaticByOS)
+	output["hotpatching_enabled"] = false
+
+	if patchSettings != nil {
+		output["patch_mode"] = string(patchSettings.PatchMode)
+
+		if v := patchSettings.EnableHotpatching; v != nil {
+			output["hotpatching_enabled"] = *v
+		}
+	}
+
 	return []interface{}{output}
 }
 
@@ -1703,6 +1598,10 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 
 	if v := linConfig.DisablePasswordAuthentication; v != nil {
 		output["disable_password_authentication"] = *v
+	}
+
+	if v := linConfig.PatchSettings; v != nil {
+		output["patch_mode"] = v.PatchMode
 	}
 
 	if v := linConfig.ProvisionVMAgent; v != nil {
@@ -1767,36 +1666,6 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]compute.
 	}
 
 	return results
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
-	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
-
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-	}
-
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-		},
-	}, nil
 }
 
 func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleSetDataDisk) []interface{} {

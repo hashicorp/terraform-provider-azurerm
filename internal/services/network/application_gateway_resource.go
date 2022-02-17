@@ -7,13 +7,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -125,42 +133,19 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
 
-			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(network.ResourceIdentityTypeUserAssigned),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ResourceIdentityTypeUserAssigned),
-							}, false),
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.NoZeroValues,
-							},
-						},
-					},
-				},
-			},
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			// Required
 			"backend_address_pool": {
@@ -1600,9 +1585,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
-
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
 			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
@@ -1630,6 +1613,15 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			gateway.Zones = &zones
+		}
+	} else {
+		gateway.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	}
+
 	if v, ok := d.GetOk("fips_enabled"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(v.(bool))
 	}
@@ -1639,7 +1631,12 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
+		expandedIdentity, err := expandApplicationGatewayIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		gateway.Identity = expandedIdentity
 	}
 
 	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
@@ -1745,14 +1742,13 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", applicationGateway.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("zones", applicationGateway.Zones)
 
-	identity, err := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
+	d.Set("zones", zones.Flatten(applicationGateway.Zones))
+
+	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {
 		return err
 	}
@@ -1916,52 +1912,45 @@ func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandAzureRmApplicationGatewayIdentity(d *pluginsdk.ResourceData) *network.ManagedServiceIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := network.ResourceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+func expandApplicationGatewayIdentity(input []interface{}) (*network.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	appGatewayIdentity := network.ManagedServiceIdentity{
-		Type: identityType,
+	out := network.ManagedServiceIdentity{
+		Type: network.ResourceIdentityType(string(expanded.Type)),
 	}
 
-	if identityType == network.ResourceIdentityTypeUserAssigned {
-		appGatewayIdentity.UserAssignedIdentities = identityIds
-	}
-
-	return &appGatewayIdentity
-}
-
-func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if result["type"] == "userAssigned" {
-		result["type"] = "UserAssigned"
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}, nil
+	return &out, nil
+}
+
+func flattenApplicationGatewayIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.UserAssignedIdentities != nil {
+			for k, v := range input.UserAssignedIdentities {
+				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientID,
+					PrincipalId: v.PrincipalID,
+				}
+			}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]network.ApplicationGatewayAuthenticationCertificate {

@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LighthouseDefinitionResource struct {
-}
+type LighthouseDefinitionResource struct{}
 
 func TestAccLighthouseDefinition_basic(t *testing.T) {
 	// Multiple tenants are needed to test this acceptance.

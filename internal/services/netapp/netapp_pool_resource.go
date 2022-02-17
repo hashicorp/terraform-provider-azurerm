@@ -128,7 +128,6 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, id.ResourceGroup, id.NetAppAccountName, id.Name)
-
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
