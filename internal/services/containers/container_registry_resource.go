@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1103,4 +1104,292 @@ func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 	enabled := strings.EqualFold(string(t.Status), string(containerregistry.PolicyStatusEnabled))
 	trustPolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{trustPolicy}
+}
+
+func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate2.ContainerRegistryName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"sku": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Default:          string(containerregistry.SkuNameClassic),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containerregistry.SkuNameClassic),
+				string(containerregistry.SkuNameBasic),
+				string(containerregistry.SkuNameStandard),
+				string(containerregistry.SkuNamePremium),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		"admin_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"georeplications": {
+			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
+			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOh() {
+					return []string{"georeplication_locations"}
+				}
+				return []string{}
+			}(),
+			ConfigMode: func() schema.SchemaConfigMode {
+				if !features.ThreePointOhBeta() {
+					return pluginsdk.SchemaConfigModeAttr
+				}
+				return pluginsdk.SchemaConfigModeAuto
+			}(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"location": location.SchemaWithoutForceNew(),
+
+					"zone_redundancy_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"regional_endpoint_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"tags": tags.Schema(),
+				},
+			},
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"login_server": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"admin_username": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"admin_password": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"encryption": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"identity_client_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
+		},
+
+		"network_rule_set": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"default_action": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  containerregistry.DefaultActionAllow,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerregistry.DefaultActionAllow),
+							string(containerregistry.DefaultActionDeny),
+						}, false),
+					},
+
+					"ip_rule": {
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(containerregistry.ActionAllow),
+									}, false),
+								},
+								"ip_range": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.CIDR,
+								},
+							},
+						},
+					},
+
+					"virtual_network": {
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(containerregistry.ActionAllow),
+									}, false),
+								},
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"quarantine_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"retention_policy": {
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"days": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  7,
+					},
+
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"trust_policy": {
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"zone_redundancy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+		},
+
+		"anonymous_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"network_rule_bypass_option": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+				string(containerregistry.NetworkRuleBypassOptionsNone),
+			}, false),
+			Default: string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+
+		out["storage_account_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			ForceNew:   true,
+			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
+		}
+
+		out["georeplication_locations"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Deprecated:    "Deprecated in favour of `georeplications`",
+			Computed:      true,
+			ConflictsWith: []string{"georeplications"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			Set: location.HashCode,
+		}
+	}
+
+	return out
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -38,95 +39,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"pfx_blob": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsBase64,
-			},
-
-			"password": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
-			},
-
-			"key_vault_secret_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  keyVaultValidate.NestedItemId,
-				ConflictsWith: []string{"pfx_blob", "password"},
-			},
-
-			"app_service_plan_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"hosting_environment_profile_id": { // TODO - Remove in 3.0
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property has been deprecated and replaced with `app_service_plan_id`",
-			},
-
-			"friendly_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"subject_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"host_names": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"issuer": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"issue_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"expiration_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"thumbprint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceAppServiceCertificateSchema(),
 	}
 }
 
@@ -258,7 +171,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("expiration_date", expirationDate)
 		d.Set("thumbprint", props.Thumbprint)
 
-		if hep := props.HostingEnvironmentProfile; hep != nil {
+		if hep := props.HostingEnvironmentProfile; !features.ThreePointOhBeta() && hep != nil {
 			d.Set("hosting_environment_profile_id", hep.ID)
 		}
 	}
@@ -286,4 +199,99 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"location": azure.SchemaLocation(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"pfx_blob": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsBase64,
+		},
+
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"key_vault_secret_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  keyVaultValidate.NestedItemId,
+			ConflictsWith: []string{"pfx_blob", "password"},
+		},
+
+		"app_service_plan_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"friendly_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"subject_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"host_names": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"issuer": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"issue_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"expiration_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["hosting_environment_profile_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been deprecated and replaced with `app_service_plan_id`",
+		}
+	}
+	return out
 }

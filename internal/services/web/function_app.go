@@ -294,32 +294,35 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	// TODO 3.0 - remove this logic for determining which storage account connection string to use
-	storageConnection := ""
-	if v, ok := d.GetOk("storage_connection_string"); ok {
-		storageConnection = v.(string)
+	var storageConnection string
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("storage_connection_string"); ok {
+			storageConnection = v.(string)
+		}
 	}
 
-	storageAccount := ""
+	storageAccountName := ""
 	if v, ok := d.GetOk("storage_account_name"); ok {
-		storageAccount = v.(string)
+		storageAccountName = v.(string)
 	}
 
-	connectionString := ""
+	storageAccountKey := ""
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		connectionString = v.(string)
+		storageAccountKey = v.(string)
 	}
 
-	if storageConnection == "" && storageAccount == "" && connectionString == "" {
+	if (storageConnection == "" && !features.ThreePointOhBeta()) && storageAccountName == "" && storageAccountKey == "" {
 		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	} else if features.ThreePointOhBeta() && (storageAccountName == "" && storageAccountKey == "") {
+		return nil, fmt.Errorf("Both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
+	if (storageAccountName == "" && storageAccountKey != "") || (storageAccountName != "" && storageAccountKey == "") {
 		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if connectionString != "" && storageAccount != "" {
-		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+	if storageAccountKey != "" && storageAccountName != "" {
+		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccountName, storageAccountKey, endpointSuffix)
 	}
 
 	functionVersion := d.Get("version").(string)

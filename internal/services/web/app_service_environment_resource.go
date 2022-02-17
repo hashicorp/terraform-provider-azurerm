@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -47,129 +48,7 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AppServiceEnvironmentName,
-			},
-
-			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
-			},
-
-			"cluster_setting": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"value": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"internal_load_balancing_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(web.LoadBalancingModeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(web.LoadBalancingModeNone),
-					string(web.LoadBalancingModePublishing),
-					string(web.LoadBalancingModeWeb),
-					string(web.LoadBalancingModeWebPublishing),
-					// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
-					string(LoadBalancingModeWebPublishing),
-				}, false),
-				DiffSuppressFunc: loadBalancingModeDiffSuppress,
-			},
-
-			"front_end_scale_factor": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      15,
-				ValidateFunc: validation.IntBetween(5, 15),
-			},
-
-			"pricing_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "I1",
-				ValidateFunc: validation.StringInSlice([]string{
-					"I1",
-					"I2",
-					"I3",
-				}, false),
-			},
-
-			"allowed_user_ip_cidrs": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: helpersValidate.CIDR,
-				},
-			},
-
-			"user_whitelisted_ip_ranges": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				ConflictsWith: []string{"allowed_user_ip_cidrs"},
-				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: helpersValidate.CIDR,
-				},
-			},
-
-			// TODO in 3.0 Make it "Required"
-			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
-
-			"tags": tags.ForceNewSchema(),
-
-			// Computed
-
-			// VipInfo
-			"internal_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"service_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"outbound_ip_addresses": {
-				Type: pluginsdk.TypeList,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				Computed: true,
-			},
-
-			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: resourceAppServiceEnvironmentSchema(),
 	}
 }
 
@@ -183,7 +62,11 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
-	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List()
+	var userWhitelistedIPRangesRaw []interface{}
+	if !features.ThreePointOhBeta() {
+		userWhitelistedIPRangesRaw = d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List()
+	}
+
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 		userWhitelistedIPRangesRaw = v.(*pluginsdk.Set).List()
 	}
@@ -310,9 +193,12 @@ func resourceAppServiceEnvironmentUpdate(d *pluginsdk.ResourceData, meta interfa
 		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
+	if !features.ThreePointOhBeta() && d.HasChanges("user_whitelisted_ip_ranges") {
 		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List())
-		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
+	}
+
+	if d.HasChanges("allowed_user_ip_cidrs") {
+		if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 		}
 	}
@@ -528,4 +414,141 @@ func flattenClusterSettings(input *[]web.NameValuePair) interface{} {
 		})
 	}
 	return settings
+}
+
+func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AppServiceEnvironmentName,
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
+
+		"cluster_setting": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"internal_load_balancing_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(web.LoadBalancingModeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.LoadBalancingModeNone),
+				string(web.LoadBalancingModePublishing),
+				string(web.LoadBalancingModeWeb),
+				string(web.LoadBalancingModeWebPublishing),
+				// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
+				string(LoadBalancingModeWebPublishing),
+			}, false),
+			DiffSuppressFunc: loadBalancingModeDiffSuppress,
+		},
+
+		"front_end_scale_factor": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      15,
+			ValidateFunc: validation.IntBetween(5, 15),
+		},
+
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "I1",
+			ValidateFunc: validation.StringInSlice([]string{
+				"I1",
+				"I2",
+				"I3",
+			}, false),
+		},
+
+		"allowed_user_ip_cidrs": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"user_whitelisted_ip_ranges"}
+				}
+				return []string{}
+			}(),
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: helpersValidate.CIDR,
+			},
+		},
+
+		"resource_group_name": func() *pluginsdk.Schema {
+			if !features.ThreePointOhBeta() {
+				return azure.SchemaResourceGroupNameOptionalComputed()
+			}
+			return azure.SchemaResourceGroupName()
+		}(),
+
+		"tags": tags.ForceNewSchema(),
+
+		// Computed
+
+		// VipInfo
+		"internal_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"service_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_addresses": {
+			Type: pluginsdk.TypeList,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Computed: true,
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+	if !features.ThreePointOhBeta() {
+		out["user_whitelisted_ip_ranges"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      !features.ThreePointOhBeta(),
+			ConflictsWith: []string{"allowed_user_ip_cidrs"},
+			Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: helpersValidate.CIDR,
+			},
+		}
+	}
+	return out
 }

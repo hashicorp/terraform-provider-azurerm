@@ -318,21 +318,25 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"name": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EnableAggregationPipeline",
-								"EnableCassandra",
-								"EnableGremlin",
-								"EnableTable",
-								"EnableServerless",
-								"EnableMongo",
-								"MongoDBv3.4",
-								"mongoEnableDocLevelTTL",
-								"DisableRateLimitingResponses",
-								"AllowSelfServeUpgradeToMongo36",
-								// TODO: Remove in 3.0 - doesn't do anything
-								"EnableAnalyticalStorage",
-							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+								out := []string{
+									"EnableAggregationPipeline",
+									"EnableCassandra",
+									"EnableGremlin",
+									"EnableTable",
+									"EnableServerless",
+									"EnableMongo",
+									"MongoDBv3.4",
+									"mongoEnableDocLevelTTL",
+									"DisableRateLimitingResponses",
+									"AllowSelfServeUpgradeToMongo36",
+								}
+								if !features.ThreePointOhBeta() {
+									out = append(out, "EnableAnalyticalStorage")
+								}
+								return validation.StringInSlice(out, !features.ThreePointOhBeta())
+							}(),
 						},
 					},
 				},
