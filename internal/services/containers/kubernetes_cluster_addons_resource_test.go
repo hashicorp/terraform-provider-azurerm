@@ -129,7 +129,6 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			// TODO 3.0 - Remove this step since this config will be identical to the one provided in the step above
 			{
 				Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
 				Check: acceptance.ComposeTestCheckFunc(
@@ -1796,7 +1795,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  keyvault_secrets_provider {
+  key_vault_secrets_provider {
     secret_rotation_enabled  = %t
     secret_rotation_interval = "%s"
   }

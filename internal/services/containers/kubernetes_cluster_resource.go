@@ -101,9 +101,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
-			// Optional
-			"addon_profile": schemaKubernetesAddOnProfiles(),
-
 			"api_server_authorized_ip_ranges": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1427,7 +1424,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("keyvault_secrets_provider") {
+	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
@@ -1833,7 +1830,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oms_agent", addOns["oms_agent"])
 		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
 		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
-		d.Set("keyvault_secrets_provider", addOns["keyvault_secrets_provider"])
+		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
 
 		if !features.ThreePointOhBeta() {
 			addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
