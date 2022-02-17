@@ -69,11 +69,28 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Default:  true,
 				},
 
+				"hotpatching_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				"provision_vm_agent": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 					ForceNew: true,
+				},
+
+				"patch_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+						string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
+						string(compute.WindowsVMGuestPatchModeManual),
+					}, false),
 				},
 
 				"secret": windowsSecretSchema(),
@@ -127,6 +144,16 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Optional: true,
 					Default:  true,
 					ForceNew: true,
+				},
+
+				"patch_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.LinuxVMGuestPatchModeImageDefault),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.LinuxVMGuestPatchModeImageDefault),
+						string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
+					}, false),
 				},
 
 				"secret": linuxSecretSchema(),
@@ -771,6 +798,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	winConfig := compute.WindowsConfiguration{}
+	patchSettings := compute.PatchSettings{}
 
 	if len(input) > 0 {
 		osProfile.CustomData = utils.String(customData)
@@ -789,9 +817,20 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		// winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
 		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
-		winConfig.TimeZone = utils.String(input["timezone"].(string))
 		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
 		winConfig.WinRM = expandWinRMListener(winRmListenersRaw)
+
+		// Automatic VM Guest Patching and Hotpatching settings
+		patchSettings.PatchMode = compute.WindowsVMGuestPatchMode(input["patch_mode"].(string))
+		patchSettings.EnableHotpatching = utils.Bool(input["hotpatching_enabled"].(bool))
+		winConfig.PatchSettings = &patchSettings
+
+		// due to a change in RP behavor, it will now throw and error if we pass an empty
+		// string add check to only include it if it is actually defined in the config file
+		timeZone := input["timezone"].(string)
+		if timeZone != "" {
+			winConfig.TimeZone = utils.String(timeZone)
+		}
 	}
 
 	osProfile.WindowsConfiguration = &winConfig
@@ -802,6 +841,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	linConfig := compute.LinuxConfiguration{}
+	patchSettings := compute.LinuxPatchSettings{}
 
 	if len(input) > 0 {
 		osProfile.CustomData = utils.String(customData)
@@ -828,6 +868,10 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 
 		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
 		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+
+		// Automatic VM Guest Patching
+		patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(input["patch_mode"].(string))
+		linConfig.PatchSettings = &patchSettings
 	}
 
 	osProfile.LinuxConfiguration = &linConfig
@@ -1464,6 +1508,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 
 	output := make(map[string]interface{})
 	winConfig := input.WindowsConfiguration
+	patchSettings := winConfig.PatchSettings
 
 	if v := input.AdminUsername; v != nil {
 		output["admin_username"] = *v
@@ -1506,6 +1551,17 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 		output["timezone"] = v
 	}
 
+	output["patch_mode"] = string(compute.WindowsVMGuestPatchModeAutomaticByOS)
+	output["hotpatching_enabled"] = false
+
+	if patchSettings != nil {
+		output["patch_mode"] = string(patchSettings.PatchMode)
+
+		if v := patchSettings.EnableHotpatching; v != nil {
+			output["hotpatching_enabled"] = *v
+		}
+	}
+
 	return []interface{}{output}
 }
 
@@ -1545,6 +1601,10 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 
 	if v := linConfig.DisablePasswordAuthentication; v != nil {
 		output["disable_password_authentication"] = *v
+	}
+
+	if v := linConfig.PatchSettings; v != nil {
+		output["patch_mode"] = v.PatchMode
 	}
 
 	if v := linConfig.ProvisionVMAgent; v != nil {

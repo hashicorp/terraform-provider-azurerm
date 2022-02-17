@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -60,8 +61,11 @@ func TestAccSynapseRoleAssignment_sparkPool(t *testing.T) {
 	})
 }
 
-// TODO to be removed in 3.0
+// CLEANUP: to be removed in 3.0
 func TestAccSynapseRoleAssignment_oldRole(t *testing.T) {
+	if features.ThreePointOh() {
+		t.Skip("This test does not apply on 3.0 or later")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
 	r := SynapseRoleAssignmentResource{}
 
@@ -154,7 +158,7 @@ resource "azurerm_synapse_role_assignment" "test" {
 `, template, data.RandomString)
 }
 
-// TODO to be removed in 3.0
+// CLEANUP: to be removed in 3.0
 func (r SynapseRoleAssignmentResource) oldRole(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

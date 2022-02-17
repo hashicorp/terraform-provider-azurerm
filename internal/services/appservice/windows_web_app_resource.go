@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -35,7 +36,6 @@ type WindowsWebAppModel struct {
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
-	Identity                      []helpers.Identity          `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
@@ -123,7 +123,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -277,10 +277,15 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
 				Tags:     tags.FromTypedObject(webApp.Tags),
-				Identity: helpers.ExpandIdentity(webApp.Identity),
+				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
 					Enabled:               utils.Bool(webApp.Enabled),
@@ -462,7 +467,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
-				Identity:                    helpers.FlattenIdentity(webApp.Identity),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				Kind:                        utils.NormalizeNilableString(webApp.Kind),
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
@@ -492,7 +496,19 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -566,7 +582,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

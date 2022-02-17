@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -93,7 +94,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 									"frequency": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										DiffSuppressFunc: suppress.CaseDifference,
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(logic.RecurrenceFrequencySecond),
 											string(logic.RecurrenceFrequencyMinute),
@@ -102,7 +103,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 											string(logic.RecurrenceFrequencyWeek),
 											string(logic.RecurrenceFrequencyMonth),
 											string(logic.RecurrenceFrequencyYear),
-										}, true),
+										}, !features.ThreePointOh()),
 									},
 
 									"interval": {
@@ -163,7 +164,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 															"weekday": {
 																Type:             pluginsdk.TypeString,
 																Required:         true,
-																DiffSuppressFunc: suppress.CaseDifference,
+																DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 																ValidateFunc: validation.StringInSlice([]string{
 																	string(logic.DayOfWeekMonday),
 																	string(logic.DayOfWeekTuesday),
@@ -172,7 +173,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 																	string(logic.DayOfWeekFriday),
 																	string(logic.DayOfWeekSaturday),
 																	string(logic.DayOfWeekSunday),
-																}, true),
+																}, !features.ThreePointOh()),
 															},
 
 															"week": {
@@ -191,7 +192,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 												"week_days": {
 													Type:             pluginsdk.TypeSet,
 													Optional:         true,
-													DiffSuppressFunc: suppress.CaseDifference,
+													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice([]string{
@@ -202,7 +203,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 															string(logic.DaysOfWeekFriday),
 															string(logic.DaysOfWeekSaturday),
 															string(logic.DaysOfWeekSunday),
-														}, true),
+														}, !features.ThreePointOh()),
 													},
 													ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 												},

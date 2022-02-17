@@ -466,7 +466,6 @@ func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "agent_pool_profile.0.availability_zones"),
 			),
 		},
 	})
@@ -484,9 +483,6 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.#").HasValue("2"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.0").HasValue("1"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.availability_zones.1").HasValue("2"),
 			),
 		},
 	})
@@ -706,7 +702,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileRoutingConfig(data))
+`, KubernetesClusterResource{}.addonProfileRoutingConfig(data, true))
 }
 
 func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
@@ -761,7 +757,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"))
+`, KubernetesClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, true, "2m"))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {

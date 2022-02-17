@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -66,8 +67,8 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 					string(compute.CachingTypesNone),
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"create_option": {
@@ -78,8 +79,8 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"write_accelerator_enabled": {
@@ -301,7 +302,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 
 	parsedId, err := parse.ManagedDiskID(id)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", parsedId.String(), err)
+		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}
 
 	resp, err := client.Get(ctx, parsedId.ResourceGroup, parsedId.DiskName)

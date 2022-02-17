@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -110,10 +111,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"offer_type": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"analytical_storage": {
@@ -180,12 +181,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"ip_range_filter": {
@@ -242,14 +243,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"consistency_level": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
 								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"max_interval_in_seconds": {
@@ -320,20 +321,24 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EnableAggregationPipeline",
-								"EnableCassandra",
-								"EnableGremlin",
-								"EnableTable",
-								"EnableServerless",
-								"EnableMongo",
-								"MongoDBv3.4",
-								"mongoEnableDocLevelTTL",
-								"DisableRateLimitingResponses",
-								"AllowSelfServeUpgradeToMongo36",
-								// TODO: Remove in 3.0 - doesn't do anything
-								"EnableAnalyticalStorage",
-							}, true),
+							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+								out := []string{
+									"EnableAggregationPipeline",
+									"EnableCassandra",
+									"EnableGremlin",
+									"EnableTable",
+									"EnableServerless",
+									"EnableMongo",
+									"MongoDBv3.4",
+									"mongoEnableDocLevelTTL",
+									"DisableRateLimitingResponses",
+									"AllowSelfServeUpgradeToMongo36",
+								}
+								if !features.ThreePointOhBeta() {
+									out = append(out, "EnableAnalyticalStorage")
+								}
+								return validation.StringInSlice(out, !features.ThreePointOhBeta())
+							}(),
 						},
 					},
 				},

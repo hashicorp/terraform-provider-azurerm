@@ -226,7 +226,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 												},
 												"disabled_rules": {
 													Type:     pluginsdk.TypeList,
-													Required: true,
+													Optional: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -523,11 +523,13 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *
 		v := item.(map[string]interface{})
 
 		ruleGroupName := v["rule_group_name"].(string)
-		disabledRules := v["disabled_rules"].([]interface{})
 
 		result := network.ManagedRuleGroupOverride{
 			RuleGroupName: utils.String(ruleGroupName),
-			Rules:         expandWebApplicationFirewallPolicyRules(disabledRules),
+		}
+
+		if disabledRules := v["disabled_rules"].([]interface{}); len(disabledRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
 		}
 
 		results = append(results, result)
@@ -710,12 +712,12 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]network.Mana
 
 func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.ManagedRuleOverride) []string {
 	results := make([]string, 0)
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled {
+		if (item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled) && item.RuleID != nil {
 			v := *item.RuleID
 
 			results = append(results, v)

@@ -47,6 +47,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mssql_job_agent":                                       resourceMsSqlJobAgent(),
 		"azurerm_mssql_job_credential":                                  resourceMsSqlJobCredential(),
 		"azurerm_mssql_firewall_rule":                                   resourceMsSqlFirewallRule(),
+		"azurerm_mssql_outbound_firewall_rule":                          resourceMsSqlOutboundFirewallRule(),
 		"azurerm_mssql_server":                                          resourceMsSqlServer(),
 		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
 		"azurerm_mssql_server_security_alert_policy":                    resourceMsSqlServerSecurityAlertPolicy(),

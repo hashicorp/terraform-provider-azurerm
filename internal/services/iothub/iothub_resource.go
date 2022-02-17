@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -321,12 +321,12 @@ func resourceIotHub() *pluginsdk.Resource {
 							Default:  string(devices.EncodingAvro),
 							DiffSuppressFunc: suppressWhenAny(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								suppress.CaseDifference),
+								suppress.CaseDifferenceV2Only),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.EncodingAvro),
 								string(devices.EncodingAvroDeflate),
 								string(devices.EncodingJSON),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"file_name_format": {

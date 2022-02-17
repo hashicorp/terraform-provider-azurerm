@@ -68,8 +68,10 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("retreiving Automation Account Registration Information %s: %+v", id, err)
 	}
-	d.Set("primary_key", iresp.Keys.Primary)
-	d.Set("secondary_key", iresp.Keys.Secondary)
+	if iresp.Keys != nil {
+		d.Set("primary_key", iresp.Keys.Primary)
+		d.Set("secondary_key", iresp.Keys.Secondary)
+	}
 	d.Set("endpoint", iresp.Endpoint)
 	return nil
 }

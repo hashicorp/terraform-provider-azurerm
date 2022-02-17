@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -119,8 +122,8 @@ func resourceAppService() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"value": {
@@ -138,7 +141,13 @@ func resourceAppService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"identity": schemaAppServiceIdentity(),
+			"identity": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return schemaAppServiceIdentity()
+				}
+
+				return commonschema.SystemAssignedUserAssignedIdentityOptional()
+			}(),
 
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
@@ -297,8 +306,10 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -587,9 +598,11 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("getting configuration for App Service %q: %+v", id.SiteName, err)
 		}
 
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
-		site.Identity = appServiceIdentity
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		siteEnvelope.Identity = appServiceIdentity
 		site.SiteConfig = siteConfig
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
@@ -770,7 +783,7 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)

@@ -7,6 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -14,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -128,7 +135,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -196,21 +209,21 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"cookie_based_affinity": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayCookieBasedAffinityEnabled),
 								string(network.ApplicationGatewayCookieBasedAffinityDisabled),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"affinity_cookie_name": {
@@ -334,11 +347,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"private_link_configuration_name": {
@@ -431,11 +444,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"host_name": {
@@ -589,7 +602,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IPAllocationMethodDynamic),
 											string(network.IPAllocationMethodStatic),
-										}, true),
+										}, !features.ThreePointOh()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 
 									"primary": {
@@ -789,7 +803,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewaySkuNameStandardSmall),
 								string(network.ApplicationGatewaySkuNameStandardMedium),
@@ -798,19 +812,19 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								string(network.ApplicationGatewaySkuNameWAFLarge),
 								string(network.ApplicationGatewaySkuNameWAFMedium),
 								string(network.ApplicationGatewaySkuNameWAFV2),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"tier": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayTierStandard),
 								string(network.ApplicationGatewayTierStandardV2),
 								string(network.ApplicationGatewayTierWAF),
 								string(network.ApplicationGatewayTierWAFV2),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"capacity": {
@@ -907,11 +921,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"path": {
@@ -1364,11 +1378,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_mode": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayFirewallModeDetection),
 								string(network.ApplicationGatewayFirewallModePrevention),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"rule_set_type": {
@@ -1573,9 +1587,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
-
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
 			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
@@ -1601,6 +1613,15 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
 		},
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			gateway.Zones = &zones
+		}
+	} else {
+		gateway.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("fips_enabled"); ok {
@@ -1723,12 +1744,11 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", applicationGateway.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("zones", applicationGateway.Zones)
+
+	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
+	d.Set("zones", zones.Flatten(applicationGateway.Zones))
 
 	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {
@@ -1917,7 +1937,7 @@ func expandApplicationGatewayIdentity(input []interface{}) (*network.ManagedServ
 func flattenApplicationGatewayIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
 	var transform *identity.UserAssignedMap
 
-	if transform != nil {
+	if input != nil {
 		transform = &identity.UserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),

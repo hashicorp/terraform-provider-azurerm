@@ -32,6 +32,21 @@ func TestAccKustoCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
@@ -405,7 +420,30 @@ resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
 
+func (KustoClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                          = "acctestkc%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  public_network_access_enabled = false
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1

@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -37,40 +40,46 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DedicatedHostGroupName(),
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.DedicatedHostGroupName(),
+				},
 
-			"location": azure.SchemaLocation(),
+				"location": azure.SchemaLocation(),
 
-			// There's a bug in the Azure API where this is returned in upper-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8068
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+				// There's a bug in the Azure API where this is returned in upper-case
+				// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8068
+				"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"platform_fault_domain_count": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(1, 3),
-			},
+				"platform_fault_domain_count": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(1, 3),
+				},
 
-			"automatic_placement_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
+				"automatic_placement_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
 
-			// Currently only one endpoint is allowed.
-			// we'll leave this open to enhancement when they add multiple zones support.
-			"zones": azure.SchemaSingleZone(),
+				"tags": tags.Schema(),
+			}
 
-			"tags": tags.Schema(),
-		},
+			if features.ThreePointOhBeta() {
+				s["zone"] = commonschema.ZoneSingleOptionalForceNew()
+			} else {
+				s["zones"] = azure.SchemaSingleZone()
+			}
+
+			return s
+		}(),
 	}
 }
 
@@ -105,8 +114,16 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 		Tags: tags.Expand(t),
 	}
-	if zones, ok := d.GetOk("zones"); ok {
-		parameters.Zones = utils.ExpandStringSlice(zones.([]interface{}))
+	if features.ThreePointOhBeta() {
+		if zone, ok := d.GetOk("zone"); ok {
+			parameters.Zones = &[]string{
+				zone.(string),
+			}
+		}
+	} else {
+		if zones, ok := d.GetOk("zones"); ok {
+			parameters.Zones = utils.ExpandStringSlice(zones.([]interface{}))
+		}
 	}
 
 	if v, ok := d.GetOk("automatic_placement_enabled"); ok {
@@ -144,9 +161,19 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	if features.ThreePointOhBeta() {
+		zone := ""
+		if resp.Zones != nil && len(*resp.Zones) > 0 {
+			z := *resp.Zones
+			zone = z[0]
+		}
+		d.Set("zone", zone)
+	} else {
+		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 	}
+
 	if props := resp.DedicatedHostGroupProperties; props != nil {
 		platformFaultDomainCount := 0
 		if props.PlatformFaultDomainCount != nil {
@@ -156,7 +183,6 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)
 	}
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

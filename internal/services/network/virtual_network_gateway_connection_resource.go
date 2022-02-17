@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,8 +58,8 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 					string(network.VirtualNetworkGatewayConnectionTypeExpressRoute),
 					string(network.VirtualNetworkGatewayConnectionTypeIPsec),
 					string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"virtual_network_gateway_id": {
@@ -195,7 +196,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 						"dh_group": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.DhGroupDHGroup1),
 								string(network.DhGroupDHGroup14),
@@ -205,13 +206,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.DhGroupECP256),
 								string(network.DhGroupECP384),
 								string(network.DhGroupNone),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"ike_encryption": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IkeEncryptionAES128),
 								string(network.IkeEncryptionAES192),
@@ -220,13 +221,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IkeEncryptionDES3),
 								string(network.IkeEncryptionGCMAES128),
 								string(network.IkeEncryptionGCMAES256),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"ike_integrity": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IkeIntegrityGCMAES128),
 								string(network.IkeIntegrityGCMAES256),
@@ -234,13 +235,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IkeIntegritySHA1),
 								string(network.IkeIntegritySHA256),
 								string(network.IkeIntegritySHA384),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"ipsec_encryption": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecEncryptionAES128),
 								string(network.IpsecEncryptionAES192),
@@ -251,13 +252,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IpsecEncryptionGCMAES192),
 								string(network.IpsecEncryptionGCMAES256),
 								string(network.IpsecEncryptionNone),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"ipsec_integrity": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecIntegrityGCMAES128),
 								string(network.IpsecIntegrityGCMAES192),
@@ -265,13 +266,13 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IpsecIntegrityMD5),
 								string(network.IpsecIntegritySHA1),
 								string(network.IpsecIntegritySHA256),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"pfs_group": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.PfsGroupECP256),
 								string(network.PfsGroupECP384),
@@ -282,7 +283,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.PfsGroupPFS2048),
 								string(network.PfsGroupPFS24),
 								string(network.PfsGroupPFSMM),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"sa_datasize": {

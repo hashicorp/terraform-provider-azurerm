@@ -11,9 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -96,7 +98,8 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
-							}, true),
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"resource_id": {
@@ -175,7 +178,8 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.LesserThanOrEqualTo),
 														string(security.NotEquals),
 														string(security.StartsWith),
-													}, true),
+													}, !features.ThreePointOh()),
+													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"property_type": {
 													Type:     pluginsdk.TypeString,
@@ -185,7 +189,8 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.String),
 														string(security.Boolean),
 														string(security.Number),
-													}, true),
+													}, !features.ThreePointOh()),
+													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 											},
 										},
