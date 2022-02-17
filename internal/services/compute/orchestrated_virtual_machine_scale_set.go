@@ -501,24 +501,12 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
-					ConflictsWith: func() []string {
-						if !features.ThreePointOhBeta() {
-							return []string{"data_disk.0.disk_iops_read_write"}
-						}
-						return []string{}
-					}(),
 				},
 
 				"ultra_ssd_disk_mbps_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
-					ConflictsWith: func() []string {
-						if !features.ThreePointOhBeta() {
-							return []string{"data_disk.0.disk_mbps_read_write"}
-						}
-						return []string{}
-					}(),
 				},
 			},
 		},
@@ -532,12 +520,6 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"data_disk.0.ultra_ssd_disk_iops_read_write"}
-				}
-				return []string{}
-			}(),
 		}
 
 		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
@@ -545,12 +527,6 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"data_disk.0.ultra_ssd_disk_mbps_read_write"}
-				}
-				return []string{}
-			}(),
 		}
 	}
 
