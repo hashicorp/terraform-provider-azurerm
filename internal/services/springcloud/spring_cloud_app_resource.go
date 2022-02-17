@@ -59,7 +59,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"custom_persistent_disks": {
+			"custom_persistent_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -191,7 +191,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Properties: &appplatform.AppResourceProperties{
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{}), id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -239,7 +239,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{}), *id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -291,8 +291,8 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
-		if err := d.Set("custom_persistent_disks", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
-			return fmt.Errorf("setting `custom_persistent_disks`: %+v", err)
+		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
 		}
 	}
 

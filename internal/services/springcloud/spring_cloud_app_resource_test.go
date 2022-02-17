@@ -215,7 +215,7 @@ resource "azurerm_spring_cloud_app" "test" {
   resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
   service_name        = azurerm_spring_cloud_service.test.name
 
-  custom_persistent_disks {
+  custom_persistent_disk {
     storage_name      = azurerm_spring_cloud_storage.%[3]s.name
     mount_path        = "/temp"
     share_name        = "testname"
