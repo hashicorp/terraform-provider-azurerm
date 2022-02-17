@@ -1759,7 +1759,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "Standard"
   }
-  run_command_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
