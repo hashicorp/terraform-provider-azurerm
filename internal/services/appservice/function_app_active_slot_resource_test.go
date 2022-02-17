@@ -205,7 +205,7 @@ resource "azurerm_service_plan" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
-  sku_name            = "S1"
+  sku_name            = "EP1"
 }
 
 resource "azurerm_linux_function_app" "test" {
@@ -218,13 +218,7 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    application_stack {
-      docker {
-        registry_url = "https://mcr.microsoft.com"
-        image_name   = "azure-functions/python"
-        image_tag    = "latest"
-      }
-    }
+    always_on = true
   }
 }
 
@@ -235,14 +229,32 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    application_stack {
-      docker {
-        registry_url = "https://mcr.microsoft.com"
-        image_name   = "azure-functions/python"
-        image_tag    = "latest"
-      }
-    }
+    always_on = true
   }
+}
+
+data "azurerm_storage_share" "app" {
+  name                 = azurerm_linux_function_app.test.app_settings.WEBSITE_CONTENTSHARE
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+data "azurerm_storage_share" "slot" {
+  name                 = azurerm_linux_function_app_slot.test.app_settings.WEBSITE_CONTENTSHARE
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_share_file" "app" {
+  name             = "host.json"
+  path             = "site/wwwroot"
+  storage_share_id = data.azurerm_storage_share.app.id
+  source           = "testdata/host.json"
+}
+
+resource "azurerm_storage_share_file" "slot" {
+  name             = "host.json"
+  path             = "site/wwwroot"
+  storage_share_id = data.azurerm_storage_share.slot.id
+  source           = "testdata/host.json"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -266,8 +278,8 @@ resource "azurerm_service_plan" "test" {
   name                = "acctestASP-WAS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
-  sku_name            = "S1"
+  os_type             = "Windows"
+  sku_name            = "EP1"
 }
 
 resource "azurerm_windows_function_app" "test" {
@@ -279,7 +291,13 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  site_config {}
+  app_settings {
+    WEBSITE_CONTENTSHARE = "testacc-content-app"
+  }
+
+  site_config {
+    always_on = true
+  }
 }
 
 resource "azurerm_windows_function_app_slot" "test" {
@@ -288,7 +306,13 @@ resource "azurerm_windows_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  site_config {}
+  app_settings {
+    WEBSITE_CONTENTSHARE = "testacc-content-appslot"
+  }
+
+  site_config {
+    always_on = true
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
