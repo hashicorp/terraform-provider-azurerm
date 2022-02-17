@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -80,7 +82,7 @@ func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 }
 
 func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	out := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -91,14 +93,6 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 				},
 
 				"form_parameter": SchemaApiManagementOperationParameterContract(),
-
-				// TODO 3.0 - Remove below property
-				"sample": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Computed:   true,
-					Deprecated: "Deprecated in favour of `example`",
-				},
 
 				"example": SchemaApiManagementOperationParameterExampleContract(),
 
@@ -114,6 +108,16 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.ThreePointOhBeta() {
+		s := out.Elem.(*pluginsdk.Resource)
+		s.Schema["sample"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `example`",
+		}
+	}
+	return out
 }
 
 func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
@@ -136,7 +140,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if vs["example"] != nil {
 			examplesRaw := vs["example"].([]interface{})
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
-		} else if vs["sample"] != nil {
+		} else if !features.ThreePointOhBeta() && vs["sample"] != nil {
 			defaultExample := map[string]interface{}{
 				"name":  "default",
 				"value": vs["sample"],
@@ -195,8 +199,7 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 		if v.Examples != nil {
 			output["example"] = FlattenApiManagementOperationParameterExampleContract(v.Examples)
 
-			// TODO 3.0 - Remove setting of property
-			if v.Examples["default"] != nil && v.Examples["default"].Value != nil {
+			if features.ThreePointOhBeta() && v.Examples["default"] != nil && v.Examples["default"].Value != nil {
 				output["sample"] = v.Examples["default"].Value.(string)
 			}
 		}
@@ -333,7 +336,7 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true, // TODO 3.0 - Remove when sample property is removed.
+		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
