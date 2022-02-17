@@ -189,8 +189,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"ssl_enforcement_enabled": {
@@ -241,11 +241,11 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Computed:         true,
 							ConflictsWith:    []string{"auto_grow_enabled"},
 							Deprecated:       "this has been moved to the top level boolean attribute `auto_grow_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
-							}, false),
+							}, !features.ThreePointOh()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"backup_retention_days": {
@@ -263,11 +263,11 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Computed:         true,
 							ConflictsWith:    []string{"geo_redundant_backup_enabled"},
 							Deprecated:       "this has been moved to the top level boolean attribute `geo_redundant_backup_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
-							}, true),
+							}, !features.ThreePointOh()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"storage_mb": {
@@ -393,8 +393,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 					string(mysql.FiveFullStopSix), // todo remove in 3.0? We can't create it but maybe we can still manage it
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ForceNew:         true,
 			},
 		},

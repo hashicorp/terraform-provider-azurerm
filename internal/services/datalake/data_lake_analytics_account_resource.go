@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakeanalytics/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
@@ -56,7 +57,7 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          string(accounts.TierTypeConsumption),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.TierTypeConsumption),
 					string(accounts.TierTypeCommitmentOneZeroZeroZeroZeroZeroAUHours),
@@ -67,7 +68,7 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 					string(accounts.TierTypeCommitmentFiveZeroZeroZeroZeroAUHours),
 					string(accounts.TierTypeCommitmentFiveZeroZeroZeroAUHours),
 					string(accounts.TierTypeCommitmentFiveZeroZeroAUHours),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"default_store_account_name": {

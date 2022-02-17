@@ -90,8 +90,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameBasic),
 					string(redis.SkuNameStandard),
 					string(redis.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"minimum_tls_version": {

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
@@ -56,7 +57,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          string(accounts.TierTypeConsumption),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.TierTypeConsumption),
 					string(accounts.TierTypeCommitmentOneTB),
@@ -65,7 +66,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 					string(accounts.TierTypeCommitmentFiveZeroZeroTB),
 					string(accounts.TierTypeCommitmentOnePB),
 					string(accounts.TierTypeCommitmentFivePB),
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"encryption_state": {
@@ -76,8 +77,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionStateEnabled),
 					string(accounts.EncryptionStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"encryption_type": {
@@ -87,8 +88,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionConfigTypeServiceManaged),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"firewall_state": {
@@ -98,8 +99,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallStateEnabled),
 					string(accounts.FirewallStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"firewall_allow_azure_ips": {
@@ -109,8 +110,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallAllowAzureIpsStateEnabled),
 					string(accounts.FirewallAllowAzureIpsStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"endpoint": {

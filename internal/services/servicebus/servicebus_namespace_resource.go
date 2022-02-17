@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -78,8 +79,8 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 					string(servicebus.SkuNameBasic),
 					string(servicebus.SkuNameStandard),
 					string(servicebus.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"capacity": {

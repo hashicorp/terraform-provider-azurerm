@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,9 +63,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
 					string(network.LoadBalancerSkuNameGateway),
-				}, true),
-				// TODO - 3.0 remove this property
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"sku_tier": {
@@ -141,9 +139,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.IPAllocationMethodDynamic),
 									string(network.IPAllocationMethodStatic),
-								}, true),
-								StateFunc:        state.IgnoreCase,
-								DiffSuppressFunc: suppress.CaseDifference,
+								}, !features.ThreePointOh()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 
 							"gateway_load_balancer_frontend_ip_configuration_id": {

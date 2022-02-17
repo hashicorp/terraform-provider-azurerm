@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -169,11 +170,11 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-				}, true),
+				}, !features.ThreePointOh()),
 			},
 
 			"vm_size": {
@@ -239,8 +240,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.OperatingSystemTypesLinux),
 								string(compute.OperatingSystemTypesWindows),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"name": {
@@ -275,7 +276,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, true),
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"image_uri": {
@@ -349,7 +351,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 								string(compute.StorageAccountTypesUltraSSDLRS),
-							}, true),
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"create_option": {
@@ -496,8 +499,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"HTTP",
 											"HTTPS",
-										}, true),
-										DiffSuppressFunc: suppress.CaseDifference,
+										}, !features.ThreePointOh()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 									"certificate_url": {
 										Type:     pluginsdk.TypeString,

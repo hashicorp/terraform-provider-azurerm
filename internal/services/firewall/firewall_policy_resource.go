@@ -22,6 +22,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -804,7 +805,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, true),
+									}, !features.ThreePointOh()),
+									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,

@@ -77,11 +77,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 					Optional:         true,
 					Default:          string(network.IPVersionIPv4),
 					ForceNew:         true,
-					DiffSuppressFunc: suppress.CaseDifference,
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, true),
+					}, !features.ThreePointOh()),
 				},
 
 				"ip_prefix": {

@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -255,8 +255,8 @@ func schemaAppServiceIdentity() *pluginsdk.Schema {
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"principal_id": {
@@ -307,8 +307,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"http2_enabled": {
@@ -340,8 +340,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"JAVA",
 						"JETTY",
 						"TOMCAT",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"java_container_version": {
@@ -362,8 +362,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"php_version": {
@@ -405,8 +405,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"VS2015",
 						"VS2017",
 						"VS2019",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"scm_type": {

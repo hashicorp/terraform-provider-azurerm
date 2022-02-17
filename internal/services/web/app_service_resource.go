@@ -122,8 +122,8 @@ func resourceAppService() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"value": {

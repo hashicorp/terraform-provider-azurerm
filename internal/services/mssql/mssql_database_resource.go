@@ -863,7 +863,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			Computed:         true,
 			ValidateFunc:     validate.DatabaseSkuName(),
-			DiffSuppressFunc: suppress.CaseDifference,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 
 		"creation_source_database_id": {
@@ -923,19 +923,20 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, true),
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
 
 					"email_account_admins": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						Default:          "Disabled",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Enabled",
-						}, true),
+						}, !features.ThreePointOh()),
 					},
 
 					"email_addresses": {
@@ -956,13 +957,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"state": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						Default:          string(sql.SecurityAlertPolicyStateDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, true),
+						}, !features.ThreePointOh()),
 					},
 
 					"storage_account_access_key": {
