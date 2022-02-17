@@ -51,8 +51,8 @@ func (r MsSqlManagedDatabase) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_managed_database" "test" {
-  mssql_managed_instance_id = azurerm_mssql_managed_instance.test.id
-  name                      = "acctest-%[2]d"
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }

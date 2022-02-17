@@ -169,7 +169,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := MsSqlManagedInstanceModel{
+			model := MsSqlManagedInstanceDataSourceModel{
 				Name:              id.Name,
 				Location:          location.NormalizeNilable(resp.Location),
 				ResourceGroupName: id.ResourceGroup,
@@ -215,6 +215,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			metadata.SetID(id)
 			return metadata.Encode(&model)
 		},
 	}

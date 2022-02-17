@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -54,27 +53,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r MsSqlManagedDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"partner_region": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"location": location.SchemaComputed(),
-
-					"role": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"role": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
@@ -97,7 +76,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 			id := parse.NewManagedDatabaseID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroup, managedInstanceId.Name, model.Name)
 
-			managedInstance, err := instancesClient.Get(ctx, managedInstanceId.SubscriptionId, managedInstanceId.ResourceGroup, managedInstanceId.Name)
+			managedInstance, err := instancesClient.Get(ctx, managedInstanceId.ResourceGroup, managedInstanceId.Name, "")
 			if err != nil || managedInstance.Location == nil || *managedInstance.Location == "" {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
@@ -159,8 +138,11 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			managedInstanceId := parse.NewManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
 			model := MsSqlManagedDatabaseModel{
-				Name: id.DatabaseName,
+				Name:              id.DatabaseName,
+				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
 			return metadata.Encode(&model)

@@ -31,7 +31,7 @@ func (d MsSqlManagedInstanceDataSource) basic(data acceptance.TestData) string {
 %[1]s
 
 data "azurerm_mssql_managed_instance" "test" {
-  name                = azurerm_sql_managed_instance.test.name
+  name                = azurerm_mssql_managed_instance.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, MsSqlManagedInstanceResource{}.basic(data))
