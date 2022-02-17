@@ -100,7 +100,7 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 							Default:  string(cdn.AfdCertificateTypeCustomerCertificate),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.AfdCertificateTypeCustomerCertificate),
@@ -130,7 +130,6 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 			"validation_properties": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
