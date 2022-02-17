@@ -377,7 +377,7 @@ func TestAccFunctionAppSlot_scmIPRestrictionServiceTag(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scmIPRestrictionComplete(data),
+			Config: r.scmIPRestrictionServiceTag(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -392,7 +392,7 @@ func TestAccFunctionAppSlot_scmIPRestrictionSubnet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scmIPRestrictionComplete(data),
+			Config: r.scmIPRestrictionSubnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
