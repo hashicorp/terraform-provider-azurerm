@@ -307,199 +307,201 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 	}
 }
 
-func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
-	resource.Schema["aci_connector_linux"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"subnet_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"aci_connector_linux": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
-	}
-	resource.Schema["azure_policy_enabled"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeBool,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-	}
-	resource.Schema["http_application_routing_enabled"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeBool,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-	}
-	resource.Schema["http_application_routing_zone_name"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Computed: true,
-	}
-	resource.Schema["oms_agent"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"log_analytics_workspace_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-				},
-				"oms_agent_identity": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"client_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"object_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"user_assigned_identity_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+		"azure_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+		},
+		"http_application_routing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+		},
+		"http_application_routing_zone_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"oms_agent": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"log_analytics_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+					},
+					"oms_agent_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
 							},
 						},
 					},
 				},
 			},
 		},
-	}
-	resource.Schema["ingress_application_gateway"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"gateway_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ConflictsWith: []string{
-						"ingress_application_gateway.0.subnet_cidr",
-						"ingress_application_gateway.0.subnet_id",
+		"ingress_application_gateway": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"gateway_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
 					},
-					AtLeastOneOf: []string{
-						"ingress_application_gateway.0.gateway_id",
-						"ingress_application_gateway.0.subnet_cidr",
-						"ingress_application_gateway.0.subnet_id",
+					"gateway_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
-				},
-				"gateway_name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"subnet_cidr": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ConflictsWith: []string{
-						"ingress_application_gateway.0.gateway_id",
-						"ingress_application_gateway.0.subnet_id",
+					"subnet_cidr": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: commonValidate.CIDR,
 					},
-					AtLeastOneOf: []string{
-						"ingress_application_gateway.0.gateway_id",
-						"ingress_application_gateway.0.subnet_cidr",
-						"ingress_application_gateway.0.subnet_id",
+					"subnet_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: subnetValidate.SubnetID,
 					},
-					ValidateFunc: commonValidate.CIDR,
-				},
-				"subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ConflictsWith: []string{
-						"ingress_application_gateway.0.gateway_id",
-						"ingress_application_gateway.0.subnet_cidr",
+					"effective_gateway_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
-					AtLeastOneOf: []string{
-						"ingress_application_gateway.0.gateway_id",
-						"ingress_application_gateway.0.subnet_cidr",
-						"ingress_application_gateway.0.subnet_id",
-					},
-					ValidateFunc: subnetValidate.SubnetID,
-				},
-				"effective_gateway_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"ingress_application_gateway_identity": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"client_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"object_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"user_assigned_identity_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+					"ingress_application_gateway_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
 							},
 						},
 					},
 				},
 			},
 		},
-	}
-	resource.Schema["open_service_mesh_enabled"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeBool,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-	}
-	resource.Schema["keyvault_secrets_provider"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"secret_rotation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Default:  false,
-					Optional: true,
-					AtLeastOneOf: []string{
-						"keyvault_secrets_provider.0.secret_rotation_enabled",
-						"keyvault_secrets_provider.0.secret_rotation_interval",
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+		},
+		"keyvault_secrets_provider": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"secret_rotation_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  false,
+						Optional: true,
+						AtLeastOneOf: []string{
+							"keyvault_secrets_provider.0.secret_rotation_enabled",
+							"keyvault_secrets_provider.0.secret_rotation_interval",
+						},
 					},
-				},
-				"secret_rotation_interval": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "2m",
-					AtLeastOneOf: []string{
-						"keyvault_secrets_provider.0.secret_rotation_enabled",
-						"keyvault_secrets_provider.0.secret_rotation_interval",
+					"secret_rotation_interval": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "2m",
+						AtLeastOneOf: []string{
+							"keyvault_secrets_provider.0.secret_rotation_enabled",
+							"keyvault_secrets_provider.0.secret_rotation_interval",
+						},
+						ValidateFunc: containerValidate.Duration,
 					},
-					ValidateFunc: containerValidate.Duration,
-				},
-				"secret_identity": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"client_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"object_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"user_assigned_identity_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+					"secret_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
 							},
 						},
 					},
@@ -508,7 +510,11 @@ func schemaKubernetesAddOns(resource *pluginsdk.Resource) pluginsdk.Resource {
 		},
 	}
 
-	return *resource
+	if !features.ThreePointOhBeta() {
+		out["addon_profile"] = schemaKubernetesAddOnProfiles()
+	}
+
+	return out
 }
 
 // TODO 3.0 - Remove this function
