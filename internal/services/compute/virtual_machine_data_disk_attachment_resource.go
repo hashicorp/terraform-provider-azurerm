@@ -302,7 +302,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 
 	parsedId, err := parse.ManagedDiskID(id)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", parsedId.String(), err)
+		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}
 
 	resp, err := client.Get(ctx, parsedId.ResourceGroup, parsedId.DiskName)
