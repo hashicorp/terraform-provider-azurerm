@@ -1795,11 +1795,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-<<<<<<< HEAD
   key_vault_secrets_provider {
-=======
-  keyvault_secrets_provider {
->>>>>>> a0b4a05d625ddca5ef6c8b5c27039eb9cf09aa11
     secret_rotation_enabled  = %t
     secret_rotation_interval = "%s"
   }
