@@ -249,6 +249,12 @@ The deprecated `proxy` block will be removed in favour of the `gateway` block.
 
 The deprecated field `enabled` will be removed since it no longer exists in the Azure API.
 
+### Resource: `azurerm_api_management_api_operation`
+
+The deprecated field `response.representation.sample` will be removed in favour of the property `response.representation.example`.
+
+The deprecated field `request.representation.sample` will be removed in favour of the property `request.representation.example`.
+
 ### Resource: `azurerm_api_management_property`
 
 The `azurerm_api_management_property` resource will be removed in favour of the `azurerm_api_management_named_value` resource.
@@ -256,8 +262,6 @@ The `azurerm_api_management_property` resource will be removed in favour of the 
 ### Resource: `azurerm_api_management`
 
 The deprecated field `security.enabled_triple_des_ciphers` will be removed in favour of the `security.triple_des_ciphers_enabled` property.
-
-The deprecated field `sample` will be removed in favour of the `example` property.
 
 ### Resource: `azurerm_automation_schedule`
 
@@ -339,9 +343,9 @@ The deprecated block `addon_profile.ingress_application_gateway` will be removed
 
 The field `addon_profile.ingress_application_gateway.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `ingress_application_gateway` block.
 
-The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `azure_keyvault_secrets_provider` block.
+The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `keyvault_secrets_provider` block.
 
-The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `azure_keyvault_secrets_provider` block.
+The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `keyvault_secrets_provider` block.
 
 The field `default_node_pool.availability_zones` will be removed in favour of `default_node_pool.zones` to be consistent across the Provider.
 
@@ -649,6 +653,10 @@ The deprecated field `soft_delete_enabled` will be removed since it is no longer
 
 ### Resource: `azurerm_kusto_cluster`
 
+The deprecated field `enable_auto_stop` will be removed in favour of the `auto_stop_enabled` property.
+
+The deprecated field `enable_disk_encryption` will be removed in favour of the `disk_encryption_enabled` property.
+
 The field `trusted_external_tenants` will no longer accept `MyTenantOnly` as a valid value.
 
 ### Resource: `azurerm_kusto_database_principal`
@@ -759,6 +767,10 @@ The deprecated fields `auto_start`, `interval_in_seconds`, `source`, `source.vir
 
 The deprecated field `virtual_machine_id` will be removed in favour of the `target_resource_id` property.
 
+### Resource: `azurerm_network_watcher_flow_log`
+
+The field `name` will become Required.
+
 ### Resource: `azurerm_packet_capture`
 
 The `azurerm_packet_capture` resource will be removed in favour of the renamed `azurerm_network_packet_capture` resource.
@@ -784,6 +796,10 @@ The deprecated field `address_prefix` will be removed in favour of the `address_
 The deprecated field `hub_to_vitual_network_traffic_allowed` will be removed since it is no longer supported by the Azure API.
 
 The deprecated field `vitual_network_to_hub_gateways_traffic_allowed` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_virtual_hub_ip`
+
+The field `public_ip_address_id` will become Required.
 
 ### Resource: `azurerm_virtual_machine_configuration_policy_assignment`
 
@@ -817,9 +833,9 @@ The deprecated field `management_group_name` will be removed in favour of the `m
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
 
-The deprecated field `parameters` will be removed in favour of the `parameter_values` property.
+The deprecated field `policy_definition_reference.parameters` will be removed in favour of the `policy_definition_reference.parameter_values` property.
 
-The deprecated field `policy_definitions` will be removed in favour of the `policy_definition_reference`.
+The deprecated field `policy_definitions` will be removed in favour of the `policy_definition_reference` block.
 
 ### Resource: `azurerm_policy_virtual_machine_configuration_assignment`
 
