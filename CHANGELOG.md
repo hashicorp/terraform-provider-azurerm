@@ -1,5 +1,9 @@
 ## 2.97.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* **3.0 Beta:** This release includes a new feature-flag to opt-into the 3.0 Beta - which (when enabled) introduces a number of new data sources/resources, behavioural changes, field renames and removes some older deprecated resources. The 3.0 Beta is still a work-in-progress at this time and as such the changes listed [in the 3.0 Upgrade Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-upgrade-guide) may change, however we're interested to hear your feedback and [instructions on how to opt-into the 3.0 Beta can be found here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-beta).
+
 FEATURES:
 
 * **New Data Source:** `azurerm_extended_locations` [GH-15181]
