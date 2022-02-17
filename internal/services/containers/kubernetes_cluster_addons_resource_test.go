@@ -113,37 +113,63 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.addonProfileOMSConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileOMSDisabledConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// TODO 3.0 - Remove this step since this config will be identical to the one provided in the step above
-		{
-			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileOMSConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
+	if !features.ThreePointOhBeta() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.addonProfileOMSConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.addonProfileOMSDisabledConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			// TODO 3.0 - Remove this step since this config will be identical to the one provided in the step above
+			{
+				Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.addonProfileOMSConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.addonProfileOMSConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.addonProfileOMSDisabledConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.addonProfileOMSConfig(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	}
 }
 
 func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
