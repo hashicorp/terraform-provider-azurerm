@@ -586,7 +586,7 @@ func TestAccApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	})
 }
 
-func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testing.T) {
+func TestAccApplicationGateway_sslCertificateManualChangeIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
@@ -3544,7 +3544,8 @@ resource "azurerm_application_gateway" "test" {
     interval            = 300
     unhealthy_threshold = 8
     match {
-      body = ""
+      body        = ""
+      status_code = ["404-500"]
     }
   }
 
