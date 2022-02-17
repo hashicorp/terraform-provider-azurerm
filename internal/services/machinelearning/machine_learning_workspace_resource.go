@@ -464,9 +464,9 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearn
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &machinelearningservices.EncryptionProperty{
+	out := machinelearningservices.EncryptionProperty{
 		Identity: &machinelearningservices.IdentityForCmk{
-			UserAssignedIdentity: utils.String(raw["user_assigned_identity_id"].(string)),
+			UserAssignedIdentity: nil,
 		},
 		KeyVaultProperties: &machinelearningservices.KeyVaultProperties{
 			KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
@@ -474,6 +474,12 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearn
 		},
 		Status: machinelearningservices.EncryptionStatusEnabled,
 	}
+
+	if raw["user_assigned_identity_id"].(string) != "" {
+		out.Identity.UserAssignedIdentity = utils.String(raw["user_assigned_identity_id"].(string))
+	}
+
+	return &out
 }
 
 func flattenMachineLearningWorkspaceEncryption(input *machinelearningservices.EncryptionProperty) (*[]interface{}, error) {

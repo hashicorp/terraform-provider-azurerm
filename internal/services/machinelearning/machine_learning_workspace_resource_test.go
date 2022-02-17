@@ -354,7 +354,6 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
-
   tags = {
     ENV = "Test"
   }
