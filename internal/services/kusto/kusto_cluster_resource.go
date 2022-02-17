@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -202,7 +203,19 @@ func resourceKustoCluster() *pluginsdk.Resource {
 					Computed: true,
 				},
 
-				"zones": azure.SchemaZones(),
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"zones": func() *pluginsdk.Schema {
+					if !features.ThreePointOhBeta() {
+						return azure.SchemaZones()
+					}
+
+					return commonschema.ZonesMultipleOptionalForceNew()
+				}(),
 
 				"tags": tags.Schema(),
 			}
@@ -323,8 +336,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
-
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
@@ -348,6 +359,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
+	publicNetworkAccess := kusto.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = kusto.PublicNetworkAccessDisabled
+	}
+
 	clusterProperties := kusto.ClusterProperties{}
 	if !features.ThreePointOhBeta() {
 
@@ -359,6 +375,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 			EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
 			EngineType:             engine,
+			PublicNetworkAccess:    publicNetworkAccess,
 		}
 
 		if v, ok := d.GetOkExists("auto_stop_enabled"); ok {
@@ -382,6 +399,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
 			EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
 			EngineType:             engine,
+			PublicNetworkAccess:    publicNetworkAccess,
 		}
 	}
 
@@ -409,9 +427,17 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Location:          utils.String(location.Normalize(d.Get("location").(string))),
 		Identity:          expandedIdentity,
 		Sku:               sku,
-		Zones:             zones,
 		ClusterProperties: &clusterProperties,
 		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			kustoCluster.Zones = &zones
+		}
+	} else {
+		kustoCluster.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	ifMatch := ""
@@ -491,6 +517,9 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
+
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == kusto.PublicNetworkAccessEnabled)
 
 	identity, err := flattenClusterIdentity(resp.Identity)
 	if err != nil {
@@ -504,9 +533,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
-	if err := d.Set("zones", azure.FlattenZones(resp.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
-	}
 	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(resp.OptimizedAutoscale)); err != nil {
 		return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
 	}
