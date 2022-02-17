@@ -1,4 +1,4 @@
-package compute
+package legacy
 
 import (
 	"bytes"
@@ -263,8 +263,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"custom_data": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							StateFunc:        legacy.userDataStateFunc,
-							DiffSuppressFunc: legacy.userDataDiffSuppressFunc,
+							StateFunc:        userDataStateFunc,
+							DiffSuppressFunc: userDataDiffSuppressFunc,
 						},
 					},
 				},
