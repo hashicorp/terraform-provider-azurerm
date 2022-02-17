@@ -158,8 +158,8 @@ func TestAccNetAppVolume_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
 			),
 		},
@@ -169,9 +169,10 @@ func TestAccNetAppVolume_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
 				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
 			),
 		},
@@ -637,16 +638,9 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_write   = false
   }
 
-  export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["1.2.6.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
-  }
-
   tags = {
-    "FoO" = "BaR"
+    "FoO" = "BaR",
+    "bAr" = "fOo"
   }
 }
 `, r.templatePoolQosManual(data), data.RandomInteger, data.RandomInteger)
