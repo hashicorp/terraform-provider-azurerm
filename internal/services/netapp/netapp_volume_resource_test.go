@@ -570,7 +570,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path         = "my-unique-file-path-%d"
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
-  storage_quota_in_gb = 101
+  storage_quota_in_gb = 100
   throughput_in_mibps = 1.6
 
   export_policy_rule {
