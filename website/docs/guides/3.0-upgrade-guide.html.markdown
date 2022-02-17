@@ -682,9 +682,9 @@ The deprecated block `addon_profile.ingress_application_gateway` will be removed
 
 The field `addon_profile.ingress_application_gateway.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `ingress_application_gateway` block.
 
-The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `keyvault_secrets_provider` block.
+The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `key_vault_secrets_provider` block.
 
-The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `keyvault_secrets_provider` block.
+The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `key_vault_secrets_provider` block.
 
 The field `default_node_pool.availability_zones` will be removed in favour of `default_node_pool.zones` to be consistent across the Provider.
 
