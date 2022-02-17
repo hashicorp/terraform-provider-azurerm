@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
-* `custom_persistent_disks` - (Optional) A `custom_persistent_disks` block as defined below.
+* `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
   
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 * `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
 
 ---
-An `custom_persistent_disks` block exports the following:
+An `custom_persistent_disk` block exports the following:
 
 * `storage_name` - (Required) The name of the Spring Cloud Storage.
 
