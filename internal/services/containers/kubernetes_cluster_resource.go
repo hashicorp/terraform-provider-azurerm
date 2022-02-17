@@ -1003,10 +1003,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	schemaKubernetesAddOns(resource)
-
-	if !features.ThreePointOhBeta() {
-		resource.Schema["addon_profile"] = schemaKubernetesAddOnProfiles()
+	// TODO: post-3.0 we should inline these?
+	for k, v := range schemaKubernetesAddOns() {
+		resource.Schema[k] = v
 	}
 
 	if features.KubeConfigsAreSensitive() {
