@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
@@ -34,7 +33,7 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -59,7 +58,12 @@ func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta inte
 	d.SetId(id.ID())
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
+
+	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
