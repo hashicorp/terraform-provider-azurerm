@@ -635,7 +635,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 }
 
 func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Legacy.VMClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -793,7 +793,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	vmclient := meta.(*clients.Client).Compute.VMClient
+	vmclient := meta.(*clients.Client).Legacy.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -925,7 +925,7 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Legacy.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1071,7 +1071,7 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 	}
 	managedDiskID := *disk.ID
 
-	client := meta.(*clients.Client).Compute.DisksClient
+	client := meta.(*clients.Client).Legacy.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1954,7 +1954,7 @@ func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 }
 
 func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*clients.Client).Compute.DisksClient
+	client := meta.(*clients.Client).Legacy.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
