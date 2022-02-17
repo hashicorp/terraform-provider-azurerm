@@ -1867,14 +1867,14 @@ resource "azurerm_function_app" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet68"
+  name                = "acctestvirtnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet68"
+  name                 = "acctestsubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
@@ -1895,7 +1895,7 @@ resource "azurerm_function_app_slot" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r FunctionAppSlotResource) tags(data acceptance.TestData) string {
