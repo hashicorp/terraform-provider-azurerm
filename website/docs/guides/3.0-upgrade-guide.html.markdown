@@ -68,6 +68,8 @@ provider "azurerm" {
 
 ## What's available in Version 3.0 of the AzureRM Provider?
 
+-> **Note:** Version 2.97 of the Azure Provider allows you to opt-into the Beta of these features - [see the Beta guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/1.44.0/docs/guides/3.0-beta)
+
 At a high level, version 3.0 includes the following changes:
 * [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
 * [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
