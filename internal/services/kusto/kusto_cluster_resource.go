@@ -378,15 +378,19 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			PublicNetworkAccess:    publicNetworkAccess,
 		}
 
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("auto_stop_enabled"); ok {
 			clusterProperties.EnableAutoStop = utils.Bool(v.(bool))
 		}
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("disk_encryption_enabled"); ok {
 			clusterProperties.EnableDiskEncryption = utils.Bool(v.(bool))
 		}
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("streaming_ingestion_enabled"); ok {
 			clusterProperties.EnableStreamingIngest = utils.Bool(v.(bool))
 		}
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("purge_enabled"); ok {
 			clusterProperties.EnablePurge = utils.Bool(v.(bool))
 		}
