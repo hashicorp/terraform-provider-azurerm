@@ -73,7 +73,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			Computed: !features.ThreePointOhBeta(),
 			ConflictsWith: func() []string {
-				if features.ThreePointOhBeta() {
+				if !features.ThreePointOhBeta() {
 					return []string{"management_group_name"}
 				}
 				return []string{}
@@ -108,10 +108,11 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 
 		"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
 			Type:     pluginsdk.TypeList,
+			Required: features.ThreePointOhBeta(),
 			Optional: !features.ThreePointOhBeta(),
 			Computed: !features.ThreePointOhBeta(),
 			ExactlyOneOf: func() []string {
-				if features.ThreePointOhBeta() {
+				if !features.ThreePointOhBeta() {
 					return []string{"policy_definitions", "policy_definition_reference"}
 				}
 				return []string{}
