@@ -3,6 +3,8 @@ package consumption
 import (
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
@@ -32,16 +34,25 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			// ValidateFunc: commonids.ValidateSubscriptionID, // TODO uncomment this in 3.0
-			// TODO remove in 3.0
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				n := strings.Split(old, "/")
-				if len(n) >= 3 {
-					subscriptionID := n[2]
-					return new == subscriptionID
+			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+				if !features.ThreePointOhBeta() {
+					return nil
 				}
-				return false
-			},
+				return commonids.ValidateSubscriptionID
+			}(),
+			DiffSuppressFunc: func() pluginsdk.SchemaDiffSuppressFunc {
+				if !features.ThreePointOh() {
+					return func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						n := strings.Split(old, "/")
+						if len(n) >= 3 {
+							subscriptionID := n[2]
+							return new == subscriptionID
+						}
+						return false
+					}
+				}
+				return nil
+			}(),
 		},
 	}
 	return r.base.arguments(schema)
