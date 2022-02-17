@@ -1834,12 +1834,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1850,7 +1850,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1858,7 +1858,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctestFA-%d"
+  name                       = "acctestFA-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1867,21 +1867,21 @@ resource "azurerm_function_app" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet-%d"
+  name                = "acctestvirtnet-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet-%d"
+  name                 = "acctestsubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                       = "acctestFASlot-%d"
+  name                       = "acctestFASlot-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1895,7 +1895,7 @@ resource "azurerm_function_app_slot" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r FunctionAppSlotResource) tags(data acceptance.TestData) string {
