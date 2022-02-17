@@ -322,7 +322,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 						},
 
 						// TODO: Remove in v3.0
-						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_triple_des_ciphers": {
 							Type:          pluginsdk.TypeBool,
 							Optional:      true,

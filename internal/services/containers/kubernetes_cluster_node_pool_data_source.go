@@ -43,12 +43,13 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 				"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-				// Computed
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_auto_scaling": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_node_public_ip": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,

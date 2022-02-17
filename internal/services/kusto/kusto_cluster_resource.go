@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -203,22 +204,95 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 				"zones": azure.SchemaZones(),
 
-			"zones": func() *pluginsdk.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
+				"tags": tags.Schema(),
+			}
+
+			if !features.ThreePointOhBeta() {
+				s["enable_auto_stop"] = &schema.Schema{
+					Type:          pluginsdk.TypeBool,
+					Optional:      true,
+					Computed:      true,
+					Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+					ConflictsWith: []string{"auto_stop_enabled"},
 				}
 
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+				s["auto_stop_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				}
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+				s["enable_disk_encryption"] = &schema.Schema{
+					Type:          pluginsdk.TypeBool,
+					Optional:      true,
+					Computed:      true,
+					Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+					ConflictsWith: []string{"disk_encryption_enabled"},
+				}
 
-			"tags": tags.Schema(),
-		},
+				s["disk_encryption_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				}
+
+				s["enable_streaming_ingest"] = &schema.Schema{
+					Type:          pluginsdk.TypeBool,
+					Optional:      true,
+					Computed:      true,
+					Deprecated:    "This property has been renamed to streaming_ingestion_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+					ConflictsWith: []string{"streaming_ingestion_enabled"},
+				}
+
+				s["streaming_ingestion_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				}
+
+				s["enable_purge"] = &schema.Schema{
+					Type:          pluginsdk.TypeBool,
+					Optional:      true,
+					Computed:      true,
+					Deprecated:    "This property has been renamed to purge_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+					ConflictsWith: []string{"purge_enabled"},
+				}
+
+				s["purge_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				}
+
+			} else {
+
+				s["auto_stop_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				}
+
+				s["disk_encryption_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+
+				s["streaming_ingestion_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+
+				s["purge_enabled"] = &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+			}
+
+			return s
+		}(),
 	}
 }
 
@@ -249,6 +323,8 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
@@ -272,20 +348,41 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
-	publicNetworkAccess := kusto.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = kusto.PublicNetworkAccessDisabled
-	}
+	clusterProperties := kusto.ClusterProperties{}
+	if !features.ThreePointOhBeta() {
 
-	clusterProperties := kusto.ClusterProperties{
-		OptimizedAutoscale:     optimizedAutoScale,
-		EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
-		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
-		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
-		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
-		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
-		EngineType:             engine,
-		PublicNetworkAccess:    publicNetworkAccess,
+		clusterProperties = kusto.ClusterProperties{
+			OptimizedAutoscale:     optimizedAutoScale,
+			EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
+			EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
+			EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+			EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
+			EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
+			EngineType:             engine,
+		}
+
+		if v, ok := d.GetOkExists("auto_stop_enabled"); ok {
+			clusterProperties.EnableAutoStop = utils.Bool(v.(bool))
+		}
+		if v, ok := d.GetOkExists("disk_encryption_enabled"); ok {
+			clusterProperties.EnableDiskEncryption = utils.Bool(v.(bool))
+		}
+		if v, ok := d.GetOkExists("streaming_ingestion_enabled"); ok {
+			clusterProperties.EnableStreamingIngest = utils.Bool(v.(bool))
+		}
+		if v, ok := d.GetOkExists("purge_enabled"); ok {
+			clusterProperties.EnablePurge = utils.Bool(v.(bool))
+		}
+	} else {
+		clusterProperties = kusto.ClusterProperties{
+			OptimizedAutoscale:     optimizedAutoScale,
+			EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
+			EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
+			EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+			EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
+			EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
+			EngineType:             engine,
+		}
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -312,17 +409,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Location:          utils.String(location.Normalize(d.Get("location").(string))),
 		Identity:          expandedIdentity,
 		Sku:               sku,
+		Zones:             zones,
 		ClusterProperties: &clusterProperties,
 		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			kustoCluster.Zones = &zones
-		}
-	} else {
-		kustoCluster.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	ifMatch := ""
@@ -402,9 +491,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
-
-	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == kusto.PublicNetworkAccessEnabled)
 
 	identity, err := flattenClusterIdentity(resp.Identity)
 	if err != nil {
@@ -418,6 +504,9 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
+	if err := d.Set("zones", azure.FlattenZones(resp.Zones)); err != nil {
+		return fmt.Errorf("setting `zones`: %+v", err)
+	}
 	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(resp.OptimizedAutoscale)); err != nil {
 		return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
 	}
