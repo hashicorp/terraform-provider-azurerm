@@ -110,7 +110,9 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceLevel := d.Get("service_level").(string)
-	sizeInBytes := int64(d.Get("size_in_tb").(int)) * 1099511627776
+	sizeInTB := int64(d.Get("size_in_tb").(int))
+	sizeInMB := sizeInTB * 1024 * 1024
+	sizeInBytes := sizeInMB * 1024 * 1024
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
@@ -159,8 +161,12 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("size_in_tb") {
 		shouldUpdate = true
-		poolSizeInBytes := int64(d.Get("size_in_tb").(int) * 1099511627776)
-		update.PoolPatchProperties.Size = utils.Int64(poolSizeInBytes)
+
+		sizeInTB := int64(d.Get("size_in_tb").(int))
+		sizeInMB := sizeInTB * 1024 * 1024
+		sizeInBytes := sizeInMB * 1024 * 1024
+
+		update.PoolPatchProperties.Size = utils.Int64(sizeInBytes)
 	}
 
 	if d.HasChange("qos_type") {
