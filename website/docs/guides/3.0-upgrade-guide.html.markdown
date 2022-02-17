@@ -24,7 +24,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.97.0"
     }
   }
@@ -41,7 +41,7 @@ provider "azurerm" {
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "~> 2.x"
     }
   }
