@@ -73,24 +73,25 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	})
 }
 
-// TODO 3.0 - Remove this test since Kube Dashboard isn't supported with Kubernetes versions >= 1.19
 func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This functionality is not applicable in 3.0 mode")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	if !features.ThreePointOhBeta() {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.addonProfileKubeDashboardConfig(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
-					check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
-				),
-			},
-			data.ImportStep(),
-		})
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addonProfileKubeDashboardConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccKubernetesCluster_addonProfileOMS(t *testing.T) {
