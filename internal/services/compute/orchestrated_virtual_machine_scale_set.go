@@ -433,6 +433,8 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 }
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
+	iopsKey, mbpsKey := diskRWAttributeKeys()
+
 	out := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -497,17 +499,10 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				//TODO: Remove the attribute below in 4.0
-				"disk_iops_read_write": {
+				iopsKey: {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
-					ConflictsWith: func() []string {
-						if features.ThreePointOhBeta() {
-							return []string{"ultra_ssd_disk_iops_read_write"}
-						}
-						return []string{}
-					}(),
 					Deprecated: func() string {
 						if features.ThreePointOhBeta() {
 							return "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider"
@@ -516,17 +511,10 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					}(),
 				},
 
-				//TODO: Remove the attribute below in 4.0
-				"disk_mbps_read_write": {
+				mbpsKey: {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
-					ConflictsWith: func() []string {
-						if features.ThreePointOhBeta() {
-							return []string{"ultra_ssd_mbps_read_write"}
-						}
-						return []string{}
-					}(),
 					Deprecated: func() string {
 						if features.ThreePointOhBeta() {
 							return "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider"
@@ -538,24 +526,15 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 		},
 	}
 
-	o := out.Elem.(*pluginsdk.Resource).Schema
-	if features.ThreePointOhBeta() {
-		o["ultra_ssd_disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"disk_iops_read_write"},
-		}
+	return out
+}
 
-		o["ultra_ssd_mbps_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"disk_mbps_read_write"},
-		}
+func diskRWAttributeKeys() (string, string) {
+	if !features.ThreePointOhBeta() {
+		return "disk_iops_read_write", "disk_mbps_read_write"
 	}
 
-	return out
+	return "ultra_ssd_disk_iops_read_write", "ultra_ssd_disk_mbps_read_write"
 }
 
 func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
@@ -1200,29 +1179,20 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 			}
 		}
 
-		var iops int
-		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
-			iops = diskIops.(int)
-		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
-			iops = ssdIops.(int)
-		}
+		iopsKey, mbpsKey := diskRWAttributeKeys()
 
-		if iops > 0 {
+		if diskIops, ok := raw[iopsKey]; ok && diskIops.(int) > 0 {
+			iops := diskIops.(int)
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
+				return nil, fmt.Errorf("%s is only available for UltraSSD disks")
 			}
 			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
-		var mbps int
-		if diskIops, ok := raw["disk_mbps_read_write"]; ok && diskIops.(int) > 0 {
-			mbps = diskIops.(int)
-		} else if ssdIops, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdIops.(int) > 0 {
-			mbps = ssdIops.(int)
-		}
-		if mbps > 0 {
+		if diskMbps, ok := raw[mbpsKey]; ok && diskMbps.(int) > 0 {
+			mbps := diskMbps.(int)
 			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
+				return nil, fmt.Errorf("%s is only available for UltraSSD disks", mbpsKey)
 			}
 			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
