@@ -25,12 +25,7 @@ var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Update: func() pluginsdk.UpdateFunc {
-			if !features.ThreePointOhBeta() {
-				return resourceArmLoadBalancerBackendAddressPoolCreateUpdate
-			}
-			return nil
-		}(),
+		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
