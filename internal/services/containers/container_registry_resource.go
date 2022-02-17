@@ -890,7 +890,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
 			ConflictsWith: func() []string {
-				if !features.ThreePointOh() {
+				if !features.ThreePointOhBeta() {
 					return []string{"georeplication_locations"}
 				}
 				return []string{}
