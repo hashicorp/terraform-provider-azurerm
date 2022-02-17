@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -39,89 +40,95 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: resourcePolicyVirtualMachineConfigurationAssignmentSchema(),
+	}
+}
 
-			"location": azure.SchemaLocation(),
+func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"virtual_machine_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
-			},
+		"location": azure.SchemaLocation(),
 
-			"configuration": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						// TODO: Remove in 3.0
-						"name": {
-							Type:       pluginsdk.TypeString,
-							Optional:   true,
-							Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
-						},
+		"virtual_machine_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: computeValidate.VirtualMachineID,
+		},
 
-						"assignment_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(guestconfiguration.AssignmentTypeAudit),
-								string(guestconfiguration.AssignmentTypeDeployAndAutoCorrect),
-								string(guestconfiguration.AssignmentTypeApplyAndAutoCorrect),
-								string(guestconfiguration.AssignmentTypeApplyAndMonitor),
-							}, false),
-						},
+		"configuration": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"assignment_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(guestconfiguration.AssignmentTypeAudit),
+							string(guestconfiguration.AssignmentTypeDeployAndAutoCorrect),
+							string(guestconfiguration.AssignmentTypeApplyAndAutoCorrect),
+							string(guestconfiguration.AssignmentTypeApplyAndMonitor),
+						}, false),
+					},
 
-						"content_hash": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"content_hash": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"content_uri": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
-						},
+					"content_uri": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+					},
 
-						"parameter": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+					"parameter": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
 
-									"value": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
+								"value": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							},
 						},
+					},
 
-						"version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
+					"version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 				},
 			},
 		},
 	}
+	if !features.ThreePointOhBeta() {
+		s := out["configuration"].Elem.(*pluginsdk.Resource)
+		s.Schema["name"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
+		}
+	}
+	return out
 }
 
 func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

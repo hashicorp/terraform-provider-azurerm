@@ -499,7 +499,6 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
-
 				"ultra_ssd_disk_iops_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,

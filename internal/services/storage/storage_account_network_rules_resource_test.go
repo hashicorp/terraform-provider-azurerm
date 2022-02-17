@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,6 +32,9 @@ func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
 }
 
 func TestAccStorageAccountNetworkRules_id(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skipf("Test does not apply on 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
@@ -209,7 +214,6 @@ resource "azurerm_storage_account_network_rules" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-// TODO: Remove in 3.0
 func (r StorageAccountNetworkRulesResource) id(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
