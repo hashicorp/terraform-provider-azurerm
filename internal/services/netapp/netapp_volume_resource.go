@@ -451,7 +451,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Waiting for volume be completely provisioned
-	if err := waitForVolumeCreation(ctx, client, id); err != nil {
+	if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
 		return err
 	}
 
@@ -509,8 +509,8 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("storage_quota_in_gb") {
 		shouldUpdate = true
-		storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-		update.VolumePatchProperties.UsageThreshold = utils.Int64(storageQuotaInGB)
+		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
+		update.VolumePatchProperties.UsageThreshold = utils.Int64(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
@@ -548,8 +548,17 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if shouldUpdate {
-		if _, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
-			return fmt.Errorf("updating Volume size %q: %+v", id.Name, err)
+		future, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+		if err != nil {
+			return fmt.Errorf("updating Volume %q: %+v", id.Name, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		}
+
+		// Wait for volume to complete update
+		if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+			return err
 		}
 	}
 
@@ -692,7 +701,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+func waitForVolumeCreateOrUpdate(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context had no deadline")

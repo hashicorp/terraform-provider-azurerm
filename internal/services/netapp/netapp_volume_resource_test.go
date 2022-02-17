@@ -177,17 +177,6 @@ func TestAccNetAppVolume_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
