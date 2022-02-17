@@ -27,7 +27,7 @@ This guide details how to enable these features and how you can submit feedback 
 
 -> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 2.97 (or later) of the Azure Provider**.
 
--> The final 3.0 release will contain the [deprecations and resource removals outlined in the 3.0 Upgrade Guide](https://www.terraform.io/docs/providers/azurerm/guides/3.0-upgrade-guide.html).
+-> The final 3.0 release will contain the [deprecations and resource removals outlined in the 3.0 Upgrade Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-upgrade-guide).
 
 ## New Data Sources and Resources for App Service
 
