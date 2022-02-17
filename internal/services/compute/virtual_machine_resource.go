@@ -472,6 +472,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_automatic_upgrades": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,

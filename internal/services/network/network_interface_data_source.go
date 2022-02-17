@@ -144,11 +144,13 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_accelerated_networking": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_ip_forwarding": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,

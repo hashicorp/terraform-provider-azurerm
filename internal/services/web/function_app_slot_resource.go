@@ -109,6 +109,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_builtin_logging": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

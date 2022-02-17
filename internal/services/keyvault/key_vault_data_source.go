@@ -116,6 +116,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					Computed: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_rbac_authorization": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,

@@ -87,17 +87,20 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_auto_scaling": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_host_encryption": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_node_public_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

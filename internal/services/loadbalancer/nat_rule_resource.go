@@ -92,12 +92,14 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_floating_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_tcp_reset": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

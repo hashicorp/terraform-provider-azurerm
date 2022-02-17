@@ -147,6 +147,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_auto_stop": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
@@ -161,6 +162,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_disk_encryption": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
@@ -175,6 +177,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_streaming_ingest": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
@@ -189,6 +192,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_purge": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,

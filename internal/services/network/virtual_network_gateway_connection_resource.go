@@ -107,6 +107,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_bgp": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

@@ -59,6 +59,7 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_calling": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

@@ -121,6 +121,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
