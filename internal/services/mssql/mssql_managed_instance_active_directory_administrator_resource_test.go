@@ -16,13 +16,16 @@ import (
 
 type MsSqlManagedInstanceActiveDirectoryAdministratorResource struct{}
 
-func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_update(t *testing.T) {
+func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_active_directory_administrator", "test")
 	r := MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
+		},
+		{
+			Config: r.basic(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -30,13 +33,6 @@ func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_update(t *testing.T
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data, false),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
-			Config: r.basic(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,8 +62,13 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data 
 	return fmt.Sprintf(`
 data "azuread_client_config" "test" {}
 
-data "azuread_service_principal" "test" {
-  object_id = data.azuread_client_config.test.object_id
+resource "azuread_application" "test" {
+  display_name     = "acctest-ManagedInstance-%[1]d"
+  sign_in_audience = "AzureADMyOrg"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
 }
 
 resource "azuread_directory_role" "reader" {
@@ -76,11 +77,16 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = data.azurerm_mssql_managed_instance.test.identity.0.principal_id
 }
 
-%[1]s
-`, MsSqlManagedInstanceResource{}.identity(data))
+data "azurerm_mssql_managed_instance" "test" {
+  name                = "aaa-tbamford-testing"
+  resource_group_name = "aaa-tbamford-sqlmanagedinstance-testing"
+}
+
+%[2]s
+`, data.RandomInteger, MsSqlManagedInstanceResource{}.identity(data))
 }
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) basic(data acceptance.TestData, aadOnly bool) string {
@@ -89,8 +95,8 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) basic(data acc
 
 resource "azurerm_mssql_managed_instance_active_directory_administrator" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  login               = data.azuread_service_principal.test.display_name
-  object_id           = data.azuread_service_principal.test.object_id
+  login_username      = azuread_service_principal.test.display_name
+  object_id           = azuread_service_principal.test.object_id
   tenant_id           = data.azuread_client_config.test.tenant_id
 
   azuread_authentication_only = %[2]t
