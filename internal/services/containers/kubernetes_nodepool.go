@@ -89,6 +89,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(containerservice.KubeletDiskTypeOS),
+							string(containerservice.KubeletDiskTypeTemporary),
 						}, false),
 					},
 
