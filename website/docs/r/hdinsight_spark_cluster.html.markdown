@@ -230,7 +230,7 @@ A `worker_node` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
+* `target_instance_count` - (Required) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
