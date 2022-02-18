@@ -212,11 +212,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  protocol                 = "All"
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  protocol                = "All"
 
   frontend_ip_configuration {
     name = "one-%d"
@@ -299,11 +299,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  protocol                 = "Tcp"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  protocol                = "Tcp"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
     name = "fe1-%d"
@@ -311,11 +311,11 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  protocol                 = "Udp"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  protocol                = "Udp"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
     name = "fe2-%d"
@@ -379,11 +379,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  protocol                 = "All"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  protocol                = "All"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
     name = "fe1-%d"
@@ -391,11 +391,11 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  protocol                 = "All"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  protocol                = "All"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
     name = "fe2-%d"
@@ -445,11 +445,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name      = azurerm_resource_group.test.name
-  loadbalancer_id          = azurerm_lb.test.id
-  name                     = "OutboundRule-%d"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  protocol                 = "All"
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  name                    = "OutboundRule-%d"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  protocol                = "All"
 
   frontend_ip_configuration {
     name = "one-%d"

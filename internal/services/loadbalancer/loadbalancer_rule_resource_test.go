@@ -455,7 +455,6 @@ func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData,
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "acctest-lb-BAP-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 

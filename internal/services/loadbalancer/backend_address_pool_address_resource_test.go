@@ -186,10 +186,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_lb_backend_address_pool_address" "test" {
-  name                     = "address"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  virtual_network_id       = azurerm_virtual_network.test.id
-  ip_address               = "191.168.0.1"
+  name                    = "address"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  virtual_network_id      = azurerm_virtual_network.test.id
+  ip_address              = "191.168.0.1"
 }
 `, template)
 }
@@ -200,10 +200,10 @@ func (t BackendAddressPoolAddressResourceTests) requiresImport(data acceptance.T
 %s
 
 resource "azurerm_lb_backend_address_pool_address" "import" {
-  name                     = azurerm_lb_backend_address_pool_address.test.name
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool_address.test.backend_address_pool_id]
-  virtual_network_id       = azurerm_lb_backend_address_pool_address.test.virtual_network_id
-  ip_address               = azurerm_lb_backend_address_pool_address.test.ip_address
+  name                    = azurerm_lb_backend_address_pool_address.test.name
+  backend_address_pool_id = azurerm_lb_backend_address_pool_address.test.backend_address_pool_id
+  virtual_network_id      = azurerm_lb_backend_address_pool_address.test.virtual_network_id
+  ip_address              = azurerm_lb_backend_address_pool_address.test.ip_address
 }
 `, template)
 }
@@ -218,10 +218,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_lb_backend_address_pool_address" "test" {
-  name                     = "address"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  virtual_network_id       = azurerm_virtual_network.test.id
-  ip_address               = "191.168.0.2"
+  name                    = "address"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  virtual_network_id      = azurerm_virtual_network.test.id
+  ip_address              = "191.168.0.2"
 }
 `, template)
 }

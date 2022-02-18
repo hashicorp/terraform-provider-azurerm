@@ -59,7 +59,6 @@ func (r LoadBalancerRule) basicDataSource(data acceptance.TestData) string {
 
 data "azurerm_lb_rule" "test" {
   name                = azurerm_lb_rule.test.name
-  resource_group_name = azurerm_lb_rule.test.resource_group_name
   loadbalancer_id     = azurerm_lb_rule.test.loadbalancer_id
 }
 `, template)
@@ -109,7 +108,6 @@ resource "azurerm_lb_rule" "test" {
 
 data "azurerm_lb_rule" "test" {
   name                = azurerm_lb_rule.test.name
-  resource_group_name = azurerm_lb_rule.test.resource_group_name
   loadbalancer_id     = azurerm_lb_rule.test.loadbalancer_id
 }
 `, template, data.RandomStringOfLength(8), rg, data.RandomStringOfLength(8), data.RandomStringOfLength(8))
