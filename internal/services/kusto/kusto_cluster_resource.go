@@ -209,6 +209,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 					Default:  true,
 				},
 
+				"double_encryption_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
 				"zones": func() *pluginsdk.Schema {
 					if !features.ThreePointOhBeta() {
 						return azure.SchemaZones()
