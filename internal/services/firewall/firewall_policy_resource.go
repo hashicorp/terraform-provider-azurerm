@@ -941,7 +941,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
 								},
-								"firewall_location": location.SchemaWithoutForceNew(),
+								"firewall_location": commonschema.LocationWithoutForceNew(),
 							},
 						},
 					},
