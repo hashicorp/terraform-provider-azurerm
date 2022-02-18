@@ -9,10 +9,6 @@ func SchemaLocation() *pluginsdk.Schema {
 	return location.Schema()
 }
 
-func SchemaLocationOptional() *pluginsdk.Schema {
-	return location.SchemaOptional()
-}
-
 func SchemaLocationForDataSource() *pluginsdk.Schema {
 	return location.SchemaComputed()
 }

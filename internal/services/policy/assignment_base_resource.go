@@ -315,7 +315,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			Optional: true,
 		},
 
-		"location": azure.SchemaLocationOptional(),
+		"location": commonschema.LocationOptional(),
 
 		"identity": commonschema.SystemAssignedIdentityOptional(),
 
