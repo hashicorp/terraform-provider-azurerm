@@ -13,7 +13,7 @@ func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {
 
 // CaseDifferenceV2Only only suppress case difference for v2.0.
 func CaseDifferenceV2Only(_, old, new string, _ *schema.ResourceData) bool {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		return old == new
 	}
 	return strings.EqualFold(old, new)
