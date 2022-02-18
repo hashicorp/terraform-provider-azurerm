@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -59,7 +60,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"custom_persistent_disks": {
+			"custom_persistent_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -84,7 +85,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 						},
 
 						"mount_options": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -191,7 +192,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Properties: &appplatform.AppResourceProperties{
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{}), id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -239,7 +240,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disks").([]interface{}), *id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -291,8 +292,8 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
-		if err := d.Set("custom_persistent_disks", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
-			return fmt.Errorf("setting `custom_persistent_disks`: %+v", err)
+		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
 		}
 	}
 
@@ -354,7 +355,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 				ShareName:    utils.String(v["share_name"].(string)),
 				MountPath:    utils.String(v["mount_path"].(string)),
 				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
-				MountOptions: utils.ExpandStringSlice(v["mount_options"].([]interface{})),
+				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 				Type:         appplatform.TypeAzureFileVolume,
 			},
 		})
@@ -437,7 +438,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 			"storage_name":      storageName,
 			"mount_path":        mountPath,
 			"share_name":        shareName,
-			"mount_options":     utils.FlattenStringSlice(mountOptions),
+			"mount_options":     set.FromStringSliceNilable(mountOptions),
 			"read_only_enabled": readOnly,
 		})
 	}
