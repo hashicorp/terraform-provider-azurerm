@@ -74,6 +74,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				}, !features.ThreePointOh()),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_bgp": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

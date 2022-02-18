@@ -198,6 +198,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -218,6 +219,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_failover": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -370,6 +372,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_multiple_write_locations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

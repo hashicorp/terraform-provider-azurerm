@@ -153,11 +153,13 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -198,10 +200,12 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 						Type: pluginsdk.TypeString,
 					},
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -1228,6 +1232,7 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_automatic_os_upgrade": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,

@@ -82,6 +82,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_power_bi_service": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

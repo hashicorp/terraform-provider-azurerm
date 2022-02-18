@@ -115,6 +115,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_non_ssl_port": {
 				Type:     pluginsdk.TypeBool,
 				Default:  false,
@@ -215,6 +216,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
+						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_authentication": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,

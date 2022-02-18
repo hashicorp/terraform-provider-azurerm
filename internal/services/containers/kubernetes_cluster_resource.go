@@ -229,6 +229,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

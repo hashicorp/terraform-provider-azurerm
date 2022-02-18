@@ -940,6 +940,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			//lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_http2": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

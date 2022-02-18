@@ -129,12 +129,14 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_accelerated_networking": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_ip_forwarding": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

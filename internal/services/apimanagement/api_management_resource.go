@@ -288,6 +288,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
+						// TODO 4.0: change this from enable_* to *_enabled
 					},
 				},
 			},
@@ -300,34 +301,40 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_backend_ssl30": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_backend_tls10": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_backend_tls11": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
 
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_frontend_ssl30": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
 
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_frontend_tls10": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
 
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_frontend_tls11": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
