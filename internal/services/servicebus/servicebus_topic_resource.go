@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -85,8 +86,8 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.EntityStatusActive),
 					string(servicebus.EntityStatusDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"auto_delete_on_idle": {
@@ -110,16 +111,19 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_batched_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_express": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_partitioning": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

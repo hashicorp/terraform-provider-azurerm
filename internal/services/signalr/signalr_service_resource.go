@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
@@ -47,217 +48,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
-			},
-
-			"location": commonschema.Location(),
-
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"sku": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Free_F1",
-								"Standard_S1",
-							}, false),
-						},
-
-						"capacity": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
-						},
-					},
-				},
-			},
-
-			// TODO: Remove in 3.0
-			"features": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode`",
-				ConflictsWith: []string{
-					"connectivity_logs_enabled", "messaging_logs_enabled", "live_trace_enabled", "service_mode",
-				},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"flag": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(signalr.FeatureFlagsEnableConnectivityLogs),
-								string(signalr.FeatureFlagsEnableMessagingLogs),
-								string(signalr.FeatureFlagsServiceMode),
-								"EnableLiveTrace",
-							}, false),
-						},
-
-						"value": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"connectivity_logs_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true, // TODO remove in 3.0
-				ConflictsWith: []string{
-					"features",
-				},
-			},
-
-			"messaging_logs_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true, // TODO remove in 3.0
-				ConflictsWith: []string{
-					"features",
-				},
-			},
-
-			"live_trace_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true, // TODO remove in 3.0
-				ConflictsWith: []string{
-					"features",
-				},
-			},
-
-			"service_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // TODO remove in 3.0
-				ConflictsWith: []string{
-					"features",
-				},
-				ValidateFunc: validation.StringInSlice([]string{
-					"Serverless",
-					"Classic",
-					"Default",
-				}, false),
-			},
-
-			"upstream_endpoint": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"category_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"event_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"hub_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"url_template": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: signalrValidate.UrlTemplate,
-						},
-					},
-				},
-			},
-
-			"cors": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"allowed_origins": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
-
-			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"server_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"tags": commonschema.Tags(),
-		},
+		Schema: resourceArmSignalRServiceSchema(),
 	}
 }
 
@@ -683,4 +474,231 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 			"name":     input.Name,
 		},
 	}
+}
+
+func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"sku": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Free_F1",
+							"Standard_S1",
+						}, false),
+					},
+
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+					},
+				},
+			},
+		},
+
+		"connectivity_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if features.ThreePointOhBeta() {
+					return nil
+				}
+				return []string{"features"}
+			}(),
+		},
+
+		"messaging_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if features.ThreePointOhBeta() {
+					return nil
+				}
+				return []string{"features"}
+			}(),
+		},
+
+		"live_trace_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if features.ThreePointOhBeta() {
+					return nil
+				}
+				return []string{"features"}
+			}(),
+		},
+
+		"service_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if features.ThreePointOhBeta() {
+					return nil
+				}
+				return []string{"features"}
+			}(),
+			ValidateFunc: validation.StringInSlice([]string{
+				"Serverless",
+				"Classic",
+				"Default",
+			}, false),
+		},
+
+		"upstream_endpoint": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"category_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"event_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"hub_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"url_template": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: signalrValidate.UrlTemplate,
+					},
+				},
+			},
+		},
+
+		"cors": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"allowed_origins": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"public_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"server_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"tags": commonschema.Tags(),
+	}
+	if !features.ThreePointOhBeta() {
+		schema["features"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode`",
+			ConflictsWith: []string{
+				"connectivity_logs_enabled", "messaging_logs_enabled", "live_trace_enabled", "service_mode",
+			},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"flag": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(signalr.FeatureFlagsEnableConnectivityLogs),
+							string(signalr.FeatureFlagsEnableMessagingLogs),
+							string(signalr.FeatureFlagsServiceMode),
+							"EnableLiveTrace",
+						}, false),
+					},
+
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		}
+	}
+	return schema
 }

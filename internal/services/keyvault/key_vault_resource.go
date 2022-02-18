@@ -136,6 +136,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 					Optional: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_rbac_authorization": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -650,7 +651,6 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 
-	// TODO: remove in 3.0
 	if !features.ThreePointOhBeta() {
 		d.Set("soft_delete_enabled", true)
 	}

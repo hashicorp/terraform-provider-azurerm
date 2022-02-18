@@ -22,6 +22,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -48,346 +49,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyName(),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.FirewallPolicySkuTierPremium),
-					string(network.FirewallPolicySkuTierStandard),
-				}, false),
-			},
-
-			"location": location.Schema(),
-
-			"base_policy_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.FirewallPolicyID,
-			},
-
-			"dns": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"servers": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.IsIPv4Address,
-							},
-						},
-						"proxy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						// TODO 3.0 - remove this property
-						"network_rule_fqdn_enabled": {
-							Type:       pluginsdk.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
-						},
-					},
-				},
-			},
-
-			"threat_intelligence_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.AzureFirewallThreatIntelModeAlert),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallThreatIntelModeAlert),
-					string(network.AzureFirewallThreatIntelModeDeny),
-					string(network.AzureFirewallThreatIntelModeOff),
-				}, false),
-			},
-
-			"threat_intelligence_allowlist": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"ip_addresses": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
-							},
-							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
-						},
-						"fqdns": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
-						},
-					},
-				},
-			},
-
-			"intrusion_detection": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"mode": {
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
-								string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
-								string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
-							}, false),
-							Optional: true,
-						},
-						"signature_overrides": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"state": {
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
-											string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
-											string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
-										}, false),
-										Optional: true,
-									},
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"traffic_bypass": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-									"description": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"protocol": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.FirewallPolicyIntrusionDetectionProtocolICMP),
-											string(network.FirewallPolicyIntrusionDetectionProtocolANY),
-											string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
-											string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-										}, true),
-									},
-									"source_addresses": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"destination_addresses": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"destination_ports": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"source_ip_groups": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"destination_ip_groups": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"identity": func() *schema.Schema {
-				// TODO: document that Principal ID and Tenant ID will be going away and user_assigned_identity_ids -> identity_ids
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(network.ResourceIdentityTypeNone),
-										string(network.ResourceIdentityTypeUserAssigned),
-									}, false),
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_assigned_identity_ids": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: msiValidate.UserAssignedIdentityID,
-									},
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.UserAssignedIdentityOptional()
-			}(),
-
-			"tls_certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_secret_id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"insights": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-						"default_log_analytics_workspace_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
-						},
-						"retention_in_days": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-						"log_analytics_workspace": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
-									},
-									"firewall_location": location.SchemaWithoutForceNew(),
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"child_policies": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"firewalls": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"rule_collection_groups": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"private_ip_ranges": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.Any(
-						validation.IsCIDR,
-						validation.IsIPv4Address,
-					),
-				},
-			},
-
-			"tags": tags.SchemaEnforceLowerCaseKeys(),
-		},
+		Schema: resourceFirewallPolicySchema(),
 	}
 }
 
@@ -772,14 +434,14 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		proxyEnabled = *input.EnableProxy
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"servers":       utils.FlattenStringSlice(input.Servers),
-			"proxy_enabled": proxyEnabled,
-			// TODO 3.0: remove the setting zero value for property below.
-			"network_rule_fqdn_enabled": false,
-		},
+	out := map[string]interface{}{
+		"servers":       utils.FlattenStringSlice(input.Servers),
+		"proxy_enabled": proxyEnabled,
 	}
+	if !features.ThreePointOhBeta() {
+		out["network_rule_fqdn_enabled"] = false
+	}
+	return []interface{}{out}
 }
 
 func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrusionDetection) []interface{} {
@@ -990,4 +652,352 @@ func flattenFirewallPolicyLogAnalyticsResources(input *network.FirewallPolicyLog
 	}
 
 	return defaultLogAnalyticsWorkspaceId, workspaceList
+}
+
+func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FirewallPolicyName(),
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.FirewallPolicySkuTierPremium),
+				string(network.FirewallPolicySkuTierStandard),
+			}, false),
+		},
+
+		"location": location.Schema(),
+
+		"base_policy_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.FirewallPolicyID,
+		},
+
+		"dns": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"servers": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsIPv4Address,
+						},
+					},
+					"proxy_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"threat_intelligence_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(network.AzureFirewallThreatIntelModeAlert),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AzureFirewallThreatIntelModeAlert),
+				string(network.AzureFirewallThreatIntelModeDeny),
+				string(network.AzureFirewallThreatIntelModeOff),
+			}, false),
+		},
+
+		"threat_intelligence_allowlist": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"ip_addresses": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
+						},
+						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
+					},
+					"fqdns": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
+					},
+				},
+			},
+		},
+
+		"intrusion_detection": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"mode": {
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
+							string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
+							string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
+						}, false),
+						Optional: true,
+					},
+					"signature_overrides": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"state": {
+									Type: pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
+										string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
+										string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
+									}, false),
+									Optional: true,
+								},
+								"id": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
+					},
+					"traffic_bypass": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"description": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+								"protocol": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.FirewallPolicyIntrusionDetectionProtocolICMP),
+										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
+										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
+										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
+									}, !features.ThreePointOh()),
+									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+								},
+								"source_addresses": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"destination_addresses": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"destination_ports": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"source_ip_groups": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"destination_ip_groups": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"identity": func() *schema.Schema {
+			// TODO: document that Principal ID and Tenant ID will be going away and user_assigned_identity_ids -> identity_ids
+			if !features.ThreePointOhBeta() {
+				return &schema.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"type": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.ResourceIdentityTypeNone),
+									string(network.ResourceIdentityTypeUserAssigned),
+								}, false),
+							},
+							"principal_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+							"tenant_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+							"user_assigned_identity_ids": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								MinItems: 1,
+								Elem: &pluginsdk.Schema{
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: msiValidate.UserAssignedIdentityID,
+								},
+							},
+						},
+					},
+				}
+			}
+
+			return commonschema.UserAssignedIdentityOptional()
+		}(),
+		"tls_certificate": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_secret_id": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"insights": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"default_log_analytics_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+					},
+					"retention_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"log_analytics_workspace": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+								},
+								"firewall_location": location.SchemaWithoutForceNew(),
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"child_policies": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"firewalls": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"rule_collection_groups": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"private_ip_ranges": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.Any(
+					validation.IsCIDR,
+					validation.IsIPv4Address,
+				),
+			},
+		},
+
+		"tags": tags.SchemaEnforceLowerCaseKeys(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		s := schema["dns"].Elem.(*pluginsdk.Resource)
+		s.Schema["network_rule_fqdn_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
+		}
+	}
+
+	return schema
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachine_diskOSBasic(t *testing.T) {
@@ -439,6 +440,10 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 func (LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
+	var softDelete string
+	if !features.ThreePointOhBeta() {
+		softDelete = "soft_delete_enabled        = true"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -463,12 +468,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctestkv%s"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  soft_delete_enabled         = true
+  name                = "acctestkv%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+  %s
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 
@@ -537,7 +542,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {

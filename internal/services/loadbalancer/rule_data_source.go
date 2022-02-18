@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,77 +23,7 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.RuleName,
-			},
-
-			// TODO: deprecate and remove for 3.0
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"loadbalancer_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.LoadBalancerID,
-			},
-
-			"frontend_ip_configuration_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"frontend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"backend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"backend_address_pool_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"probe_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"enable_floating_ip": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"enable_tcp_reset": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"disable_outbound_snat": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"load_distribution": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: dataSourceArmLoadBalancerSchema(),
 	}
 }
 
@@ -102,7 +33,6 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
@@ -123,6 +53,10 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := parse.NewLoadBalancingRuleID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
+	resourceGroup := id.ResourceGroup
+	if !features.ThreePointOhBeta() {
+		resourceGroup = d.Get("resource_group_name").(string)
+	}
 	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -178,4 +112,83 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.RuleName,
+		},
+
+		"loadbalancer_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LoadBalancerID,
+		},
+
+		"frontend_ip_configuration_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"protocol": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"frontend_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"backend_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"backend_address_pool_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"probe_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_floating_ip": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_tcp_reset": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"disable_outbound_snat": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"idle_timeout_in_minutes": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"load_distribution": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["resource_group_name"] = azure.SchemaResourceGroupNameForDataSource()
+	}
+
+	return out
 }

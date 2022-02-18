@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -359,14 +360,18 @@ resource "azurerm_lb_rule" "import" {
 
 // https://github.com/hashicorp/terraform/issues/9424
 func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
+	var rg string
+	if !features.ThreePointOhBeta() {
+		rg = "resource_group_name = azurerm_resource_group.test.name"
+	}
 	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "%d-address-pool"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name = "%d-address-pool"
+  %s
+  loadbalancer_id = "${azurerm_lb.test.id}"
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -386,7 +391,7 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, rg, data.RandomInteger, data.RandomStringOfLength(8))
 }
 
 func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
@@ -449,9 +454,8 @@ func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData,
 %[1]s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctest-lb-BAP-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctest-lb-BAP-%[2]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -520,7 +524,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 `, template, lbRuleName)
@@ -537,7 +541,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
   disable_outbound_snat          = false
 }

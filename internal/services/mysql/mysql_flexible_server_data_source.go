@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -145,10 +146,7 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			"zone": commonschema.ZoneSingleComputed(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,

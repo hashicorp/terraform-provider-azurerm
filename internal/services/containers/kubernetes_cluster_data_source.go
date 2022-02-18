@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,9 +36,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"addon_profile": {
 				Type:     pluginsdk.TypeList,
@@ -233,103 +234,113 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"max_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"min_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"enable_auto_scaling": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"availability_zones": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+					Schema: func() map[string]*pluginsdk.Schema {
+						s := map[string]*pluginsdk.Schema{
+							"name": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
 
-						"vm_size": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tags": tags.SchemaDataSource(),
-
-						"os_disk_size_gb": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"vnet_subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"orchestrator_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"max_pods": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"node_labels": {
-							Type:     pluginsdk.TypeMap,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+							"type": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
 
-						"node_taints": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						},
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"enable_node_public_ip": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
+							"max_count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"node_public_ip_prefix_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+							"min_count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"upgrade_settings": upgradeSettingsForDataSourceSchema(),
-					},
+							// TODO 4.0: change this from enable_* to *_enabled
+							"enable_auto_scaling": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"vm_size": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"tags": commonschema.TagsDataSource(),
+
+							"os_disk_size_gb": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"vnet_subnet_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"os_type": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"orchestrator_version": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"max_pods": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"node_labels": {
+								Type:     pluginsdk.TypeMap,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"node_taints": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							},
+
+							// TODO 4.0: change this from enable_* to *_enabled
+							"enable_node_public_ip": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"node_public_ip_prefix_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"upgrade_settings": upgradeSettingsForDataSourceSchema(),
+
+							"zones": commonschema.ZonesMultipleComputed(),
+						}
+
+						if !features.ThreePointOhBeta() {
+							s["availability_zones"] = &schema.Schema{
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							}
+						}
+
+						return s
+					}(),
 				},
 			},
 
@@ -658,7 +669,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -1156,8 +1167,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			vmSize = *profile.VMSize
 		}
 
-		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
-			"availability_zones":       utils.FlattenStringSlice(profile.AvailabilityZones),
+		out := map[string]interface{}{
 			"count":                    count,
 			"enable_auto_scaling":      enableAutoScaling,
 			"enable_node_public_ip":    enableNodePublicIP,
@@ -1176,7 +1186,12 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"upgrade_settings":         flattenUpgradeSettings(profile.UpgradeSettings),
 			"vm_size":                  vmSize,
 			"vnet_subnet_id":           vnetSubnetId,
-		})
+			"zones":                    zones.Flatten(profile.AvailabilityZones),
+		}
+		if !features.ThreePointOhBeta() {
+			out["availability_zones"] = utils.FlattenStringSlice(profile.AvailabilityZones)
+		}
+		agentPoolProfiles = append(agentPoolProfiles, out)
 	}
 
 	return agentPoolProfiles

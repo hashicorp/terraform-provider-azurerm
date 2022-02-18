@@ -101,9 +101,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
-			// Optional
-			"addon_profile": schemaKubernetesAddOnProfiles(),
-
 			"api_server_authorized_ip_ranges": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -232,6 +229,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -283,27 +281,57 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.object_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.user_assigned_identity_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							RequiredWith: []string{
+								"kubelet_identity.0.client_id",
+								"kubelet_identity.0.object_id",
+								func() string {
+									if !features.ThreePointOhBeta() {
+										return "identity.0.user_assigned_identity_id"
+									}
+
+									return "identity.0.identity_ids"
+								}(),
+							},
 							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
@@ -497,8 +525,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"outbound_type": {
@@ -972,6 +1000,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	// TODO: post-3.0 we should inline these?
+	for k, v := range schemaKubernetesAddOns() {
+		resource.Schema[k] = v
+	}
+
 	if features.KubeConfigsAreSensitive() {
 		resource.Schema["kube_config"] = &pluginsdk.Schema{
 			Type:      pluginsdk.TypeList,
@@ -1096,10 +1130,22 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
-	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-	addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
+	addOns := collectKubernetesAddons(d)
+	addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
 	if err != nil {
 		return err
+	}
+
+	if !features.ThreePointOhBeta() {
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("addon_profile"); ok {
+			addonProfilesRaw := v.([]interface{})
+			addonProfiles, err = expandKubernetesAddOnProfiles(addonProfilesRaw, env)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
@@ -1379,15 +1425,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("addon_profile") {
+	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
 		updateCluster = true
-		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+		addOns := collectKubernetesAddons(d)
+		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
 		if err != nil {
 			return err
 		}
-
 		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
+	}
+
+	if !features.ThreePointOhBeta() {
+		if d.HasChange("addon_profile") {
+			updateCluster = true
+			addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+			addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+			if err != nil {
+				return err
+			}
+			existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
+		}
 	}
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
@@ -1577,11 +1634,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		skuTier := "Free"
+		skuTier := containerservice.ManagedClusterSKUTierFree
 		if v := d.Get("sku_tier").(string); v != "" {
-			skuTier = v
+			skuTier = containerservice.ManagedClusterSKUTier(v)
 		}
-		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(skuTier)
+		existing.Sku.Tier = skuTier
 	}
 
 	if d.HasChange("automatic_channel_upgrade") {
@@ -1766,9 +1823,21 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
-		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("setting `addon_profile`: %+v", err)
+		addOns := flattenKubernetesAddOns(props.AddonProfiles)
+		d.Set("aci_connector_linux", addOns["aci_connector_linux"])
+		d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+		d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
+		d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
+		d.Set("oms_agent", addOns["oms_agent"])
+		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
+		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
+		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
+
+		if !features.ThreePointOhBeta() {
+			addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
+			if err := d.Set("addon_profile", addonProfiles); err != nil {
+				return fmt.Errorf("setting `addon_profile`: %+v", err)
+			}
 		}
 
 		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)

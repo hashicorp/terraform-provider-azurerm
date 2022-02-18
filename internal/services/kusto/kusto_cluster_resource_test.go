@@ -32,6 +32,21 @@ func TestAccKustoCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
@@ -41,9 +56,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("false"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -51,9 +66,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("true"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -61,9 +76,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("false"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -405,7 +420,30 @@ resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
 
+func (KustoClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                          = "acctestkc%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  public_network_access_enabled = false
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
@@ -587,13 +625,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                    = "acctestkc%s"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_auto_stop        = true
-  enable_disk_encryption  = true
-  enable_streaming_ingest = true
-  enable_purge            = true
+  name                        = "acctestkc%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  auto_stop_enabled           = true
+  disk_encryption_enabled     = true
+  streaming_ingestion_enabled = true
+  purge_enabled               = true
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -290,143 +291,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"command_line": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// TODO: Remove in 3.0
-						"max_task_retry_count": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							// Need to default this in the expand function for this block for the deprecation
-							Deprecated: "Deprecated in favour of `task_retry_maximum`",
-							ConflictsWith: []string{
-								"start_task.0.task_retry_maximum",
-							},
-						},
-
-						"task_retry_maximum": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							ConflictsWith: []string{
-								"start_task.0.max_task_retry_count",
-							},
-						},
-
-						"wait_for_success": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						// TODO: Remove in 3.0
-						"environment": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Deprecated: "Deprecated in favour of `common_environment_properties`",
-							ConflictsWith: []string{
-								"start_task.0.common_environment_properties",
-							},
-						},
-
-						"common_environment_properties": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							ConflictsWith: []string{
-								"start_task.0.environment",
-							},
-						},
-
-						"user_identity": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"user_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
-									},
-									"auto_user": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"elevation_level": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  string(batch.ElevationLevelNonAdmin),
-													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.ElevationLevelNonAdmin),
-														string(batch.ElevationLevelAdmin),
-													}, false),
-												},
-												"scope": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  string(batch.AutoUserScopeTask),
-													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.AutoUserScopeTask),
-														string(batch.AutoUserScopePool),
-													}, false),
-												},
-											},
-										},
-										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
-									},
-								},
-							},
-						},
-
-						//lintignore:XS003
-						"resource_file": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"auto_storage_container_name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"blob_prefix": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"file_mode": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"file_path": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"http_url": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"storage_container_url": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
+					Schema: startTaskSchema(),
 				},
 			},
 			"metadata": {
@@ -542,12 +407,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 
-		// TODO: Remove in 3.0
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
-				_, newMax := d.GetChange("start_task.0.task_retry_maximum")
-				d.SetNew("start_task.0.max_task_retry_count", newMax)
-				d.SetNew("start_task.0.task_retry_maximum", newMax)
+			if !features.ThreePointOhBeta() {
+				if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
+					_, newMax := d.GetChange("start_task.0.task_retry_maximum")
+					d.SetNew("start_task.0.max_task_retry_count", newMax)
+					d.SetNew("start_task.0.task_retry_maximum", newMax)
+				}
 			}
 
 			return nil
@@ -1050,4 +916,151 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 	}
 
 	return identity.FlattenUserAssignedMap(transform)
+}
+
+func startTaskSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"command_line": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"task_retry_maximum": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"start_task.0.max_task_retry_count"}
+				}
+				return nil
+			}(),
+		},
+
+		"wait_for_success": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"common_environment_properties": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"start_task.0.environment"}
+				}
+				return nil
+			}(),
+		},
+
+		"user_identity": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"user_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
+					},
+					"auto_user": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"elevation_level": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(batch.ElevationLevelNonAdmin),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(batch.ElevationLevelNonAdmin),
+										string(batch.ElevationLevelAdmin),
+									}, false),
+								},
+								"scope": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(batch.AutoUserScopeTask),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(batch.AutoUserScopeTask),
+										string(batch.AutoUserScopePool),
+									}, false),
+								},
+							},
+						},
+						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
+					},
+				},
+			},
+		},
+		//lintignore:XS003
+		"resource_file": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"auto_storage_container_name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"blob_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"file_mode": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"file_path": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"http_url": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"storage_container_url": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["max_task_retry_count"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			// Need to default this in the expand function for this block for the deprecation
+			Deprecated: "Deprecated in favour of `task_retry_maximum`",
+			ConflictsWith: []string{
+				"start_task.0.task_retry_maximum",
+			},
+		}
+
+		out["environment"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Deprecated: "Deprecated in favour of `common_environment_properties`",
+			ConflictsWith: []string{
+				"start_task.0.common_environment_properties",
+			},
+		}
+	}
+	return out
+
 }

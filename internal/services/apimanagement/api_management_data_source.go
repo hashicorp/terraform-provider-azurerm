@@ -7,6 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -28,9 +30,9 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"public_ip_addresses": {
 				Type:     pluginsdk.TypeList,
@@ -114,10 +116,10 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 
 						"capacity": {
 							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Computed: true,
 						},
 
-						"zones": azure.SchemaZones(),
+						"zones": commonschema.ZonesMultipleComputed(),
 
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
@@ -331,37 +333,40 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
-		if prop.Location != nil {
-			output["location"] = azure.NormalizeLocation(*prop.Location)
-		}
-
+		var capacity *int32
 		if prop.Sku.Capacity != nil {
-			output["capacity"] = *prop.Sku.Capacity
+			capacity = prop.Sku.Capacity
 		}
 
-		if prop.Zones != nil {
-			output["zones"] = azure.FlattenZones(prop.Zones)
-		}
-
+		var publicIpAddresses []string
 		if prop.PublicIPAddresses != nil {
-			output["public_ip_addresses"] = *prop.PublicIPAddresses
+			publicIpAddresses = *prop.PublicIPAddresses
 		}
 
+		publicIpAddressId := ""
 		if prop.PublicIPAddressID != nil {
-			output["public_ip_address_id"] = *prop.PublicIPAddressID
+			publicIpAddressId = *prop.PublicIPAddressID
 		}
 
+		var privateIpAddresses []string
 		if prop.PrivateIPAddresses != nil {
-			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+			privateIpAddresses = *prop.PrivateIPAddresses
 		}
 
+		gatewayRegionalUrl := ""
 		if prop.GatewayRegionalURL != nil {
-			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"capacity":             capacity,
+			"gateway_regional_url": gatewayRegionalUrl,
+			"location":             location.NormalizeNilable(prop.Location),
+			"private_ip_addresses": privateIpAddresses,
+			"public_ip_address_id": publicIpAddressId,
+			"public_ip_addresses":  publicIpAddresses,
+			"zones":                zones.Flatten(prop.Zones),
+		})
 	}
 
 	return results

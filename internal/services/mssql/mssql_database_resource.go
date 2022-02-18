@@ -52,262 +52,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			0: migration.DatabaseV0ToV1{},
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ValidateMsSqlDatabaseName,
-			},
-
-			"server_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
-			},
-
-			"auto_pause_delay_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.DatabaseAutoPauseDelay,
-			},
-
-			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(sql.CreateModeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.CreateModeCopy),
-					string(sql.CreateModeDefault),
-					string(sql.CreateModeOnlineSecondary),
-					string(sql.CreateModePointInTimeRestore),
-					string(sql.CreateModeRestore),
-					string(sql.CreateModeRecovery),
-					string(sql.CreateModeRestoreExternalBackup),
-					string(sql.CreateModeRestoreExternalBackupSecondary),
-					string(sql.CreateModeRestoreLongTermRetentionBackup),
-					string(sql.CreateModeSecondary),
-				}, false),
-			},
-
-			"collation": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation(),
-			},
-
-			"elastic_pool_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ElasticPoolID,
-			},
-
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
-			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.DatabaseLicenseTypeBasePrice),
-					string(sql.DatabaseLicenseTypeLicenseIncluded),
-				}, false),
-			},
-
-			"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
-
-			"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
-
-			"max_size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 4096),
-			},
-
-			"min_capacity": {
-				Type:         pluginsdk.TypeFloat,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
-			},
-
-			"restore_point_in_time": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validation.IsRFC3339Time,
-			},
-
-			"recover_database_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.RecoverableDatabaseID,
-			},
-
-			"restore_dropped_database_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.RestorableDatabaseID,
-			},
-
-			"read_replica_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 4),
-			},
-
-			"read_scale": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"sample_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.SampleNameAdventureWorksLT),
-				}, false),
-			},
-
-			"sku_name": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validate.DatabaseSkuName(),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"creation_source_database_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Computed:     true,
-				ValidateFunc: validate.DatabaseID,
-			},
-
-			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  "GRS", // TODO - 3.0: change to sql.CurrentBackupStorageRedundancy enums
-				ValidateFunc: validation.StringInSlice([]string{
-					"GRS",
-					"LRS",
-					"ZRS",
-				}, false),
-			},
-
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"threat_detection_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"disabled_alerts": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Set:      pluginsdk.HashString,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Sql_Injection",
-									"Sql_Injection_Vulnerability",
-									"Access_Anomaly",
-								}, true),
-							},
-						},
-
-						"email_account_admins": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          "Disabled",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Disabled",
-								"Enabled",
-							}, true),
-						},
-
-						"email_addresses": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Set: pluginsdk.HashString,
-						},
-
-						"retention_days": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-
-						"state": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyStateDisabled),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyStateDisabled),
-								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew),
-							}, true),
-						},
-
-						"storage_account_access_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"storage_endpoint": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// TODO - 3.0: Remove this property
-						"use_server_default": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          "Disabled",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Disabled",
-								"Enabled",
-							}, true),
-							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-						},
-					},
-				},
-			},
-
-			"geo_backup_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-			"tags": tags.Schema(),
-		},
+		Schema: resourceMsSqlDatabaseSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
@@ -864,7 +609,9 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
-	securityAlertPolicy["use_server_default"] = "Disabled"
+	if !features.ThreePointOhBeta() {
+		securityAlertPolicy["use_server_default"] = "Disabled"
+	}
 
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
@@ -955,26 +702,308 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	return policy
 }
 
-// TODO - 3.0: change output to API enums
 func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.CurrentBackupStorageRedundancy) string {
-	switch currentBackupStorageRedundancy {
-	case sql.CurrentBackupStorageRedundancyLocal:
-		return "LRS"
-	case sql.CurrentBackupStorageRedundancyZone:
-		return "ZRS"
-	default:
-		return "GRS"
+	if !features.ThreePointOhBeta() {
+		switch currentBackupStorageRedundancy {
+		case sql.CurrentBackupStorageRedundancyLocal:
+			return "LRS"
+		case sql.CurrentBackupStorageRedundancyZone:
+			return "ZRS"
+		default:
+			return "GRS"
+		}
 	}
+	return string(currentBackupStorageRedundancy)
 }
 
-// TODO - 3.0: change input to sql.RequestedBackupStorageRedundancy enums
 func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
-	switch storageAccountType {
-	case "LRS":
-		return sql.RequestedBackupStorageRedundancyLocal
-	case "ZRS":
-		return sql.RequestedBackupStorageRedundancyZone
-	default:
-		return sql.RequestedBackupStorageRedundancyGeo
+	if !features.ThreePointOhBeta() {
+		switch storageAccountType {
+		case "LRS":
+			return sql.RequestedBackupStorageRedundancyLocal
+		case "ZRS":
+			return sql.RequestedBackupStorageRedundancyZone
+		default:
+			return sql.RequestedBackupStorageRedundancyGeo
+		}
 	}
+	return sql.RequestedBackupStorageRedundancy(storageAccountType)
+}
+
+func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ValidateMsSqlDatabaseName,
+		},
+
+		"server_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ServerID,
+		},
+
+		"auto_pause_delay_in_minutes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseAutoPauseDelay,
+		},
+
+		"create_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(sql.CreateModeDefault),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.CreateModeCopy),
+				string(sql.CreateModeDefault),
+				string(sql.CreateModeOnlineSecondary),
+				string(sql.CreateModePointInTimeRestore),
+				string(sql.CreateModeRestore),
+				string(sql.CreateModeRecovery),
+				string(sql.CreateModeRestoreExternalBackup),
+				string(sql.CreateModeRestoreExternalBackupSecondary),
+				string(sql.CreateModeRestoreLongTermRetentionBackup),
+				string(sql.CreateModeSecondary),
+			}, false),
+		},
+
+		"collation": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseCollation(),
+		},
+
+		"elastic_pool_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.ElasticPoolID,
+		},
+
+		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+
+		"license_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.DatabaseLicenseTypeBasePrice),
+				string(sql.DatabaseLicenseTypeLicenseIncluded),
+			}, false),
+		},
+
+		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+
+		"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+
+		"max_size_gb": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 4096),
+		},
+
+		"min_capacity": {
+			Type:         pluginsdk.TypeFloat,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
+		},
+
+		"restore_point_in_time": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			DiffSuppressFunc: suppress.RFC3339Time,
+			ValidateFunc:     validation.IsRFC3339Time,
+		},
+
+		"recover_database_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.RecoverableDatabaseID,
+		},
+
+		"restore_dropped_database_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.RestorableDatabaseID,
+		},
+
+		"read_replica_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(0, 4),
+		},
+
+		"read_scale": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"sample_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.SampleNameAdventureWorksLT),
+			}, false),
+		},
+
+		"sku_name": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validate.DatabaseSkuName(),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+		},
+
+		"creation_source_database_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseID,
+		},
+
+		"storage_account_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default: func() string {
+				if !features.ThreePointOhBeta() {
+					return "GRS"
+				}
+				return string(sql.CurrentBackupStorageRedundancyGeo)
+			}(),
+			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+				if !features.ThreePointOhBeta() {
+					return validation.StringInSlice([]string{
+						"GRS",
+						"LRS",
+						"ZRS",
+					}, false)
+				}
+				return validation.StringInSlice([]string{
+					string(sql.CurrentBackupStorageRedundancyGeo),
+					string(sql.CurrentBackupStorageRedundancyLocal),
+					string(sql.CurrentBackupStorageRedundancyZone),
+				}, false)
+			}(),
+		},
+
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"threat_detection_policy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disabled_alerts": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Set:      pluginsdk.HashString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Sql_Injection",
+								"Sql_Injection_Vulnerability",
+								"Access_Anomaly",
+							}, !features.ThreePointOh()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						},
+					},
+
+					"email_account_admins": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Default:          "Disabled",
+						ValidateFunc: validation.StringInSlice([]string{
+							"Disabled",
+							"Enabled",
+						}, !features.ThreePointOh()),
+					},
+
+					"email_addresses": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"retention_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"state": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Default:          string(sql.SecurityAlertPolicyStateDisabled),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(sql.SecurityAlertPolicyStateDisabled),
+							string(sql.SecurityAlertPolicyStateEnabled),
+							string(sql.SecurityAlertPolicyStateNew),
+						}, !features.ThreePointOh()),
+					},
+
+					"storage_account_access_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"storage_endpoint": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"geo_backup_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		s := out["threat_detection_policy"].Elem.(*schema.Resource)
+		s.Schema["use_server_default"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			Default:          "Disabled",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Disabled",
+				"Enabled",
+			}, true),
+			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
+		}
+	}
+
+	return out
 }

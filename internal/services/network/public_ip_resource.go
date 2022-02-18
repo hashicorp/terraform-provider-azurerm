@@ -7,10 +7,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -40,143 +44,149 @@ func resourcePublicIp() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPAllocationMethodStatic),
-					string(network.IPAllocationMethodDynamic),
-				}, false),
-			},
-
-			"availability_zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// Default:  "Zone-Redundant",
-				Computed: true,
-				ForceNew: true,
-				ConflictsWith: []string{
-					"zones",
-				},
-				ValidateFunc: validation.StringInSlice([]string{
-					"No-Zone",
-					"1",
-					"2",
-					"3",
-					"Zone-Redundant",
-				}, false),
-			},
-
-			"ip_version": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(network.IPVersionIPv4),
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPVersionIPv4),
-					string(network.IPVersionIPv6),
-				}, true),
-			},
-
-			"sku": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(network.PublicIPAddressSkuNameBasic),
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPAddressSkuNameBasic),
-					string(network.PublicIPAddressSkuNameStandard),
-				}, true),
-			},
-
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.PublicIPAddressSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPAddressSkuTierGlobal),
-					string(network.PublicIPAddressSkuTierRegional),
-				}, false),
-			},
-
-			"idle_timeout_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      4,
-				ValidateFunc: validation.IntBetween(4, 30),
-			},
-
-			"domain_name_label": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.PublicIpDomainNameLabel,
-			},
-
-			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"reverse_fqdn": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_ip_prefix_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"ip_tags": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				ForceNew: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			// TODO - 3.0 make Computed only
-			"zones": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ConflictsWith: []string{
-					"availability_zone",
-				},
-				Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
-				MaxItems:   1,
-				Elem: &pluginsdk.Schema{
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
+				"name": {
 					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-			},
 
-			"tags": tags.Schema(),
-		},
+				"location": azure.SchemaLocation(),
+
+				"resource_group_name": azure.SchemaResourceGroupName(),
+
+				"allocation_method": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.IPAllocationMethodStatic),
+						string(network.IPAllocationMethodDynamic),
+					}, false),
+				},
+
+				"ip_version": {
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					Default:          string(network.IPVersionIPv4),
+					ForceNew:         true,
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.IPVersionIPv4),
+						string(network.IPVersionIPv6),
+					}, !features.ThreePointOh()),
+				},
+
+				"sku": {
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					ForceNew:         true,
+					Default:          string(network.PublicIPAddressSkuNameBasic),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.PublicIPAddressSkuNameBasic),
+						string(network.PublicIPAddressSkuNameStandard),
+					}, !features.ThreePointOh()),
+				},
+
+				"sku_tier": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(network.PublicIPAddressSkuTierRegional),
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.PublicIPAddressSkuTierGlobal),
+						string(network.PublicIPAddressSkuTierRegional),
+					}, false),
+				},
+
+				"idle_timeout_in_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      4,
+					ValidateFunc: validation.IntBetween(4, 30),
+				},
+
+				"domain_name_label": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.PublicIpDomainNameLabel,
+				},
+
+				"fqdn": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"reverse_fqdn": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"ip_address": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"public_ip_prefix_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
+				"ip_tags": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"tags": tags.Schema(),
+			}
+
+			if features.ThreePointOhBeta() {
+				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
+			} else {
+				s["availability_zone"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Default:  "Zone-Redundant",
+					Computed: true,
+					ForceNew: true,
+					ConflictsWith: []string{
+						"zones",
+					},
+					ValidateFunc: validation.StringInSlice([]string{
+						"No-Zone",
+						"1",
+						"2",
+						"3",
+						"Zone-Redundant",
+					}, false),
+				}
+				s["zones"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Computed: true,
+					ForceNew: true,
+					ConflictsWith: []string{
+						"availability_zone",
+					},
+					Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+					MaxItems:   1,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				}
+			}
+
+			return s
+		}(),
 	}
 }
 
@@ -206,47 +216,6 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	sku := d.Get("sku").(string)
 	sku_tier := d.Get("sku_tier").(string)
 	t := d.Get("tags").(map[string]interface{})
-	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
-	zones := &[]string{"1", "2"}
-	zonesSet := false
-	// TODO - Remove in 3.0
-	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
-		zonesSet = true
-		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
-		if deprecatedZones != nil {
-			zones = deprecatedZones
-		}
-	}
-
-	if availabilityZones, ok := d.GetOk("availability_zone"); ok {
-		zonesSet = true
-		switch availabilityZones.(string) {
-		case "1", "2", "3":
-			zones = &[]string{availabilityZones.(string)}
-		case "Zone-Redundant":
-			zones = &[]string{"1", "2"}
-		case "No-Zone":
-			zones = &[]string{}
-		}
-	}
-
-	if strings.EqualFold(sku, "Basic") {
-		if zonesSet && len(*zones) > 0 {
-			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
-		}
-		zones = &[]string{}
-
-		if strings.EqualFold(sku_tier, "Global") {
-			return fmt.Errorf("Global` SKU tier is not available on the `Basic` SKU")
-		}
-	}
-
-	if strings.EqualFold(sku_tier, "Global") {
-		if zonesSet && len(*zones) > 0 {
-			return fmt.Errorf("Availability Zones are not available on the `Global` SKU tier")
-		}
-		zones = &[]string{}
-	}
 
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
@@ -270,8 +239,56 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
 		},
-		Tags:  tags.Expand(t),
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			publicIp.Zones = &zones
+		}
+	} else {
+		zones := &[]string{"1", "2"}
+		zonesSet := false
+		// TODO - Remove in 3.0
+		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
+			zonesSet = true
+			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+			if deprecatedZones != nil {
+				zones = deprecatedZones
+			}
+		}
+
+		if availabilityZones, ok := d.GetOk("availability_zone"); ok {
+			zonesSet = true
+			switch availabilityZones.(string) {
+			case "1", "2", "3":
+				zones = &[]string{availabilityZones.(string)}
+			case "Zone-Redundant":
+				zones = &[]string{"1", "2"}
+			case "No-Zone":
+				zones = &[]string{}
+			}
+		}
+
+		if strings.EqualFold(sku, "Basic") {
+			if zonesSet && len(*zones) > 0 {
+				return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+			}
+			zones = &[]string{}
+
+			if strings.EqualFold(sku_tier, "Global") {
+				return fmt.Errorf("Global` SKU tier is not available on the `Basic` SKU")
+			}
+		}
+
+		if strings.EqualFold(sku_tier, "Global") {
+			if zonesSet && len(*zones) > 0 {
+				return fmt.Errorf("Availability Zones are not available on the `Global` SKU tier")
+			}
+			zones = &[]string{}
+		}
+		publicIp.Zones = zones
 	}
 
 	publicIpPrefixId, publicIpPrefixIdOk := d.GetOk("public_ip_prefix_id")
@@ -350,22 +367,27 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	availabilityZones := "No-Zone"
-	zonesDeprecated := make([]string, 0)
-	if resp.Zones != nil {
-		if len(*resp.Zones) > 1 {
-			availabilityZones = "Zone-Redundant"
-		}
-		if len(*resp.Zones) == 1 {
-			zones := *resp.Zones
-			availabilityZones = zones[0]
-			zonesDeprecated = zones
-		}
-	}
-
-	d.Set("availability_zone", availabilityZones)
-	d.Set("zones", zonesDeprecated)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if features.ThreePointOhBeta() {
+		d.Set("zones", zones.Flatten(resp.Zones))
+	} else {
+		availabilityZones := "No-Zone"
+		zonesDeprecated := make([]string, 0)
+		if resp.Zones != nil {
+			if len(*resp.Zones) > 1 {
+				availabilityZones = "Zone-Redundant"
+			}
+			if len(*resp.Zones) == 1 {
+				zones := *resp.Zones
+				availabilityZones = zones[0]
+				zonesDeprecated = zones
+			}
+		}
+
+		d.Set("availability_zone", availabilityZones)
+		d.Set("zones", zonesDeprecated)
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -386,10 +408,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
-		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
-		if iptags != nil {
-			d.Set("ip_tags", iptags)
-		}
+		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 
 		d.Set("ip_address", props.IPAddress)
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
@@ -420,13 +439,16 @@ func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenPublicIpPropsIpTags(ipTags []network.IPTag) map[string]interface{} {
-	mapIpTags := make(map[string]interface{})
+func flattenPublicIpPropsIpTags(input *[]network.IPTag) map[string]interface{} {
+	out := make(map[string]interface{})
 
-	for _, tag := range ipTags {
-		if tag.IPTagType != nil {
-			mapIpTags[*tag.IPTagType] = tag.Tag
+	if input != nil {
+		for _, tag := range *input {
+			if tag.IPTagType != nil {
+				out[*tag.IPTagType] = tag.Tag
+			}
 		}
 	}
-	return mapIpTags
+
+	return out
 }

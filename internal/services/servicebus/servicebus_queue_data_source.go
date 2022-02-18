@@ -57,16 +57,19 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_batched_operations": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_express": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_partitioning": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,

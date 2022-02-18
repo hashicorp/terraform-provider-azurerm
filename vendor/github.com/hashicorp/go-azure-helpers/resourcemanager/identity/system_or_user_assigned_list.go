@@ -11,10 +11,10 @@ import (
 var _ json.Marshaler = &SystemOrUserAssignedList{}
 
 type SystemOrUserAssignedList struct {
-	Type        Type     `json:"type"`
-	PrincipalId string   `json:"principalId"`
-	TenantId    string   `json:"tenantId"`
-	IdentityIds []string `json:"userAssignedIdentities"`
+	Type        Type     `json:"type" tfschema:"type"`
+	PrincipalId string   `json:"principalId" tfschema:"principal_id"`
+	TenantId    string   `json:"tenantId" tfschema:"tenant_id"`
+	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
 func (s *SystemOrUserAssignedList) MarshalJSON() ([]byte, error) {

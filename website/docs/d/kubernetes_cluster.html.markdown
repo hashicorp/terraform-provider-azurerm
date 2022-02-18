@@ -114,8 +114,6 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `availability_zones` - The availability zones used for the nodes.
-
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
@@ -141,6 +139,8 @@ A `agent_pool_profile` block exports the following:
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
 
 ---
 

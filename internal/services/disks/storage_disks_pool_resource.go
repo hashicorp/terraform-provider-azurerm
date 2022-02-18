@@ -50,6 +50,7 @@ func (StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"availability_zones": {
+			// @tombuildsstuff: leaving since this resource is removed in 3.0
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
