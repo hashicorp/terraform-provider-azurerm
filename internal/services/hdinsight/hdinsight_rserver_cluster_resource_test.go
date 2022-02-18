@@ -574,6 +574,7 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+    storage_resource_id  = azurerm_storage_account.test.id
   }
 
   roles {
