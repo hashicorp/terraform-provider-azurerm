@@ -223,7 +223,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	}
 
 	// Sanity checks
-	if len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
+	if !features.ThreePointOhBeta() && len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
 		return fmt.Errorf("only the Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
 			"whilst %q is of sku %s", id, sku.Name)
 	}
