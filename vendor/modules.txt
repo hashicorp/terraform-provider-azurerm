@@ -352,7 +352,7 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
 ## explicit
 github.com/shopspring/decimal
-# github.com/tombuildsstuff/giovanni v0.17.0
+# github.com/tombuildsstuff/giovanni v0.18.0
 ## explicit
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
