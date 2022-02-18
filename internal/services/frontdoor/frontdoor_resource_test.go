@@ -727,9 +727,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%[1]d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   frontend_endpoint {
     name      = "acctest-FD-%[1]d-default-FE"

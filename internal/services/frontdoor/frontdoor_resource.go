@@ -76,28 +76,20 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return tf.ImportAsExistsError("azurerm_frontdoor", id.ID())
 	}
 
-	// remove in 3.0
-	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
-	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-	location := "Global"
-	preExists := false
-	cfgLocation, hasLocation := d.GetOk("location")
-
-	exists, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("locating %s: %+v", id, err)
-		}
+	var backendCertNameCheck bool
+	var backendPoolsSendReceiveTimeoutSeconds int64
+	if !features.ThreePointOhBeta() {
+		backendCertNameCheck = d.Get("enforce_backend_pools_certificate_name_check").(bool)
+		backendPoolsSendReceiveTimeoutSeconds = int64(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	} else {
-		preExists = true
-		if exists.Model != nil {
-			location = azure.NormalizeLocation(*exists.Model.Location)
-		}
-	}
-
-	if hasLocation && preExists {
-		if location != azure.NormalizeLocation(cfgLocation) {
-			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
+		if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
+			bpsMap := bps[0].(map[string]interface{})
+			if v, ok := bpsMap["enforce_backend_pools_certificate_name_check"].(bool); ok {
+				backendCertNameCheck = v
+			}
+			if v, ok := bpsMap["backend_pools_send_receive_timeout_seconds"].(int); ok {
+				backendPoolsSendReceiveTimeoutSeconds = int64(v)
+			}
 		}
 	}
 
@@ -107,24 +99,51 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
-	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
-	backendPoolsSendReceiveTimeoutSeconds := int64(d.Get("backend_pools_send_receive_timeout_seconds").(int))
+
 	enabledState := expandFrontDoorEnabledState(d.Get("load_balancer_enabled").(bool))
 	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoors.FrontDoor{
-		Location: utils.String(location),
+		Location: utils.String("Global"),
 		Properties: &frontdoors.FrontDoorProperties{
 			FriendlyName:          utils.String(friendlyName),
 			RoutingRules:          expandFrontDoorRoutingRule(routingRules, id, nil),
 			BackendPools:          expandFrontDoorBackendPools(backendPools, id),
-			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendCertNameCheck, backendPoolsSendReceiveTimeoutSeconds),
 			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, id),
 			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, id),
 			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id),
 			EnabledState:          &enabledState,
 		},
 		Tags: tags.Expand(t),
+	}
+	if !features.ThreePointOhBeta() {
+		// remove in 3.0
+		// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
+		// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
+		location := "Global"
+		preExists := false
+
+		exists, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("locating %s: %+v", id, err)
+			}
+		} else {
+			preExists = true
+			if exists.Model != nil {
+				location = azure.NormalizeLocation(*exists.Model.Location)
+			}
+		}
+
+		cfgLocation, hasLocation := d.GetOk("location")
+		if hasLocation && preExists {
+			if location != azure.NormalizeLocation(cfgLocation) {
+				return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
+			}
+		}
+
+		frontDoorParameters.Location = utils.String(location)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
@@ -207,8 +226,21 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		existingModel.Properties.FrontendEndpoints = expandFrontDoorFrontendEndpoint(frontendEndpoints, id)
 	}
 
-	if d.HasChanges("enforce_backend_pools_certificate_name_check", "backend_pools_send_receive_timeout_seconds") {
+	if !features.ThreePointOhBeta() && d.HasChanges("enforce_backend_pools_certificate_name_check", "backend_pools_send_receive_timeout_seconds") {
 		existingModel.Properties.BackendPoolsSettings = expandFrontDoorBackendPoolsSettings(d.Get("enforce_backend_pools_certificate_name_check").(bool), int64(d.Get("backend_pools_send_receive_timeout_seconds").(int)))
+	} else if features.ThreePointOhBeta() && d.HasChange("backend_pool_settings") {
+		var backendCertNameCheck bool
+		var backendPoolsSendReceiveTimeoutSeconds int64
+		if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
+			bpsMap := bps[0].(map[string]interface{})
+			if v, ok := bpsMap["enforce_backend_pools_certificate_name_check"].(bool); ok {
+				backendCertNameCheck = v
+			}
+			if v, ok := bpsMap["backend_pools_send_receive_timeout_seconds"].(int); ok {
+				backendPoolsSendReceiveTimeoutSeconds = int64(v)
+			}
+			existingModel.Properties.BackendPoolsSettings = expandFrontDoorBackendPoolsSettings(backendCertNameCheck, backendPoolsSendReceiveTimeoutSeconds)
+		}
 	}
 
 	if d.HasChange("load_balancer_enabled") {
@@ -262,7 +294,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if model.Location != nil {
+		if model.Location != nil && !features.ThreePointOhBeta() {
 			d.Set("location", azure.NormalizeLocation(*model.Location))
 		}
 
@@ -277,9 +309,17 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			backendPoolSettings := flattenFrontDoorBackendPoolsSettings(props.BackendPoolsSettings)
+			if !features.ThreePointOhBeta() {
+				d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings.enforceBackendPoolsCertificateNameCheck)
+				d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds)
+			} else {
+				out := map[string]interface{}{
+					"enforce_backend_pools_certificate_name_check": backendPoolSettings.enforceBackendPoolsCertificateNameCheck,
+					"backend_pools_send_receive_timeout_seconds":   backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds,
+				}
+				d.Set("backend_pool_settings", []interface{}{out})
+			}
 
-			d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings.enforceBackendPoolsCertificateNameCheck)
-			d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds)
 			d.Set("cname", props.Cname)
 			d.Set("header_frontdoor_id", props.FrontdoorId)
 			if props.EnabledState != nil {
