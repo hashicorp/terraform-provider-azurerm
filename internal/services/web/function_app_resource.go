@@ -486,7 +486,9 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
 	connectionString := appSettings["AzureWebJobsStorage"]
-	d.Set("storage_connection_string", connectionString)
+	if !features.ThreePointOhBeta() {
+		d.Set("storage_connection_string", connectionString)
+	}
 
 	// This teases out the necessary attributes from the storage connection string
 	connectionStringParts := strings.Split(connectionString, ";")
