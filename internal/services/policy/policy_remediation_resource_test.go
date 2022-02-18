@@ -18,7 +18,7 @@ import (
 type PolicyRemediationResource struct{}
 
 func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -36,7 +36,7 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -54,7 +54,7 @@ func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.
 }
 
 func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -72,7 +72,7 @@ func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -90,7 +90,7 @@ func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing
 }
 
 func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -108,7 +108,7 @@ func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -126,7 +126,7 @@ func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
@@ -151,7 +151,7 @@ func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
-	if !features.ThreePointOhBeta() {
+	if features.ThreePointOhBeta() {
 		t.Skip("This test does not apply on v3.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
