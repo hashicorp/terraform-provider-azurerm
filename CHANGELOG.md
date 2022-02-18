@@ -21,7 +21,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` [GH-15430]
 * `azurerm_automation_account` - add support for `public_network_access_enabled` [GH-15429]
 * `azurerm_kubernetes_cluster` - deprecate `addon_profile` block, moving all properties to the top level as well as removing the `enabled` field for all add-ons [GH-15108]
-* `azurerm_kusto_cluster` - supports for the `public_network_access` enabled [GH-15428]
+* `azurerm_kusto_cluster` - supports for the `public_network_access_enabled` property [GH-15428]
 * `azurerm_machine_learning_workspace` - support for both `SystemAssigned, UserAssigned` and `UserAssigned` Identities [GH-14181]
 * `azurerm_machine_learning_workspace` - support for encryption using a User Assigned Identity [GH-14181]
 * `azurerm_monitor_activity_log_alert` support for the `resource_health` block [GH-14917]
@@ -36,6 +36,7 @@ BUG FIXES:
 
 * `azurerm_application_gateway` - fixing a regression where the `identity` block wasn't set into the state [GH-15412]
 * `azurerm_automation_account` - fixing a crash where the `keys` weren't returned from the API [GH-15482]
+* `azurerm_kusto_cluster` - ranaming the properties `enable_auto_stop` to `auto_stop_enabled`, `enable_disk_encryption` to `disk_encryption_enabled`, `enable_streaming_ingest` to `streaming_ingestion_enabled`, and `enable_purge` to `purge_enabled` with the orginal properties being deprecated [GH-15368]
 * `azurerm_log_analytics_linked_storage_account` - correct casing for `data_source_type` when using `ingestion` [GH-15451]
 * `azurerm_logic_app_integration_account_map` - set `content_type` to `text/plain` when `map_type` is `Liquid` [GH-15370]
 * `azurerm_stream_analytics_cluster` - fix an issue where the `tags` were not being set in the state [GH-15380]
