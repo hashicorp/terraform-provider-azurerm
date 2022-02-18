@@ -22,9 +22,9 @@ import (
 
 func resourceNetAppPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppPoolCreateUpdate,
+		Create: resourceNetAppPoolCreate,
 		Read:   resourceNetAppPoolRead,
-		Update: resourceNetAppPoolCreateUpdate,
+		Update: resourceNetAppPoolUpdate,
 		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -89,7 +89,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +135,67 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
+	// Wait for pool to complete update
+	if err := waitForPoolCreateOrUpdate(ctx, client, id); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
+	return resourceNetAppPoolRead(d, meta)
+}
+
+func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).NetApp.PoolClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.CapacityPoolID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	shouldUpdate := false
+	update := netapp.CapacityPoolPatch{
+		PoolPatchProperties: &netapp.PoolPatchProperties{},
+	}
+
+	if d.HasChange("size_in_tb") {
+		shouldUpdate = true
+
+		sizeInTB := int64(d.Get("size_in_tb").(int))
+		sizeInMB := sizeInTB * 1024 * 1024
+		sizeInBytes := sizeInMB * 1024 * 1024
+
+		update.PoolPatchProperties.Size = utils.Int64(sizeInBytes)
+	}
+
+	if d.HasChange("qos_type") {
+		shouldUpdate = true
+		qosType := d.Get("qos_type")
+		update.PoolPatchProperties.QosType = netapp.QosType(qosType.(string))
+	}
+
+	if d.HasChange("tags") {
+		shouldUpdate = true
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if shouldUpdate {
+		future, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName, id.Name)
+		if err != nil {
+			return fmt.Errorf("updating Capacity Pool %q: %+v", id.Name, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		}
+
+		// Wait for pool to complete update
+		if err := waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
+			return err
+		}
+	}
+
 	return resourceNetAppPoolRead(d, meta)
 }
 
@@ -228,6 +288,41 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
 				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
+}
+
+func waitForPoolCreateOrUpdate(ctx context.Context, client *netapp.PoolsClient, id parse.CapacityPoolId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netappPoolStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappPoolStateRefreshFunc(ctx context.Context, client *netapp.PoolsClient, id parse.CapacityPoolId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("retrieving NetApp Capacity Pool %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 
