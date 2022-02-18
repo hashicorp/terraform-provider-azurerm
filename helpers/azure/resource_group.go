@@ -18,25 +18,6 @@ func SchemaResourceGroupName() *pluginsdk.Schema {
 	}
 }
 
-func SchemaResourceGroupNameDeprecated() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		ValidateFunc: ValidateResourceGroupName,
-		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
-	}
-}
-
-func SchemaResourceGroupNameDeprecatedComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: ValidateResourceGroupName,
-		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
-	}
-}
-
 func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:             pluginsdk.TypeString,
