@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +41,7 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				},
 			},
 
-			"filter_by_resource_groups": azure.SchemaResourceGroupNameSetOptional(),
+			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
 
 			"recommendations": {
 				Type:     pluginsdk.TypeList,

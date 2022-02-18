@@ -46,17 +46,6 @@ func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
 	}
 }
 
-func SchemaResourceGroupNameSetOptional() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Elem: &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: ValidateResourceGroupName,
-		},
-	}
-}
-
 func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
