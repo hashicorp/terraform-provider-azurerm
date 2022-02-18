@@ -3543,7 +3543,7 @@ resource "azurerm_application_gateway" "test" {
     # http_listener_id = computed
     http_listener_name = "listener-1"
 
-    # backend_address_pool_id = computed
+    # backend_address_pool_ids = [computed]
     backend_address_pool_name = "pool-1"
 
     # backend_http_settings_id = computed
@@ -5009,7 +5009,7 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
   frontend_ip_configuration_name = "PublicIPAddress"
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -5155,7 +5155,7 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
   frontend_ip_configuration_name = "PublicIPAddress"
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
 }
 
 resource "azurerm_lb_probe" "test" {

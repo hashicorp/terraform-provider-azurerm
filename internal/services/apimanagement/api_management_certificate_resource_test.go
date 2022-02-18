@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -262,6 +263,10 @@ resource "azurerm_api_management_certificate" "test" {
 }
 
 func (ApiManagementCertificateResource) templateKeyVault(data acceptance.TestData) string {
+	var softDelete string
+	if !features.ThreePointOhBeta() {
+		softDelete = "soft_delete_enabled = true"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -278,7 +283,7 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  soft_delete_enabled = true
+  %s
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
@@ -363,7 +368,7 @@ resource "azurerm_key_vault_certificate" "cert2" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, softDelete)
 }
 
 func (r ApiManagementCertificateResource) requiresImport(data acceptance.TestData) string {
