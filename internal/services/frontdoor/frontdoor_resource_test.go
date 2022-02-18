@@ -353,8 +353,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-frontdoor-%d"
-  location = "%s"
+  name     = "acctestRG-frontdoor-%[1]d"
+  location = "%[2]s"
 }
 
 locals {
@@ -365,9 +365,9 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                = "acctest-FD-%d"
+  name                = "acctest-FD-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
+  location            = "%[2]s"
 
   backend_pool_settings {
     enforce_backend_pools_certificate_name_check = false
@@ -407,10 +407,10 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name      = local.endpoint_name
-    host_name = "acctest-FD-%d.azurefd.net"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r FrontDoorResource) requiresImport(data acceptance.TestData) string {
