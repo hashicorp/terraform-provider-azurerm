@@ -36,16 +36,6 @@ func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
 	}
 }
 
-func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		ForceNew:     true,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: ValidateResourceGroupName,
-	}
-}
-
 func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
