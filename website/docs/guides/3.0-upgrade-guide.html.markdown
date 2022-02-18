@@ -656,37 +656,41 @@ The deprecated field `private_link_enabled` will be removed in favour of the `pr
 
 The deprecated block `addon_profile` will be removed and all properties within the block will be moved or replaced at the top level, exact details on this change are outlined below.
 
-The block `addon_profile.azure_policy` will be removed in favour of the `azure_policy_enabled` boolean property.
+The deprecated block `addon_profile.azure_policy` will be removed in favour of the `azure_policy_enabled` boolean property.
 
-The block `addon_profile.http_application_routing` will be removed in favour of the `http_application_routing_enabled` boolean property.
+The deprecated block `addon_profile.http_application_routing` will be removed in favour of the `http_application_routing_enabled` boolean property.
 
-The field `addon_profile.http_application_routing_zone_name` will be removed in favour of the `http_application_routing_zone_name` property.
+The deprecated field `addon_profile.http_application_routing_zone_name` will be removed in favour of the `http_application_routing_zone_name` property.
 
-The block `addon_profile.open_service_mesh` will be removed in favour of the `open_service_mesh_enabled` boolean property.
+The deprecated block `addon_profile.open_service_mesh` will be removed in favour of the `open_service_mesh_enabled` boolean property.
 
-The block `addon_profile.kube_dashboard` will be removed since Kube Dashboard is not supported for Kubernetes versions above 1.19.
+The deprecated block `addon_profile.kube_dashboard` will be removed since Kube Dashboard is not supported for Kubernetes versions above 1.19.
 
-The block `addon_profile.aci_connector_linux` will be removed in favour of the `aci_connector_linux` block.
+The deprecated block `addon_profile.aci_connector_linux` will be removed in favour of the `aci_connector_linux` block.
 
-The field `addon_profile.aci_connector_linux.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `aci_connector_linux` block.
+The deprecated field `addon_profile.aci_connector_linux.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `aci_connector_linux` block.
 
-The field `addon_profile.aci_connector_linux.subnet_name` will be removed in favour of the `aci_connector_linux.subnet_name` property and will become Required.
+The deprecated field `addon_profile.aci_connector_linux.subnet_name` will be removed in favour of the `aci_connector_linux.subnet_name` property and will become Required.
 
 The deprecated block `addon_profile.oms_agent` will be removed in favour of the `oms_agent` block.
 
-The field `addon_profile.oms_agent.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `oms_agent` block.
+The deprecated field `addon_profile.oms_agent.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `oms_agent` block.
 
-The field `addon_profile.oms_agent.log_analytics_workspace_id` will be removed in favour of the `oms_agent.log_analytics_workspace_id` property and will become Required.
+The deprecated field `addon_profile.oms_agent.log_analytics_workspace_id` will be removed in favour of the `oms_agent.log_analytics_workspace_id` property and will become Required.
 
 The deprecated block `addon_profile.ingress_application_gateway` will be removed in favour of the `ingress_application_gateway` block.
 
-The field `addon_profile.ingress_application_gateway.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `ingress_application_gateway` block.
+The deprecated field `addon_profile.ingress_application_gateway.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `ingress_application_gateway` block.
 
 The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `key_vault_secrets_provider` block.
 
-The field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `key_vault_secrets_provider` block.
+The deprecated field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `key_vault_secrets_provider` block.
 
 The field `default_node_pool.availability_zones` will be removed in favour of `default_node_pool.zones` to be consistent across the Provider.
+
+The deprecated field `private_link_enabled` will be removed in favour of the `private_cluster_enabled` property.
+
+The deprecated block `role_based_access_control` will be removed in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control`.
 
 ### Resource: `azurerm_kubernetes_cluster_node_pool`
 
