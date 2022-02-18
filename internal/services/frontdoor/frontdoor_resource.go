@@ -81,15 +81,13 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if !features.ThreePointOhBeta() {
 		backendCertNameCheck = d.Get("enforce_backend_pools_certificate_name_check").(bool)
 		backendPoolsSendReceiveTimeoutSeconds = int64(d.Get("backend_pools_send_receive_timeout_seconds").(int))
-	} else {
-		if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
-			bpsMap := bps[0].(map[string]interface{})
-			if v, ok := bpsMap["enforce_backend_pools_certificate_name_check"].(bool); ok {
-				backendCertNameCheck = v
-			}
-			if v, ok := bpsMap["backend_pools_send_receive_timeout_seconds"].(int); ok {
-				backendPoolsSendReceiveTimeoutSeconds = int64(v)
-			}
+	} else if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
+		bpsMap := bps[0].(map[string]interface{})
+		if v, ok := bpsMap["enforce_backend_pools_certificate_name_check"].(bool); ok {
+			backendCertNameCheck = v
+		}
+		if v, ok := bpsMap["backend_pools_send_receive_timeout_seconds"].(int); ok {
+			backendPoolsSendReceiveTimeoutSeconds = int64(v)
 		}
 	}
 
