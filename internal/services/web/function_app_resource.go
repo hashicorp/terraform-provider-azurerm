@@ -732,6 +732,7 @@ func resourceFunctionAppSchema() map[string]*pluginsdk.Schema {
 
 		"source_control": schemaAppServiceSiteSourceControl(),
 
+		//lintignore: S013
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     features.ThreePointOhBeta(),
@@ -747,6 +748,7 @@ func resourceFunctionAppSchema() map[string]*pluginsdk.Schema {
 			}(),
 		},
 
+		//lintignore: S013
 		"storage_account_access_key": {
 			Type:     pluginsdk.TypeString,
 			Required: features.ThreePointOhBeta(),

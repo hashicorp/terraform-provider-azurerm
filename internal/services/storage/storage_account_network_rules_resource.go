@@ -46,6 +46,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 
 func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
+		//lintignore: S013
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     features.ThreePointOhBeta(),
