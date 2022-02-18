@@ -410,7 +410,7 @@ resource "azurerm_frontdoor" "test" {
     host_name = "acctest-FD-%d.azurefd.net"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r FrontDoorResource) requiresImport(data acceptance.TestData) string {
@@ -422,7 +422,7 @@ resource "azurerm_frontdoor" "import" {
   resource_group_name = azurerm_frontdoor.test.resource_group_name
 
   backend_pool_settings {
-    enforce_backend_pools_certificate_name_check = azurerm_frontdoor.test.enforce_backend_pools_certificate_name_check
+    enforce_backend_pools_certificate_name_check = azurerm_frontdoor.test.backend_pool_settings.0.enforce_backend_pools_certificate_name_check
   }
 
   routing_rule {
