@@ -1,4 +1,4 @@
-package compute_test
+package legacy_test
 
 import (
 	"context"
@@ -804,12 +804,12 @@ func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clien
 
 	// this is a preview feature we don't want to use right now
 	var forceDelete *bool = nil
-	future, err := client.Compute.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
+	future, err := client.Legacy.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMScaleSetClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMScaleSetClient.Client); err != nil {
 		return nil, fmt.Errorf("Bad: waiting for deletion of %s: %+v", *id, err)
 	}
 
@@ -823,7 +823,7 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -862,7 +862,7 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -901,7 +901,7 @@ func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *cli
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
 	}

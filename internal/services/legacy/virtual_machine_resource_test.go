@@ -1,4 +1,4 @@
-package compute_test
+package legacy_test
 
 import (
 	"context"
@@ -103,7 +103,7 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine %q", id)
 	}
@@ -118,7 +118,7 @@ func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool
 			return err
 		}
 
-		disk, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
 		if err != nil {
 			if utils.ResponseWasNotFound(disk.Response) {
 				if !shouldExist {
@@ -145,7 +145,7 @@ func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *str
 			return err
 		}
 
-		virtualMachine, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+		virtualMachine, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			return err
 		}
@@ -194,12 +194,12 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 	resourceGroup := vmID.ResourceGroup
 
 	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-	future, err := client.Compute.VMClient.Deallocate(ctx, resourceGroup, name, utils.Bool(false))
+	future, err := client.Legacy.VMClient.Deallocate(ctx, resourceGroup, name, utils.Bool(false))
 	if err != nil {
 		return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMClient.Client); err != nil {
 		return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
 	}
 
@@ -252,12 +252,12 @@ func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Clien
 
 	// this is a preview feature we don't want to use right now
 	var forceDelete *bool = nil
-	future, err := client.Compute.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
+	future, err := client.Legacy.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMClient.Client); err != nil {
 		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 	}
 

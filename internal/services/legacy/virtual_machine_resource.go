@@ -1,4 +1,4 @@
-package compute
+package legacy
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
@@ -31,8 +33,6 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 	"golang.org/x/net/context"
 )
-
-var virtualMachineResourceName = "azurerm_virtual_machine"
 
 // TODO move into internal/tf/suppress/base64.go
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -635,7 +635,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 }
 
 func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Legacy.VMClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -749,8 +749,8 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, compute2.VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, compute2.VirtualMachineResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vm)
 	if err != nil {
@@ -793,7 +793,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	vmclient := meta.(*clients.Client).Compute.VMClient
+	vmclient := meta.(*clients.Client).Legacy.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -925,7 +925,7 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Legacy.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -934,8 +934,8 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, compute2.VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, compute2.VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -1071,7 +1071,7 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 	}
 	managedDiskID := *disk.ID
 
-	client := meta.(*clients.Client).Compute.DisksClient
+	client := meta.(*clients.Client).Legacy.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1954,7 +1954,7 @@ func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 }
 
 func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*clients.Client).Compute.DisksClient
+	client := meta.(*clients.Client).Legacy.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

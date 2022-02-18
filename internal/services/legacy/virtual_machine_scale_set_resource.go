@@ -1,4 +1,4 @@
-package compute
+package legacy
 
 import (
 	"bytes"
@@ -798,7 +798,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 }
 
 func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Legacy.VMScaleSetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -943,7 +943,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Legacy.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1104,7 +1104,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Legacy.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
