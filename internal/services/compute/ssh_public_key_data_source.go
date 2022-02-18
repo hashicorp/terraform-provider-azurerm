@@ -68,7 +68,7 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	var publicKey *string
 	if props := resp.SSHPublicKeyResourceProperties; props.PublicKey != nil {
-		publicKey, err = utils.NormalizeSSHKey(*props.PublicKey)
+		publicKey, err = NormalizeSSHKey(*props.PublicKey)
 		if err != nil {
 			return fmt.Errorf("normalising public key: %+v", err)
 		}

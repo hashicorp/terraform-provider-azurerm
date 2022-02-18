@@ -1,8 +1,10 @@
-package utils
+package compute
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NormalizeSSHKey attempts to remove invalid formatting and line breaks that can be present in some cases
@@ -24,5 +26,5 @@ func NormalizeSSHKey(input string) (*string, error) {
 
 	normalised := strings.Join(lines, "")
 
-	return String(normalised), nil
+	return utils.String(normalised), nil
 }
