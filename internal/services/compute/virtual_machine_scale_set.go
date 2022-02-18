@@ -911,22 +911,39 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+				"ultra_ssd_disk_iops_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+
+				"ultra_ssd_disk_mbps_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
 
-	o := out.Elem.(*pluginsdk.Resource).Schema
-	keys := []string{"disk_iops_read_write", "disk_mbps_read_write"}
 	if !features.ThreePointOhBeta() {
-		keys = []string{"ultra_ssd_disk_iops_read_write", "ultra_ssd_mbps_read_write"}
-	}
-	for _, k := range keys {
-		o[k] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
+		o := out.Elem.(*pluginsdk.Resource)
+
+		o.Schema["disk_iops_read_write"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeInt,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
+		}
+
+		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeInt,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
 		}
 	}
+
 	return out
 }
 
@@ -953,26 +970,27 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			}
 		}
 
-		iopsRW := "ultra_ssd_disk_iops_read_write"
-		mbpsRW := "ultra_ssd_mbps_read_write"
-		if !features.ThreePointOhBeta() {
-			iopsRW = "disk_iops_read_write"
-			mbpsRW = "disk_mbps_read_write"
+		var iops int
+		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+			iops = diskIops.(int)
+		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
+			iops = ssdIops.(int)
 		}
+		if iops > 0 && !ultraSSDEnabled {
+			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
+		}
+		disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 
-		if iops := raw[iopsRW].(int); iops != 0 {
-			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", iopsRW)
-			}
-			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		var mbps int
+		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+			mbps = diskMbps.(int)
+		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
+			mbps = ssdMbps.(int)
 		}
-
-		if mbps := raw[mbpsRW].(int); mbps != 0 {
-			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`%s` are only available for UltraSSD disks", mbpsRW)
-			}
-			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+		if mbps > 0 && !ultraSSDEnabled {
+			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
 		}
+		disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 
 		disks = append(disks, disk)
 	}
@@ -1022,22 +1040,18 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		iopsRW := "ultra_ssd_disk_iops_read_write"
-		mbpsRW := "ultra_ssd_mbps_read_write"
-		if !features.ThreePointOhBeta() {
-			iopsRW = "disk_iops_read_write"
-			mbpsRW = "disk_mbps_read_write"
-		}
 		output = append(output, map[string]interface{}{
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			iopsRW:                      iops,
-			mbpsRW:                      mbps,
+			"caching":                        string(v.Caching),
+			"create_option":                  string(v.CreateOption),
+			"lun":                            lun,
+			"disk_encryption_set_id":         diskEncryptionSetId,
+			"disk_size_gb":                   diskSizeGb,
+			"storage_account_type":           storageAccountType,
+			"write_accelerator_enabled":      writeAcceleratorEnabled,
+			"ultra_ssd_disk_iops_read_write": iops,
+			"ultra_ssd_mbps_read_write":      mbps,
+			"disk_iops_read_write":           iops,
+			"disk_mbps_read_write":           mbps,
 		})
 	}
 
