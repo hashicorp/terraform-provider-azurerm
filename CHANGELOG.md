@@ -21,13 +21,13 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.24.1` of `github.com/hashicorp/go-azure-helpers` ([#15430](https://github.com/hashicorp/terraform-provider-azurerm/issues/15430))
-* `azurerm_automation_account` - add support for `public_network_access_enabled` ([#15429](https://github.com/hashicorp/terraform-provider-azurerm/issues/15429))
-* `azurerm_kubernetes_cluster` - deprecate `addon_profile` block, moving all properties to the top level as well as removing the `enabled` field for all add-ons ([#15108](https://github.com/hashicorp/terraform-provider-azurerm/issues/15108))
+* `azurerm_automation_account` - add support for the `public_network_access_enabled` property ([#15429](https://github.com/hashicorp/terraform-provider-azurerm/issues/15429))
+* `azurerm_kubernetes_cluster` - deprecate the `addon_profile` block, moving all properties to the top level as well as removing the `enabled` field for all add-ons ([#15108](https://github.com/hashicorp/terraform-provider-azurerm/issues/15108))
 * `azurerm_kusto_cluster` - supports for the `public_network_access_enabled` property ([#15428](https://github.com/hashicorp/terraform-provider-azurerm/issues/15428))
 * `azurerm_machine_learning_workspace` - support for both `SystemAssigned, UserAssigned` and `UserAssigned` Identities ([#14181](https://github.com/hashicorp/terraform-provider-azurerm/issues/14181))
 * `azurerm_machine_learning_workspace` - support for encryption using a User Assigned Identity ([#14181](https://github.com/hashicorp/terraform-provider-azurerm/issues/14181))
 * `azurerm_monitor_activity_log_alert` support for the `resource_health` block ([#14917](https://github.com/hashicorp/terraform-provider-azurerm/issues/14917))
-* `azurerm_iothub_dps` - support for `ip_filter_rule` block and `public_network_access_enabled` ([#15343](https://github.com/hashicorp/terraform-provider-azurerm/issues/15343))
+* `azurerm_iothub_dps` - support for the `ip_filter_rule` block and the `public_network_access_enabled` property ([#15343](https://github.com/hashicorp/terraform-provider-azurerm/issues/15343))
 * `azurerm_spring_cloud_app` - support for the `custom_persistent_disk` block ([#15400](https://github.com/hashicorp/terraform-provider-azurerm/issues/15400))
 * `azurerm_servicebus_namespace` - support for the `identity` block ([#15371](https://github.com/hashicorp/terraform-provider-azurerm/issues/15371))
 * `azurerm_storage_account` - add support for creating a customer managed key upon creation of a storage account ([#15082](https://github.com/hashicorp/terraform-provider-azurerm/issues/15082))
