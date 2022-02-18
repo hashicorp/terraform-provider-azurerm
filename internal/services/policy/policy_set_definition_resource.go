@@ -106,6 +106,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
+		//lintignore: S013
 		"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
 			Type:     pluginsdk.TypeList,
 			Required: features.ThreePointOhBeta(),

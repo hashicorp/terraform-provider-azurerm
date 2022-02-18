@@ -236,7 +236,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -635,7 +635,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22

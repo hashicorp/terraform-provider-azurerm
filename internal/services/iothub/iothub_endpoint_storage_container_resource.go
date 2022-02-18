@@ -57,6 +57,7 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
+		//lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     features.ThreePointOhBeta(),
