@@ -170,7 +170,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": location.SchemaWithoutForceNew(),
+					"location": commonschema.LocationWithoutForceNew(),
 
 					"virtual_network_configuration": {
 						Type:     pluginsdk.TypeList,

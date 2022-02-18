@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -504,9 +506,9 @@ func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": func() *pluginsdk.Schema {
 			if !features.ThreePointOhBeta() {
-				return azure.SchemaResourceGroupNameOptionalComputed()
+				return commonschema.ResourceGroupNameOptionalComputed()
 			}
-			return azure.SchemaResourceGroupName()
+			return commonschema.ResourceGroupName()
 		}(),
 
 		"tags": tags.ForceNewSchema(),

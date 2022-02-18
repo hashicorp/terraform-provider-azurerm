@@ -18,25 +18,6 @@ func SchemaResourceGroupName() *pluginsdk.Schema {
 	}
 }
 
-func SchemaResourceGroupNameDeprecated() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		ValidateFunc: ValidateResourceGroupName,
-		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
-	}
-}
-
-func SchemaResourceGroupNameDeprecatedComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: ValidateResourceGroupName,
-		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
-	}
-}
-
 func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:             pluginsdk.TypeString,
@@ -52,35 +33,6 @@ func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: ValidateResourceGroupName,
-	}
-}
-
-func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		ForceNew:     true,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: ValidateResourceGroupName,
-	}
-}
-
-func SchemaResourceGroupNameOptional() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Optional:     true,
-		ValidateFunc: ValidateResourceGroupName,
-	}
-}
-
-func SchemaResourceGroupNameSetOptional() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Elem: &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: ValidateResourceGroupName,
-		},
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,7 +85,7 @@ resources and will be removed in version 3.0 of the Azure Provider.
 				Optional: true,
 			},
 
-			"location": azure.SchemaLocationOptional(),
+			"location": commonschema.LocationOptional(),
 
 			//lintignore:XS003
 			"identity": {

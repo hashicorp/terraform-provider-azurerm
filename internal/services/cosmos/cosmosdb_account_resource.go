@@ -292,7 +292,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"location": location.SchemaWithoutForceNew(),
+						"location": commonschema.LocationWithoutForceNew(),
 
 						"failover_priority": {
 							Type:         pluginsdk.TypeInt,
