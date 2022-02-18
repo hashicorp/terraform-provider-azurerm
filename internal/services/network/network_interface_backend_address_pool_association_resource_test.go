@@ -193,9 +193,9 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "test" {
-  network_interface_id     = azurerm_network_interface.test.id
-  ip_configuration_name    = "testconfiguration1"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  network_interface_id    = azurerm_network_interface.test.id
+  ip_configuration_name   = "testconfiguration1"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -236,9 +236,9 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "test" {
-  network_interface_id     = azurerm_network_interface.test.id
-  ip_configuration_name    = "testconfiguration1"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  network_interface_id    = azurerm_network_interface.test.id
+  ip_configuration_name   = "testconfiguration1"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
