@@ -236,7 +236,7 @@ func resourceFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interfac
 			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  ConvertOriginGroupsBoolToEnabledState(d.Get("session_affinity").(bool)),
+			SessionAffinityState:                                  ConvertBoolToOriginGroupsEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
@@ -310,7 +310,7 @@ func resourceFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  ConvertOriginGroupsBoolToEnabledState(d.Get("session_affinity").(bool)),
+			SessionAffinityState:                                  ConvertBoolToOriginGroupsEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}

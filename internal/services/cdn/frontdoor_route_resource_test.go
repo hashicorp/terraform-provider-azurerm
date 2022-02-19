@@ -129,23 +129,23 @@ resource "azurerm_frontdoor_route" "test" {
   frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
 
   cache_configuration {
-    query_parameters              = ""
-    query_string_caching_behavior = ""
+    query_parameters              = ["foo", "bar"]
+    query_string_caching_behavior = "IgnoreQueryString"
   }
 
   custom_domains {
     id = ""
   }
 
-  enabled_state          = ""
-  forwarding_protocol    = ""
-  https_redirect         = ""
-  link_to_default_domain = ""
-  origin_group_id        = ""
+  enabled         = true
+  forwarding_protocol    = true
+  https_redirect         = true
+  link_to_default_domain = true
+  origin_group_id        = azurerm_frontdoor_group.test.id
   origin_path            = ""
   patterns_to_match      = []
   rule_set_ids           = [""]
-  supported_protocols    = ""
+  supported_protocols    = "HttpsOnly"
 }
 `, template, data.RandomInteger)
 }

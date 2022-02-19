@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -57,13 +58,24 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 
 						"query_parameters": {
-							Type:     pluginsdk.TypeString,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 
 						"query_string_caching_behavior": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
+								string(routes.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+								string(routes.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
+								string(routes.AfdQueryStringCachingBehaviorUseQueryString),
+							}, false),
 						},
 					},
 				},
@@ -94,8 +106,8 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"enabled_state": {
-				Type:     pluginsdk.TypeString,
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
@@ -107,15 +119,22 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 			"forwarding_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(routes.ForwardingProtocolHttpsOnly),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(routes.ForwardingProtocolHttpOnly),
+					string(routes.ForwardingProtocolHttpsOnly),
+					string(routes.ForwardingProtocolMatchRequest),
+				}, false),
 			},
 
 			"https_redirect": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"link_to_default_domain": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
@@ -193,19 +212,17 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	enabledStateValue := routes.EnabledState(d.Get("enabled_state").(string))
 	forwardingProtocolValue := routes.ForwardingProtocol(d.Get("forwarding_protocol").(string))
-	httpsRedirectValue := routes.HttpsRedirect(d.Get("https_redirect").(string))
-	linkToDefaultDomainValue := routes.LinkToDefaultDomain(d.Get("link_to_default_domain").(string))
+
 	props := routes.Route{
 		Properties: &routes.RouteProperties{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
-			EnabledState:        &enabledStateValue,
+			EnabledState:        ConvertBoolToRoutesEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  &forwardingProtocolValue,
-			HttpsRedirect:       &httpsRedirectValue,
-			LinkToDefaultDomain: &linkToDefaultDomainValue,
-			OriginGroup:         *expandRouteResourceReference(d.Get("origin_group").([]interface{})),
+			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
+			OriginGroup:         *expandRouteResourceReference(d.Get("origin_group_id").(string)),
 			OriginPath:          utils.String(d.Get("origin_path").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
@@ -246,30 +263,30 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
+			d.Set("deployment_status", props.DeploymentStatus)
+			d.Set("enabled", ConvertRoutesEnabledStateToBool(props.EnabledState))
+			d.Set("endpoint_name", props.EndpointName)
+			d.Set("forwarding_protocol", props.ForwardingProtocol)
+			d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(props.HttpsRedirect))
+			d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
+			d.Set("origin_path", props.OriginPath)
+			d.Set("patterns_to_match", props.PatternsToMatch)
+			d.Set("provisioning_state", props.ProvisioningState)
 
-			if err := d.Set("cache_configuration", flattenRouteAfdRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
+			if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 				return fmt.Errorf("setting `cache_configuration`: %+v", err)
 			}
 
 			if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
 				return fmt.Errorf("setting `custom_domains`: %+v", err)
 			}
-			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("enabled_state", props.EnabledState)
-			d.Set("endpoint_name", props.EndpointName)
-			d.Set("forwarding_protocol", props.ForwardingProtocol)
-			d.Set("https_redirect", props.HttpsRedirect)
-			d.Set("link_to_default_domain", props.LinkToDefaultDomain)
 
 			if err := d.Set("origin_group", flattenRouteResourceReference(&props.OriginGroup)); err != nil {
 				return fmt.Errorf("setting `origin_group`: %+v", err)
 			}
-			d.Set("origin_path", props.OriginPath)
-			d.Set("patterns_to_match", props.PatternsToMatch)
-			d.Set("provisioning_state", props.ProvisioningState)
 
 			if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
-				return fmt.Errorf("setting `rule_sets`: %+v", err)
+				return fmt.Errorf("setting `rule_set_ids`: %+v", err)
 			}
 
 			if err := d.Set("supported_protocols", flattenRouteAFDEndpointProtocolsArray(props.SupportedProtocols)); err != nil {
@@ -290,22 +307,20 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	enabledStateValue := routes.EnabledState(d.Get("enabled_state").(string))
 	forwardingProtocolValue := routes.ForwardingProtocol(d.Get("forwarding_protocol").(string))
-	httpsRedirectValue := routes.HttpsRedirect(d.Get("https_redirect").(string))
-	linkToDefaultDomainValue := routes.LinkToDefaultDomain(d.Get("link_to_default_domain").(string))
+
 	props := routes.RouteUpdateParameters{
 		Properties: &routes.RouteUpdatePropertiesParameters{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
-			EnabledState:        &enabledStateValue,
+			EnabledState:        ConvertBoolToRoutesEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  &forwardingProtocolValue,
-			HttpsRedirect:       &httpsRedirectValue,
-			LinkToDefaultDomain: &linkToDefaultDomainValue,
-			OriginGroup:         expandRouteResourceReference(d.Get("origin_group").([]interface{})),
+			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
+			OriginGroup:         expandRouteResourceReference(d.Get("origin_group_id").(string)),
 			OriginPath:          utils.String(d.Get("origin_path").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_sets").([]interface{})),
+			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
@@ -334,15 +349,13 @@ func resourceFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandRouteResourceReference(input []interface{}) *routes.ResourceReference {
-	if len(input) == 0 || input[0] == nil {
+func expandRouteResourceReference(input string) *routes.ResourceReference {
+	if len(input) == 0 || input == "" {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-
 	return &routes.ResourceReference{
-		Id: utils.String(v["id"].(string)),
+		Id: utils.String(input),
 	}
 }
 
@@ -381,9 +394,20 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *routes.AfdRoute
 
 	queryStringCachingBehaviorValue := routes.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
 	return &routes.AfdRouteCacheConfiguration{
-		QueryParameters:            utils.String(v["query_parameters"].(string)),
+		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_parameters"].([]interface{})),
 		QueryStringCachingBehavior: &queryStringCachingBehaviorValue,
 	}
+}
+
+func expandFrontdoorRouteQueryParameters(input []interface{}) *string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := utils.ExpandStringSlice(input)
+	csv := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(*v)), ","), "[]")
+
+	return &csv
 }
 
 func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]routes.ActivatedResourceReference {
@@ -396,6 +420,21 @@ func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]routes.A
 		})
 	}
 	return &results
+}
+
+func flattenFrontdoorRouteQueryParameters(input *string) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	v := strings.Split(*input, ",")
+
+	for _, s := range v {
+		results = append(results, s)
+	}
+
+	return results
 }
 
 func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResourceReference) []interface{} {
@@ -441,7 +480,6 @@ func flattenRouteResourceReferenceArry(input *[]routes.ResourceReference) []inte
 	}
 
 	for _, item := range *input {
-
 		if item.Id != nil {
 			results = append(results, *item.Id)
 		}
@@ -463,7 +501,7 @@ func flattenRouteAFDEndpointProtocolsArray(input *[]routes.AFDEndpointProtocols)
 	return results
 }
 
-func flattenRouteAfdRouteCacheConfiguration(input *routes.AfdRouteCacheConfiguration) []interface{} {
+func flattenFrontdoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -472,7 +510,7 @@ func flattenRouteAfdRouteCacheConfiguration(input *routes.AfdRouteCacheConfigura
 	result := make(map[string]interface{})
 
 	if input.QueryParameters != nil {
-		result["query_parameters"] = *input.QueryParameters
+		result["query_parameters"] = flattenFrontdoorRouteQueryParameters(input.QueryParameters)
 	}
 
 	if input.QueryStringCachingBehavior != nil {

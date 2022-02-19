@@ -155,7 +155,7 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	props := afdorigins.AFDOrigin{
 		Properties: &afdorigins.AFDOriginProperties{
 			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
-			EnabledState:                ConvertOriginsBoolToEnabledState(d.Get("enable_health_probes").(bool)),
+			EnabledState:                ConvertBoolToOriginsEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    d.Get("host_name").(string),
 			HttpPort:                    utils.Int64(int64(d.Get("http_port").(int))),
@@ -233,7 +233,7 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	props := afdorigins.AFDOriginUpdateParameters{
 		Properties: &afdorigins.AFDOriginUpdatePropertiesParameters{
 			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
-			EnabledState:                ConvertOriginsBoolToEnabledState(d.Get("enable_health_probes").(bool)),
+			EnabledState:                ConvertBoolToOriginsEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HttpPort:                    utils.Int64(int64(d.Get("http_port").(int))),
