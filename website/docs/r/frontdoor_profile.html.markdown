@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_frontdoor_profile" "example" {
   name                = "exampleFrontdoorProfile"
   resource_group_name = azurerm_resource_group.example.name
-  sku _name           = "Standard_Verizon"
+  sku_name            = "Standard_Verizon"
 
   tags = {
     environment = "Production"

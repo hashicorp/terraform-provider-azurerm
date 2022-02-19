@@ -121,32 +121,6 @@ func (r FrontdoorOriginGroupResource) basic(data acceptance.TestData) string {
 resource "azurerm_frontdoor_origin_group" "test" {
   name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-
-  health_probe_settings {
-    probe_interval_in_seconds = 0
-    probe_path                = ""
-    probe_protocol            = ""
-    probe_request_type        = ""
-  }
-
-  load_balancing_settings {
-    additional_latency_in_milliseconds = 0
-    sample_size                        = 0
-    successful_samples_required        = 0
-  }
-
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 0
-      end   = 0
-    }
-
-    response_based_detected_error_types          = ""
-    response_based_failover_threshold_percentage = 0
-  }
-
-  session_affinity_state                                         = ""
-  traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }
 `, template, data.RandomInteger)
 }
@@ -159,32 +133,6 @@ func (r FrontdoorOriginGroupResource) requiresImport(data acceptance.TestData) s
 resource "azurerm_frontdoor_origin_group" "import" {
   name                 = azurerm_frontdoor_origin_group.test.name
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-
-  health_probe_settings {
-    probe_interval_in_seconds = 0
-    probe_path                = ""
-    probe_protocol            = ""
-    probe_request_type        = ""
-  }
-
-  load_balancing_settings {
-    additional_latency_in_milliseconds = 0
-    sample_size                        = 0
-    successful_samples_required        = 0
-  }
-
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 0
-      end   = 0
-    }
-
-    response_based_detected_error_types          = ""
-    response_based_failover_threshold_percentage = 0
-  }
-
-  session_affinity_state                                         = ""
-  traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
 }
 `, config)
 }
@@ -198,31 +146,35 @@ resource "azurerm_frontdoor_origin_group" "test" {
   name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 
-  health_probe_settings {
-    probe_interval_in_seconds = 0
-    probe_path                = ""
-    probe_protocol            = ""
-    probe_request_type        = ""
+  health_probe {
+    interval_in_seconds = 240
+    path                = "/"
+    protocol            = "Https"
+    request_type        = "GET"
   }
 
-  load_balancing_settings {
+  load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 0
-    successful_samples_required        = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
   }
 
   response_based_origin_error_detection {
     http_error_ranges {
-      begin = 0
-      end   = 0
+      begin = 300
+      end   = 599
     }
 
-    response_based_detected_error_types          = ""
-    response_based_failover_threshold_percentage = 0
+    detected_error_types          = "TcpAndHttpErrors"
+    failover_threshold_percentage = 10
   }
 
-  session_affinity_state                                         = ""
-  traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
+  session_affinity_state                = "Enabled"
+  restore_traffic_or_new_endpoints_time = 10
+
+  tags = {
+    environment = "test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -236,31 +188,36 @@ resource "azurerm_frontdoor_origin_group" "test" {
   name                 = "acctest-c-%d"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 
-  health_probe_settings {
-    probe_interval_in_seconds = 0
-    probe_path                = ""
-    probe_protocol            = ""
-    probe_request_type        = ""
+  health_probe {
+    interval_in_seconds = 120
+    path                = "/healthProbe"
+    protocol            = "Http"
+    request_type        = "HEAD"
   }
 
-  load_balancing_settings {
-    additional_latency_in_milliseconds = 0
-    sample_size                        = 0
-    successful_samples_required        = 0
+  load_balancing {
+    additional_latency_in_milliseconds = 32
+    sample_size                        = 32
+    successful_samples_required        = 5
   }
 
   response_based_origin_error_detection {
     http_error_ranges {
-      begin = 0
-      end   = 0
+      begin = 100
+      end   = 999
     }
 
-    response_based_detected_error_types          = ""
-    response_based_failover_threshold_percentage = 0
+    detected_error_types          = "TcpErrorsOnly"
+    failover_threshold_percentage = 50
   }
 
-  session_affinity_state                                         = ""
-  traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 0
+  session_affinity_state                = "Disabled"
+  restore_traffic_or_new_endpoints_time = 15
+
+  tags = {
+    environment = "BADF00D"
+    tick        = "SPOOOOOOOOOOON"
+  }
 }
 `, template, data.RandomInteger)
 }

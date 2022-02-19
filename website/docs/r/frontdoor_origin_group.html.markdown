@@ -50,8 +50,8 @@ resource "frontdoor_origin_group" "test" {
     failover_threshold_percentage = 10
   }
 
-  session_affinity_state                                         = "Enabled"
-  traffic_restoration_time_to_healed_or_new_endpoints_in_minutes = 10
+  session_affinity_state                = "Enabled"
+  restore_traffic_or_new_endpoints_time = 10
 }
 ```
 
@@ -71,9 +71,9 @@ The following arguments are supported:
 
 * `session_affinity_state` - (Optional) Whether to allow session affinity on this host. Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `traffic_restoration_time_to_healed_or_new_endpoints_in_minutes` - (Optional) Time in minutes to shift the traffic to the endpoint gradually when an unhealthy endpoint comes healthy or a new endpoint is added. Default is `10` minutss.
+* `restore_traffic_or_new_endpoints_time` - (Optional) Time in minutes to shift the traffic to another endpoint when an healthy endpoint becomes unhealthy or a new endpoint is added. Default is `10` minutes.
 
-~> **NOTE:** This property is currently not supported, but will be in the near future.
+~> **NOTE:** This property is currently not used, but will be in the near future.
 
 ---
 

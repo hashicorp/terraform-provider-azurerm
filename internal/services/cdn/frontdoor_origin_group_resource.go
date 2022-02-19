@@ -201,7 +201,7 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"traffic_restoration_time_to_healed_or_new_endpoints_in_minutes": {
+			"restore_traffic_or_new_endpoints_time": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      10,
@@ -243,7 +243,7 @@ func resourceFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interfac
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
 			SessionAffinityState:                                  &sessionAffinityStateValue,
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes").(int))),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
 	if err := client.CreateThenPoll(ctx, id, props); err != nil {
@@ -295,7 +295,7 @@ func resourceFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{
 
 			d.Set("frontdoor_profile_name", props.ProfileName)
 			d.Set("session_affinity_state", props.SessionAffinityState)
-			d.Set("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
+			d.Set("restore_traffic_or_new_endpoints_time", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 		}
 	}
 	return nil
@@ -318,7 +318,7 @@ func resourceFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
 			SessionAffinityState:                                  &sessionAffinityStateValue,
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes").(int))),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
 	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
