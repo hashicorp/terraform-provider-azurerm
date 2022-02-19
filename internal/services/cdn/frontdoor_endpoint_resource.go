@@ -33,7 +33,7 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorEndpointID(id)
+			_, err := afdendpoints.ParseAfdEndpointID(id)
 			return err
 		}),
 

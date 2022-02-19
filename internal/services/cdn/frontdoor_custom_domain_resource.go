@@ -34,7 +34,7 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorCustomDomainID(id)
+			_, err := afdcustomdomains.ParseCustomDomainID(id)
 			return err
 		}),
 

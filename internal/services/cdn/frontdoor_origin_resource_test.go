@@ -129,7 +129,7 @@ resource "azurerm_frontdoor_origin" "test" {
   frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
   azure_origin_id           = ""
 
-  enabled_state                  = ""
+  enable_health_probes           = true
   enforce_certificate_name_check = false
   host_name                      = ""
   http_port                      = 0
@@ -151,7 +151,7 @@ resource "azurerm_frontdoor_origin" "import" {
   frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
   azure_origin_id           = ""
 
-  enabled_state                  = ""
+  enable_health_probes           = true
   enforce_certificate_name_check = false
   host_name                      = ""
   http_port                      = 0
@@ -173,7 +173,7 @@ resource "azurerm_frontdoor_origin" "test" {
   frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
   azure_origin_id           = ""
 
-  enabled_state                  = ""
+  enable_health_probes           = true
   enforce_certificate_name_check = false
   host_name                      = ""
   http_port                      = 0
@@ -195,7 +195,7 @@ resource "azurerm_frontdoor_origin" "test" {
   frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
   azure_origin_id           = ""
 
-  enabled_state                  = ""
+  enable_health_probes           = true
   enforce_certificate_name_check = false
   host_name                      = ""
   http_port                      = 0

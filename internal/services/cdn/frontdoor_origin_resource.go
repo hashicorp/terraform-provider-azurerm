@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -30,7 +31,7 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorOriginID(id)
+			_, err := afdorigins.ParseOriginGroupOriginID(id)
 			return err
 		}),
 
@@ -48,6 +49,13 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: afdorigingroups.ValidateOriginGroupID,
 			},
 
+			// HostName cannot be null or empty.;
+			"host_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"azure_origin_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -58,9 +66,10 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"enabled_state": {
-				Type:     pluginsdk.TypeString,
+			"enable_health_probes": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"enforce_certificate_name_check": {
@@ -68,19 +77,41 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"host_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
+			// Property 'AfdOrigin.Priority' cannot be set to '10000000'. Acceptable values are within range [1, 5];
+			// Property 'AfdOrigin.Weight' cannot be set to '10000000'. Acceptable values are within range [1, 1000]"
 			"http_port": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      80,
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
 			"https_port": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      443,
+				ValidateFunc: validation.IntBetween(1, 65535),
+			},
+
+			// Must be a valid domain name, IP version 4, or IP version 6
+			"origin_host_header": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: IsValidDomain,
+			},
+
+			"priority": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 5),
+			},
+
+			"weight": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      500,
+				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
 			"origin_group_name": {
@@ -88,24 +119,9 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"origin_host_header": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"priority": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-			},
-
 			"provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"weight": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
 			},
 		},
 	}
@@ -136,11 +152,10 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	enabledStateValue := afdorigins.EnabledState(d.Get("enabled_state").(string))
 	props := afdorigins.AFDOrigin{
 		Properties: &afdorigins.AFDOriginProperties{
 			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
-			EnabledState:                &enabledStateValue,
+			EnabledState:                ConvertOriginsBoolToEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    d.Get("host_name").(string),
 			HttpPort:                    utils.Int64(int64(d.Get("http_port").(int))),
@@ -150,6 +165,7 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Weight:                      utils.Int64(int64(d.Get("weight").(int))),
 		},
 	}
+
 	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -187,8 +203,9 @@ func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if err := d.Set("azure_origin_id", flattenOriginGroupOriginResourceReference(props.AzureOrigin)); err != nil {
 				return fmt.Errorf("setting `azure_origin_id`: %+v", err)
 			}
+
 			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("enabled_state", props.EnabledState)
+			d.Set("enable_health_probes", ConvertOriginsEnabledStateToBool(props.EnabledState))
 			d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
 			d.Set("host_name", props.HostName)
 			d.Set("http_port", props.HttpPort)
@@ -213,11 +230,10 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	enabledStateValue := afdorigins.EnabledState(d.Get("enabled_state").(string))
 	props := afdorigins.AFDOriginUpdateParameters{
 		Properties: &afdorigins.AFDOriginUpdatePropertiesParameters{
 			AzureOrigin:                 expandOriginGroupOriginResourceReference(d.Get("azure_origin_id").(string)),
-			EnabledState:                &enabledStateValue,
+			EnabledState:                ConvertOriginsBoolToEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HttpPort:                    utils.Int64(int64(d.Get("http_port").(int))),

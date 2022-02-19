@@ -50,7 +50,7 @@ resource "frontdoor_origin_group" "test" {
     failover_threshold_percentage = 10
   }
 
-  session_affinity_state                = "Enabled"
+  session_affinity                      = true
   restore_traffic_or_new_endpoints_time = 10
 }
 ```
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `response_based_origin_error_detection` - (Optional) A `response_based_origin_error_detection` block as defined below.
 
-* `session_affinity_state` - (Optional) Whether to allow session affinity on this host. Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `session_affinity` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
 
 * `restore_traffic_or_new_endpoints_time` - (Optional) Time in minutes to shift the traffic to another endpoint when an healthy endpoint becomes unhealthy or a new endpoint is added. Default is `10` minutes.
 

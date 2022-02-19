@@ -33,7 +33,7 @@ resource "azurerm_frontdoor_origin" "test" {
   frontdoor_profile_origin_group_id = azurerm_frontdoor_origin_group.test.id
   azure_origin_id                   = ""
 
-  enabled_state                  = ""
+  enable_health_probes           = true
   enforce_certificate_name_check = false
   host_name                      = ""
   http_port                      = 0
@@ -52,23 +52,23 @@ The following arguments are supported:
 
 * `frontdoor_origin_group_id` - (Required) The ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Origin Group to be created.
 
-* `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported.This should be unique across all origins in an endpoint.
+* `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported. This should be unique across all Frontdoor Origins in an Frontdoor Endpoints.
 
 * `azure_origin_id` - (Optional) Resource ID..
 
-* `enabled_state` - (Optional) Whether to enable health probes to be made against backends defined under backendPools. Health probes can only be disabled if there is a single enabled backend in single enabled backend pool.
+* `enable_health_probes` - (Optional) Are health probes enabled against backends defined under the backendPools? Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values are `true` or `false`. Defaults to `true`.
 
-* `enforce_certificate_name_check` - (Optional) Whether to enable certificate name check at origin level
+* `enforce_certificate_name_check` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
 
-* `http_port` - (Optional) The value of the HTTP port. Must be between 1 and 65535.
+* `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
-* `https_port` - (Optional) The value of the HTTPS port. Must be between 1 and 65535.
+* `https_port` - (Optional) The value of the HTTPS port. Must be between `1` and `65535`. Defaults to `443`.
 
-* `origin_host_header` - (Optional) The host header value sent to the origin with each request. If you leave this blank, the request hostname determines this value. Azure CDN origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin hostname by default. This overrides the host header defined at Endpoint
+* `origin_host_header` - (Optional) The host header value sent to the origin with each request. If you leave this blank, the requests hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin hostname. This fields value overrides the host header defined in the Frontdoor Endpoint.
 
-* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between 1 and 5
+* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between `1` and `5`(inclusive). Defaults to `1`.
 
-* `weight` - (Optional) Weight of the origin in given origin group for load balancing. Must be between 1 and 1000
+* `weight` - (Optional) Weight of the origin in given origin group for load balancing. Must be between `1` and `1000`(inclusive). Defaults to `500`.
 
 ---
 
@@ -80,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `deployment_status` - 
 
-* `origin_group_name` - The name of the origin group which contains this origin.
+* `origin_group_name` - The name of the origin group which contains this Frontdoor Origin.
 
 * `provisioning_state` - Provisioning status
 

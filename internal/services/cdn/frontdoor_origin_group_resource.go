@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +30,7 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorOriginGroupID(id)
+			_, err := afdorigingroups.ParseOriginGroupID(id)
 			return err
 		}),
 
@@ -191,14 +190,10 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"session_affinity_state": {
-				Type:     pluginsdk.TypeString,
+			"session_affinity": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  string(afdorigingroups.EnabledStateEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(afdorigingroups.EnabledStateEnabled),
-					string(afdorigingroups.EnabledStateDisabled),
-				}, false),
+				Default:  true,
 			},
 
 			"restore_traffic_or_new_endpoints_time": {
@@ -236,13 +231,12 @@ func resourceFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	sessionAffinityStateValue := afdorigingroups.EnabledState(d.Get("session_affinity_state").(string))
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
 			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  &sessionAffinityStateValue,
+			SessionAffinityState:                                  ConvertOriginGroupsBoolToEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
@@ -294,7 +288,7 @@ func resourceFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{
 			}
 
 			d.Set("frontdoor_profile_name", props.ProfileName)
-			d.Set("session_affinity_state", props.SessionAffinityState)
+			d.Set("session_affinity", ConvertOriginGroupsEnabledStateToBool(props.SessionAffinityState))
 			d.Set("restore_traffic_or_new_endpoints_time", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 		}
 	}
@@ -311,13 +305,12 @@ func resourceFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	sessionAffinityStateValue := afdorigingroups.EnabledState(d.Get("session_affinity_state").(string))
 	props := afdorigingroups.AFDOriginGroupUpdateParameters{
 		Properties: &afdorigingroups.AFDOriginGroupUpdatePropertiesParameters{
 			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  &sessionAffinityStateValue,
+			SessionAffinityState:                                  ConvertOriginGroupsBoolToEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}

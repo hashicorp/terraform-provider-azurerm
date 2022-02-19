@@ -169,7 +169,7 @@ resource "azurerm_frontdoor_origin_group" "test" {
     failover_threshold_percentage = 10
   }
 
-  session_affinity_state                = "Enabled"
+  session_affinity                      = true
   restore_traffic_or_new_endpoints_time = 10
 
   tags = {
@@ -211,7 +211,7 @@ resource "azurerm_frontdoor_origin_group" "test" {
     failover_threshold_percentage = 50
   }
 
-  session_affinity_state                = "Disabled"
+  session_affinity                      = false
   restore_traffic_or_new_endpoints_time = 15
 
   tags = {
