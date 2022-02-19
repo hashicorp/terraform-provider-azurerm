@@ -135,7 +135,7 @@ resource "azurerm_frontdoor_origin_group" "test" {
     successful_samples_required        = 0
   }
 
-  response_based_afd_origin_error_detection_settings {
+  response_based_origin_error_detection {
     http_error_ranges {
       begin = 0
       end   = 0
@@ -173,7 +173,7 @@ resource "azurerm_frontdoor_origin_group" "import" {
     successful_samples_required        = 0
   }
 
-  response_based_afd_origin_error_detection_settings {
+  response_based_origin_error_detection {
     http_error_ranges {
       begin = 0
       end   = 0
@@ -211,7 +211,7 @@ resource "azurerm_frontdoor_origin_group" "test" {
     successful_samples_required        = 0
   }
 
-  response_based_afd_origin_error_detection_settings {
+  response_based_origin_error_detection {
     http_error_ranges {
       begin = 0
       end   = 0
@@ -249,7 +249,7 @@ resource "azurerm_frontdoor_origin_group" "test" {
     successful_samples_required        = 0
   }
 
-  response_based_afd_origin_error_detection_settings {
+  response_based_origin_error_detection {
     http_error_ranges {
       begin = 0
       end   = 0

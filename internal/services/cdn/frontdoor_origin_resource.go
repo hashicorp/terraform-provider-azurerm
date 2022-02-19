@@ -121,11 +121,10 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	sdkId := afdorigins.NewOriginGroupOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
-	id := parse.NewFrontdoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	id := afdorigins.NewOriginGroupOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, sdkId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -151,7 +150,7 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Weight:                      utils.Int64(int64(d.Get("weight").(int))),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
+	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -164,17 +163,12 @@ func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigins.ParseOriginGroupOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorOriginID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, *sdkId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -185,7 +179,7 @@ func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.OriginName)
 
-	d.Set("frontdoor_origin_group_id", afdorigingroups.NewOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
+	d.Set("frontdoor_origin_group_id", afdorigingroups.NewOriginGroupID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.OriginGroupName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -214,12 +208,7 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigins.ParseOriginGroupOriginID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	id, err := parse.FrontdoorOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -238,7 +227,7 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Weight:                      utils.Int64(int64(d.Get("weight").(int))),
 		},
 	}
-	if err := client.UpdateThenPoll(ctx, *sdkId, props); err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -251,17 +240,12 @@ func resourceFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigins.ParseOriginGroupOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorOriginID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	if err := client.DeleteThenPoll(ctx, *sdkId); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

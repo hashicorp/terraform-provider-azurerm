@@ -3,12 +3,12 @@ subcategory: "Cdn"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_profile_custom_domain"
 description: |-
-  Manages a Frontdoor Profile Custom Domain.
+  Manages a Frontdoor Custom Domain.
 ---
 
 # azurerm_frontdoor_profile_custom_domain
 
-Manages a Frontdoor Profile Custom Domain.
+Manages a Frontdoor Custom Domain.
 
 ## Example Usage
 
@@ -18,14 +18,14 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_frontdoor_profile_custom_domain" "test" {
   name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_cdn_profile.test.id
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
   dns_zone_id          = ""
   host_name            = ""
 
@@ -45,11 +45,11 @@ resource "azurerm_frontdoor_profile_custom_domain" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Profile Custom Domain. Changing this forces a new Frontdoor Profile Custom Domain to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Changing this forces a new Frontdoor Custom Domain to be created.
 
 * `frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
-* `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new Frontdoor Profile Custom Domain to be created.
+* `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new Frontdoor Custom Domain to be created.
 
 * `dns_zone_id` - (Optional) Resource ID.
 
@@ -79,7 +79,7 @@ A `tls_settings` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Profile Custom Domain.
+* `id` - The ID of the Frontdoor Custom Domain.
 
 * `deployment_status` - 
 
@@ -103,14 +103,14 @@ A `validation_properties` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Profile Custom Domain.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Profile Custom Domain.
-* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Profile Custom Domain.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Profile Custom Domain.
+* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Custom Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Custom Domain.
+* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Custom Domain.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Custom Domain.
 
 ## Import
 
-Frontdoor Profile Custom Domains can be imported using the `resource id`, e.g.
+Frontdoor Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_frontdoor_profile_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1

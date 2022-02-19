@@ -115,7 +115,7 @@ func ValidateOriginGroupOriginID(input interface{}, key string) (warnings []stri
 
 // ID returns the formatted Origin Group Origin ID
 func (id OriginGroupOriginId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.CDN/profiles/%s/originGroups/%s/origins/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/originGroups/%s/origins/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.OriginGroupName, id.OriginName)
 }
 
@@ -127,7 +127,7 @@ func (id OriginGroupOriginId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticMicrosoftCDN", "Microsoft.CDN", "Microsoft.CDN"),
+		resourceids.ResourceProviderSegment("staticMicrosoftCdn", "Microsoft.Cdn", "Microsoft.Cdn"),
 		resourceids.StaticSegment("staticProfiles", "profiles", "profiles"),
 		resourceids.UserSpecifiedSegment("profileName", "profileValue"),
 		resourceids.StaticSegment("staticOriginGroups", "originGroups", "originGroups"),

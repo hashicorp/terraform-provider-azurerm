@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,29 +56,12 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentity(),
 
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"location": azure.SchemaLocation(),
-
 			"origin_response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
 				ForceNew:     true,
 				Optional:     true,
 				Default:      120,
 				ValidateFunc: validation.IntBetween(16, 240),
-			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"resource_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"sku_name": {
@@ -114,11 +96,10 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	id := parse.NewFrontdoorProfileID(subscriptionId, sdkId.ResourceGroupName, sdkId.ProfileName)
+	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, sdkId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -130,7 +111,8 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
+	// Can only be Global for all Frontdoors
+	location := azure.NormalizeLocation("global")
 
 	identity, err := expandSystemAndUserAssignedIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -147,7 +129,7 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
+	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -181,11 +163,8 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("frontdoor_id", props.FrontDoorId)
-			d.Set("kind", model.Kind)
 			d.Set("identity", flattenSystemAndUserAssignedIdentity(props.Identity))
 			d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
-			d.Set("provisioning_state", props.ProvisioningState)
-			d.Set("resource_state", props.ResourceState)
 		}
 
 		if err := d.Set("sku_name", flattenProfileSku(&model.Sku)); err != nil {

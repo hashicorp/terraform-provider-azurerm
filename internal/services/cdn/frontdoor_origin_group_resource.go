@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -53,7 +54,7 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"health_probe_settings": {
+			"health_probe": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -61,30 +62,46 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"probe_interval_in_seconds": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+						"interval_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      240,
+							ValidateFunc: validation.IntBetween(5, 31536000),
 						},
 
-						"probe_path": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "/",
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"probe_protocol": {
+						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(afdorigingroups.ProbeProtocolHttps),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(afdorigingroups.ProbeProtocolHttp),
+								string(afdorigingroups.ProbeProtocolHttps),
+								string(afdorigingroups.ProbeProtocolNotSet),
+							}, false),
 						},
 
-						"probe_request_type": {
+						"request_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(afdorigingroups.HealthProbeRequestTypeGET),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(afdorigingroups.HealthProbeRequestTypeGET),
+								string(afdorigingroups.HealthProbeRequestTypeHEAD),
+								string(afdorigingroups.HealthProbeRequestTypeNotSet),
+							}, false),
 						},
 					},
 				},
 			},
 
-			"load_balancing_settings": {
+			"load_balancing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -93,34 +110,35 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 
 						"additional_latency_in_milliseconds": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 
 						"sample_size": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      16,
+							ValidateFunc: validation.IntBetween(0, 255),
 						},
 
 						"successful_samples_required": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      3,
+							ValidateFunc: validation.IntBetween(0, 255),
 						},
 					},
 				},
 			},
 
-			"profile_name": {
+			"frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"response_based_afd_origin_error_detection_settings": {
+			"response_based_origin_error_detection": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -136,26 +154,38 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 
 									"begin": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      300,
+										ValidateFunc: validation.IntBetween(100, 999),
 									},
 
 									"end": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      599,
+										ValidateFunc: validation.IntBetween(100, 999),
 									},
 								},
 							},
 						},
 
-						"response_based_detected_error_types": {
+						"detected_error_types": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(afdorigingroups.ResponseBasedDetectedErrorTypesTcpAndHttpErrors),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(afdorigingroups.ResponseBasedDetectedErrorTypesNone),
+								string(afdorigingroups.ResponseBasedDetectedErrorTypesTcpAndHttpErrors),
+								string(afdorigingroups.ResponseBasedDetectedErrorTypesTcpErrorsOnly),
+							}, false),
 						},
 
-						"response_based_failover_threshold_percentage": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+						"failover_threshold_percentage": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 					},
 				},
@@ -164,11 +194,18 @@ func resourceFrontdoorOriginGroup() *pluginsdk.Resource {
 			"session_affinity_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(afdorigingroups.EnabledStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(afdorigingroups.EnabledStateEnabled),
+					string(afdorigingroups.EnabledStateDisabled),
+				}, false),
 			},
 
 			"traffic_restoration_time_to_healed_or_new_endpoints_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      10,
+				ValidateFunc: validation.IntBetween(0, 50),
 			},
 		},
 	}
@@ -184,11 +221,10 @@ func resourceFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	sdkId := afdorigingroups.NewOriginGroupID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
-	id := parse.NewFrontdoorOriginGroupID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
+	id := afdorigingroups.NewOriginGroupID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, sdkId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -203,14 +239,14 @@ func resourceFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interfac
 	sessionAffinityStateValue := afdorigingroups.EnabledState(d.Get("session_affinity_state").(string))
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
-			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe_settings").([]interface{})),
-			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing_settings").([]interface{})),
-			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_afd_origin_error_detection_settings").([]interface{})),
+			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
+			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
 			SessionAffinityState:                                  &sessionAffinityStateValue,
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes").(int))),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
+	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -224,17 +260,12 @@ func resourceFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigingroups.ParseOriginGroupID(d.Id())
+	id, err := afdorigingroups.ParseOriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorOriginGroupID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, *sdkId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -244,26 +275,25 @@ func resourceFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.OriginGroupName)
-
-	d.Set("frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("deployment_status", props.DeploymentStatus)
 
-			if err := d.Set("health_probe_settings", flattenOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
-				return fmt.Errorf("setting `health_probe_settings`: %+v", err)
+			if err := d.Set("health_probe", flattenOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
+				return fmt.Errorf("setting `health_probe`: %+v", err)
 			}
 
-			if err := d.Set("load_balancing_settings", flattenOriginGroupLoadBalancingSettingsParameters(props.LoadBalancingSettings)); err != nil {
-				return fmt.Errorf("setting `load_balancing_settings`: %+v", err)
+			if err := d.Set("load_balancing", flattenOriginGroupLoadBalancingSettingsParameters(props.LoadBalancingSettings)); err != nil {
+				return fmt.Errorf("setting `load_balancing`: %+v", err)
 			}
-			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
 
-			if err := d.Set("response_based_afd_origin_error_detection_settings", flattenOriginGroupResponseBasedOriginErrorDetectionParameters(props.ResponseBasedAfdOriginErrorDetectionSettings)); err != nil {
-				return fmt.Errorf("setting `response_based_afd_origin_error_detection_settings`: %+v", err)
+			if err := d.Set("response_based_origin_error_detection", flattenOriginGroupResponseBasedOriginErrorDetectionParameters(props.ResponseBasedAfdOriginErrorDetectionSettings)); err != nil {
+				return fmt.Errorf("setting `response_based_origin_error_detection`: %+v", err)
 			}
+
+			d.Set("frontdoor_profile_name", props.ProfileName)
 			d.Set("session_affinity_state", props.SessionAffinityState)
 			d.Set("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 		}
@@ -276,12 +306,7 @@ func resourceFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigingroups.ParseOriginGroupID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	id, err := parse.FrontdoorOriginGroupID(d.Id())
+	id, err := afdorigingroups.ParseOriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -289,14 +314,14 @@ func resourceFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 	sessionAffinityStateValue := afdorigingroups.EnabledState(d.Get("session_affinity_state").(string))
 	props := afdorigingroups.AFDOriginGroupUpdateParameters{
 		Properties: &afdorigingroups.AFDOriginGroupUpdatePropertiesParameters{
-			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe_settings").([]interface{})),
-			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing_settings").([]interface{})),
-			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_afd_origin_error_detection_settings").([]interface{})),
+			HealthProbeSettings:                                   expandOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
+			LoadBalancingSettings:                                 expandOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			ResponseBasedAfdOriginErrorDetectionSettings:          expandOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
 			SessionAffinityState:                                  &sessionAffinityStateValue,
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int64(int64(d.Get("traffic_restoration_time_to_healed_or_new_endpoints_in_minutes").(int))),
 		},
 	}
-	if err := client.UpdateThenPoll(ctx, *sdkId, props); err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -308,17 +333,12 @@ func resourceFrontdoorOriginGroupDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdorigingroups.ParseOriginGroupID(d.Id())
+	id, err := afdorigingroups.ParseOriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorOriginGroupID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	if err := client.DeleteThenPoll(ctx, *sdkId); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
@@ -331,11 +351,11 @@ func expandOriginGroupHealthProbeParameters(input []interface{}) *afdorigingroup
 
 	v := input[0].(map[string]interface{})
 
-	probeProtocolValue := afdorigingroups.ProbeProtocol(v["probe_protocol"].(string))
-	probeRequestTypeValue := afdorigingroups.HealthProbeRequestType(v["probe_request_type"].(string))
+	probeProtocolValue := afdorigingroups.ProbeProtocol(v["protocol"].(string))
+	probeRequestTypeValue := afdorigingroups.HealthProbeRequestType(v["request_type"].(string))
 	return &afdorigingroups.HealthProbeParameters{
-		ProbeIntervalInSeconds: utils.Int64(int64(v["probe_interval_in_seconds"].(int))),
-		ProbePath:              utils.String(v["probe_path"].(string)),
+		ProbeIntervalInSeconds: utils.Int64(int64(v["interval_in_seconds"].(int))),
+		ProbePath:              utils.String(v["path"].(string)),
 		ProbeProtocol:          &probeProtocolValue,
 		ProbeRequestType:       &probeRequestTypeValue,
 	}
@@ -362,11 +382,11 @@ func expandOriginGroupResponseBasedOriginErrorDetectionParameters(input []interf
 
 	v := input[0].(map[string]interface{})
 
-	responseBasedDetectedErrorTypesValue := afdorigingroups.ResponseBasedDetectedErrorTypes(v["response_based_detected_error_types"].(string))
+	responseBasedDetectedErrorTypesValue := afdorigingroups.ResponseBasedDetectedErrorTypes(v["detected_error_types"].(string))
 	return &afdorigingroups.ResponseBasedOriginErrorDetectionParameters{
 		HttpErrorRanges:                          expandOriginGroupHttpErrorRangeParametersArray(v["http_error_ranges"].([]interface{})),
 		ResponseBasedDetectedErrorTypes:          &responseBasedDetectedErrorTypesValue,
-		ResponseBasedFailoverThresholdPercentage: utils.Int64(int64(v["response_based_failover_threshold_percentage"].(int))),
+		ResponseBasedFailoverThresholdPercentage: utils.Int64(int64(v["failover_threshold_percentage"].(int))),
 	}
 }
 
@@ -415,11 +435,11 @@ func flattenOriginGroupResponseBasedOriginErrorDetectionParameters(input *afdori
 	result["http_error_ranges"] = flattenOriginGroupHttpErrorRangeParametersArray(input.HttpErrorRanges)
 
 	if input.ResponseBasedDetectedErrorTypes != nil {
-		result["response_based_detected_error_types"] = *input.ResponseBasedDetectedErrorTypes
+		result["detected_error_types"] = *input.ResponseBasedDetectedErrorTypes
 	}
 
 	if input.ResponseBasedFailoverThresholdPercentage != nil {
-		result["response_based_failover_threshold_percentage"] = *input.ResponseBasedFailoverThresholdPercentage
+		result["failover_threshold_percentage"] = *input.ResponseBasedFailoverThresholdPercentage
 	}
 	return append(results, result)
 }
@@ -455,19 +475,19 @@ func flattenOriginGroupHealthProbeParameters(input *afdorigingroups.HealthProbeP
 	result := make(map[string]interface{})
 
 	if input.ProbeIntervalInSeconds != nil {
-		result["probe_interval_in_seconds"] = *input.ProbeIntervalInSeconds
+		result["interval_in_seconds"] = *input.ProbeIntervalInSeconds
 	}
 
 	if input.ProbePath != nil {
-		result["probe_path"] = *input.ProbePath
+		result["path"] = *input.ProbePath
 	}
 
 	if input.ProbeProtocol != nil {
-		result["probe_protocol"] = *input.ProbeProtocol
+		result["protocol"] = *input.ProbeProtocol
 	}
 
 	if input.ProbeRequestType != nil {
-		result["probe_request_type"] = *input.ProbeRequestType
+		result["request_type"] = *input.ProbeRequestType
 	}
 
 	return append(results, result)
