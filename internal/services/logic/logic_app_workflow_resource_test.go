@@ -166,6 +166,12 @@ func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateAccessControlWithStep(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -514,6 +520,35 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LogicAppWorkflowResource) updateAccessControlWithStep(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_custom" "test" {
+  name         = "test"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+
+  body = <<BODY
+{
+    "description": "A variable to configure the auto expiration age in days. Configured in negative number. Default is -30 (30 days old).",
+    "inputs": {
+        "variables": [
+            {
+                "name": "ExpirationAgeInDays",
+                "type": "Integer",
+                "value": -30
+            }
+        ]
+    },
+    "runAfter": {},
+    "type": "InitializeVariable"
+}
+BODY
+}
+
+`, r.updateAccessControl(data))
 }
 
 func (LogicAppWorkflowResource) systemAssignedIdentity(data acceptance.TestData) string {
