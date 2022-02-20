@@ -1,13 +1,14 @@
 package cdn
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ConvertFrontdoorProfileTags(tagMap *map[string]string) map[string]*string {
+func ConvertFrontdoorTags(tagMap *map[string]string) map[string]*string {
 	t := make(map[string]*string)
 
 	if tagMap != nil {
@@ -27,6 +28,7 @@ func ConvertBoolToOriginsEnabledState(isEnabled bool) *afdorigins.EnabledState {
 	if isEnabled {
 		out = afdorigins.EnabledState(afdorigins.EnabledStateEnabled)
 	}
+
 	return &out
 }
 
@@ -108,6 +110,24 @@ func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *routes.LinkToDef
 	}
 
 	return (*linkToDefaultDomain == routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled))
+}
+
+func ConvertBoolToEndpointsEnabledState(isEnabled bool) *afdendpoints.EnabledState {
+	out := afdendpoints.EnabledState(afdendpoints.EnabledStateDisabled)
+
+	if isEnabled {
+		out = afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled)
+	}
+
+	return &out
+}
+
+func ConvertEndpointsEnabledStateToBool(enabledState *afdendpoints.EnabledState) bool {
+	if enabledState == nil {
+		return false
+	}
+
+	return (*enabledState == afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled))
 }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {

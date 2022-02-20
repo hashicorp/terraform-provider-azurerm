@@ -26,9 +26,8 @@ resource "azurerm_frontdoor_profile" "test" {
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
-  enabled_state                   = ""
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
+  enabled                         = true
+  origin_response_timeout_seconds = 60
 
   tags = {
     ENV = "Test"
@@ -44,12 +43,11 @@ The following arguments are supported:
 
 * `frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Endpoint to be created.
 
-* `location` - (Required) The Azure Region where the Frontdoor Endpoint should exist. Changing this forces a new Frontdoor Endpoint to be created.
+* `enabled` - (Optional) Should this Frontdoor Endpoint be used? Possible values include `true` or `false`. Defaults to `true`.
 
-* `enabled_state` - (Optional) Whether to enable use of this rule. Permitted values are 'Enabled' or 'Disabled'
+* `origin_response_timeout_seconds` - (Optional) Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Defaults to `60` seconds.
 
-* `origin_response_timeout_seconds` - (Optional) Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns.
-
+~> **NOTE:** Due to a bug in the service code the `origin_response_timeout_seconds` will always be set to the default value of 60 seconds.
 * `tags` - (Optional) A mapping of tags which should be assigned to the Frontdoor Endpoint.
 
 ## Attributes Reference
@@ -58,13 +56,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Endpoint.
 
-* `deployment_status` - 
+* `host_name` - The host name of the Frontdoor Endpoint structured as `\[endpointName\].\[DNSZone\]`(e.g. contoso.azureedge.net).
 
-* `host_name` - The host name of the endpoint structured as {endpointName}.{DNSZone}, e.g. contoso.azureedge.net
-
-* `profile_name` - The name of the profile which holds the endpoint.
-
-* `provisioning_state` - Provisioning status
+* `frontdoor_profile_name` - The name of the Frontdoor Profile which holds the endpoint.
 
 ## Timeouts
 

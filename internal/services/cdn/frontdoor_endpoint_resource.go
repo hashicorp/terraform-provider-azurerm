@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontdoorEndpoint() *pluginsdk.Resource {
@@ -51,14 +51,10 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 				ValidateFunc: profiles.ValidateProfileID,
 			},
 
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"enabled_state": {
-				Type:     pluginsdk.TypeString,
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"host_name": {
@@ -66,19 +62,13 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"location": azure.SchemaLocation(),
-
 			"origin_response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				Default:  60,
 			},
 
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
+			"frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -98,11 +88,10 @@ func resourceFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	sdkId := afdendpoints.NewAfdEndpointID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
-	id := parse.NewFrontdoorEndpointID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
+	id := afdendpoints.NewAfdEndpointID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, sdkId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -114,22 +103,26 @@ func resourceFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
-	enabledStateValue := afdendpoints.EnabledState(d.Get("enabled_state").(string))
+	location := azure.NormalizeLocation("global")
+
 	props := afdendpoints.AFDEndpoint{
+		Name:     utils.String(d.Get("name").(string)),
 		Location: location,
 		Properties: &afdendpoints.AFDEndpointProperties{
-			EnabledState: &enabledStateValue,
+			EnabledState: ConvertBoolToEndpointsEnabledState(d.Get("enabled").(bool)),
+			// Bug in API, the OriginResponseTimeoutSeconds is not currently exposed
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
+
 		},
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
 
+	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
 	return resourceFrontdoorEndpointRead(d, meta)
 }
 
@@ -138,17 +131,14 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdendpoints.ParseAfdEndpointID(d.Id())
+	id, err := afdendpoints.ParseAfdEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorEndpointID(d.Id())
-	if err != nil {
-		return err
-	}
+	profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName)
 
-	resp, err := client.Get(ctx, *sdkId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -157,26 +147,29 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.AfdEndpointName)
-
-	d.Set("frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("name", id.EndpointName)
+	d.Set("frontdoor_profile_id", profileId.ID())
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
-			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("enabled_state", props.EnabledState)
+			d.Set("enabled", ConvertEndpointsEnabledStateToBool(props.EnabledState))
 			d.Set("host_name", props.HostName)
+
+			// BUG: Profile Name is not being returned by that API pull it from the ID
+			d.Set("frontdoor_profile_name", id.ProfileName)
+
+			// BUG API does not currently expose this field so temporarily hardcoding to default value
 			// d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
-			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
+			d.Set("origin_response_timeout_seconds", 60)
 		}
 
-		// TODO: Fix Tag Type
-		// if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
-		// 	return err
-		// }
+		if err := tags.FlattenAndSet(d, ConvertFrontdoorTags(model.Tags)); err != nil {
+			return err
+		}
 	}
+
+	d.SetId(id.ID())
+
 	return nil
 }
 
@@ -185,26 +178,26 @@ func resourceFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := afdendpoints.ParseAfdEndpointID(d.Id())
+	profileId, err := profiles.ParseProfileID(d.Get("frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorEndpointID(d.Id())
+	id, err := afdendpoints.ParseAfdEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	enabledStateValue := afdendpoints.EnabledState(d.Get("enabled_state").(string))
 	props := afdendpoints.AFDEndpointUpdateParameters{
 		Properties: &afdendpoints.AFDEndpointPropertiesUpdateParameters{
-			EnabledState: &enabledStateValue,
+			EnabledState: ConvertBoolToEndpointsEnabledState(d.Get("enabled").(bool)),
+			ProfileName:  utils.String(profileId.ProfileName),
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
 		},
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if err := client.UpdateThenPoll(ctx, *sdkId, props); err != nil {
 
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

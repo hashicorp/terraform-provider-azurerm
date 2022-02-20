@@ -120,17 +120,14 @@ func (r FrontdoorProfileEndpointResource) basic(data acceptance.TestData) string
 				%s
 
 resource "azurerm_frontdoor_endpoint" "test" {
-  name                            = "acctest-c-%d"
-  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
-  enabled_state                   = ""
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r FrontdoorProfileEndpointResource) requiresImport(data acceptance.TestData) string {
@@ -139,17 +136,14 @@ func (r FrontdoorProfileEndpointResource) requiresImport(data acceptance.TestDat
 			%s
 
 resource "azurerm_frontdoor_endpoint" "import" {
-  name                            = azurerm_frontdoor_endpoint.test.name
-  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
-  enabled_state                   = ""
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
+  name                 = azurerm_frontdoor_endpoint.test.name
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 
   tags = {
     ENV = "Test"
   }
 }
-`, config, data.Locations.Primary)
+`, config)
 }
 
 func (r FrontdoorProfileEndpointResource) complete(data acceptance.TestData) string {
@@ -160,15 +154,14 @@ func (r FrontdoorProfileEndpointResource) complete(data acceptance.TestData) str
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
-  enabled_state                   = ""
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
+  enabled_state                   = true
+  origin_response_timeout_seconds = 60
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r FrontdoorProfileEndpointResource) update(data acceptance.TestData) string {
@@ -179,11 +172,12 @@ func (r FrontdoorProfileEndpointResource) update(data acceptance.TestData) strin
 resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
-  enabled_state                   = ""
-  origin_response_timeout_seconds = 0
+  enabled_state                   = false
+  origin_response_timeout_seconds = 60
 
   tags = {
-    ENV = "Test"
+    ENV      = "Test"
+    ENDPOINT = "FLYNNS.COM"
   }
 }
 `, template, data.RandomInteger)

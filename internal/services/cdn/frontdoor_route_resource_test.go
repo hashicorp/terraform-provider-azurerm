@@ -137,7 +137,7 @@ resource "azurerm_frontdoor_route" "test" {
     id = ""
   }
 
-  enabled         = true
+  enabled                = true
   forwarding_protocol    = true
   https_redirect         = true
   link_to_default_domain = true

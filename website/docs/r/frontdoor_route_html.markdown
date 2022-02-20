@@ -43,7 +43,7 @@ resource "azurerm_frontdoor_route" "test" {
   link_to_default_domain = true
   patterns_to_match      = ["/*"]
   supported_protocols    = "HttpsOnly"
-  
+
   origin_group_id = azurerm_frontdoor_origin_group.test.id
   rule_set_ids    = [azurerm_frontdoor_rule_set.test.id]
 

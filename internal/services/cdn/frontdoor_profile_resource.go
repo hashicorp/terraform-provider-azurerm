@@ -169,7 +169,7 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, ConvertFrontdoorProfileTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, ConvertFrontdoorTags(model.Tags)); err != nil {
 			return err
 		}
 	}
