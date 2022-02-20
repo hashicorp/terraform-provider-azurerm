@@ -145,7 +145,7 @@ resource "azurerm_frontdoor_route" "test" {
   origin_path            = ""
   patterns_to_match      = []
   rule_set_ids           = [""]
-  supported_protocols    = "HttpsOnly"
+  supported_protocols    = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -176,7 +176,7 @@ resource "azurerm_frontdoor_route" "import" {
   origin_path            = ""
   patterns_to_match      = []
   rule_set_ids           = [""]
-  supported_protocols    = ""
+  supported_protocols    = ["Http", "Https"]
 }
 `, config)
 }
@@ -207,7 +207,7 @@ resource "azurerm_frontdoor_route" "test" {
   origin_path            = ""
   patterns_to_match      = [""]
   rule_set_ids           = [""]
-  supported_protocols    = ""
+  supported_protocols    = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -238,7 +238,7 @@ resource "azurerm_frontdoor_route" "test" {
   origin_path            = ""
   patterns_to_match      = []
   rule_set_ids           = [""]
-  supported_protocols    = ""
+  supported_protocols    = ["Https"]
 }
 `, template, data.RandomInteger)
 }

@@ -57,7 +57,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"query_parameters": {
+						"query_strings": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 
@@ -223,14 +223,17 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
 			OriginGroup:         *expandRouteResourceReference(d.Get("origin_group_id").(string)),
-			OriginPath:          utils.String(d.Get("origin_path").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 
+	if originPath := d.Get("origin_path").(string); originPath != "" {
+		props.Properties.OriginPath = utils.String(originPath)
+	}
+
+	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -265,13 +268,15 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props := model.Properties; props != nil {
 			d.Set("deployment_status", props.DeploymentStatus)
 			d.Set("enabled", ConvertRoutesEnabledStateToBool(props.EnabledState))
-			d.Set("endpoint_name", props.EndpointName)
 			d.Set("forwarding_protocol", props.ForwardingProtocol)
 			d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(props.HttpsRedirect))
 			d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 			d.Set("origin_path", props.OriginPath)
 			d.Set("patterns_to_match", props.PatternsToMatch)
 			d.Set("provisioning_state", props.ProvisioningState)
+
+			// BUG: Endpoint name is not being returned by the API
+			d.Set("endpoint_name", id.EndpointName)
 
 			if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 				return fmt.Errorf("setting `cache_configuration`: %+v", err)
@@ -281,8 +286,8 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `custom_domains`: %+v", err)
 			}
 
-			if err := d.Set("origin_group", flattenRouteResourceReference(&props.OriginGroup)); err != nil {
-				return fmt.Errorf("setting `origin_group`: %+v", err)
+			if err := d.Set("origin_group_id", flattenRouteResourceReference(&props.OriginGroup)); err != nil {
+				return fmt.Errorf("setting `origin_group_id`: %+v", err)
 			}
 
 			if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
@@ -318,14 +323,17 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
 			OriginGroup:         expandRouteResourceReference(d.Get("origin_group_id").(string)),
-			OriginPath:          utils.String(d.Get("origin_path").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
-	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 
+	if originPath := d.Get("origin_path").(string); originPath != "" {
+		props.Properties.OriginPath = &originPath
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -394,7 +402,7 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *routes.AfdRoute
 
 	queryStringCachingBehaviorValue := routes.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
 	return &routes.AfdRouteCacheConfiguration{
-		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_parameters"].([]interface{})),
+		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: &queryStringCachingBehaviorValue,
 	}
 }
@@ -459,18 +467,17 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResou
 	return results
 }
 
-func flattenRouteResourceReference(input *routes.ResourceReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteResourceReference(input *routes.ResourceReference) string {
+	result := ""
 	if input == nil {
-		return results
+		return result
 	}
-
-	result := make(map[string]interface{})
 
 	if input.Id != nil {
-		result["id"] = *input.Id
+		result = *input.Id
 	}
-	return append(results, result)
+
+	return result
 }
 
 func flattenRouteResourceReferenceArry(input *[]routes.ResourceReference) []interface{} {
@@ -510,7 +517,7 @@ func flattenFrontdoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfigur
 	result := make(map[string]interface{})
 
 	if input.QueryParameters != nil {
-		result["query_parameters"] = flattenFrontdoorRouteQueryParameters(input.QueryParameters)
+		result["query_strings"] = flattenFrontdoorRouteQueryParameters(input.QueryParameters)
 	}
 
 	if input.QueryStringCachingBehavior != nil {

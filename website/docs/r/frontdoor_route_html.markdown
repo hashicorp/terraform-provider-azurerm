@@ -42,14 +42,14 @@ resource "azurerm_frontdoor_route" "test" {
   https_redirect         = true
   link_to_default_domain = true
   patterns_to_match      = ["/*"]
-  supported_protocols    = "HttpsOnly"
+  supported_protocols    = ["Http", "Https"]
 
   origin_group_id = azurerm_frontdoor_origin_group.test.id
   rule_set_ids    = [azurerm_frontdoor_rule_set.test.id]
 
   cache_configuration {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
-    query_parameters              = ["account", "settings"]
+    query_strings              = ["account", "settings"]
   }
 }
 ```
@@ -88,11 +88,11 @@ The following arguments are supported:
 
 A `cache_configuration` block supports the following:
 
-* `query_parameters` - (Optional) Query parameters to include or ignore.
-
-~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_parameters` will be used as an include list or an ignore list.
-
 * `query_string_caching_behavior` - (Optional) Defines how the Frontdoor will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
+
+~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_strings` will be used as an include list or an ignore list.
+
+* `query_strings` - (Optional) Query strings to include or ignore.
 
 ---
 
