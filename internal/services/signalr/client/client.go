@@ -11,6 +11,7 @@ type Client struct {
 	WebPubsubClient                          *webpubsub.Client
 	WebPubsubHubsClient                      *webpubsub.HubsClient
 	WebPubsubSharedPrivateLinkResourceClient *webpubsub.SharedPrivateLinkResourcesClient
+	WebPubsubPrivateLinkedResourceClient     *webpubsub.PrivateLinkResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -26,10 +27,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	webPubsubSharedPrivateLinkResourceClient := webpubsub.NewSharedPrivateLinkResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webPubsubSharedPrivateLinkResourceClient.Client, o.ResourceManagerAuthorizer)
 
+	webPubsubPrivateLinkResourceClient := webpubsub.NewPrivateLinkResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webPubsubPrivateLinkResourceClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		SignalRClient:                            &signalRClient,
 		WebPubsubClient:                          &webpubsubClient,
 		WebPubsubHubsClient:                      &webpubsubHubsClient,
 		WebPubsubSharedPrivateLinkResourceClient: &webPubsubSharedPrivateLinkResourceClient,
+		WebPubsubPrivateLinkedResourceClient:     &webPubsubPrivateLinkResourceClient,
 	}
 }
