@@ -982,11 +982,6 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
 		}
 
-		// Do not set value unless value is greater than 0 - issue 15516
-		if iops > 0 {
-			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
-		}
-
 		var mbps int
 		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
 			mbps = diskMbps.(int)
@@ -996,6 +991,11 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 
 		if mbps > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1059,18 +1059,18 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_iops_read_write":      iops,
-			"disk_mbps_read_write":      mbps,
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if iops > 0 {
 			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+			dataDisk["disk_iops_read_write"] = iops
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if mbps > 0 {
 			dataDisk["ultra_ssd_mbps_read_write"] = mbps
+			dataDisk["disk_mbps_read_write"] = mbps
 		}
 
 		output = append(output, dataDisk)
