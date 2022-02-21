@@ -1,6 +1,9 @@
 package cdn
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
@@ -145,4 +148,12 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 	}
 
 	return warnings, errors
+}
+
+func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers.`, k))
+	}
+
+	return nil, nil
 }

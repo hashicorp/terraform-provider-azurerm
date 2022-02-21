@@ -33,9 +33,10 @@ func resourceFrontdoorRuleSet() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidateFrontdoorRuleSetName,
 			},
 
 			"frontdoor_profile_id": {
@@ -45,17 +46,7 @@ func resourceFrontdoorRuleSet() *pluginsdk.Resource {
 				ValidateFunc: profiles.ValidateProfileID,
 			},
 
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
+			"frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -88,10 +79,7 @@ func resourceFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	// TODO: rulestes.{}
-	//props := rulesets.RuleSetProperties{}
 	if _, err := client.Create(ctx, id); err != nil {
-
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -119,16 +107,14 @@ func resourceFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.RuleSetName)
-
 	d.Set("frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
+			d.Set("frontdoor_profile_name", props.ProfileName)
 		}
 	}
+
 	return nil
 }
 

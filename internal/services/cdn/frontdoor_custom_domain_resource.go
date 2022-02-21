@@ -58,11 +58,6 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"domain_validation_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -81,11 +76,6 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 			},
 
 			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -224,19 +214,17 @@ func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
+			d.Set("domain_validation_state", props.DomainValidationState)
+			d.Set("host_name", props.HostName)
+			d.Set("frontdoor_profile_name", props.ProfileName)
 
 			if err := d.Set("azure_dns_zone", flattenCustomDomainResourceReference(props.AzureDnsZone)); err != nil {
 				return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
 			}
-			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("domain_validation_state", props.DomainValidationState)
-			d.Set("host_name", props.HostName)
 
 			if err := d.Set("pre_validated_custom_domain_resource_id", flattenCustomDomainResourceReference(props.PreValidatedCustomDomainResourceId)); err != nil {
 				return fmt.Errorf("setting `pre_validated_custom_domain_resource_id`: %+v", err)
 			}
-			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
 
 			if err := d.Set("tls_settings", flattenCustomDomainAFDDomainHttpsParameters(props.TlsSettings)); err != nil {
 				return fmt.Errorf("setting `tls_settings`: %+v", err)

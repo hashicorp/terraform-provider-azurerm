@@ -99,7 +99,7 @@ A `load_balancing` block supports the following:
 
 ---
 
-A `response_based_afd_origin_error_detection_settings` block supports the following:
+A `response_based_origin_error_detection` block supports the following:
 
 * `http_error_ranges` - (Optional) A `http_error_ranges` block as defined below.
 

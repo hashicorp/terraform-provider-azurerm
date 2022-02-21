@@ -58,27 +58,6 @@ func TestAccFrontdoorRuleSet_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorRuleSet_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_rule_set", "test")
-	r := FrontdoorRuleSetResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r FrontdoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := rulesets.ParseRuleSetID(state.ID)
 	if err != nil {
@@ -120,10 +99,10 @@ func (r FrontdoorRuleSetResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "acctest-c-%d"
+  name                 = "acctestrs%da"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(5))
 }
 
 func (r FrontdoorRuleSetResource) requiresImport(data acceptance.TestData) string {
@@ -144,20 +123,8 @@ func (r FrontdoorRuleSetResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "acctest-c-%d"
+  name                 = "acctestrs%da"
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
-`, template, data.RandomInteger)
-}
-
-func (r FrontdoorRuleSetResource) update(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-}
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(5))
 }

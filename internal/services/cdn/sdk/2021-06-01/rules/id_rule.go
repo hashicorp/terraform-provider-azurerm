@@ -115,7 +115,7 @@ func ValidateRuleID(input interface{}, key string) (warnings []string, errors []
 
 // ID returns the formatted Rule ID
 func (id RuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.CDN/profiles/%s/ruleSets/%s/rules/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/ruleSets/%s/rules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName, id.RuleName)
 }
 

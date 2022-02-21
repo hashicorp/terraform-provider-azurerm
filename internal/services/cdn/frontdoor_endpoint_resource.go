@@ -65,7 +65,7 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 			"origin_response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Default:  60,
+				Default:  120,
 			},
 
 			"frontdoor_profile_name": {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -53,6 +54,17 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(rules.DeliveryRuleActionCacheExpiration),
+						string(rules.DeliveryRuleActionCacheKeyQueryString),
+						string(rules.DeliveryRuleActionModifyRequestHeader),
+						string(rules.DeliveryRuleActionModifyResponseHeader),
+						string(rules.DeliveryRuleActionOriginGroupOverride),
+						string(rules.DeliveryRuleActionRouteConfigurationOverride),
+						string(rules.DeliveryRuleActionUrlRedirect),
+						string(rules.DeliveryRuleActionUrlRewrite),
+						string(rules.DeliveryRuleActionUrlSigning),
+					}, false),
 				},
 			},
 
@@ -62,27 +74,44 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(rules.MatchVariableClientPort),
+						string(rules.MatchVariableCookies),
+						string(rules.MatchVariableHostName),
+						string(rules.MatchVariableHttpVersion),
+						string(rules.MatchVariableIsDevice),
+						string(rules.MatchVariablePostArgs),
+						string(rules.MatchVariableQueryString),
+						string(rules.MatchVariableRemoteAddress),
+						string(rules.MatchVariableRequestBody),
+						string(rules.MatchVariableRequestHeader),
+						string(rules.MatchVariableRequestMethod),
+						string(rules.MatchVariableRequestScheme),
+						string(rules.MatchVariableRequestUri),
+						string(rules.MatchVariableServerPort),
+						string(rules.MatchVariableSocketAddr),
+						string(rules.MatchVariableSslProtocol),
+						string(rules.MatchVariableUrlFileExtension),
+						string(rules.MatchVariableUrlFileName),
+						string(rules.MatchVariableUrlPath),
+					}, false),
 				},
-			},
-
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"match_processing_behavior": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(rules.MatchProcessingBehaviorContinue),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(rules.MatchProcessingBehaviorContinue),
+					string(rules.MatchProcessingBehaviorStop),
+				}, false),
 			},
 
 			"order": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"rule_set_name": {
@@ -121,9 +150,10 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	matchProcessingBehaviorValue := rules.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	props := rules.Rule{
 		Properties: &rules.RuleProperties{
-			Actions:                 expandRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
+			Actions:                 expandOptionalRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
 			MatchProcessingBehavior: &matchProcessingBehaviorValue,
+			RuleSetName:             &ruleSetId.RuleSetName,
 			Order:                   int64(d.Get("order").(int)),
 		},
 	}
@@ -156,11 +186,13 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", id.RuleName)
-
 	d.Set("frontdoor_rule_set_id", rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
+			d.Set("match_processing_behavior", props.MatchProcessingBehavior)
+			d.Set("order", props.Order)
+			d.Set("rule_set_name", props.RuleSetName)
 
 			if err := d.Set("actions", flattenRuleDeliveryRuleActionArray(&props.Actions)); err != nil {
 				return fmt.Errorf("setting `actions`: %+v", err)
@@ -169,13 +201,9 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err := d.Set("conditions", flattenRuleDeliveryRuleConditionArray(props.Conditions)); err != nil {
 				return fmt.Errorf("setting `conditions`: %+v", err)
 			}
-			d.Set("deployment_status", props.DeploymentStatus)
-			d.Set("match_processing_behavior", props.MatchProcessingBehavior)
-			d.Set("order", props.Order)
-			d.Set("provisioning_state", props.ProvisioningState)
-			d.Set("rule_set_name", props.RuleSetName)
 		}
 	}
+
 	return nil
 }
 
@@ -192,7 +220,7 @@ func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	matchProcessingBehaviorValue := rules.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	props := rules.RuleUpdateParameters{
 		Properties: &rules.RuleUpdatePropertiesParameters{
-			Actions:                 expandRuleDeliveryRuleActionArrayPtr(d.Get("actions").([]interface{})),
+			Actions:                 expandRequiredRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
 			MatchProcessingBehavior: &matchProcessingBehaviorValue,
 			Order:                   utils.Int64(int64(d.Get("order").(int))),
@@ -225,36 +253,48 @@ func resourceFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]rules.DeliveryRuleCondition {
 	results := make([]rules.DeliveryRuleCondition, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		nameValue := rules.MatchVariable(v["name"].(string))
+	if len(input) == 0 {
+		return &results
+	}
+
+	conditions := utils.ExpandStringSlice(input)
+
+	for _, condition := range *conditions {
 		results = append(results, rules.DeliveryRuleCondition{
-			Name: nameValue,
+			Name: rules.MatchVariable(condition),
 		})
 	}
+
 	return &results
 }
 
-func expandRuleDeliveryRuleActionArray(input []interface{}) []rules.DeliveryRuleAction {
-	results := make([]rules.DeliveryRuleAction, 0)
+func expandOptionalRuleDeliveryRuleActionArray(input []interface{}) []rules.DeliveryRuleAction {
+	if len(input) == 0 {
+		return make([]rules.DeliveryRuleAction, 0)
+	}
 
-	for _, item := range input {
-		nameValue := rules.DeliveryRuleAction(item.(string))
-		results = append(results, nameValue)
+	return expandRuleDeliveryRuleActions(input)
+}
+
+func expandRequiredRuleDeliveryRuleActionArray(input []interface{}) *[]rules.DeliveryRuleAction {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := expandRuleDeliveryRuleActions(input)
+
+	return &results
+}
+
+func expandRuleDeliveryRuleActions(input []interface{}) []rules.DeliveryRuleAction {
+	results := make([]rules.DeliveryRuleAction, 0)
+	actions := utils.ExpandStringSlice(input)
+
+	for _, action := range *actions {
+		results = append(results, rules.DeliveryRuleAction(action))
 	}
 
 	return results
-}
-
-func expandRuleDeliveryRuleActionArrayPtr(input []interface{}) *[]rules.DeliveryRuleAction {
-	results := make([]rules.DeliveryRuleAction, 0)
-
-	for _, item := range input {
-		nameValue := rules.DeliveryRuleAction(item.(string))
-		results = append(results, nameValue)
-	}
-
-	return &results
 }
 
 func flattenRuleDeliveryRuleConditionArray(input *[]rules.DeliveryRuleCondition) []interface{} {
@@ -263,10 +303,8 @@ func flattenRuleDeliveryRuleConditionArray(input *[]rules.DeliveryRuleCondition)
 		return results
 	}
 
-	for _, item := range *input {
-		result := make(map[string]interface{})
-		result["name"] = item.Name
-		results = append(results, result)
+	for _, condition := range *input {
+		results = append(results, condition.Name)
 	}
 
 	return results
@@ -278,10 +316,8 @@ func flattenRuleDeliveryRuleActionArray(input *[]rules.DeliveryRuleAction) []int
 		return results
 	}
 
-	for _, item := range *input {
-		result := make(map[string]interface{})
-		result["name"] = string(item)
-		results = append(results, result)
+	for _, action := range *input {
+		results = append(results, string(action))
 	}
 
 	return results

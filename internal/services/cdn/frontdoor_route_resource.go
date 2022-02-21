@@ -63,6 +63,16 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringNotInSlice([]string{
+									"&",
+									",",
+									"/",
+									":",
+									";",
+									"=",
+									"?",
+									"@",
+								}, false),
 							},
 						},
 
@@ -93,17 +103,12 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"enabled": {
+						"active": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 					},
 				},
-			},
-
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"enabled": {
@@ -155,11 +160,6 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"rule_set_ids": {
@@ -266,14 +266,12 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("deployment_status", props.DeploymentStatus)
 			d.Set("enabled", ConvertRoutesEnabledStateToBool(props.EnabledState))
 			d.Set("forwarding_protocol", props.ForwardingProtocol)
 			d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(props.HttpsRedirect))
 			d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 			d.Set("origin_path", props.OriginPath)
 			d.Set("patterns_to_match", props.PatternsToMatch)
-			d.Set("provisioning_state", props.ProvisioningState)
 
 			// BUG: Endpoint name is not being returned by the API
 			d.Set("endpoint_name", id.EndpointName)
@@ -459,7 +457,7 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResou
 		}
 
 		if input.IsActive != nil {
-			result["enabled"] = *input.IsActive
+			result["active"] = *input.IsActive
 		}
 		results = append(results, result)
 	}

@@ -155,7 +155,7 @@ resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = true
-  origin_response_timeout_seconds = 60
+  origin_response_timeout_seconds = 120
 
   tags = {
     ENV = "Test"
@@ -173,7 +173,7 @@ resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled_state                   = false
-  origin_response_timeout_seconds = 60
+  origin_response_timeout_seconds = 120
 
   tags = {
     ENV      = "Test"

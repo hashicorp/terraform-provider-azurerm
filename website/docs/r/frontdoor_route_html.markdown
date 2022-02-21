@@ -49,7 +49,7 @@ resource "azurerm_frontdoor_route" "test" {
 
   cache_configuration {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
-    query_strings              = ["account", "settings"]
+    query_strings                 = ["account", "settings"]
   }
 }
 ```
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `custom_domains` - (Optional) A `custom_domains` block as defined below.
 
-* `enabled` - (Optional) Is this routing rule enabled? Possible values are `true` or `false`. Defaults to `true`.
+* `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
 * `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `HttpsOnly`.
 
@@ -100,6 +100,8 @@ A `custom_domains` block supports the following:
 
 * `id` - (Optional) Resource ID.
 
+* `active` - Is the custom domain active?
+
 ---
 
 ## Attributes Reference
@@ -108,19 +110,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Route.
 
-* `custom_domains` - A `custom_domains` block as defined below.
-
-* `deployment_status` - 
-
-* `endpoint_name` - The name of the endpoint which holds the route.
-
-* `provisioning_state` - Provisioning status
+* `endpoint_name` - The name of the Frontdoor Endpoint which holds the Frontdoor Route.
 
 ---
-
-A `custom_domains` block exports the following:
-
-* `is_active` - Whether the resource is active or inactive
 
 ## Timeouts
 

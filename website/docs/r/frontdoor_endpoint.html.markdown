@@ -27,7 +27,7 @@ resource "azurerm_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
   frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
   enabled                         = true
-  origin_response_timeout_seconds = 60
+  origin_response_timeout_seconds = 120
 
   tags = {
     ENV = "Test"
@@ -45,9 +45,10 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Frontdoor Endpoint be used? Possible values include `true` or `false`. Defaults to `true`.
 
-* `origin_response_timeout_seconds` - (Optional) Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Defaults to `60` seconds.
+* `origin_response_timeout_seconds` - (Optional) Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Defaults to `120` seconds.
 
-~> **NOTE:** Due to a bug in the service code the `origin_response_timeout_seconds` will always be set to the default value of 60 seconds.
+~> **NOTE:** Due to a bug in the service code the `origin_response_timeout_seconds` will always be set to the default value of `120` seconds.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Frontdoor Endpoint.
 
 ## Attributes Reference

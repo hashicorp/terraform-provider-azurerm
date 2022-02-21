@@ -113,8 +113,8 @@ resource "azurerm_frontdoor_profile" "test" {
 }
 
 resource "azurerm_frontdoor_rule_set" "test" {
-  name           = "acctest-c-%d"
-  cdn_profile_id = azurerm_frontdoor_profile_profile.test.id
+  name                 = "acctest-c-%d"
+  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -128,16 +128,7 @@ resource "azurerm_frontdoor_rule" "test" {
   name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
 
-  actions {
-    name = ""
-  }
-
-  conditions {
-    name = ""
-  }
-
-  match_processing_behavior = ""
-  order                     = 0
+  order = 0
 }
 `, template, data.RandomInteger)
 }
@@ -151,16 +142,7 @@ resource "azurerm_frontdoor_rule" "import" {
   name                  = azurerm_frontdoor_rule.test.name
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
 
-  actions {
-    name = ""
-  }
-
-  conditions {
-    name = ""
-  }
-
-  match_processing_behavior = ""
-  order                     = 0
+  order = 0
 }
 `, config)
 }
@@ -174,16 +156,11 @@ resource "azurerm_frontdoor_rule" "test" {
   name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
 
-  actions {
-    name = ""
-  }
+  actions    = ["CacheExpiration", "UrlRedirect", "OriginGroupOverride"]
+  conditions = ["HostName", "IsDevice", "PostArgs", "RequestMethod"]
 
-  conditions {
-    name = ""
-  }
-
-  match_processing_behavior = ""
-  order                     = 0
+  match_processing_behavior = "Continue"
+  order                     = 1
 }
 `, template, data.RandomInteger)
 }
@@ -197,16 +174,11 @@ resource "azurerm_frontdoor_rule" "test" {
   name                  = "acctest-c-%d"
   frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
 
-  actions {
-    name = ""
-  }
+  actions    = ["CacheExpiration", "UrlRedirect"]
+  conditions = ["HostName", "IsDevice", "RequestMethod"]
 
-  conditions {
-    name = ""
-  }
-
-  match_processing_behavior = ""
-  order                     = 0
+  match_processing_behavior = "Stop"
+  order                     = 2
 }
 `, template, data.RandomInteger)
 }
