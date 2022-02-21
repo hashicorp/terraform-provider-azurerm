@@ -243,6 +243,7 @@ resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
+  sku                      = "Premium"
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
     ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
@@ -251,6 +252,25 @@ resource "azurerm_firewall_policy" "test" {
   dns {
     servers       = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled = true
+  }
+  intrusion_detection {
+    mode = "Alert"
+    signature_overrides {
+      state = "Alert"
+      id    = "1"
+    }
+    traffic_bypass {
+      name              = "Name bypass traffic settings"
+      protocol          = "Any"
+      description       = "Description bypass traffic settings"
+      destination_ports = ["*"]
+      destination_addresses = [
+        "8.8.8.8",
+      ]
+      source_addresses = [
+        "10.0.0.0/16",
+      ]
+    }
   }
   tags = {
     env = "Test"
