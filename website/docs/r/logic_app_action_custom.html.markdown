@@ -44,9 +44,13 @@ resource "azurerm_logic_app_action_custom" "example" {
     "type": "InitializeVariable"
 }
 BODY
-
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 ```
+
+-> **NOTE:** Due to Azure API limitations for Logic Apps lifecycle meta-argument `create_before_destroy` is recommended to avoid some validation errors during deployment of modified workflows. Due to limitations of Azure API it's not possible to handle all of them.
 
 ## Argument Reference
 
