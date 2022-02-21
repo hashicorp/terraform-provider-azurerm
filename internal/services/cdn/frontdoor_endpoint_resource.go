@@ -160,7 +160,7 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			// BUG API does not currently expose this field so temporarily hardcoding to default value
 			// d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
-			d.Set("origin_response_timeout_seconds", 60)
+			d.Set("origin_response_timeout_seconds", 120)
 		}
 
 		if err := tags.FlattenAndSet(d, ConvertFrontdoorTags(model.Tags)); err != nil {
