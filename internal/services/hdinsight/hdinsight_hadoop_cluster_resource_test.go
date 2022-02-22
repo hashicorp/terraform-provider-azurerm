@@ -2195,7 +2195,13 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
           schedule {
             days                  = ["Monday"]
-            time                  = "18:30"
+            time                  = "10:00"
+            target_instance_count = 5
+          }
+
+          schedule {
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
             target_instance_count = 3
           }
         }
@@ -2250,9 +2256,9 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
+      vm_size  = "Standard_D4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
 
       autoscale {
         recurrence {
@@ -2260,7 +2266,13 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
           schedule {
             days                  = ["Monday"]
-            time                  = "18:30"
+            time                  = "10:00"
+            target_instance_count = 5
+          }
+
+          schedule {
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
             target_instance_count = 3
           }
         }

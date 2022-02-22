@@ -201,6 +201,44 @@ func TestAccHDInsightRServerCluster_tls(t *testing.T) {
 	})
 }
 
+func TestAccHDInsightRServerCluster_updateTargetInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
+	r := HDInsightRServerClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.initTargetInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"roles.0.edge_node.0.password",
+			"roles.0.edge_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.removeTargetInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"roles.0.edge_node.0.password",
+			"roles.0.edge_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func (t HDInsightRServerClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -704,6 +742,145 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightRServerClusterResource) initTargetInstanceCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_rserver_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+  rstudio             = true
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D3_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+
+      autoscale {
+        recurrence {
+          timezone = "Pacific Standard Time"
+
+          schedule {
+            days                  = ["Monday"]
+            time                  = "18:30"
+            target_instance_count = 3
+          }
+        }
+      }
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    edge_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightRServerClusterResource) removeTargetInstanceCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_rserver_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+  rstudio             = true
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+
+      autoscale {
+        recurrence {
+          timezone = "Pacific Standard Time"
+
+          schedule {
+            days                  = ["Monday"]
+            time                  = "18:30"
+            target_instance_count = 3
+          }
+        }
+      }
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    edge_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+
+  tags = {
+    ENV = "Test2"
   }
 }
 `, r.template(data), data.RandomInteger)

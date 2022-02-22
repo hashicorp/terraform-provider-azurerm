@@ -2022,9 +2022,9 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
 
       autoscale {
         recurrence {
