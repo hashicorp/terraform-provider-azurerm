@@ -206,10 +206,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
-
-~> **Note:** The block `role_based_access_control` is deprecated and will be removed in version 3.0 of the AzureRM Provider in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control`.
-
 * `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified. 
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -320,28 +316,6 @@ An `auto_scaler_profile` block supports the following:
 ---
 
 An `azure_active_directory_role_based_access_control` block supports the following:
-
-* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
-
-* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
-
-When `managed` is set to `true` the following properties can be specified:
-
-* `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
-
-* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
-
-When `managed` is set to `false` the following properties can be specified:
-
-* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
-
-* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
-
-* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
-
----
-
-An `azure_active_directory` block supports the following:
 
 * `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
@@ -678,15 +652,6 @@ An `azure_keyvault_secrets_provider` block supports the following:
 * `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
 
 ~> **Note:** This block is deprecated and will be removed in favour of the `key_vault_secrets_provider` block in version 3.0 of the AzureRM Provider.
-
----
-
-
-A `role_based_access_control` block supports the following:
-
-* `azure_active_directory` - (Optional) An `azure_active_directory` block.
-
-* `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 
 ---
 
