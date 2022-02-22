@@ -1075,7 +1075,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			if !features.ThreePointOhBeta() {
 				dataDisk["disk_mbps_read_write"] = mbps
 			} else {
-				dataDisk["ultra_ssd_mbps_read_write"] = mbps
+				dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
 			}
 		}
 
