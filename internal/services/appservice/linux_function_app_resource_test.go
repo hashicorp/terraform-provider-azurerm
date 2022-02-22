@@ -837,7 +837,7 @@ func TestAccLinuxFunctionApp_identityKeyVaultIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identityUserAssigned(data, SkuStandardPlan),
+			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

@@ -427,7 +427,7 @@ func TestAccLinuxWebAppSlot_identityKeyVaultIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identityUserAssigned(data),
+			Config: r.identityUserAssignedKeyVaultIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
