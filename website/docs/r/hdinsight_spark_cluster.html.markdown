@@ -232,9 +232,13 @@ A `worker_node` block supports the following:
 
 * `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
 
+-> **NOTE:** The `target_instance_count` must be set to initialize the number of instances while creating.
+
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
+
+-> **NOTE:** The `target_instance_count` cannot be changed anymore and has to be removed from TF configuration to avoid TF difference because `target_instance_count` would be automatically changed per auto scale settings while updating and `autoscale` is enabled.
 
 ---
 

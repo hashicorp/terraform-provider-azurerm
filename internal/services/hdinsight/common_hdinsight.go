@@ -46,6 +46,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			roles := rolesRaw[0].(map[string]interface{})
 			workerNodes := roles["worker_node"].([]interface{})
 			workerNode := workerNodes[0].(map[string]interface{})
+
+			// `target_instance_count` cannot be changed while updating and `autoscale` is enabled
 			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
 				targetInstanceCount := workerNode["target_instance_count"].(int)
 				params := hdinsight.ClusterResizeParameters{

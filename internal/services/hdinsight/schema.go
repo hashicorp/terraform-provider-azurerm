@@ -808,7 +808,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 		result["target_instance_count"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ValidateFunc: countValidation,
 		}
 
@@ -994,6 +995,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 			role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
 		}
 
+		// `target_instance_count` must be set while creating
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
 
