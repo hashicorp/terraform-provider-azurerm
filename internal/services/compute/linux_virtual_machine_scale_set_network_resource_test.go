@@ -26,7 +26,7 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.
 
 // This is not a valid test case, so I am removing it. In order to make this work you need to
 // stop and deallocated all VMs in the VMSS in order to enable/disable accelerated networking
-//  https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli#enable-accelerated-networking-on-existing-vms
+// https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli#enable-accelerated-networking-on-existing-vms
 
 // func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
 // 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
