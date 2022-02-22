@@ -1627,18 +1627,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 2
       number_of_disks_per_node = 2
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "18:30"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {
@@ -1694,18 +1682,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       number_of_disks_per_node = 2
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "18:30"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {

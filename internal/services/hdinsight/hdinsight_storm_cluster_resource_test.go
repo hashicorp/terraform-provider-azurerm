@@ -1154,18 +1154,6 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "18:30"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {
@@ -1220,18 +1208,6 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
       vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "18:30"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {
