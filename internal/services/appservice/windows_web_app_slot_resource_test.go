@@ -416,7 +416,7 @@ func TestAccWindowsWebAppSlot_identity(t *testing.T) {
 }
 
 func TestAccWindowsWebAppSlot_identityKeyVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
