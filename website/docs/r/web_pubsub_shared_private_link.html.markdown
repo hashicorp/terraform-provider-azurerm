@@ -15,15 +15,15 @@ Manages the Shared Private Link Resource for a Web Pubsub service.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-webpubsub"
   location = "east us"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -46,19 +46,19 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "example" {
   name                = "tfex-webpubsub"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard_S1"
   capacity            = 1
 }
 
-resource "azurerm_web_pubsub_shared_private_link_resource" "test" {
-  name                     = "tfex-webpubsub-splr"
-  web_pubsub_id            = azurerm_web_pubsub.test.id
-  group_id                 = "sites"
-  private_link_resource_id = azurerm_key_vault.test.id
+resource "azurerm_web_pubsub_shared_private_link_resource" "example" {
+  name               = "tfex-webpubsub-splr"
+  web_pubsub_id      = azurerm_web_pubsub.example.id
+  subresource_name   = "vault"
+  target_resource_id = azurerm_key_vault.example.id
 }
 ```
 
@@ -66,25 +66,27 @@ resource "azurerm_web_pubsub_shared_private_link_resource" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Web Pubsub Shared Private Link Resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specify the name of the Web Pubsub Shared Private Link Resource. Changing this forces a new resource to be created.
 
 * `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
-* `subresource_name` - (Required) Specifies the sub resource name which the Web Pubsub Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+* `subresource_name` - (Required) Specify the sub resource name which the Web Pubsub Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
 -> **NOTE:** The available sub resource can be retrieved by using `azurerm_web_pubsub_private_link_resource` data source.
 
-* `target_resource_id` - (Required) The ID of the Shared Private Link Enabled Remote Resource which this Web Pubsub Private Endpoint should be connected to. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) Specify the ID of the Shared Private Link Enabled Remote Resource which this Web Pubsub Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
 -> **NOTE:** The sub resource name should match with the type of the target resource id that's being specified.
 
-* `request_message` - (Optional) The request message for requesting approval of the Shared Private Link Enabled Remote Resource.
+* `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
 ## Attributes Reference:
 
 The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Shared Private Link resource.
+
+* `status` - The status of a private endpoint connection. Possible values are Pending, Approved, Rejected or Disconnected.
 
 ## Timeouts
 
@@ -100,6 +102,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Web Pubsub Shared Private Link Resource can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/sharedPrivateLinkResources/resource1
+terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/sharedPrivateLinkResources/resource1
 ```
 

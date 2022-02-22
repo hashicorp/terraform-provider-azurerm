@@ -55,12 +55,14 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 			"subresource_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
 			},
 
 			"target_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 

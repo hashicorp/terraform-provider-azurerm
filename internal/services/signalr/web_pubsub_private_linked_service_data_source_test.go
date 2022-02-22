@@ -11,7 +11,7 @@ import (
 type WebPubsubPrivateLinkedServiceDataSource struct{}
 
 func TestAccWebPubsubPrivateLinkedService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_private_link_resource", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_web_pubsub_private_link_resource", "test")
 	r := WebPubsubPrivateLinkedServiceDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{

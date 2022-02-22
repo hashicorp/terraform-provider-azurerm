@@ -14,12 +14,12 @@ Use this data source to access information about the Private Link Resource suppo
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "terraform-webpubsub"
+  location = "east us"
 }
 
 resource "azurerm_web_pubsub" "test" {
-  name                = "acctestWebPubsub-%d"
+  name                = "tfex-webpubsub"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_S1"
@@ -37,7 +37,7 @@ data "azurerm_web_pubsub_private_link_resource" "test" {
 
 ## Attributes Reference
 
-* `id` - The ID of the existing Web Pubsub Resource which supports the retrieved Private Link Resource list.
+* `id` - The ID of an existing Web Pubsub Resource which supports the retrieved Private Link Resource list.
 
 * `shared_private_link_resource_types` - A `shared_private_link_resource_types` block as defined below.
 
