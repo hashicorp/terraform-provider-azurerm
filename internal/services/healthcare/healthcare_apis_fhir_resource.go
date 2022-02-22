@@ -289,7 +289,7 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -338,7 +338,7 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
+		if response.WasNotFound(future.HttpResponse) {
 			return nil
 		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
