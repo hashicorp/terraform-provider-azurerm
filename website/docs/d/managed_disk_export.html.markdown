@@ -22,22 +22,22 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_managed_disk" "disk" {
-	name                 = "azureManagedDisk"
-	location             = azurerm_resource_group.rg.location
-	resource_group_name  = azurerm_resource_group.rg.name
-	storage_account_type = "Standard_LRS"
-	create_option        = "Empty"
-	disk_size_gb         = "1"
+  name                 = "azureManagedDisk"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-    tags = {
-      environment = "staging"
-    }
+  tags = {
+    environment = "staging"
+  }
 }
 
 data "azurerm_managed_disk_export" "disk" {
-	managed_disk_id  = azurerm_managed_disk.disk.id
-	duration_in_seconds = 300
-	access = "Read"
+  managed_disk_id     = azurerm_managed_disk.disk.id
+  duration_in_seconds = 300
+  access              = "Read"
 }
 
 output "sas_url_query_string" {
