@@ -1063,14 +1063,20 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if iops > 0 {
-			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-			dataDisk["disk_iops_read_write"] = iops
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_iops_read_write"] = iops
+			} else {
+				dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+			}
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if mbps > 0 {
-			dataDisk["ultra_ssd_mbps_read_write"] = mbps
-			dataDisk["disk_mbps_read_write"] = mbps
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_mbps_read_write"] = mbps
+			} else {
+				dataDisk["ultra_ssd_mbps_read_write"] = mbps
+			}
 		}
 
 		output = append(output, dataDisk)

@@ -761,7 +761,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data acceptance.TestData) string {
@@ -815,7 +815,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data acceptance.TestData) string {
@@ -924,7 +924,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskWriteAcceleratorEnabled(data acceptance.TestData) string {
