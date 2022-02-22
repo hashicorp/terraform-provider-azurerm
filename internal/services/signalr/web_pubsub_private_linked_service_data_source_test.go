@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type WebPubsubPrivateLinkedServiceDataSource struct {}
+type WebPubsubPrivateLinkedServiceDataSource struct{}
 
 func TestAccWebPubsubPrivateLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_private_link_resource", "test")
@@ -20,7 +20,7 @@ func TestAccWebPubsubPrivateLinkedService_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_private_link_resource_types.#").Exists(),
 				check.That(data.ResourceName).Key("id").Exists(),
-				),
+			),
 		},
 	})
 }

@@ -31,7 +31,7 @@ func dataSourceWebPubsubPrivateLinkResource() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"group_id": {
+						"subresource_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -77,7 +77,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 				item := make(map[string]interface{})
 				if props := resource.Properties; props != nil {
 					if props.GroupID != nil {
-						item["group_id"] = props.GroupID
+						item["subresource_name"] = props.GroupID
 					}
 					if props.Description != nil {
 						item["description"] = props.Description

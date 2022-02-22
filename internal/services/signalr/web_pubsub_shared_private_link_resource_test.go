@@ -92,10 +92,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_web_pubsub_shared_private_link_resource" "test" {
-  name                     = "acctest-%d"
-  web_pubsub_id            = azurerm_web_pubsub.test.id
-  group_id                 = "sites"
-  private_link_resource_id = azurerm_key_vault.test.id
+  name               = "acctest-%d"
+  web_pubsub_id      = azurerm_web_pubsub.test.id
+  subresource_name   = "vault"
+  target_resource_id = azurerm_key_vault.test.id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -106,10 +106,10 @@ func (r WebPubsubSharedPrivateLinkResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_web_pubsub_shared_private_link_resource" "import" {
-  name                     = azurerm_web_pubsub_shared_private_link_resource.test.name
-  web_pubsub_id            = azurerm_web_pubsub_shared_private_link_resource.test.web_pubsub_id
-  group_id                 = azurerm_web_pubsub_shared_private_link_resource.group_id
-  private_link_resource_id = azurerm_web_pubsub_shared_private_link_resource.private_link_resource_id
+  name               = azurerm_web_pubsub_shared_private_link_resource.test.name
+  web_pubsub_id      = azurerm_web_pubsub_shared_private_link_resource.test.web_pubsub_id
+  subresource_name   = azurerm_web_pubsub_shared_private_link_resource.test.subresource_name
+  target_resource_id = azurerm_web_pubsub_shared_private_link_resource.test.target_resource_id
 }
 `, config)
 }
@@ -119,6 +119,8 @@ func (r WebPubsubSharedPrivateLinkResource) template(data acceptance.TestData) s
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-wps-%d"

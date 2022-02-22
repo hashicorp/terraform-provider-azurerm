@@ -52,13 +52,13 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 				ValidateFunc: validate.WebPubsubID,
 			},
 
-			"group_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+			"subresource_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
 				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
 			},
 
-			"private_link_resource_id": {
+			"target_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -105,8 +105,8 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 
 	parameters := webpubsub.SharedPrivateLinkResource{
 		SharedPrivateLinkResourceProperties: &webpubsub.SharedPrivateLinkResourceProperties{
-			GroupID:               utils.String(d.Get("group_id").(string)),
-			PrivateLinkResourceID: utils.String(d.Get("private_link_resource_id").(string)),
+			GroupID:               utils.String(d.Get("subresource_name").(string)),
+			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
 		},
 	}
 
@@ -147,11 +147,11 @@ func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, me
 
 	if props := resp.SharedPrivateLinkResourceProperties; props != nil {
 		if props.GroupID != nil {
-			d.Set("group_id", props.GroupID)
+			d.Set("subresource_name", props.GroupID)
 		}
 
 		if props.PrivateLinkResourceID != nil {
-			d.Set("private_link_resource_id", props.PrivateLinkResourceID)
+			d.Set("target_resource_id", props.PrivateLinkResourceID)
 		}
 
 		if props.RequestMessage != nil {
