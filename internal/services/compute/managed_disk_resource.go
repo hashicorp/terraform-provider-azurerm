@@ -136,7 +136,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.OperatingSystemTypesWindows),
 						string(compute.OperatingSystemTypesLinux),
-					}, true),
+					}, !features.ThreePointOh()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"disk_size_gb": {
@@ -693,8 +694,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
 
-		locks.ByName(name, virtualMachineResourceName)
-		defer locks.UnlockByName(name, virtualMachineResourceName)
+		locks.ByName(name, VirtualMachineResourceName)
+		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {

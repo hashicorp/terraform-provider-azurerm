@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +19,9 @@ import (
 type PolicyVirtualMachineConfigurationAssignmentResource struct{}
 
 func TestAccPolicyVirtualMachineConfigurationAssignment_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
 	r := PolicyVirtualMachineConfigurationAssignmentResource{}
 
@@ -32,6 +37,9 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 }
 
 func TestAccPolicyVirtualMachineConfigurationAssignment_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
 	r := PolicyVirtualMachineConfigurationAssignmentResource{}
 
@@ -47,6 +55,9 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_requiresImport(t *testin
 }
 
 func TestAccPolicyVirtualMachineConfigurationAssignment_update(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
 	r := PolicyVirtualMachineConfigurationAssignmentResource{}
 

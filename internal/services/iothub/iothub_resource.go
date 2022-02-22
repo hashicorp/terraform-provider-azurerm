@@ -321,12 +321,12 @@ func resourceIotHub() *pluginsdk.Resource {
 							Default:  string(devices.EncodingAvro),
 							DiffSuppressFunc: suppressWhenAny(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								suppress.CaseDifference),
+								suppress.CaseDifferenceV2Only),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.EncodingAvro),
 								string(devices.EncodingAvroDeflate),
 								string(devices.EncodingJSON),
-							}, true),
+							}, !features.ThreePointOh()),
 						},
 
 						"file_name_format": {
@@ -337,7 +337,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							ValidateFunc:     iothubValidate.FileNameFormat,
 						},
 
-						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
+						"resource_group_name": commonschema.ResourceGroupNameOptional(),
 					},
 				},
 			},

@@ -116,6 +116,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					Computed: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_rbac_authorization": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -202,7 +203,6 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
-		// TODO: remove in 3.0
 		if !features.ThreePointOhBeta() {
 			d.Set("soft_delete_enabled", true)
 		}

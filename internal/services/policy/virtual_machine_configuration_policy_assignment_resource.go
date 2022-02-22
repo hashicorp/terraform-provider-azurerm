@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: Remove in 3.0
+// CLEANUP: 3.0 does not use this resource. Remove file after release.
 func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		DeprecationMessage: "`azurerm_virtual_machine_configuration_policy_assignment` resource is deprecated in favor of `azurerm_policy_virtual_machine_configuration_assignment` and will be removed in v3.0 of the AzureRM Provider",

@@ -230,9 +230,12 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   routing_rule {
     name               = "routing-rule"
@@ -293,9 +296,12 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   routing_rule {
     name               = "routing-rule"
@@ -347,8 +353,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-frontdoor-%d"
-  location = "%s"
+  name     = "acctestRG-frontdoor-%[1]d"
+  location = "%[2]s"
 }
 
 locals {
@@ -359,10 +365,13 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  location                                     = "%s"
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[2]s"
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   routing_rule {
     name               = "routing-rule"
@@ -398,10 +407,10 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name      = local.endpoint_name
-    host_name = "acctest-FD-%d.azurefd.net"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r FrontDoorResource) requiresImport(data acceptance.TestData) string {
@@ -409,9 +418,12 @@ func (r FrontDoorResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_frontdoor" "import" {
-  name                                         = azurerm_frontdoor.test.name
-  resource_group_name                          = azurerm_frontdoor.test.resource_group_name
-  enforce_backend_pools_certificate_name_check = azurerm_frontdoor.test.enforce_backend_pools_certificate_name_check
+  name                = azurerm_frontdoor.test.name
+  resource_group_name = azurerm_frontdoor.test.resource_group_name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = azurerm_frontdoor.test.backend_pool_settings.0.enforce_backend_pools_certificate_name_check
+  }
 
   routing_rule {
     name               = "routing-rule"
@@ -472,10 +484,14 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
-  backend_pools_send_receive_timeout_seconds   = 45
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+    backend_pools_send_receive_timeout_seconds   = 45
+  }
+
 
   routing_rule {
     name               = "routing-rule"
@@ -542,9 +558,13 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
+
 
   routing_rule {
     name               = "routing-rule"
@@ -606,9 +626,13 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
+
 
   routing_rule {
     name               = "routing-rule"
@@ -669,9 +693,13 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
+
 
   routing_rule {
     name               = "routing-rule"
@@ -727,9 +755,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%[1]d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   frontend_endpoint {
     name      = "acctest-FD-%[1]d-default-FE"
@@ -837,9 +868,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%[1]d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
+
 
   frontend_endpoint {
     name      = "acctest-FD-%[1]d-default-FE"
@@ -914,9 +949,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%[1]d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   frontend_endpoint {
     name      = "acctest-FD-%[1]d-default-FE"

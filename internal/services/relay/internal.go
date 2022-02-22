@@ -5,57 +5,48 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
-	authSchema := map[string]*pluginsdk.Schema{
-		"listen": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"send": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"manage": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
 	}
-	return azure.MergeSchema(s, authSchema)
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["primary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	return s
 }
 
 func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) []namespaces.AccessRights {

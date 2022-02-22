@@ -7,19 +7,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -44,200 +45,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.LoadBalancerSkuNameBasic),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerSkuNameBasic),
-					string(network.LoadBalancerSkuNameStandard),
-					string(network.LoadBalancerSkuNameGateway),
-				}, true),
-				// TODO - 3.0 remove this property
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.LoadBalancerSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerSkuTierRegional),
-					string(network.LoadBalancerSkuTierGlobal),
-				}, false),
-			},
-
-			"frontend_ip_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: func() map[string]*pluginsdk.Schema {
-						s := map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"subnet_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							},
-
-							"private_ip_address": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Computed: true,
-								ValidateFunc: validation.Any(
-									validation.IsIPAddress,
-									validation.StringIsEmpty,
-								),
-							},
-
-							"private_ip_address_version": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Computed: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.IPVersionIPv4),
-									string(network.IPVersionIPv6),
-								}, false),
-							},
-
-							"public_ip_address_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							},
-
-							"public_ip_prefix_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							},
-
-							"private_ip_address_allocation": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Computed: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.IPAllocationMethodDynamic),
-									string(network.IPAllocationMethodStatic),
-								}, true),
-								StateFunc:        state.IgnoreCase,
-								DiffSuppressFunc: suppress.CaseDifference,
-							},
-
-							"gateway_load_balancer_frontend_ip_configuration_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validate.LoadBalancerFrontendIpConfigurationID,
-							},
-
-							"load_balancer_rules": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								Set: pluginsdk.HashString,
-							},
-
-							"inbound_nat_rules": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								Set: pluginsdk.HashString,
-							},
-
-							"outbound_rules": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								Set: pluginsdk.HashString,
-							},
-
-							"id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						}
-
-						if features.ThreePointOhBeta() {
-							s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
-						} else {
-							s["availability_zone"] = &pluginsdk.Schema{
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								// Default:  "Zone-Redundant",
-								Computed: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"No-Zone",
-									"1",
-									"2",
-									"3",
-									"Zone-Redundant",
-								}, false),
-							}
-
-							s["zones"] = &pluginsdk.Schema{
-								Type:       pluginsdk.TypeList,
-								Optional:   true,
-								Computed:   true,
-								Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
-								MaxItems:   1,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							}
-						}
-
-						return s
-					}(),
-				},
-			},
-
-			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceArmLoadBalancerSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if features.ThreePointOhBeta() {
@@ -472,7 +280,6 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			// TODO - get zone list for each location by Resource API, instead of hardcode
 			zones := &[]string{"1", "2"}
 			zonesSet := false
-			// TODO - Remove in 3.0
 			if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {
 				zonesSet = true
 				deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
@@ -627,4 +434,198 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 		result = append(result, out)
 	}
 	return result
+}
+
+func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"location": azure.SchemaLocation(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(network.LoadBalancerSkuNameBasic),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.LoadBalancerSkuNameBasic),
+				string(network.LoadBalancerSkuNameStandard),
+				string(network.LoadBalancerSkuNameGateway),
+			}, !features.ThreePointOhBeta()),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+		},
+
+		"sku_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(network.LoadBalancerSkuTierRegional),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.LoadBalancerSkuTierRegional),
+				string(network.LoadBalancerSkuTierGlobal),
+			}, false),
+		},
+
+		"frontend_ip_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					},
+
+					"private_ip_address": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.Any(
+							validation.IsIPAddress,
+							validation.StringIsEmpty,
+						),
+					},
+
+					"private_ip_address_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.IPVersionIPv4),
+							string(network.IPVersionIPv6),
+						}, false),
+					},
+
+					"public_ip_address_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					},
+
+					"public_ip_prefix_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					},
+
+					"private_ip_address_allocation": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.IPAllocationMethodDynamic),
+							string(network.IPAllocationMethodStatic),
+						}, true),
+						StateFunc:        state.IgnoreCase,
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+
+					"gateway_load_balancer_frontend_ip_configuration_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.LoadBalancerFrontendIpConfigurationID,
+					},
+
+					"load_balancer_rules": {
+						Type:     pluginsdk.TypeSet,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"inbound_nat_rules": {
+						Type:     pluginsdk.TypeSet,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"outbound_rules": {
+						Type:     pluginsdk.TypeSet,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"private_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"private_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	s := out["frontend_ip_configuration"].Elem.(*pluginsdk.Resource)
+	if !features.ThreePointOhBeta() {
+		s.Schema["availability_zone"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Default:  "Zone-Redundant",
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"No-Zone",
+				"1",
+				"2",
+				"3",
+				"Zone-Redundant",
+			}, false),
+		}
+
+		s.Schema["zones"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+			MaxItems:   1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
+	} else {
+		s.Schema["zones"] = commonschema.ZonesMultipleOptionalForceNew()
+	}
+
+	return out
 }

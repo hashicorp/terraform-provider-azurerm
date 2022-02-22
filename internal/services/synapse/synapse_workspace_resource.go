@@ -187,7 +187,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				return commonschema.SystemAssignedIdentityComputed()
 			}(),
 
-			"managed_resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
+			"managed_resource_group_name": commonschema.ResourceGroupNameOptionalComputed(),
 
 			"azure_devops_repo": {
 				Type:          pluginsdk.TypeList,

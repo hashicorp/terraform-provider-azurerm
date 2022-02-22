@@ -702,7 +702,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileRoutingConfig(data))
+`, KubernetesClusterResource{}.addonProfileRoutingConfig(data, true))
 }
 
 func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
@@ -757,7 +757,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"))
+`, KubernetesClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, true, "2m"))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {

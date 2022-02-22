@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,6 +18,9 @@ import (
 type PolicyRemediationResource struct{}
 
 func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -32,6 +36,9 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -47,6 +54,9 @@ func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.
 }
 
 func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -62,6 +72,9 @@ func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -77,6 +90,9 @@ func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing
 }
 
 func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -92,6 +108,9 @@ func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -107,6 +126,9 @@ func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 
@@ -129,6 +151,9 @@ func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 	r := PolicyRemediationResource{}
 

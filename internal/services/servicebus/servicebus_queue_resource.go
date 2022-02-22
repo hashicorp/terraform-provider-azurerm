@@ -106,18 +106,21 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_batched_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_express": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_partitioning": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

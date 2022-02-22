@@ -11,7 +11,7 @@ import (
 var _ json.Marshaler = &UserAssignedMap{}
 
 type UserAssignedMap struct {
-	Type        Type                                   `json:"type"`
+	Type        Type                                   `json:"type" tfschema:"type"`
 	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
 }
 
