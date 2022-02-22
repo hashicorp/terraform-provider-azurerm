@@ -2,10 +2,10 @@ package signalr
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"

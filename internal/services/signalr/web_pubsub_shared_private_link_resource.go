@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,8 +55,7 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 			"group_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				//todo check the validation func: which value is supported?
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
 			},
 
 			"private_link_resource_id": {
