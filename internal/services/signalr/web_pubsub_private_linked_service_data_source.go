@@ -27,7 +27,7 @@ func dataSourceWebPubsubPrivateLinkResource() *pluginsdk.Resource {
 			},
 
 			"shared_private_link_resource_types": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

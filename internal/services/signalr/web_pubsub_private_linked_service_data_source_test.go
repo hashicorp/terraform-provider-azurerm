@@ -45,7 +45,7 @@ resource "azurerm_web_pubsub" "test" {
 }
 
 data "azurerm_web_pubsub_private_link_resource" "test" {
-  web_pubsub_id       = azurerm_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
