@@ -60,9 +60,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KubernetesClusterV0ToV1{},
+			1: migration.KubernetesClusterV1ToV2{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
