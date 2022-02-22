@@ -36,17 +36,17 @@ resource "azurerm_resource_group" "rg" {
   location = "%s"
 }
 resource "azurerm_managed_disk" "disk" {
-	name                 = "acctestsads%s"
-	location             = azurerm_resource_group.rg.location
-	resource_group_name  = azurerm_resource_group.rg.name
-	storage_account_type = "Standard_LRS"
-	create_option        = "Empty"
-	disk_size_gb         = "1"
+  name                 = "acctestsads%s"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 }
 data "azurerm_managed_disk_export" "test" {
-	managed_disk_id  = azurerm_managed_disk.disk.id
-	duration_in_seconds = 300
-	access = "Read"
+  managed_disk_id     = azurerm_managed_disk.disk.id
+  duration_in_seconds = 300
+  access              = "Read"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
