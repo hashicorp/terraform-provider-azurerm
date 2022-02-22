@@ -39,6 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_machine":           dataSourceVirtualMachine(),
 		"azurerm_virtual_machine_scale_set": dataSourceVirtualMachineScaleSet(),
 		"azurerm_ssh_public_key":            dataSourceSshPublicKey(),
+		"azurerm_managed_disk_export":       dataSourceManagedDiskExport(),
 	}
 }
 
