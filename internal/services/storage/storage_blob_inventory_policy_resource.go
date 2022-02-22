@@ -48,7 +48,6 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 			"storage_container_name": {
 				Type:       pluginsdk.TypeString,
 				Optional:   true,
-				Computed:   true,
 				Deprecated: "The policy level destination storage container is deprecated by the service team since API version 2021-04-01, this is not functional and will be removed in v3.0 of the provider. Use the `rules.*.storage_container_name` instead.",
 			},
 
@@ -236,7 +235,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			// TODO 3.0 - remove below line
-			d.Set("storage_container_name", d.Get("storage_container_name"))
+			d.Set("storage_container_name", "")
 
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))
 		}
