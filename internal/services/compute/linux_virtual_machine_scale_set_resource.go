@@ -40,8 +40,8 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(time.Minute * 60),
-			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
 			Read:   pluginsdk.DefaultTimeout(time.Minute * 5),
+			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
 			Delete: pluginsdk.DefaultTimeout(time.Minute * 60),
 		},
 
