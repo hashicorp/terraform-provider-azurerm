@@ -149,7 +149,7 @@ resource "azurerm_batch_application" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   allow_updates       = true
-  display_name        = "Test Acc Pool"
+  display_name        = "TestAccDisplayName"
   %[4]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, displayName)
