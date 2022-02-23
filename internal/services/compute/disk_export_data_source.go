@@ -91,10 +91,10 @@ func dataSourceManagedDiskExportRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("Error while fetching the response %q: %+v", parsedManagedDiskId.ID(), err)
 	}
 
-	sasToken := diskGrantResponse.AccessSAS
+	sasToken := *diskGrantResponse.AccessSAS
 
-	d.Set("sas", *sasToken)
-	tokenHash := sha256.Sum256([]byte(*sasToken))
+	d.Set("sas", sasToken)
+	tokenHash := sha256.Sum256([]byte(sasToken))
 	d.SetId(hex.EncodeToString(tokenHash[:]))
 
 	return nil

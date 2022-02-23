@@ -1,15 +1,15 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_managed_disk_export"
+page_title: "Azure Resource Manager: azurerm_managed_disk_export_revoke"
 description: |-
-  Gets a Shared Access Signature (SAS Token) for an existing Managed Disk.
+  Revokes a Shared Access Signature (SAS Token) for an existing Managed Disk.
 
 ---
 
-# Data Source: azurerm_managed_disk_export
+# Data Source: azurerm_managed_disk_export_revoke
 
-Use this data source to obtain a Shared Access Signature (SAS Token) for an existing Managed Disk.
+Use this data source to revoke Shared Access Signature (SAS Token) for an existing Managed Disk obtained after grant.
 
 Shared access signatures allow fine-grained, ephemeral access control to various aspects of Managed Disk similar to blob/storage account container.
 
@@ -36,12 +36,6 @@ resource "azurerm_managed_disk" "disk" {
   }
 }
 
-data "azurerm_managed_disk_export" "export" {
-  managed_disk_id     = azurerm_managed_disk.disk.id
-  duration_in_seconds = 300
-  access              = "Read"
-}
-
 resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
   resource_group_name      = azurerm_resource_group.example.name
@@ -64,8 +58,16 @@ resource "azurerm_storage_blob" "example" {
   source_uri             = data.azurerm_managed_disk_export.export.sas
 }
 
-output "sas_url_query_string" {
-  value = data.azurerm_managed_disk_export.export.sas
+data "azurerm_managed_disk_export" "export" {
+  managed_disk_id     = azurerm_managed_disk.disk.id
+  duration_in_seconds = 300
+  access              = "Read"
+}
+
+## revoke the sas token post export is complete
+data "azurerm_managed_disk_export_revoke" "revoke" {
+  depends_on      = [azurerm_storage_blob.example]
+  managed_disk_id = "/subscriptions/14b86a40-8d8f-4e69-abaf-42cbb0b8a331/resourceGroups/FACTORY/providers/Microsoft.Compute/disks/ash-rhel7-image"
 }
 ```
 
