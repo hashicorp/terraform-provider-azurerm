@@ -151,7 +151,7 @@ provider "azurerm" {
 
 resource "azurerm_windows_function_app_slot" "update" {
   name                       = "acctestWAS2-%d"
-  function_app_id            = azurerm_linux_function_app.test.id
+  function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
