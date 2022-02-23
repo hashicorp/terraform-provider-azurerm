@@ -37,7 +37,7 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0
-	github.com/tombuildsstuff/giovanni v0.17.0
+	github.com/tombuildsstuff/giovanni v0.18.0
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
