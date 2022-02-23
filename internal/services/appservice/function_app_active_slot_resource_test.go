@@ -362,11 +362,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    WEBSITE_CONTENTSHARE = "testacc-content-app"
-  }
-
-  app_settings = {
-    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    WEBSITE_CONTENTSHARE          = "testacc-content-app"
     AzureWebJobsSecretStorageType = "Blob"
   }
 
