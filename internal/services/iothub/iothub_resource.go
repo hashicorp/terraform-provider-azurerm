@@ -337,7 +337,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							ValidateFunc:     iothubValidate.FileNameFormat,
 						},
 
-						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
+						"resource_group_name": commonschema.ResourceGroupNameOptional(),
 					},
 				},
 			},

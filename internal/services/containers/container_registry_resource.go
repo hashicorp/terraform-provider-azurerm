@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -857,7 +857,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate2.ContainerRegistryName,
+			ValidateFunc: containerValidate.ContainerRegistryName,
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -903,7 +903,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			}(),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": location.SchemaWithoutForceNew(),
+					"location": commonschema.LocationWithoutForceNew(),
 
 					"zone_redundancy_enabled": {
 						Type:     pluginsdk.TypeBool,
