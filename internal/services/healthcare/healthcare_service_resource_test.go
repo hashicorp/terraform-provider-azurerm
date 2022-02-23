@@ -177,12 +177,12 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
   }
 
@@ -191,9 +191,9 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
     ]
   }
 }
@@ -205,12 +205,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
   ]
 }
 
@@ -291,12 +291,12 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
   }
 
@@ -305,9 +305,9 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
     ]
   }
 }
@@ -319,12 +319,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
   ]
 }
 

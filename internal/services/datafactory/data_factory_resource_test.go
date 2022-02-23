@@ -616,10 +616,10 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 
@@ -628,9 +628,9 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_user_assigned_identity.test.principal_id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey"
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
     ]
   }
 }

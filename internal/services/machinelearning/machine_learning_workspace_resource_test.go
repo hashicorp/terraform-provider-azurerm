@@ -672,20 +672,20 @@ resource "azurerm_key_vault_access_policy" "test-policy2" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
-    "wrapKey",
-    "unwrapKey",
-    "get",
-    "recover",
+    "WrapKey",
+    "UnwrapKey",
+    "Get",
+    "Recover",
   ]
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete",
-    "recover",
-    "backup",
-    "restore"
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
   ]
 }
 

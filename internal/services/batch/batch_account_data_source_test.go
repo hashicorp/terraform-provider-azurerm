@@ -159,11 +159,11 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azuread_service_principal.test.object_id}"
 
     secret_permissions = [
-      "get",
-      "list",
-      "set",
-      "delete",
-      "recover"
+      "Get",
+      "List",
+      "Set",
+      "Delete",
+      "Recover"
     ]
 
   }
