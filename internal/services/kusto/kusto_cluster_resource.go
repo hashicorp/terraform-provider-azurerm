@@ -245,7 +245,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 					Type:          pluginsdk.TypeBool,
 					Optional:      true,
 					Computed:      true,
-					Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
+					Deprecated:    "This property has been renamed to disk_encryption_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
 					ConflictsWith: []string{"disk_encryption_enabled"},
 				}
 

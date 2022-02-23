@@ -1,5 +1,12 @@
 ## 2.98.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
+* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
+* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
+* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
+
 ## 2.97.0 (February 18, 2022)
 
 UPGRADE NOTES:

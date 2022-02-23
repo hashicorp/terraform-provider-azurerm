@@ -911,6 +911,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
 				"ultra_ssd_disk_iops_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
@@ -976,10 +977,10 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
 			iops = ssdIops.(int)
 		}
+
 		if iops > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 
 		var mbps int
 		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
@@ -987,10 +988,20 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
 			mbps = ssdMbps.(int)
 		}
+
 		if mbps > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+		}
 
 		disks = append(disks, disk)
 	}
@@ -1040,19 +1051,35 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		output = append(output, map[string]interface{}{
-			"caching":                        string(v.Caching),
-			"create_option":                  string(v.CreateOption),
-			"lun":                            lun,
-			"disk_encryption_set_id":         diskEncryptionSetId,
-			"disk_size_gb":                   diskSizeGb,
-			"storage_account_type":           storageAccountType,
-			"write_accelerator_enabled":      writeAcceleratorEnabled,
-			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_mbps_read_write":      mbps,
-			"disk_iops_read_write":           iops,
-			"disk_mbps_read_write":           mbps,
-		})
+		dataDisk := map[string]interface{}{
+			"caching":                   string(v.Caching),
+			"create_option":             string(v.CreateOption),
+			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_iops_read_write"] = iops
+			} else {
+				dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+			}
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_mbps_read_write"] = mbps
+			} else {
+				dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+			}
+		}
+
+		output = append(output, dataDisk)
 	}
 
 	return output
