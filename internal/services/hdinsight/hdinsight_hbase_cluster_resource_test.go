@@ -460,7 +460,7 @@ func testAccHDInsightHBaseCluster_securityProfile(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightHBaseCluster_updateTargetInstanceCount(t *testing.T) {
+func TestAccHDInsightHBaseCluster_removeTargetInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
 	r := HDInsightHBaseClusterResource{}
 
@@ -1825,24 +1825,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "10:00"
-            target_instance_count = 5
-          }
-
-          schedule {
-            days                  = ["Saturday", "Sunday"]
-            time                  = "10:00"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {
@@ -1897,24 +1879,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
-
-      autoscale {
-        recurrence {
-          timezone = "Pacific Standard Time"
-
-          schedule {
-            days                  = ["Monday"]
-            time                  = "10:00"
-            target_instance_count = 5
-          }
-
-          schedule {
-            days                  = ["Saturday", "Sunday"]
-            time                  = "10:00"
-            target_instance_count = 3
-          }
-        }
-      }
     }
 
     zookeeper_node {

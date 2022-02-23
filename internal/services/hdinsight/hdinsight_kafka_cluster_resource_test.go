@@ -458,7 +458,7 @@ func testAccHDInsightKafkaCluster_securityProfile(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightKafkaCluster_updateTargetInstanceCount(t *testing.T) {
+func TestAccHDInsightKafkaCluster_removeTargetInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
 

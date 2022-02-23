@@ -359,7 +359,7 @@ func TestAccHDInsightStormCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightStormCluster_updateTargetInstanceCount(t *testing.T) {
+func TestAccHDInsightStormCluster_removeTargetInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	r := HDInsightStormClusterResource{}
 

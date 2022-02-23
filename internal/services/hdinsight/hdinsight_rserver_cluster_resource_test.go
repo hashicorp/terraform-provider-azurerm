@@ -201,7 +201,7 @@ func TestAccHDInsightRServerCluster_tls(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightRServerCluster_updateTargetInstanceCount(t *testing.T) {
+func TestAccHDInsightRServerCluster_removeTargetInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	r := HDInsightRServerClusterResource{}
 

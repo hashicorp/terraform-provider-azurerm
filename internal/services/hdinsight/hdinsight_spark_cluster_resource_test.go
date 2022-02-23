@@ -498,7 +498,7 @@ func testAccHDInsightSparkCluster_securityProfile(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_updateTargetInstanceCount(t *testing.T) {
+func TestAccHDInsightSparkCluster_removeTargetInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
 
