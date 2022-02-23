@@ -466,7 +466,7 @@ func TestAccHDInsightHBaseCluster_removeTargetInstanceCount(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.initTargetInstanceCount(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1786,61 +1786,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 `, hdInsightsecurityProfileCommonTemplate(data), data.RandomInteger)
 }
 
-func (r HDInsightHBaseClusterResource) initTargetInstanceCount(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hdinsight_hbase_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
-  tier                = "Standard"
-
-  component_version {
-    hbase = "2.1"
-  }
-
-  gateway {
-    enabled  = true
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-
-  storage_account {
-    storage_container_id = azurerm_storage_container.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
-  }
-
-  roles {
-    head_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-
-    worker_node {
-      vm_size               = "Standard_D3_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 2
-    }
-
-    zookeeper_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r HDInsightHBaseClusterResource) removeTargetInstanceCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1879,6 +1824,18 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
+
+      autoscale {
+        recurrence {
+          timezone = "Pacific Standard Time"
+
+          schedule {
+            days                  = ["Monday"]
+            time                  = "18:30"
+            target_instance_count = 3
+          }
+        }
+      }
     }
 
     zookeeper_node {
