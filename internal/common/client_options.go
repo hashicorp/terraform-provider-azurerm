@@ -68,10 +68,6 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	}
 	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
-	if features.ThreePointOhBeta() || features.ThreePointOh() {
-
-	}
-
 	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
