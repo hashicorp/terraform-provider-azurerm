@@ -1626,8 +1626,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption-perm" {
 
   key_permissions = [
     "Get",
-    "Wrapkey",
-    "Unwrapkey",
+    "WrapKey",
+    "UnwrapKey",
   ]
 }
 

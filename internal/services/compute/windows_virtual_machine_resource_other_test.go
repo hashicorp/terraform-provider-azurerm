@@ -1933,7 +1933,7 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = [
       "Create",
       "Delete",
-      "et",
+      "Get",
       "Purge",
       "Update",
     ]

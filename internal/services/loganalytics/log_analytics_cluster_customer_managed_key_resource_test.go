@@ -137,8 +137,8 @@ resource "azurerm_key_vault_access_policy" "test" {
 
   key_permissions = [
     "Get",
-    "Unwrapkey",
-    "Wrapkey"
+    "UnwrapKey",
+    "WrapKey"
   ]
 
   tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id

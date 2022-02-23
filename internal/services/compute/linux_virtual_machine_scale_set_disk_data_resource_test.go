@@ -490,8 +490,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 
   key_permissions = [
     "Get",
-    "Wrapkey",
-    "Unwrapkey",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
