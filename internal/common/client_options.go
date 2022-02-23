@@ -63,7 +63,14 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io) Terraform Plugin SDK/%s", tfVersion, meta.SDKVersionString())
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
+	if features.ThreePointOhBeta() || features.ThreePointOh() { // TODO remove for 3.0
+		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+3.0-beta", tfUserAgent, version.ProviderVersion)
+	}
 	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
+
+	if features.ThreePointOhBeta() || features.ThreePointOh() {
+
+	}
 
 	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
