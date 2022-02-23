@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) an `identity` block as detailed below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
