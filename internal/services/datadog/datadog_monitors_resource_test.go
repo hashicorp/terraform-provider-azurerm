@@ -25,7 +25,7 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("user_info", "api_key", "application_key", "enterprise_app_id", "linking_auth_code", "linking_client_id", "redirect_uri"),
 	})
 }
 
@@ -120,14 +120,14 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 	resource "azurerm_datadog_monitor" "test" {
 		name = "test-terraform-%d"
 		resource_group_name = azurerm_resource_group.test.name
-		location = "EAST US 2 EUAP"
+		location = "WEST US 2"
 		datadog_organization_properties {
 			api_key = ""
 			application_key = ""
 		}
 		user_info {
-			name          = "vidhi"
-			email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+			name          = "Vidhi Kothari"
+			email_address = "vidhi.kothari@microsoft.com"
 		}
 		sku {
 			name = "Linked"
@@ -136,7 +136,7 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 			type = "SystemAssigned"
 		}
 	}
-`, r.template(data), data.RandomInteger%1000)
+`, r.template(data), data.RandomInteger%10)
 }
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {

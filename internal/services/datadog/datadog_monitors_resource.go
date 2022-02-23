@@ -76,21 +76,25 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						"enterprise_app_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"linking_auth_code": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"linking_client_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"redirect_uri": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"id": {
@@ -110,6 +114,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 								"UserAssigned",
@@ -152,18 +157,21 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DatadogUsersName,
 						},
 
 						"email_address": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DatadogMonitorsEmailAddress,
 						},
 
 						"phone_number": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DatadogMonitorsPhoneNumber,
 						},
 					},
@@ -279,17 +287,13 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("datadog_organization_properties", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties)); err != nil {
 			return fmt.Errorf("setting `datadog_organization_properties`: %+v", err)
 		}
+		d.Set("sku", flattenMonitorResourceSku("Linked"))
 		d.Set("monitoring_status", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
-		if err := d.Set("user_info", flattenMonitorUserInfo(props.UserInfo)); err != nil {
-			return fmt.Errorf("setting `user_info`: %+v", err)
-		}
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
-	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
-	}
+
 	d.Set("type", resp.Type)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -427,86 +431,24 @@ func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties)
 	if input.Name != nil {
 		name = *input.Name
 	}
-	var apiKey string
-	if input.APIKey != nil {
-		apiKey = *input.APIKey
-	}
-	var applicationKey string
-	if input.ApplicationKey != nil {
-		applicationKey = *input.ApplicationKey
-	}
-	var enterpriseAppId string
-	if input.EnterpriseAppID != nil {
-		enterpriseAppId = *input.EnterpriseAppID
-	}
-	var linkingAuthCode string
-	if input.LinkingAuthCode != nil {
-		linkingAuthCode = *input.LinkingAuthCode
-	}
-	var linkingClientId string
-	if input.LinkingClientID != nil {
-		linkingClientId = *input.LinkingClientID
-	}
-	var redirectUri string
-	if input.RedirectURI != nil {
-		redirectUri = *input.RedirectURI
-	}
 	var id string
 	if input.ID != nil {
 		id = *input.ID
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"name":              name,
-			"api_key":           apiKey,
-			"application_key":   applicationKey,
-			"enterprise_app_id": enterpriseAppId,
-			"linking_auth_code": linkingAuthCode,
-			"linking_client_id": linkingClientId,
-			"redirect_uri":      redirectUri,
-			"id":                id,
-		},
-	}
-}
 
-func flattenMonitorUserInfo(input *datadog.UserInfo) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
-	var emailAddress string
-	if input.EmailAddress != nil {
-		emailAddress = *input.EmailAddress
-	}
-	var phoneNumber string
-	if input.PhoneNumber != nil {
-		phoneNumber = *input.PhoneNumber
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"name":          name,
-			"email_address": emailAddress,
-			"phone_number":  phoneNumber,
-		},
-	}
-}
-
-func flattenMonitorResourceSku(input *datadog.ResourceSku) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
 	return []interface{}{
 		map[string]interface{}{
 			"name": name,
+			"id":   id,
+		},
+	}
+}
+
+func flattenMonitorResourceSku(input string) []interface{} {
+
+	return []interface{}{
+		map[string]interface{}{
+			"name": input,
 		},
 	}
 }
