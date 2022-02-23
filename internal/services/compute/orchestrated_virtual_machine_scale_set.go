@@ -1346,6 +1346,26 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 	return extensionProfile, hasHealthExtension, nil
 }
 
+func expandOrchestratedSourceImageReference(referenceInput []interface{}, imageId string) *compute.ImageReference {
+	if len(referenceInput) == 0 {
+		return nil
+	}
+
+	if imageId != "" {
+		return &compute.ImageReference{
+			ID: utils.String(imageId),
+		}
+	}
+
+	raw := referenceInput[0].(map[string]interface{})
+	return &compute.ImageReference{
+		Publisher: utils.String(raw["publisher"].(string)),
+		Offer:     utils.String(raw["offer"].(string)),
+		Sku:       utils.String(raw["sku"].(string)),
+		Version:   utils.String(raw["version"].(string)),
+	}
+}
+
 func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 	if input == nil || input.Extensions == nil {
