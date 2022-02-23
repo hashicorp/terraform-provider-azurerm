@@ -53,7 +53,7 @@ func dataSourceManagedDiskExportCancel(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Wait until the Revoke Request is complete
-	diskRevokeFuture.WaitForCompletionRef(ctx, client.Client)
+	err = diskRevokeFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Revoke access operation failed %q (Resource Group %q): %+v", diskName, resourceGroupName, err)
 	}
