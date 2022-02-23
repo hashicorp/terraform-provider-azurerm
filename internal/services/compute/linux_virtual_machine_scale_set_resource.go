@@ -284,7 +284,10 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO remove terminate_notification in 3.0
 			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
+
+			"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
 			"zones": func() *schema.Schema {
 				if !features.ThreePointOhBeta() {
@@ -525,7 +528,12 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	// TODO remove terminate_notification in 3.0
 	if v, ok := d.GetOk("terminate_notification"); ok {
+		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
@@ -831,8 +839,14 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	// TODO remove terminate_notification in 3.0
 	if d.HasChange("terminate_notification") {
 		notificationRaw := d.Get("terminate_notification").([]interface{})
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+	}
+
+	if d.HasChange("termination_notification") {
+		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
@@ -1080,9 +1094,16 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("health_probe_id", healthProbeId)
 		}
 
+		// TODO remove terminate_notification in 3.0
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
 			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
 				return fmt.Errorf("setting `terminate_notification`: %+v", err)
+			}
+		}
+
+		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+			if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("setting `termination_notification`: %+v", err)
 			}
 		}
 
