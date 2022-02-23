@@ -277,11 +277,10 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
 				return fmt.Errorf("setting `azure_function_endpoint`: %+v", err)
 			}
-		}
-
-		if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
-			if err := d.Set("delivery_property", flattenDeliveryProperties(d, azureFunctionEndpoint.DeliveryAttributeMappings)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "azure_function_endpoint", id.Name, err)
+			if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, azureFunctionEndpoint.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "azure_function_endpoint", id.EventSubscriptionName, err)
+				}
 			}
 		}
 		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
@@ -291,7 +290,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "eventhub_endpoint", id.Name, err)
+					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "eventhub_endpoint", id.EventSubscriptionName, err)
 				}
 			}
 		}
@@ -302,7 +301,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "hybrid_connection_endpoint", id.Name, err)
+					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "hybrid_connection_endpoint", id.EventSubscriptionName, err)
 				}
 			}
 
@@ -318,7 +317,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			}
 			if serviceBusTopicEndpoint.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, serviceBusTopicEndpoint.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "service_bus_topic_endpoint_id", id.Name, err)
+					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "service_bus_topic_endpoint_id", id.EventSubscriptionName, err)
 				}
 			}
 		}
@@ -337,7 +336,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			}
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "webhook_endpoint", id.Name, err)
+					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "webhook_endpoint", id.EventSubscriptionName, err)
 				}
 			}
 		}
