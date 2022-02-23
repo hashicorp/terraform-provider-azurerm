@@ -8,30 +8,28 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DataSourceManagedDiskExportDataSource struct{}
+type DataSourceManagedDiskExportRevokeDataSource struct{}
 
-func TestAccDataSourceDiskExportSas_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk_export", "export")
+func TestAccDataSourceDiskExportRevokeSas_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk_export", "revoke")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: DataSourceManagedDiskExportDataSource{}.basic(data),
+			Config: DataSourceManagedDiskExportRevokeDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("access").HasValue("Read"),
-				check.That(data.ResourceName).Key("duration_in_seconds").HasValue("300"),
-				check.That(data.ResourceName).Key("sas").Exists(),
+				check.That(data.ResourceName).Key("id").Exists(),
 			),
 		},
 	})
 }
 
-func (d DataSourceManagedDiskExportDataSource) basic(data acceptance.TestData) string {
+func (d DataSourceManagedDiskExportRevokeDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG-exportdisk-%d"
+  name     = "acctestRG-revokedisk-%d"
   location = "%s"
 }
 resource "azurerm_managed_disk" "disk" {
