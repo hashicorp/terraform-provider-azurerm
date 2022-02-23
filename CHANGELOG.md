@@ -1,11 +1,13 @@
 ## 2.98.0 (Unreleased)
 
 FEATURES:
-* New Beta Resource: `azurerm_web_app_active_slot` [GH-15246]
+
 * New Beta Resource: `azurerm_function_app_active_slot` [GH-15246]
+* New Beta Resource: `azurerm_web_app_active_slot` [GH-15246]
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` [GH-15507]
 * `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
 * `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
 * `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
