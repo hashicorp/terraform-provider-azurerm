@@ -162,7 +162,7 @@ resource "azurerm_windows_function_app_slot" "update" {
 
   site_config {
     application_stack {
-      dotnet_version = "%s"
+      dotnet_version = "6"
     }
 
     cors {
