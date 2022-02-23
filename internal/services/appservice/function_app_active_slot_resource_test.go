@@ -150,10 +150,35 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app_slot" "update" {
-  name            = "acctestWAS2-%d"
-  function_app_id = azurerm_windows_function_app.test.id
+  name                       = "acctestWAS2-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  site_config {}
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    AzureWebJobsSecretStorageType = "Blob"
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version = "%s"
+    }
+
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
+
+      support_credentials = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
+  }
 }
 
 resource "azurerm_function_app_active_slot" "test" {
@@ -172,10 +197,35 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app_slot" "update" {
-  name           = "acctestWAS2-%d"
-  app_service_id = azurerm_linux_function_app.test.id
+  name                       = "acctestWAS2-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  site_config {}
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    AzureWebJobsSecretStorageType = "Blob"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
+
+      support_credentials = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
+  }
 }
 
 resource "azurerm_function_app_active_slot" "test" {
@@ -198,6 +248,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  account_kind             = "Storage"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_service_plan" "test" {
@@ -217,8 +269,29 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-app"
+    AzureWebJobsSecretStorageType = "Blob"
+  }
+
   site_config {
-    always_on = true
+    application_stack {
+      python_version = "3.9"
+    }
+
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
+
+      support_credentials = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
   }
 }
 
@@ -228,33 +301,30 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  site_config {
-    always_on = true
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    AzureWebJobsSecretStorageType = "Blob"
   }
-}
 
-data "azurerm_storage_share" "app" {
-  name                 = azurerm_linux_function_app.test.app_settings.WEBSITE_CONTENTSHARE
-  storage_account_name = azurerm_storage_account.test.name
-}
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
 
-data "azurerm_storage_share" "slot" {
-  name                 = azurerm_linux_function_app_slot.test.app_settings.WEBSITE_CONTENTSHARE
-  storage_account_name = azurerm_storage_account.test.name
-}
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
 
-resource "azurerm_storage_share_file" "app" {
-  name             = "host.json"
-  path             = "site/wwwroot"
-  storage_share_id = data.azurerm_storage_share.app.id
-  source           = "testdata/host.json"
-}
+      support_credentials = false
+    }
+  }
 
-resource "azurerm_storage_share_file" "slot" {
-  name             = "host.json"
-  path             = "site/wwwroot"
-  storage_share_id = data.azurerm_storage_share.slot.id
-  source           = "testdata/host.json"
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -291,12 +361,33 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  app_settings {
+  app_settings = {
     WEBSITE_CONTENTSHARE = "testacc-content-app"
   }
 
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    AzureWebJobsSecretStorageType = "Blob"
+  }
+
   site_config {
-    always_on = true
+    application_stack {
+      dotnet_version = "6"
+    }
+
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
+
+      support_credentials = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
   }
 }
 
@@ -306,12 +397,29 @@ resource "azurerm_windows_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  app_settings {
-    WEBSITE_CONTENTSHARE = "testacc-content-appslot"
+  app_settings = {
+    WEBSITE_CONTENTSHARE          = "testacc-content-appslot"
+    AzureWebJobsSecretStorageType = "Blob"
   }
 
   site_config {
-    always_on = true
+    application_stack {
+      dotnet_version = "6"
+    }
+
+    cors {
+      allowed_origins = [
+        "https://portal.azure.com",
+      ]
+
+      support_credentials = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
