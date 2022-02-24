@@ -444,11 +444,11 @@ resource "azurerm_key_vault" "test" {
     object_id       = data.azurerm_client_config.current.object_id
 
     secret_permissions = [
-      "delete",
-      "get",
-      "list",
-      "set",
-      "purge",
+      "Delete",
+      "Get",
+      "List",
+      "Set",
+      "Purge",
     ]
 
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"

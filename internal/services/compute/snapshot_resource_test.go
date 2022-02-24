@@ -257,15 +257,15 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
+      "Create",
+      "Delete",
+      "Get",
     ]
 
     secret_permissions = [
-      "delete",
-      "get",
-      "set",
+      "Delete",
+      "Get",
+      "Set",
     ]
   }
 
@@ -279,12 +279,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
   ]
 }
 

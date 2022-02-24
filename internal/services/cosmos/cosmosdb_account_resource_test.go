@@ -2060,18 +2060,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 
@@ -2080,19 +2080,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
-      "unwrapKey",
-      "wrapKey",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
+      "UnwrapKey",
+      "WrapKey",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 }

@@ -92,7 +92,8 @@ resource azurerm_subnet_network_security_group_association "primary" {
 }
 
 resource "azuread_group" "dc_admins" {
-  name = "AAD DC Administrators"
+  name             = "AAD DC Administrators"
+  security_enabled = true
 }
 
 resource "azuread_user" "admin" {

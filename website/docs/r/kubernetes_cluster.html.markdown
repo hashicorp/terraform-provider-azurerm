@@ -90,10 +90,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Cluster Auto-Upgrade only updates to GA versions of Kubernetes and will not update to Preview versions.
 
-* `addon_profile` - (Optional) A `addon_profile` block as defined below.
-
-~> **Note:** The `addon_profile` block is deprecated and will be removed in version 3.0 of the AzureRM Provider. All properties inside the block will be moved to the top level.
-
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to allow for incoming traffic to the server nodes.
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
@@ -220,11 +216,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 A `aci_connector_linux` block supports the following:
 
-* `enabled` - (Required) Is the virtual node addon enabled? This field is deprecated and will be removed in version 3.0 of the AzureRM Provider.
+* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
 
-* `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
-
--> **Note:** At this time ACI Connector's are not supported in Azure China.
+-> **Note:** At this time ACI Connectors are not supported in Azure China.
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
@@ -242,38 +236,6 @@ resource "azurerm_subnet" "virtual" {
   }
 }
 ```
-
----
-
-~> **Note:** The `addon_profile` block is deprecated and will be removed in version 3.0 of the AzureRM Provider. All properties inside the block will be moved to the top level.
-
-A `addon_profile` block supports the following:
-
-* `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
-
--> **Note:** At this time ACI Connectors are not supported in Azure China.
-
-* `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
-
-* `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
-
--> **Note:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
-
-* `kube_dashboard` - (Optional) A `kube_dashboard` block as defined below.
-
-* `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
-
-* `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
-
-* `open_service_mesh` - (Optional) An `open_service_mesh` block as defined below. For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
-
--> **Note:** At this time Open Service Mesh is not supported in Azure US government or Azure China.
-
--> **Note:** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
-
-* `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
-
-~> **Note:** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -334,14 +296,6 @@ When `managed` is set to `false` the following properties can be specified:
 * `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
-
----
-
-A `azure_policy` block supports the following:
-
-* `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
-
-~> **Note:** This block is deprecated and will be removed in favour of the `azure_policy_enabled` property in version 3.0 of the AzureRM Provider.
 
 ---
 
@@ -426,14 +380,6 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 * `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
-
----
-
-A `http_application_routing` block supports the following:
-
-* `enabled` (Required) Is HTTP Application Routing Enabled?
-
-~> **Note:** This block is deprecated and will be removed in favour of the `http_application_routing_enabled` property in version 3.0 of the AzureRM Provider.
 
 ---
 
@@ -613,15 +559,11 @@ A `nat_gateway_profile` block supports the following:
 
 An `oms_agent` block supports the following:
 
-* `enabled` - (Required) Is the OMS Agent Enabled? This field is deprecated and will be removed in version 3.0 of the AzureRM Provider.
-
-* `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
 ---
 
 An `ingress_application_gateway` block supports the following:
-
-* `enabled` - (Required) Whether to deploy the Application Gateway ingress controller to this Kubernetes Cluster? This field is deprecated and will be removed in version 3.0 of the AzureRM Provider.
 
 * `gateway_id` - (Optional) The ID of the Application Gateway to integrate with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
 
@@ -631,27 +573,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
--> **Note:** If using `enabled` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
-
----
-
-An `open_service_mesh` block supports the following:
-
-* `enabled` - Is Open Service Mesh enabled?
-
-~> **Note:** This block is deprecated and will be removed in favour of the `open_service_mesh_enabled` property in version 3.0 of the AzureRM Provider.
-
----
-
-An `azure_keyvault_secrets_provider` block supports the following:
-
-* `enabled` - Is the Azure Keyvault Secrets Provider enabled?
-
-* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
-
-* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
-
-~> **Note:** This block is deprecated and will be removed in favour of the `key_vault_secrets_provider` block in version 3.0 of the AzureRM Provider.
+-> **Note:** If specifying `ingress_application_gateway` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
 
 ---
 
@@ -799,14 +721,6 @@ The following attributes are exported:
 
 ---
 
-A `http_application_routing` block exports the following:
-
-* `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
-
-~> **Note:** This block is deprecated and will be removed in favour of the `http_application_routing_zone_name` property in version 3.0 of the AzureRM Provider.
-
----
-
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
@@ -856,16 +770,6 @@ provider "kubernetes" {
 
 ---
 
-The `addon_profile` block exports the following:
-
-* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
-
-* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
-
-* `oms_agent` - An `oms_agent` block as defined below.
-
----
-
 The `ingress_application_gateway` block exports the following:
 
 * `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
@@ -897,12 +801,6 @@ The `oms_agent_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
-
----
-
-The `azure_keyvault_secrets_provider` block exports the following:
-
-* `secret_identity` - An `secret_identity` block is exported. The exported attributes are defined below.  
 
 ---
 
