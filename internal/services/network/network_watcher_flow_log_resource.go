@@ -57,6 +57,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			//lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     features.ThreePointOhBeta(),

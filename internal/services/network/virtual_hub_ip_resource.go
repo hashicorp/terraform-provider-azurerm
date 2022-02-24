@@ -76,6 +76,7 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 				}, false),
 			},
 
+			//lintignore:S013
 			"public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     !features.ThreePointOhBeta(),
