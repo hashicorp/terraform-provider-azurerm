@@ -292,19 +292,18 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		trustedLaunchEnabled := false
 		supportAcceleratedNetwork := false
 		if features := props.Features; features != nil {
-			featuresMap := make(map[string]string, len(*features))
 			for _, feature := range *features {
-				if feature.Name != nil && feature.Value != nil {
-					featuresMap[*feature.Name] = *feature.Value
+				if feature.Name == nil || feature.Value == nil {
+					continue
 				}
-			}
 
-			if featuresMap["SecurityType"] == "TrustedLaunch" {
-				trustedLaunchEnabled = true
-			}
+				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+				}
 
-			if strings.EqualFold(featuresMap["IsAcceleratedNetworkSupported"], "true") {
-				supportAcceleratedNetwork = true
+				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+					supportAcceleratedNetwork = strings.EqualFold(*feature.Value, "true")
+				}
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
