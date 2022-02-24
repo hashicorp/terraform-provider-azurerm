@@ -1132,7 +1132,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Set: location.HashCode,
+			Set: func(input interface{}) int {
+				return pluginsdk.HashString(location.Normalize(input.(string)))
+			},
 		}
 	}
 

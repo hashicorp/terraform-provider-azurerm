@@ -10,13 +10,6 @@ func Schema() *pluginsdk.Schema {
 	return commonschema.Location()
 }
 
-func HashCode(location interface{}) int {
-	// NOTE: this is intentionally not present upstream as the only usage is deprecated
-	// and so this can be removed in 3.0
-	loc := location.(string)
-	return pluginsdk.HashString(Normalize(loc))
-}
-
 func StateFunc(input interface{}) string {
 	return location.StateFunc(input)
 }
