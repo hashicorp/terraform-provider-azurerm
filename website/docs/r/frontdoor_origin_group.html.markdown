@@ -1,5 +1,5 @@
 ---
-subcategory: "Cdn"
+subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: frontdoor_origin_group"
 description: |-

@@ -1,5 +1,5 @@
 ---
-subcategory: "Cdn"
+subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_profile_custom_domain"
 description: |-
