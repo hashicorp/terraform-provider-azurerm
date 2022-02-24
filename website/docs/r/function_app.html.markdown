@@ -128,18 +128,17 @@ resource "azurerm_function_app" "example" {
 }
 ```
 ~> **Note:** Version `~3` is required for Linux Function Apps.
-~> **Note:** Linux Function Apps will be available separately as `azurerm_linux_function_app` **as an opt-in Beta** in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage (Python in a Consumption Plan)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "azure-functions-cptest-rg"
+  name     = "azure-functions-example-rg"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "functionsapptestsa"
+  name                     = "functionsappexamlpesa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -147,7 +146,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_app_service_plan" "example" {
-  name                = "azure-functions-test-service-plan"
+  name                = "azure-functions-example-sp"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   kind                = "Linux"
@@ -166,7 +165,7 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                       = "test-azure-functions"
+  name                       = "example-azure-function"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
@@ -184,7 +183,7 @@ resource "azurerm_function_app" "example" {
   }
 }
 ```
-~> **Note:** While you can develop your Python based Azure Functions locally on Windows, Python is only supported on a Linux based hosting plan when running in Azure.  See [the documentation for additional information](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference-python).
+~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference-python).
 
 ## Argument Reference
 
