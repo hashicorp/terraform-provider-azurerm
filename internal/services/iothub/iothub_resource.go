@@ -536,7 +536,7 @@ func resourceIotHub() *pluginsdk.Resource {
 									},
 									"action": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
 										Default:  string(devices.NetworkRuleIPActionAllow),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(devices.NetworkRuleIPActionAllow),
