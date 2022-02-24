@@ -696,18 +696,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"role_based_access_control_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-				ConflictsWith: func() []string {
-					if !features.ThreePointOhBeta() {
-						return []string{"role_based_access_control"}
+			"role_based_access_control_enabled": func() *schema.Schema {
+				if !features.ThreePointOh() {
+					return &schema.Schema{
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Computed:      true,
+						ForceNew:      true,
+						ConflictsWith: []string{"role_based_access_control"},
 					}
-					return []string{}
-				}(),
-			},
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+					ForceNew: true,
+				}
+			}(),
 
 			"azure_active_directory_role_based_access_control": {
 				Type:     pluginsdk.TypeList,

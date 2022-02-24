@@ -1245,7 +1245,7 @@ func (k KubernetesClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if secretRaw != "" {
 			log.Printf("[DEBUG] copying value to `azure_active_directory_role_based_access_control.0.server_app_secret`")
 			rawState["azure_active_directory_role_based_access_control"] = []interface{}{
-				0: map[string]interface{}{
+				map[string]interface{}{
 					"server_app_secret": secretRaw,
 				},
 			}
