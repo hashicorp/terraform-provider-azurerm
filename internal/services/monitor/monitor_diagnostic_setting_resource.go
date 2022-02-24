@@ -316,7 +316,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
 		authRuleId := utils.NormalizeNilableString(resp.EventHubAuthorizationRuleID)
-		parsedId, err := authRuleParse.ParseAuthorizationRuleID(authRuleId)
+		parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
 		if err != nil {
 			return err
 		}
