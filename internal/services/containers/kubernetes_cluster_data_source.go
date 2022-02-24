@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"strings"
 	"time"
 
@@ -23,7 +24,7 @@ import (
 )
 
 func dataSourceKubernetesCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -40,191 +41,14 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"addon_profile": {
+			"aci_connector_linux": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"http_application_routing": {
-							Type:     pluginsdk.TypeList,
+						"subnet_name": {
+							Type:         pluginsdk.TypeString,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-									"http_application_routing_zone_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"oms_agent": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-									"log_analytics_workspace_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"oms_agent_identity": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"client_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"object_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"user_assigned_identity_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
-						"kube_dashboard": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"azure_policy": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"ingress_application_gateway": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-									"gateway_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"effective_gateway_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"subnet_cidr": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"subnet_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"ingress_application_gateway_identity": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"client_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"object_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"user_assigned_identity_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
-						"open_service_mesh": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
-						},
-						"azure_keyvault_secrets_provider": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-									"secret_rotation_enabled": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"secret_rotation_interval": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"secret_identity": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"client_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"object_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"user_assigned_identity_id": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-							},
 						},
 					},
 				},
@@ -344,6 +168,53 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"azure_active_directory_role_based_access_control": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"client_app_id": {
+							Type:         pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"server_app_id": {
+							Type:         pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"managed": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"azure_rbac_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"admin_group_object_ids": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+
+			"azure_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"dns_prefix": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -352,6 +223,102 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"http_application_routing_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"http_application_routing_zone_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"ingress_application_gateway": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"gateway_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"gateway_name": {
+							Type:         pluginsdk.TypeString,
+							Computed: true,
+						},
+						"subnet_cidr": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"effective_gateway_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"ingress_application_gateway_identity": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"object_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"key_vault_secrets_provider": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"secret_rotation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"secret_rotation_interval": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"secret_identity": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"object_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"api_server_authorized_ip_ranges": {
@@ -364,6 +331,44 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"oms_agent": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"log_analytics_workspace_id": {
+							Type:         pluginsdk.TypeString,
+							Computed: true,
+						},
+						"oms_agent_identity": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"object_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"open_service_mesh_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -608,52 +613,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"role_based_access_control": {
-				Type:     pluginsdk.TypeList,
+			"role_based_access_control_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"azure_active_directory": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"admin_group_object_ids": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-
-									"client_app_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"managed": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-
-									"server_app_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"tenant_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 
 			"service_principal": {
@@ -672,6 +634,250 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		resource.Schema["addon_profile"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Deprecated: "`addon_profile` is deprecated in favour of the properties `https_application_routing_enabled`, `azure_policy_enabled`, `open_service_mesh_enabled` and the blocks `oms_agent`, `ingress_application_gateway` and `key_vault_secrets_provider` and will be removed in version 3.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"http_application_routing": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+								"http_application_routing_zone_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"oms_agent": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+								"log_analytics_workspace_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"oms_agent_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"kube_dashboard": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"azure_policy": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"ingress_application_gateway": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+								"gateway_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"effective_gateway_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"subnet_cidr": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"subnet_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"ingress_application_gateway_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"open_service_mesh": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"azure_keyvault_secrets_provider": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+								"secret_rotation_enabled": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"secret_rotation_interval": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"secret_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		resource.Schema["role_based_access_control"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Deprecated: "`role_based_access_control` is deprecated in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control` and will be removed in version 3.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"azure_active_directory": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"admin_group_object_ids": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"client_app_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"managed": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+
+								"server_app_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"tenant_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -723,10 +929,22 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 
-		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
-		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("setting `addon_profile`: %+v", err)
+		if !features.ThreePointOh() {
+			addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
+			if err := d.Set("addon_profile", addonProfiles); err != nil {
+				return fmt.Errorf("setting `addon_profile`: %+v", err)
+			}
 		}
+
+		addOns := flattenKubernetesClusterDataSourceAddOns(props.AddonProfiles)
+		d.Set("aci_connector_linux", addOns["aci_connector_linux"])
+		d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+		d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
+		d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
+		d.Set("oms_agent", addOns["oms_agent"])
+		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
+		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
+		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
 
 		agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
@@ -878,6 +1096,143 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 	}
 
 	return nil, []interface{}{}
+}
+
+func flattenKubernetesClusterDataSourceAddOns(profile map[string]*containerservice.ManagedClusterAddonProfile) map[string]interface{} {
+	aciConnectors := make([]interface{}, 0)
+	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
+		if enabled := aciConnector.Enabled; enabled != nil && *enabled {
+			subnetName := ""
+			if v := aciConnector.Config["SubnetName"]; v != nil {
+				subnetName = *v
+			}
+
+			aciConnectors = append(aciConnectors, map[string]interface{}{
+				"subnet_name": subnetName,
+			})
+		}
+
+	}
+
+	azurePolicyEnabled := false
+	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			azurePolicyEnabled = *enabledVal
+		}
+	}
+
+	httpApplicationRoutingEnabled := false
+	httpApplicationRoutingZone := ""
+	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			httpApplicationRoutingEnabled = *enabledVal
+		}
+
+		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
+			httpApplicationRoutingZone = *v
+		}
+	}
+
+	omsAgents := make([]interface{}, 0)
+	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
+		if enabled := omsAgent.Enabled; enabled != nil && *enabled {
+			workspaceID := ""
+			if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+				if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+					workspaceID = lawid.ID()
+				}
+			}
+
+			omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
+
+			omsAgents = append(omsAgents, map[string]interface{}{
+				"log_analytics_workspace_id": workspaceID,
+				"oms_agent_identity":         omsAgentIdentity,
+			})
+		}
+	}
+
+	ingressApplicationGateways := make([]interface{}, 0)
+	if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
+		if enabled := ingressApplicationGateway.Enabled; enabled != nil && *enabled {
+			gatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
+				gatewayId = *v
+			}
+
+			gatewayName := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
+				gatewayName = *v
+			}
+
+			effectiveGatewayId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
+				effectiveGatewayId = *v
+			}
+
+			subnetCIDR := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
+				subnetCIDR = *v
+			}
+
+			subnetId := ""
+			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
+				subnetId = *v
+			}
+
+			ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
+			ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+				"gateway_id":                           gatewayId,
+				"gateway_name":                         gatewayName,
+				"effective_gateway_id":                 effectiveGatewayId,
+				"subnet_cidr":                          subnetCIDR,
+				"subnet_id":                            subnetId,
+				"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
+			})
+		}
+	}
+
+	openServiceMeshEnabled := false
+	if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
+		if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
+			openServiceMeshEnabled = *enabledVal
+		}
+	}
+
+	azureKeyVaultSecretsProviders := make([]interface{}, 0)
+	if azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyVaultSecretsProvider != nil {
+		if enabled := azureKeyVaultSecretsProvider.Enabled; enabled != nil && *enabled {
+			enableSecretRotation := false
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
+				enableSecretRotation = true
+			}
+
+			rotationPollInterval := ""
+			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+				rotationPollInterval = *v
+			}
+
+			azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
+
+			azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
+				"secret_rotation_enabled":  enableSecretRotation,
+				"secret_rotation_interval": rotationPollInterval,
+				"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+			})
+		}
+	}
+
+	return map[string]interface{}{
+		"aci_connector_linux":                aciConnectors,
+		"azure_policy_enabled":               azurePolicyEnabled,
+		"http_application_routing_enabled":   httpApplicationRoutingEnabled,
+		"http_application_routing_zone_name": httpApplicationRoutingZone,
+		"oms_agent":                          omsAgents,
+		"ingress_application_gateway":        ingressApplicationGateways,
+		"open_service_mesh_enabled":          openServiceMeshEnabled,
+		"key_vault_secrets_provider":         azureKeyVaultSecretsProviders,
+	}
 }
 
 func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
