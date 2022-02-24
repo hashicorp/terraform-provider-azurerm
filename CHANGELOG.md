@@ -13,6 +13,10 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
 * `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
 
+BUG FIXES:
+
+* `azurerm_firewall_policy` - wait for completion after calling create [GH-15561]
+
 ## 2.97.0 (February 18, 2022)
 
 UPGRADE NOTES:
