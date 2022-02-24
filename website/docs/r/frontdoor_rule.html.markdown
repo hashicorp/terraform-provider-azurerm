@@ -3,12 +3,12 @@ subcategory: "Cdn"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_rule"
 description: |-
-  Manages a cdn Rule.
+  Manages a Frontdoor Rule.
 ---
 
 # azurerm_frontdoor_rule
 
-Manages a cdn Rule.
+Manages a Frontdoor Rule.
 
 ## Example Usage
 

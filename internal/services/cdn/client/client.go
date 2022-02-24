@@ -3,30 +3,21 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdcustomdomains"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/secrets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/securitypolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/webapplicationfirewallpolicies"
+	sdk "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
 )
 
 type Client struct {
-	FrontDoorEndpointsClient             *afdendpoints.AFDEndpointsClient
-	FrontDoorOriginGroupsClient          *afdorigingroups.AFDOriginGroupsClient
-	FrontDoorOriginsClient               *afdorigins.AFDOriginsClient
-	FrontDoorCustomDomainsClient         *afdcustomdomains.AFDCustomDomainsClient
-	FrontdoorSecurityPoliciesClient      *securitypolicies.SecurityPoliciesClient
-	FrontdoorRoutesClient                *routes.RoutesClient
-	FrontdoorRulesClient                 *rules.RulesClient
-	FrontdoorProfileClient               *profiles.ProfilesClient
-	FrontdoorSecretsClient               *secrets.SecretsClient
-	FrontdoorRuleSetsClient              *rulesets.RuleSetsClient
+	FrontDoorEndpointsClient             *sdk.AFDEndpointsClient
+	FrontDoorOriginGroupsClient          *sdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient               *sdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient         *sdk.AFDCustomDomainsClient
+	FrontdoorSecurityPoliciesClient      *sdk.SecurityPoliciesClient
+	FrontdoorRoutesClient                *sdk.RoutesClient
+	FrontdoorRulesClient                 *sdk.RulesClient
+	FrontdoorProfileClient               *sdk.ProfilesClient
+	FrontdoorSecretsClient               *sdk.SecretsClient
+	FrontdoorRuleSetsClient              *sdk.RuleSetsClient
 	WebApplicationFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 	CustomDomainsClient                  *cdn.CustomDomainsClient
 	EndpointsClient                      *cdn.EndpointsClient
@@ -34,37 +25,37 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	frontDoorEndpointsClient := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontDoorEndpointsClient := sdk.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorOriginGroupsClient := afdorigingroups.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontDoorOriginGroupsClient := sdk.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorOriginsClient := afdorigins.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontDoorOriginsClient := sdk.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorOriginsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorCustomDomainsClient := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontDoorCustomDomainsClient := sdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorPolicySecurityPoliciesClient := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorPolicySecurityPoliciesClient := sdk.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorPolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	webApplicationFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&webApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorRoutesClient := routes.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorRoutesClient := sdk.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorRoutesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorRulesClient := rules.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorRulesClient := sdk.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorProfilesClient := profiles.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorProfilesClient := sdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorProfilesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorPolicySecretsClient := secrets.NewSecretsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorPolicySecretsClient := sdk.NewSecretsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorPolicySecretsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorRuleSetsClient := rulesets.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontdoorRuleSetsClient := sdk.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

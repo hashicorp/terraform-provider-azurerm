@@ -4,10 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigingroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
+	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -25,113 +22,141 @@ func ConvertFrontdoorTags(tagMap *map[string]string) map[string]*string {
 	return t
 }
 
-func ConvertBoolToOriginsEnabledState(isEnabled bool) *afdorigins.EnabledState {
-	out := afdorigins.EnabledState(afdorigins.EnabledStateDisabled)
+func ConvertBoolToEnabledState(isEnabled bool) track1.EnabledState {
+	out := track1.EnabledState(track1.EnabledStateDisabled)
 
 	if isEnabled {
-		out = afdorigins.EnabledState(afdorigins.EnabledStateEnabled)
+		out = track1.EnabledState(track1.EnabledStateEnabled)
 	}
 
-	return &out
+	return out
 }
 
-func ConvertOriginsEnabledStateToBool(enabledState *afdorigins.EnabledState) bool {
+func ConvertEnabledStateToBool(enabledState *track1.EnabledState) bool {
 	if enabledState == nil {
 		return false
 	}
 
-	return (*enabledState == afdorigins.EnabledState(afdorigins.EnabledStateEnabled))
+	return (*enabledState == track1.EnabledState(track1.EnabledStateEnabled))
 }
 
-func ConvertBoolToOriginGroupsEnabledState(isEnabled bool) *afdorigingroups.EnabledState {
-	out := afdorigingroups.EnabledState(afdorigingroups.EnabledStateDisabled)
+// func ConvertBoolToOriginsEnabledState(isEnabled bool) *afdorigins.EnabledState {
+// 	out := afdorigins.EnabledState(afdorigins.EnabledStateDisabled)
 
-	if isEnabled {
-		out = afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled)
-	}
+// 	if isEnabled {
+// 		out = afdorigins.EnabledState(afdorigins.EnabledStateEnabled)
+// 	}
 
-	return &out
-}
+// 	return &out
+// }
 
-func ConvertOriginGroupsEnabledStateToBool(enabledState *afdorigingroups.EnabledState) bool {
-	if enabledState == nil {
-		return false
-	}
+// func ConvertOriginsEnabledStateToBool(enabledState *afdorigins.EnabledState) bool {
+// 	if enabledState == nil {
+// 		return false
+// 	}
 
-	return (*enabledState == afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled))
-}
+// 	return (*enabledState == afdorigins.EnabledState(afdorigins.EnabledStateEnabled))
+// }
 
-func ConvertBoolToRoutesEnabledState(isEnabled bool) *routes.EnabledState {
-	out := routes.EnabledState(routes.EnabledStateDisabled)
+// func ConvertBoolToOriginGroupsEnabledState(isEnabled bool) *afdorigingroups.EnabledState {
+// 	out := afdorigingroups.EnabledState(afdorigingroups.EnabledStateDisabled)
 
-	if isEnabled {
-		out = routes.EnabledState(routes.EnabledStateEnabled)
-	}
+// 	if isEnabled {
+// 		out = afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled)
+// 	}
 
-	return &out
-}
+// 	return &out
+// }
 
-func ConvertRoutesEnabledStateToBool(enabledState *routes.EnabledState) bool {
-	if enabledState == nil {
-		return false
-	}
+// func ConvertOriginGroupsEnabledStateToBool(enabledState *afdorigingroups.EnabledState) bool {
+// 	if enabledState == nil {
+// 		return false
+// 	}
 
-	return (*enabledState == routes.EnabledState(routes.EnabledStateEnabled))
-}
+// 	return (*enabledState == afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled))
+// }
 
-func ConvertBoolToRouteHttpsRedirect(isEnabled bool) *routes.HttpsRedirect {
-	out := routes.HttpsRedirect(routes.HttpsRedirectDisabled)
+// func ConvertBoolToRoutesEnabledState(isEnabled bool) *routes.EnabledState {
+// 	out := routes.EnabledState(routes.EnabledStateDisabled)
 
-	if isEnabled {
-		out = routes.HttpsRedirect(routes.HttpsRedirectEnabled)
-	}
+// 	if isEnabled {
+// 		out = routes.EnabledState(routes.EnabledStateEnabled)
+// 	}
 
-	return &out
-}
+// 	return &out
+// }
 
-func ConvertRouteHttpsRedirectToBool(httpsRedirect *routes.HttpsRedirect) bool {
-	if httpsRedirect == nil {
-		return false
-	}
+// func ConvertRoutesEnabledStateToBool(enabledState *routes.EnabledState) bool {
+// 	if enabledState == nil {
+// 		return false
+// 	}
 
-	return (*httpsRedirect == routes.HttpsRedirect(routes.HttpsRedirectEnabled))
-}
+// 	return (*enabledState == routes.EnabledState(routes.EnabledStateEnabled))
+// }
 
-func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) *routes.LinkToDefaultDomain {
-	out := routes.LinkToDefaultDomain(routes.LinkToDefaultDomainDisabled)
+// func ConvertBoolToRouteHttpsRedirect(isEnabled bool) *routes.HttpsRedirect {
+// 	out := routes.HttpsRedirect(routes.HttpsRedirectDisabled)
 
-	if isLinked {
-		out = routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled)
-	}
+// 	if isEnabled {
+// 		out = routes.HttpsRedirect(routes.HttpsRedirectEnabled)
+// 	}
 
-	return &out
-}
+// 	return &out
+// }
 
-func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *routes.LinkToDefaultDomain) bool {
-	if linkToDefaultDomain == nil {
-		return false
-	}
+// func ConvertRouteHttpsRedirectToBool(httpsRedirect *routes.HttpsRedirect) bool {
+// 	if httpsRedirect == nil {
+// 		return false
+// 	}
 
-	return (*linkToDefaultDomain == routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled))
-}
+// 	return (*httpsRedirect == routes.HttpsRedirect(routes.HttpsRedirectEnabled))
+// }
 
-func ConvertBoolToEndpointsEnabledState(isEnabled bool) *afdendpoints.EnabledState {
-	out := afdendpoints.EnabledState(afdendpoints.EnabledStateDisabled)
+// func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) *routes.LinkToDefaultDomain {
+// 	out := routes.LinkToDefaultDomain(routes.LinkToDefaultDomainDisabled)
 
-	if isEnabled {
-		out = afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled)
-	}
+// 	if isLinked {
+// 		out = routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled)
+// 	}
 
-	return &out
-}
+// 	return &out
+// }
 
-func ConvertEndpointsEnabledStateToBool(enabledState *afdendpoints.EnabledState) bool {
-	if enabledState == nil {
-		return false
-	}
+// func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *routes.LinkToDefaultDomain) bool {
+// 	if linkToDefaultDomain == nil {
+// 		return false
+// 	}
 
-	return (*enabledState == afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled))
-}
+// 	return (*linkToDefaultDomain == routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled))
+// }
+
+// func ConvertBoolToEndpointsEnabledState(isEnabled bool) *track1.EnabledState {
+// 	out := track1.EnabledState(track1.EnabledStateDisabled)
+
+// 	if isEnabled {
+// 		out = track1.EnabledState(track1.EnabledStateEnabled)
+// 	}
+
+// 	return &out
+// }
+
+// func ConvertBoolToEndpointsEnabledState(isEnabled bool) *track1.EnabledState {
+// 	out := afdendpoints.EnabledState(afdendpoints.EnabledStateDisabled)
+
+// 	if isEnabled {
+// 		out = afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled)
+// 	}
+
+// 	return &out
+// }
+
+// func ConvertEndpointsEnabledStateToBool(enabledState *afdendpoints.EnabledState) bool {
+// 	if enabledState == nil {
+// 		return false
+// 	}
+
+// 	return (*enabledState == afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled))
+// }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {
 	if warn, err := validation.IsIPv6Address(i, k); len(err) == 0 {

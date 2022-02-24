@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/securitypolicies"
+	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,7 +19,6 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFrontdoorSecurityPolicyCreate,
 		Read:   resourceFrontdoorSecurityPolicyRead,
-		Update: resourceFrontdoorSecurityPolicyUpdate,
 		Delete: resourceFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -31,7 +29,7 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := securitypolicies.ParseSecurityPoliciesID(id)
+			_, err := parse.FrontdoorSecurityPolicyID(id)
 			return err
 		}),
 
@@ -46,7 +44,7 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: profiles.ValidateProfileID,
+				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
 			"web_application_firewall": {
@@ -122,44 +120,48 @@ func resourceFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := profiles.ParseProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
 	securityPolicyName := d.Get("name").(string)
-	sdkId := securitypolicies.NewSecurityPoliciesID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
-	id := parse.NewFrontdoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
+	id := parse.NewFrontdoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, sdkId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_frontdoor_security_policy", id.ID())
 		}
 	}
 
-	params := securitypolicies.SecurityPolicyPropertiesParameters(nil)
+	params := track1.BasicSecurityPolicyPropertiesParameters(nil)
 	if waf, ok := d.GetOk("web_application_firewall"); ok {
-		params = expandFrontdoorSecurityPoliciesParameters(waf.([]interface{}), securitypolicies.SecurityPolicyPropertiesParameters(&securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}))
+		params = expandFrontdoorSecurityPoliciesParameters(waf.([]interface{}), waf)
 	} else {
 		// Will look for DDoS policy here once it is GA
 		return fmt.Errorf("unable to locate %q policy parameters", "web_application_firewall")
 	}
 
-	props := securitypolicies.SecurityPolicy{
-		Properties: &securitypolicies.SecurityPolicyProperties{
+	props := track1.SecurityPolicy{
+		SecurityPolicyProperties: &track1.SecurityPolicyProperties{
 			Parameters: params,
 		},
 	}
-	if err := client.CreateThenPoll(ctx, sdkId, props); err != nil {
 
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -171,74 +173,39 @@ func resourceFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sdkId, err := securitypolicies.ParseSecurityPoliciesID(d.Id())
-	if err != nil {
-		return err
-	}
-
 	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *sdkId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("making Read request on Azure Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.SecurityPolicyName)
 	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			// If it is not Type WebApplicationFirewall ignore this for now
-			switch params := props.Parameters.(type) {
-			case securitypolicies.SecurityPolicyWebApplicationFirewallParameters:
-				if err := d.Set("web_application_firewall", flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
-					return fmt.Errorf("setting `web_application_firewall`: %+v", err)
-				}
-			default:
-				// Unknown Security Policy Type
-				return fmt.Errorf("unknown security policy type defined in the %q field: %+v", "parameters", err)
+	if props := resp.SecurityPolicyProperties; props != nil {
+		// If it is not Type WebApplicationFirewall ignore this for now
+		switch params := props.Parameters.(type) {
+		case track1.SecurityPolicyWebApplicationFirewallParameters:
+			if err := d.Set("web_application_firewall", flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
+				return fmt.Errorf("setting `web_application_firewall`: %+v", err)
 			}
-
-			d.Set("profile_name", props.ProfileName)
+		default:
+			// Unknown Security Policy Type
+			return fmt.Errorf("unknown security policy type defined in the %q field: %+v", "parameters", err)
 		}
+
+		d.Set("profile_name", props.ProfileName)
 	}
+
 	return nil
-}
-
-func resourceFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := securitypolicies.ParseSecurityPoliciesID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	params := securitypolicies.SecurityPolicyUpdateProperties{}
-	if waf, ok := d.GetOk("web_application_firewall"); ok {
-		params = expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(waf.([]interface{}))
-	} else {
-		// Will look for DDoS policy here once it is GA
-		return fmt.Errorf("unable to locate %q update parameters", "web_application_firewall")
-	}
-
-	props := securitypolicies.SecurityPolicyUpdateParameters{
-		Properties: &params,
-	}
-
-	if err := client.PatchThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	return resourceFrontdoorSecurityPolicyRead(d, meta)
 }
 
 func resourceFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -246,78 +213,86 @@ func resourceFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := securitypolicies.ParseSecurityPoliciesID(d.Id())
+	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 
-func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType securitypolicies.SecurityPolicyPropertiesParameters) securitypolicies.SecurityPolicyPropertiesParameters {
+func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType interface{}) track1.SecurityPolicyPropertiesParameters {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return track1.SecurityPolicyPropertiesParameters{}
 	}
 
-	results := securitypolicies.SecurityPolicyPropertiesParameters(nil)
+	results := track1.SecurityPolicyPropertiesParameters{}
 
 	// TODO: Add DDoS when it GA's
 	switch policyType.(type) {
-	case securitypolicies.SecurityPolicyWebApplicationFirewallParameters:
-		results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
+	case track1.SecurityPolicyWebApplicationFirewallParameters:
+		//results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
+		results = track1.SecurityPolicyPropertiesParameters{
+			Type: track1.TypeWebApplicationFirewall,
+		}
 	default:
 		// Unknown Security Policy Type
-		return nil
+		return results
 	}
 
 	return results
 }
 
-func expandFrontdoorSecurityPoliciesWebApplicationFirewall(input []interface{}) securitypolicies.SecurityPolicyWebApplicationFirewallParameters {
-	results := securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}
-	associations := make([]securitypolicies.SecurityPolicyWebApplicationFirewallAssociation, 0)
-	v := input[0].(map[string]interface{})
+// func expandFrontdoorSecurityPoliciesWebApplicationFirewall(input []interface{}) track1.SecurityPolicyWebApplicationFirewallParameters {
+// 	results := track1.SecurityPolicyWebApplicationFirewallParameters{}
+// 	associations := make([]track1.SecurityPolicyWebApplicationFirewallAssociation, 0)
+// 	v := input[0].(map[string]interface{})
 
-	if id := v["waf_policy_id"].(string); id != "" {
-		results.WafPolicy = &securitypolicies.ResourceReference{
-			Id: utils.String(id),
-		}
-	}
+// 	if id := v["waf_policy_id"].(string); id != "" {
+// 		results.WafPolicy = &track1.ResourceReference{
+// 			ID: utils.String(id),
+// 		}
+// 	}
 
-	configAssociations := v["association"].([]interface{})
+// 	configAssociations := v["association"].([]interface{})
 
-	for _, item := range configAssociations {
-		v := item.(map[string]interface{})
+// 	for _, item := range configAssociations {
+// 		v := item.(map[string]interface{})
 
-		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
-			Domains:         expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{})),
-			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
-		}
+// 		association := track1.SecurityPolicyWebApplicationFirewallAssociation{
+// 			Domains:         expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{})),
+// 			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+// 		}
 
-		associations = append(associations, association)
-	}
+// 		associations = append(associations, association)
+// 	}
 
-	results.Associations = &associations
+// 	results.Associations = &associations
 
-	return results
-}
+// 	return results
+// }
 
-func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]securitypolicies.ActivatedResourceReference {
-	results := make([]securitypolicies.ActivatedResourceReference, 0)
+func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]track1.ActivatedResourceReference {
+	results := make([]track1.ActivatedResourceReference, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		activatedResourceReference := securitypolicies.ActivatedResourceReference{}
+		activatedResourceReference := track1.ActivatedResourceReference{}
 
 		if id := v["id"].(string); id != "" {
-			activatedResourceReference.Id = utils.String(id)
+			activatedResourceReference.ID = utils.String(id)
 
 			enabled := v["enabled"].(bool)
 
@@ -332,19 +307,20 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]se
 	return &results
 }
 
-func expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) securitypolicies.SecurityPolicyUpdateProperties {
+func expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
 	if len(input) == 0 || input[0] == nil {
-		return securitypolicies.SecurityPolicyUpdateProperties{}
+		return track1.SecurityPolicyUpdateProperties{}
 	}
 
-	waf := expandFrontdoorSecurityPoliciesParameters(input, securitypolicies.SecurityPolicyPropertiesParameters(&securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}))
+	// TODO: This isn't quite right...
+	waf := expandFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
 
-	return securitypolicies.SecurityPolicyUpdateProperties{
-		Parameters: waf,
+	return track1.SecurityPolicyUpdateProperties{
+		Parameters: track1.BasicSecurityPolicyPropertiesParameters(waf),
 	}
 }
 
-func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *securitypolicies.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
+func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
 	params := make([]interface{}, 0)
 	associations := make([]interface{}, 0)
 	if input == nil {
@@ -353,7 +329,7 @@ func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *sec
 
 	// if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
 	values := make(map[string]interface{})
-	values["waf_policy_id"] = *input.WafPolicy.Id
+	values["waf_policy_id"] = *input.WafPolicy.ID
 
 	for _, v := range *input.Associations {
 		temp := make(map[string]interface{})
@@ -361,8 +337,8 @@ func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *sec
 
 		for _, x := range *v.Domains {
 			domain := make(map[string]interface{})
-			if x.Id != nil {
-				domain["id"] = *x.Id
+			if x.ID != nil {
+				domain["id"] = *x.ID
 
 				if x.IsActive != nil {
 					domain["enabled"] = *x.IsActive
