@@ -164,6 +164,12 @@ func resourceFirewall() *pluginsdk.Resource {
 					}
 					return string(network.AzureFirewallThreatIntelModeAlert)
 				}(),
+				Computed: func() bool {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return false
+				}(),
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
 						string(network.AzureFirewallThreatIntelModeOff),
