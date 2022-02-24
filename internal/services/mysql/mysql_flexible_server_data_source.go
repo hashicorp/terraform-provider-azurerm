@@ -33,7 +33,7 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 
