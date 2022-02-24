@@ -111,8 +111,12 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.Name, azureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
