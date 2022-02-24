@@ -382,6 +382,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -430,7 +432,9 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
   sku_tier            = "Standard"
+
   ip_configuration {
     name                 = "configuration"
     subnet_id            = azurerm_subnet.test.id
@@ -483,6 +487,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -547,6 +553,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -610,6 +618,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -634,6 +644,8 @@ resource "azurerm_firewall" "import" {
   name                = azurerm_firewall.test.name
   location            = azurerm_firewall.test.location
   resource_group_name = azurerm_firewall.test.resource_group_name
+  sku_name            = azurerm_firewall.test.sku_name
+  sku_tier            = azurerm_firewall.test.sku_tier
 
   ip_configuration {
     name                 = "configuration"
@@ -682,6 +694,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -734,6 +748,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -786,6 +802,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -835,6 +853,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -890,6 +910,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -941,8 +963,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctest-firewall-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "AZFW_Hub"
+  sku_name            = "AZFW_Hub"
+  sku_tier            = "Standard"
 
   virtual_hub {
     virtual_hub_id  = azurerm_virtual_hub.test.id
@@ -992,6 +1014,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
