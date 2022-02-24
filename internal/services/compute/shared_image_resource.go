@@ -194,6 +194,20 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	var features []compute.GalleryImageFeature
+	if d.Get("trusted_launch_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("TrustedLaunch"),
+		})
+	}
+	if d.Get("support_accelerated_network").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
+		})
+	}
+
 	image := compute.GalleryImage{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
@@ -205,7 +219,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
-			Features:            expandGalleryImageFeatures(d),
+			Features:            &features,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -275,7 +289,26 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
-		flattenAndSetGalleryImageFeatures(d, props.Features)
+		trustedLaunchEnabled := false
+		supportAcceleratedNetwork := false
+		if features := props.Features; features != nil {
+			featuresMap := make(map[string]string, len(*features))
+			for _, feature := range *features {
+				if feature.Name != nil && feature.Value != nil {
+					featuresMap[*feature.Name] = *feature.Value
+				}
+			}
+
+			if featuresMap["SecurityType"] == "TrustedLaunch" {
+				trustedLaunchEnabled = true
+			}
+
+			if strings.EqualFold(featuresMap["IsAcceleratedNetworkSupported"], "true") {
+				supportAcceleratedNetwork = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("support_accelerated_network", supportAcceleratedNetwork)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -428,49 +461,4 @@ func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interfa
 			"product":   product,
 		},
 	}
-}
-
-func expandGalleryImageFeatures(d *pluginsdk.ResourceData) *[]compute.GalleryImageFeature {
-	var features []compute.GalleryImageFeature
-
-	if d.Get("trusted_launch_enabled").(bool) {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("TrustedLaunch"),
-		})
-	}
-
-	if d.Get("support_accelerated_network").(bool) {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("IsAcceleratedNetworkSupported"),
-			Value: utils.String("true"),
-		})
-	}
-
-	return &features
-}
-
-func flattenAndSetGalleryImageFeatures(d *pluginsdk.ResourceData, features *[]compute.GalleryImageFeature) {
-	trustedLaunchEnabled := false
-	supportAcceleratedNetwork := false
-
-	if features != nil {
-		featuresMap := make(map[string]string, len(*features))
-		for _, feature := range *features {
-			if feature.Name != nil && feature.Value != nil {
-				featuresMap[*feature.Name] = *feature.Value
-			}
-		}
-
-		if featuresMap["SecurityType"] == "TrustedLaunch" {
-			trustedLaunchEnabled = true
-		}
-
-		if strings.EqualFold(featuresMap["IsAcceleratedNetworkSupported"], "true") {
-			supportAcceleratedNetwork = true
-		}
-	}
-
-	d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-	d.Set("support_accelerated_network", supportAcceleratedNetwork)
 }
