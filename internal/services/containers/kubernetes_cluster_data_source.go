@@ -2,7 +2,6 @@ package containers
 
 import (
 	"fmt"
-	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,7 +47,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_name": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -174,12 +174,12 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_app_id": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"server_app_id": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
@@ -202,8 +202,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								Computed: true,
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -245,7 +244,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"gateway_name": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"subnet_cidr": {
@@ -340,7 +339,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"log_analytics_workspace_id": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"oms_agent_identity": {
@@ -637,8 +636,8 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 	if !features.ThreePointOhBeta() {
 		resource.Schema["addon_profile"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
 			Deprecated: "`addon_profile` is deprecated in favour of the properties `https_application_routing_enabled`, `azure_policy_enabled`, `open_service_mesh_enabled` and the blocks `oms_agent`, `ingress_application_gateway` and `key_vault_secrets_provider` and will be removed in version 3.0 of the AzureRM Provider",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -828,8 +827,8 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 		}
 
 		resource.Schema["role_based_access_control"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
 			Deprecated: "`role_based_access_control` is deprecated in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control` and will be removed in version 3.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -929,7 +928,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 
-		if !features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
 			addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
 			if err := d.Set("addon_profile", addonProfiles); err != nil {
 				return fmt.Errorf("setting `addon_profile`: %+v", err)
@@ -974,9 +973,22 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props)
-		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
-			return fmt.Errorf("setting `role_based_access_control`: %+v", err)
+		rbacEnabled := true
+		if props.EnableRBAC != nil {
+			rbacEnabled = *props.EnableRBAC
+		}
+		d.Set("role_based_access_control_enabled", rbacEnabled)
+
+		aadRbac := flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(props)
+		if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
+			return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
+		}
+
+		if !features.ThreePointOhBeta() {
+			roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props)
+			if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
+				return fmt.Errorf("setting `role_based_access_control`: %+v", err)
+			}
 		}
 
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
@@ -1550,6 +1562,49 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	}
 
 	return agentPoolProfiles
+}
+
+func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *containerservice.ManagedClusterProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
+
+		clientAppId := ""
+		if profile.ClientAppID != nil {
+			clientAppId = *profile.ClientAppID
+		}
+
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		azureRbacEnabled := false
+		if profile.EnableAzureRBAC != nil {
+			azureRbacEnabled = *profile.EnableAzureRBAC
+		}
+
+		serverAppId := ""
+		if profile.ServerAppID != nil {
+			serverAppId = *profile.ServerAppID
+		}
+
+		tenantId := ""
+		if profile.TenantID != nil {
+			tenantId = *profile.TenantID
+		}
+
+		results = append(results, map[string]interface{}{
+			"admin_group_object_ids": adminGroupObjectIds,
+			"client_app_id":          clientAppId,
+			"managed":                managed,
+			"server_app_id":          serverAppId,
+			"tenant_id":              tenantId,
+			"azure_rbac_enabled":     azureRbacEnabled,
+		})
+	}
+
+	return results
 }
 
 func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
