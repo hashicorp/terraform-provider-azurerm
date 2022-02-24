@@ -371,14 +371,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"private_link_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
 			"private_cluster_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true, // TODO -- remove this when deprecation resolves
+				Computed: true,
 			},
 
 			"private_fqdn": {
@@ -874,6 +869,12 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 		}
+
+		resource.Schema["private_link_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`private_link_enabled` is deprecated in favour of `private_cluster_enabled` and will be removed in version 3.0 of the AzureRM Provider",
+		}
 	}
 
 	return resource
@@ -924,7 +925,9 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
-			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+			if !features.ThreePointOhBeta() {
+				d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+			}
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 

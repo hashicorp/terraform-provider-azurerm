@@ -526,7 +526,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
 							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							//DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"outbound_type": {
