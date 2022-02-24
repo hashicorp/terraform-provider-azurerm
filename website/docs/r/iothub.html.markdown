@@ -156,7 +156,7 @@ The following arguments are supported:
 
 * `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
 
-~> **NOTE:** The `ip_filter_rule` property block has been deprecated in favour of the `network_rule_set` property and will be removed in version 3.0 of the provider.
+~> **NOTE:** The `ip_filter_rule` property block has been deprecated in favour of the `network_rule_set` block and will be removed in version 3.0 of the provider.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as defined below.
 
