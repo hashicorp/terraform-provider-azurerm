@@ -924,7 +924,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = false
+      enable_automatic_updates = true
       provision_vm_agent       = true
       timezone                 = "W. Europe Standard Time"
 
@@ -996,7 +996,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = false
+      enable_automatic_updates = true
       provision_vm_agent       = true
 
       winrm_listener {
