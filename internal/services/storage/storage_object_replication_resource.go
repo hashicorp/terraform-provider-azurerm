@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/sdk/2021-04-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +33,7 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ObjectReplicationID(id)
+			_, err := objectreplicationpolicies.ParseObjectReplicationPoliciesID(id)
 			return err
 		}),
 
@@ -112,25 +114,27 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	srcAccount, err := parse.StorageAccountID(d.Get("source_storage_account_id").(string))
+	srcAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
-	dstAccount, err := parse.StorageAccountID(d.Get("destination_storage_account_id").(string))
+	dstAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("destination_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	existingList, err := client.List(ctx, dstAccount.ResourceGroup, dstAccount.Name)
+	resp, err := client.List(ctx, *dstAccount)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existingList.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
 		}
 	}
-	if existingList.Value != nil {
-		for _, existing := range *existingList.Value {
-			if existing.ID != nil && *existing.ID != "" && existing.SourceAccount != nil && *existing.SourceAccount == srcAccount.Name && existing.DestinationAccount != nil && *existing.DestinationAccount == dstAccount.Name {
-				return tf.ImportAsExistsError("azurerm_storage_object_replication", *existing.ID)
+	if resp.Model != nil && resp.Model.Value != nil {
+		for _, existing := range *resp.Model.Value {
+			if existing.Id != nil && *existing.Id != "" {
+				if prop := existing.Properties; prop != nil && prop.SourceAccount == srcAccount.AccountName && prop.DestinationAccount == dstAccount.AccountName {
+					return tf.ImportAsExistsError("azurerm_storage_object_replication", *existing.Id)
+				}
 			}
 		}
 	}
