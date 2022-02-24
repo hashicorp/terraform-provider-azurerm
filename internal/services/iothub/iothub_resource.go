@@ -469,9 +469,12 @@ func resourceIotHub() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO remove in 3.0
 			"ip_filter_rule": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"network_rule_set"},
+				Deprecated:    "This property block is deprecated in favour of `network_rule_set` and will be removed in version 3.0 of the provider.",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -491,6 +494,56 @@ func resourceIotHub() *pluginsdk.Resource {
 								string(devices.IPFilterActionTypeAccept),
 								string(devices.IPFilterActionTypeReject),
 							}, false),
+						},
+					},
+				},
+			},
+
+			"network_rule_set": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"ip_filter_rule"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.DefaultActionDeny),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.DefaultActionAllow),
+								string(devices.DefaultActionDeny),
+							}, false),
+						},
+						"apply_to_builtin_eventhub_endpoint": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"ip_rule": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"ip_mask": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+									"action": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										Default:  string(devices.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(devices.NetworkRuleIPActionAllow),
+										}, false),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -684,7 +737,6 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
-			IPFilterRules:                 expandIPFilterRules(d),
 			Routing:                       &routingProperties,
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
@@ -693,6 +745,14 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, ok := d.GetOk("ip_filter_rule"); ok {
+		props.Properties.IPFilterRules = expandIPFilterRules(d)
+	}
+
+	if _, ok := d.GetOk("network_rule_set"); ok {
+		props.Properties.NetworkRuleSets = expandNetworkRuleSetProperties(d)
 	}
 
 	// nolint staticcheck
@@ -825,9 +885,16 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `fallbackRoute` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
-		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
-			return fmt.Errorf("setting `ip_filter_rule` in IoTHub %q: %+v", id.Name, err)
+		networkRuleSet := flattenNetworkRuleSetProperties(properties.NetworkRuleSets)
+		if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+			return fmt.Errorf("setting `network_rule_set` in IoTHub %q: %+v", id.Name, err)
+		}
+
+		if len(networkRuleSet) == 0 {
+			ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
+			if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+				return fmt.Errorf("setting `ip_filter_rule` in IoTHub %q: %+v", id.Name, err)
+			}
 		}
 
 		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
@@ -1669,6 +1736,61 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkRuleSetProperties {
+	networkRuleSet := d.Get("network_rule_set").([]interface{})
+	networkRuleSetProps := devices.NetworkRuleSetProperties{}
+	nrsMap := networkRuleSet[0].(map[string]interface{})
+
+	networkRuleSetProps.DefaultAction = devices.DefaultAction(nrsMap["default_action"].(string))
+	networkRuleSetProps.ApplyToBuiltInEventHubEndpoint = utils.Bool(nrsMap["apply_to_builtin_eventhub_endpoint"].(bool))
+	ipRules := nrsMap["ip_rule"].([]interface{})
+
+	if len(ipRules) != 0 {
+		rules := make([]devices.NetworkRuleSetIPRule, 0)
+
+		for _, r := range ipRules {
+			rawRule := r.(map[string]interface{})
+			rule := &devices.NetworkRuleSetIPRule{
+				FilterName: utils.String(rawRule["name"].(string)),
+				Action:     devices.NetworkRuleIPAction(rawRule["action"].(string)),
+				IPMask:     utils.String(rawRule["ip_mask"].(string)),
+			}
+			rules = append(rules, *rule)
+		}
+		networkRuleSetProps.IPRules = &rules
+	}
+	return &networkRuleSetProps
+}
+
+func flattenNetworkRuleSetProperties(input *devices.NetworkRuleSetProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	output["default_action"] = input.DefaultAction
+	output["apply_to_builtin_eventhub_endpoint"] = input.ApplyToBuiltInEventHubEndpoint
+	rules := make([]interface{}, 0)
+
+	for _, r := range *input.IPRules {
+		rawRule := make(map[string]interface{})
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
+		rawRule["action"] = string(r.Action)
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
+		rules = append(rules, rawRule)
+	}
+
+	output["ip_rule"] = rules
+	return []interface{}{output}
 }
 
 func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
