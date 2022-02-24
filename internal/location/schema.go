@@ -10,10 +10,6 @@ func Schema() *pluginsdk.Schema {
 	return commonschema.Location()
 }
 
-func SchemaComputed() *pluginsdk.Schema {
-	return commonschema.LocationComputed()
-}
-
 func DiffSuppressFunc(v, old, new string, d *pluginsdk.ResourceData) bool {
 	return location.DiffSuppressFunc(v, old, new, d)
 }

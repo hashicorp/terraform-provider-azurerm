@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -38,7 +39,7 @@ func dataSourceImages() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"location": location.SchemaComputed(),
+						"location": commonschema.LocationComputed(),
 
 						"zone_resilient": {
 							Type:     pluginsdk.TypeBool,

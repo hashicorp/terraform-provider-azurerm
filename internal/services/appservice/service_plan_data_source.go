@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -56,7 +57,7 @@ func (r ServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,

@@ -82,7 +82,7 @@ func (d WindowsFunctionAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"service_plan_id": {
 			Type:     pluginsdk.TypeString,
