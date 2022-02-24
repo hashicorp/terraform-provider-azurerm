@@ -10,10 +10,6 @@ func Schema() *pluginsdk.Schema {
 	return commonschema.Location()
 }
 
-func DiffSuppressFunc(v, old, new string, d *pluginsdk.ResourceData) bool {
-	return location.DiffSuppressFunc(v, old, new, d)
-}
-
 func HashCode(location interface{}) int {
 	// NOTE: this is intentionally not present upstream as the only usage is deprecated
 	// and so this can be removed in 3.0
