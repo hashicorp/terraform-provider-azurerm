@@ -25,7 +25,8 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 		Read:   resourceKeyVaultAccessPolicyRead,
 		Update: resourceKeyVaultAccessPolicyUpdate,
 		Delete: resourceKeyVaultAccessPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
+
+		// TODO: switch below to using an ID Parser and then replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
