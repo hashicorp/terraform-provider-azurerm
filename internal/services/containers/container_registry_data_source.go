@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -87,7 +88,7 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ContainerRegistryName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"location": azure.SchemaLocationForDataSource(),
 

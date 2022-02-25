@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -51,7 +50,7 @@ func (r ServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ServicePlanName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 

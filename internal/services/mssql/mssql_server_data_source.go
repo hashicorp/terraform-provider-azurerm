@@ -31,7 +31,7 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 

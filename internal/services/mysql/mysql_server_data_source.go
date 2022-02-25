@@ -69,7 +69,7 @@ func dataSourceMySqlServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"restore_point_in_time": {
 				Type:     pluginsdk.TypeString,
