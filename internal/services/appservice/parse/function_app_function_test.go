@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = AppFunctionId{}
+var _ resourceids.Id = FunctionAppFunctionId{}
 
-func TestAppFunctionIDFormatter(t *testing.T) {
-	actual := NewAppFunctionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "function1").ID()
+func TestFunctionAppFunctionIDFormatter(t *testing.T) {
+	actual := NewFunctionAppFunctionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "function1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/functions/function1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestAppFunctionID(t *testing.T) {
+func TestFunctionAppFunctionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AppFunctionId
+		Expected *FunctionAppFunctionId
 	}{
 
 		{
@@ -82,7 +82,7 @@ func TestAppFunctionID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/functions/function1",
-			Expected: &AppFunctionId{
+			Expected: &FunctionAppFunctionId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				SiteName:       "site1",
@@ -100,7 +100,7 @@ func TestAppFunctionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AppFunctionID(v.Input)
+		actual, err := FunctionAppFunctionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

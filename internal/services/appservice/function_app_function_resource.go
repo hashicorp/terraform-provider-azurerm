@@ -15,16 +15,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppFunctionResource struct{}
+type FunctionAppFunctionResource struct{}
 
-type AppFunctionModel struct {
-	Name           string `tfschema:"name"`
-	AppID          string `tfschema:"function_app_id"`
-	Enabled        bool   `tfschema:"enabled"`
-	ConfigJSON     string `tfschema:"config_json"`
-	Language       string `tfschema:"language"`
-	SecretsFileURL string `tfschema:"secrets_file_url"`
-	TestData       string `tfschema:"test_data"`
+type FunctionAppFunctionModel struct {
+	Name           string          `tfschema:"name"`
+	AppID          string          `tfschema:"function_app_id"`
+	Enabled        bool            `tfschema:"enabled"`
+	ConfigJSON     string          `tfschema:"config_json"`
+	Language       string          `tfschema:"language"`
+	SecretsFileURL string          `tfschema:"secrets_file_url"`
+	TestData       string          `tfschema:"test_data"`
+	Files          []FunctionFiles `tfschema:"file"`
 
 	ConfigURL         string `tfschema:"config_url"`
 	FunctionURL       string `tfschema:"url"`
@@ -34,54 +35,87 @@ type AppFunctionModel struct {
 	TestDataURL       string `tfschema:"test_data_url"`
 }
 
-var _ sdk.ResourceWithUpdate = AppFunctionResource{}
-
-func (r AppFunctionResource) ModelObject() interface{} {
-	return &AppFunctionModel{}
+type FunctionFiles struct {
+	Name    string `tfschema:"name"`
+	Content string `tfschema:"content"`
 }
 
-func (r AppFunctionResource) ResourceType() string {
-	return "azurerm_app_function"
+var _ sdk.ResourceWithUpdate = FunctionAppFunctionResource{}
+
+func (r FunctionAppFunctionResource) ModelObject() interface{} {
+	return &FunctionAppFunctionModel{}
 }
 
-func (r AppFunctionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppFunctionID
+func (r FunctionAppFunctionResource) ResourceType() string {
+	return "azurerm_function_app_function"
 }
 
-func (r AppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
+func (r FunctionAppFunctionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.FunctionAppFunctionID
+}
+
+func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 128), // TODO - proper validation here, "must start with a letter and can contain letters, numbers (0-9), dashes ("-"), and underscores ("_")."
+			Description:  "The name of the function.",
 		},
 
 		"function_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.WebAppID,
-			Description:  "The Function App ID to which this function belongs.",
+			ForceNew:     true,
+			Description:  "The ID of the Function App in which this function should reside.",
 		},
 
 		"config_json": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsJSON,
-			Description:  "The JSON config for this Function.",
+			Description:  "The config for this Function in JSON format.",
 		},
 
 		"enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should this function be enabled. Defaults to `true`",
+			Description: "Should this function be enabled. Defaults to `true`.",
 		},
 
 		"language": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty, // TODO - find the valida list of strings
 			Description:  "The language the Function is written in.",
+		},
+
+		"file": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Description:  "The filename of the file to be uploaded.",
+					},
+					"content": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Description:  "The content of the file.",
+					},
+				},
+			},
 		},
 
 		"test_data": {
@@ -93,7 +127,7 @@ func (r AppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppFunctionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r FunctionAppFunctionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"config_url": {
 			Type:        pluginsdk.TypeString,
@@ -130,6 +164,7 @@ func (r AppFunctionResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:    true,
 			Description: "The Test data URL.",
 		},
+
 		"secrets_file_url": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -138,13 +173,13 @@ func (r AppFunctionResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppFunctionResource) Create() sdk.ResourceFunc {
+func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			appFunction := AppFunctionModel{}
+			appFunction := FunctionAppFunctionModel{}
 			if err := metadata.Decode(&appFunction); err != nil {
 				return err
 			}
@@ -154,13 +189,17 @@ func (r AppFunctionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewAppFunctionID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, appFunction.Name)
+			id := parse.NewFunctionAppFunctionID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, appFunction.Name)
+
+			// TODO - Do we need to (or can we?) check the function runtime is ready?
 
 			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				if !utils.ResponseWasBadRequest(existing.Response) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequest(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -176,7 +215,7 @@ func (r AppFunctionResource) Create() sdk.ResourceFunc {
 					TestData:   utils.String(appFunction.TestData),
 					Language:   utils.String(appFunction.Language),
 					IsDisabled: utils.Bool(!appFunction.Enabled),
-					// Files:      nil, // TODO - Can / should we support this?
+					Files:      expandFunctionFiles(appFunction.Files),
 				},
 			}
 
@@ -195,13 +234,13 @@ func (r AppFunctionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AppFunctionResource) Read() sdk.ResourceFunc {
+func (r FunctionAppFunctionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.AppFunctionID(metadata.ResourceData.Id())
+			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -215,14 +254,13 @@ func (r AppFunctionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			appFunc := AppFunctionModel{
+			appFunc := FunctionAppFunctionModel{
 				Name:              id.FunctionName,
 				AppID:             parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				ConfigURL:         utils.NormalizeNilableString(existing.ConfigHref),
 				Enabled:           !utils.NormaliseNilableBool(existing.IsDisabled),
 				FunctionURL:       utils.NormalizeNilableString(existing.Href),
 				InvokeURL:         utils.NormalizeNilableString(existing.InvokeURLTemplate),
-				Language:          utils.NormalizeNilableString(existing.Language),
 				ScriptURL:         utils.NormalizeNilableString(existing.ScriptHref),
 				ScriptRootPathURL: utils.NormalizeNilableString(existing.ScriptRootPathHref),
 				SecretsFileURL:    utils.NormalizeNilableString(existing.SecretsFileHref),
@@ -230,27 +268,40 @@ func (r AppFunctionResource) Read() sdk.ResourceFunc {
 				TestDataURL:       utils.NormalizeNilableString(existing.TestDataHref),
 			}
 
-			metadata.Logger.Infof("[STEBUG] config_json: %#v", existing.Config)
-			if configJSON := existing.Config; configJSON != nil {
-				raw, err := json.Marshal(configJSON)
-				if err != nil {
-					metadata.Logger.Infof("[STEBUG] JSON: %+v", err)
-				}
-				appFunc.ConfigJSON = string(raw)
+			if language, ok := metadata.ResourceData.GetOk("language"); ok {
+				appFunc.Language = language.(string)
 			}
+
+			if filesRaw, ok := metadata.ResourceData.GetOk("file"); ok {
+				files := make([]FunctionFiles, 0)
+				for _, v := range filesRaw.([]interface{}) {
+					file := v.(map[string]interface{})
+					files = append(files, FunctionFiles{
+						Name:    file["name"].(string),
+						Content: file["content"].(string),
+					})
+				}
+				appFunc.Files = files
+			}
+
+			config, err := flattenFunctionFiles(existing.Config)
+			if err != nil {
+				return err
+			}
+			appFunc.ConfigJSON = utils.NormalizeNilableString(config)
 
 			return metadata.Encode(&appFunc)
 		},
 	}
 }
 
-func (r AppFunctionResource) Delete() sdk.ResourceFunc {
+func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.AppFunctionID(metadata.ResourceData.Id())
+			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -266,12 +317,79 @@ func (r AppFunctionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AppFunctionResource) Update() sdk.ResourceFunc {
+func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Update Func
+			client := metadata.Client.AppService.WebAppsClient
+
+			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var appFunction FunctionAppFunctionModel
+			if err := metadata.Decode(&appFunction); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
+			if err != nil || existing.FunctionEnvelopeProperties == nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if metadata.ResourceData.HasChange("config_json") {
+				var confJSON interface{}
+				err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON)
+				if err != nil {
+					return fmt.Errorf("error preparing config data to send: %+v", err)
+				}
+				existing.Config = confJSON
+			}
+
+			if metadata.ResourceData.HasChange("enabled") {
+				existing.IsDisabled = utils.Bool(!appFunction.Enabled)
+			}
+
+			if metadata.ResourceData.HasChange("test_data") {
+				existing.TestData = utils.String(appFunction.TestData)
+			}
+
+			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, existing)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
+}
+
+func expandFunctionFiles(input []FunctionFiles) map[string]*string {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]*string)
+	for _, v := range input {
+		result[v.Name] = &v.Content
+	}
+
+	return result
+}
+
+func flattenFunctionFiles(input interface{}) (*string, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	raw, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal `config_json`: %+v", err)
+	}
+	result := string(raw)
+	return &result, nil
 }

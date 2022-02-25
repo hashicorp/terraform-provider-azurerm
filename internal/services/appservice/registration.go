@@ -38,10 +38,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	if features.ThreePointOhAppServiceResources() {
 		return []sdk.Resource{
-			AppFunctionResource{},
-			AppFunctionConnectionResource{},
 			AppServiceSourceControlTokenResource{},
 			FunctionAppActiveSlotResource{},
+			FunctionAppFunctionResource{},
 			LinuxFunctionAppResource{},
 			LinuxFunctionAppSlotResource{},
 			LinuxWebAppResource{},

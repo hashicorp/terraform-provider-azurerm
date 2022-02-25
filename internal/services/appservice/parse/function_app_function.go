@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type AppFunctionId struct {
+type FunctionAppFunctionId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	SiteName       string
 	FunctionName   string
 }
 
-func NewAppFunctionID(subscriptionId, resourceGroup, siteName, functionName string) AppFunctionId {
-	return AppFunctionId{
+func NewFunctionAppFunctionID(subscriptionId, resourceGroup, siteName, functionName string) FunctionAppFunctionId {
+	return FunctionAppFunctionId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		SiteName:       siteName,
@@ -25,29 +25,29 @@ func NewAppFunctionID(subscriptionId, resourceGroup, siteName, functionName stri
 	}
 }
 
-func (id AppFunctionId) String() string {
+func (id FunctionAppFunctionId) String() string {
 	segments := []string{
 		fmt.Sprintf("Function Name %q", id.FunctionName),
 		fmt.Sprintf("Site Name %q", id.SiteName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "App Function", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Function App Function", segmentsStr)
 }
 
-func (id AppFunctionId) ID() string {
+func (id FunctionAppFunctionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/functions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.FunctionName)
 }
 
-// AppFunctionID parses a AppFunction ID into an AppFunctionId struct
-func AppFunctionID(input string) (*AppFunctionId, error) {
+// FunctionAppFunctionID parses a FunctionAppFunction ID into an FunctionAppFunctionId struct
+func FunctionAppFunctionID(input string) (*FunctionAppFunctionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := AppFunctionId{
+	resourceId := FunctionAppFunctionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
