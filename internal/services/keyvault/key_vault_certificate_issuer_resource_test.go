@@ -190,8 +190,8 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Import",
       "Get",
-      "Manageissuers",
-      "Setissuers",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [
@@ -257,8 +257,8 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Import",
       "Get",
-      "Manageissuers",
-      "Setissuers",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [

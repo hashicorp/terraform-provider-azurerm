@@ -717,16 +717,16 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = [
       "Create",
       "Delete",
-      "Deleteissuers",
+      "DeleteIssuers",
       "Get",
-      "Getissuers",
+      "GetIssuers",
       "Import",
       "List",
-      "Listissuers",
+      "ListIssuers",
       "Managecontacts",
-      "Manageissuers",
+      "ManageIssuers",
       "Purge",
-      "Setissuers",
+      "SetIssuers",
       "Update",
     ]
   }
