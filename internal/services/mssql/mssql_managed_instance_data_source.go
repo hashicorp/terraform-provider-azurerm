@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
@@ -221,7 +222,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 }
 
 func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemAssigned {
-	if input == nil || input.Type != identity.TypeSystemAssigned {
+	if input == nil || !strings.EqualFold(string(input.Type), string(identity.TypeSystemAssigned)) {
 		return nil
 	}
 
