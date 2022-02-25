@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	validateHelper "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -517,8 +516,8 @@ func TestAccContainerRegistry_identitySystemAssigned(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validateHelper.UUIDRegExp),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validateHelper.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
