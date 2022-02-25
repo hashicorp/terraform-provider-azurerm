@@ -1,6 +1,7 @@
 package eventhub
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -30,7 +31,29 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := namespaces.ParseNamespaceID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Eventhub.NamespacesClient
+			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+			defer cancel()
+
+			id, err := namespaces.ParseNamespaceID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: no customer managed key present", *id)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"eventhub_namespace_id": {
