@@ -363,7 +363,7 @@ resource "azurerm_resource_group" "dst" {
 }
 
 resource "azurerm_storage_account" "dst" {
-  provider = azurerm-alt
+  provider                 = azurerm-alt
   name                     = "stracctdst%[4]s"
   resource_group_name      = azurerm_resource_group.dst.name
   location                 = azurerm_resource_group.dst.location
@@ -376,14 +376,14 @@ resource "azurerm_storage_account" "dst" {
 }
 
 resource "azurerm_storage_container" "dst" {
-  provider = azurerm-alt
+  provider              = azurerm-alt
   name                  = "strcdst%[4]s"
   storage_account_name  = azurerm_storage_account.dst.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "dst_second" {
-  provider = azurerm-alt
+  provider              = azurerm-alt
   name                  = "strcdstsecond%[4]s"
   storage_account_name  = azurerm_storage_account.dst.name
   container_access_type = "private"
