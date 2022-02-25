@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -29,7 +31,9 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		DeprecationMessage: "The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favour of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint' and will be removed in version 3.0 of the Azure Provider.",
 
