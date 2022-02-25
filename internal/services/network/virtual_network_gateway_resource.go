@@ -80,6 +80,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 				}, !features.ThreePointOhBeta()),
 			},
 
+		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_bgp": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -101,7 +102,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
 			// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
 			// validators validateVirtualNetworkGatewayPolicyBasedVpnSku, validateVirtualNetworkGatewayRouteBasedVpnSku
