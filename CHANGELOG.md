@@ -16,7 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection ([#15529](https://github.com/hashicorp/terraform-provider-azurerm/issues/15529))
-* `azurerm_firewall_policy` - wait for completion after calling create ([#15561](https://github.com/hashicorp/terraform-provider-azurerm/issues/15561))
+* `azurerm_firewall_policy` - will not wait for resource to finish provisioning after creation ([#15561](https://github.com/hashicorp/terraform-provider-azurerm/issues/15561))
 
 ## 2.97.0 (February 18, 2022)
 
