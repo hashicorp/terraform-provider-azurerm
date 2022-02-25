@@ -502,6 +502,12 @@ The deprecated block `eventhub_endpoint` will be removed in favour of the `event
 
 The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
 
+### Resource: `azurerm_eventhub_namespace_customer_managed_key`
+
+Deleting this resource will become a non-operation as it's not possible to remove a Customer Managed Key from the Namespace without deleting the Namespace, which involves deleting all items nested within it.
+
+In order to remove the Customer Managed Key - in 3.0 the EventHub Namespace resource will need to be recreated in order to remove the Customer Managed Key.
+
 ### Resource: `azurerm_eventhub_namespace_disaster_recovery_config`
 
 The deprecated field `alternate_name` will be removed since any DRC created with an alternate cannot be deleted.
