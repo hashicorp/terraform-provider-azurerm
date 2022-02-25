@@ -1,22 +1,22 @@
-## 2.98.0 (Unreleased)
+## 2.98.0 (February 25, 2022)
 
 FEATURES:
 
-* New Beta Resource: `azurerm_function_app_active_slot` [GH-15246]
-* New Beta Resource: `azurerm_web_app_active_slot` [GH-15246]
+* New Beta Resource: `azurerm_function_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
+* New Beta Resource: `azurerm_web_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` [GH-15507]
-* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
+* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` ([#15507](https://github.com/hashicorp/terraform-provider-azurerm/issues/15507))
+* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection [GH-15529]
-* `azurerm_firewall_policy` - wait for completion after calling create [GH-15561]
+* `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection ([#15529](https://github.com/hashicorp/terraform-provider-azurerm/issues/15529))
+* `azurerm_firewall_policy` - wait for completion after calling create ([#15561](https://github.com/hashicorp/terraform-provider-azurerm/issues/15561))
 
 ## 2.97.0 (February 18, 2022)
 
