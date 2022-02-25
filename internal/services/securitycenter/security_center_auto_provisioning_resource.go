@@ -24,7 +24,7 @@ func resourceSecurityCenterAutoProvisioning() *pluginsdk.Resource {
 		Update: resourceSecurityCenterAutoProvisioningUpdate,
 		Delete: resourceSecurityCenterAutoProvisioningDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
+		// TODO: introduce an ID Parser and then replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
