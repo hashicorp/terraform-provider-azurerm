@@ -717,7 +717,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1133,7 +1133,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "101"
   disk_mbps_read_write = "10"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1193,7 +1193,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "102"
   disk_mbps_read_write = "11"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1557,7 +1557,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "DenyAll"
 
   tags = {
@@ -1615,7 +1615,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "DenyAll"
 
   tags = {
@@ -1683,7 +1683,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "AllowPrivate"
   disk_access_id        = azurerm_disk_access.test.id
 
@@ -1763,7 +1763,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "AllowPrivate"
   disk_access_id        = azurerm_disk_access.test.id
 
@@ -1877,7 +1877,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "256"
   max_shares           = 2
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -1929,7 +1929,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "256"
   logical_sector_size  = 512
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -1981,7 +1981,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1024"
   max_shares           = 5
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -2070,7 +2070,7 @@ resource "azurerm_managed_disk" "test" {
   disk_iops_read_only  = "101"
   disk_mbps_read_only  = "10"
   max_shares           = "2"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -2132,7 +2132,7 @@ resource "azurerm_managed_disk" "test" {
   disk_iops_read_only  = "102"
   disk_mbps_read_only  = "11"
   max_shares           = "2"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -2239,7 +2239,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1024"
-  zones                = ["1"]
+  zone                 = "1"
   hyper_v_generation   = "V2"
   tags = {
     environment = "acctest"

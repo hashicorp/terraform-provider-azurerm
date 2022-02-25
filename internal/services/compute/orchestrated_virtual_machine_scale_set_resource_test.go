@@ -1652,7 +1652,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       primary   = true
       subnet_id = azurerm_subnet.test.id
 
-      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
+      application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
     }
   }
 
