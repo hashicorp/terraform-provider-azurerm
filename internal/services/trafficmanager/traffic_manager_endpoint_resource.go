@@ -28,7 +28,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 		Read:   resourceArmTrafficManagerEndpointRead,
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
-		// TODO: replace this with an importer which validates the ID during import
+
 		Importer: pluginsdk.DefaultImporter(),
 
 		DeprecationMessage: "The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favour of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint' and will be removed in version 3.0 of the Azure Provider.",
