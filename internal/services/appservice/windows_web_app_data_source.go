@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -73,7 +72,7 @@ func (d WindowsWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"service_plan_id": {
 			Type:     pluginsdk.TypeString,

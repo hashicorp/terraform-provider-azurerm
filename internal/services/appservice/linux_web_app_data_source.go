@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -75,7 +74,7 @@ func (r LinuxWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"app_metadata": {
 			Type:     pluginsdk.TypeMap,
