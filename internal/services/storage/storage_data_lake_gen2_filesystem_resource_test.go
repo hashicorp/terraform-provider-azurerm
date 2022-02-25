@@ -335,8 +335,8 @@ resource "azuread_service_principal" "test" {
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   name               = "acctest-%[2]d"
   storage_account_id = azurerm_storage_account.test.id
-  owner = azuread_service_principal.test.object_id
-  group = azuread_service_principal.test.object_id
+  owner              = azuread_service_principal.test.object_id
+  group              = azuread_service_principal.test.object_id
 }
 `, template, data.RandomInteger)
 }
