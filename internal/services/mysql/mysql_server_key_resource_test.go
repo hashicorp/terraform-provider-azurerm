@@ -111,16 +111,16 @@ resource "azurerm_key_vault_access_policy" "server" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = azurerm_mysql_server.test.identity.0.principal_id
-  key_permissions    = ["get", "unwrapkey", "wrapkey"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "first" {
@@ -128,7 +128,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
   depends_on = [
     azurerm_key_vault_access_policy.client,
     azurerm_key_vault_access_policy.server,

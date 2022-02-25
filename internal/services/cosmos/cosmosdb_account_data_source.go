@@ -52,11 +52,13 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_failover": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -144,6 +146,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_multiple_write_locations": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,

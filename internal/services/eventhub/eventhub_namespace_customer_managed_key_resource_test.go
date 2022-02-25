@@ -225,7 +225,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = azurerm_eventhub_namespace.test.identity.0.tenant_id
   object_id    = azurerm_eventhub_namespace.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "Unwrapkey", "Wrapkey"]
 }
 
 resource "azurerm_key_vault_access_policy" "test2" {
@@ -234,12 +234,12 @@ resource "azurerm_key_vault_access_policy" "test2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 

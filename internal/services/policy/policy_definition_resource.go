@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,89 +37,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
-
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"policy_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.TypeBuiltIn),
-					string(policy.TypeCustom),
-					string(policy.TypeNotSpecified),
-					string(policy.TypeStatic),
-				}, true),
-			},
-
-			"mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						"All",
-						"Indexed",
-						"Microsoft.ContainerService.Data",
-						"Microsoft.CustomerLockbox.Data",
-						"Microsoft.DataCatalog.Data",
-						"Microsoft.KeyVault.Data",
-						"Microsoft.Kubernetes.Data",
-						"Microsoft.MachineLearningServices.Data",
-						"Microsoft.Network.Data",
-						"Microsoft.Synapse.Data",
-					}, false,
-				),
-			},
-
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO 3.0 - remove this when deprecation resolves
-				ConflictsWith: []string{"management_group_name"},
-			},
-
-			// TODO 3.0 - Remove this
-			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"management_group_id"},
-				Deprecated:    "Deprecated in favour of `management_group_id`",
-			},
-
-			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"policy_rule": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
-
-			"parameters": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
-
-			"metadata": metadataSchema(),
-		},
+		Schema: resourceArmPolicyDefinitionSchema(),
 	}
 }
 
@@ -133,9 +52,13 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
 	managementGroupName := ""
-	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
+
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("management_group_name"); ok {
+			managementGroupName = v.(string)
+		}
 	}
+
 	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupName = v.(string)
 	}
@@ -268,7 +191,10 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("management_group_id", managementGroupName)
-	d.Set("management_group_name", managementGroupName)
+
+	if !features.ThreePointOhBeta() {
+		d.Set("management_group_name", managementGroupName)
+	}
 
 	if props := resp.DefinitionProperties; props != nil {
 		d.Set("policy_type", props.PolicyType)
@@ -349,4 +275,96 @@ func flattenJSON(stringMap interface{}) string {
 	}
 
 	return ""
+}
+
+func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(policy.TypeBuiltIn),
+				string(policy.TypeCustom),
+				string(policy.TypeNotSpecified),
+				string(policy.TypeStatic),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		"mode": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"All",
+					"Indexed",
+					"Microsoft.ContainerService.Data",
+					"Microsoft.CustomerLockbox.Data",
+					"Microsoft.DataCatalog.Data",
+					"Microsoft.KeyVault.Data",
+					"Microsoft.Kubernetes.Data",
+					"Microsoft.MachineLearningServices.Data",
+					"Microsoft.Network.Data",
+					"Microsoft.Synapse.Data",
+				}, false,
+			),
+		},
+
+		"management_group_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"management_group_name"}
+				}
+				return []string{}
+			}(),
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"policy_rule": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"parameters": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"metadata": metadataSchema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["management_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"management_group_id"},
+			Deprecated:    "Deprecated in favour of `management_group_id`",
+		}
+	}
+	return out
 }

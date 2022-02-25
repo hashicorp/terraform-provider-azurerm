@@ -1582,10 +1582,10 @@ resource "azurerm_key_vault_access_policy" "acctest" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "create",
-    "delete",
-    "purge",
+    "Get",
+    "Create",
+    "Delete",
+    "Purge",
   ]
 }
 
@@ -1625,9 +1625,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption-perm" {
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 }
 

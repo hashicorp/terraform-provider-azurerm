@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +16,7 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -89,7 +91,13 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityRequired(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
+			"primary_user_assigned_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: msiValidate.UserAssignedIdentityID,
+			},
 
 			"container_registry_id": {
 				Type:     pluginsdk.TypeString,
@@ -136,6 +144,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: msiValidate.UserAssignedIdentityID,
+						},
 					},
 				},
 			},
@@ -160,7 +173,8 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						out = append(out, "Enterprise")
 					}
 					return out
-				}(), true),
+				}(), !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"discovery_url": {
@@ -195,6 +209,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
+
 	workspace := machinelearningservices.Workspace{
 		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -205,11 +221,11 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		},
 		Identity: expandedIdentity,
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
+			Encryption:                      expandedEncryption,
 			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
 			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
-			Encryption:                      expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{})),
 		},
 	}
 
@@ -231,6 +247,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
 		workspace.WorkspaceProperties.ImageBuildCompute = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("primary_user_assigned_identity"); ok {
+		workspace.WorkspaceProperties.PrimaryUserAssignedIdentity = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, workspace)
@@ -287,13 +307,22 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("image_build_compute_name", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryURL)
+		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 	}
 
-	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	if err := d.Set("encryption", flattenMachineLearningWorkspaceEncryption(resp.Encryption)); err != nil {
+	flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(resp.Encryption)
+	if err != nil {
+		return fmt.Errorf("flattening `encryption`: %+v", err)
+	}
+	if err := d.Set("encryption", flattenedEncryption); err != nil {
 		return fmt.Errorf("flattening encryption on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -334,6 +363,18 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("identity") {
+		identity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return err
+		}
+		update.Identity = identity
+	}
+
+	if d.HasChange("primary_user_assigned_identity") {
+		update.WorkspacePropertiesUpdateParameters.PrimaryUserAssignedIdentity = utils.String(d.Get("primary_user_assigned_identity").(string))
+	}
+
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
 		return fmt.Errorf("updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -364,32 +405,58 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func expandMachineLearningWorkspaceIdentity(input []interface{}) (*machinelearningservices.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &machinelearningservices.Identity{
+	out := machinelearningservices.Identity{
 		Type: machinelearningservices.ResourceIdentityType(string(expanded.Type)),
-	}, nil
+	}
+	// api uses `SystemAssigned,UserAssigned` (no space), so convert it from the normalized value
+	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.Type = machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned
+	}
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = make(map[string]*machinelearningservices.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &machinelearningservices.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
 }
 
-func flattenMachineLearningWorkspaceIdentity(input *machinelearningservices.Identity) []interface{} {
-	var transform *identity.SystemAssigned
+func flattenMachineLearningWorkspaceIdentity(input *machinelearningservices.Identity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
+
+		// api uses `SystemAssigned,UserAssigned` (no space), so normalize it back
+		if input.Type == machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned {
+			transform.Type = identity.TypeSystemAssignedUserAssigned
+		}
+
 		if input.PrincipalID != nil {
 			transform.PrincipalId = *input.PrincipalID
 		}
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearningservices.EncryptionProperty {
@@ -398,27 +465,55 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearn
 	}
 
 	raw := input[0].(map[string]interface{})
-	encryption := &machinelearningservices.EncryptionProperty{
+	out := machinelearningservices.EncryptionProperty{
+		Identity: &machinelearningservices.IdentityForCmk{
+			UserAssignedIdentity: nil,
+		},
+		KeyVaultProperties: &machinelearningservices.KeyVaultProperties{
+			KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
+			KeyIdentifier: utils.String(raw["key_id"].(string)),
+		},
 		Status: machinelearningservices.EncryptionStatusEnabled,
 	}
 
-	encryption.KeyVaultProperties = &machinelearningservices.KeyVaultProperties{
-		KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
-		KeyIdentifier: utils.String(raw["key_id"].(string)),
+	if raw["user_assigned_identity_id"].(string) != "" {
+		out.Identity.UserAssignedIdentity = utils.String(raw["user_assigned_identity_id"].(string))
 	}
 
-	return encryption
+	return &out
 }
 
-func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservices.EncryptionProperty) []interface{} {
-	if encryption == nil {
-		return []interface{}{}
+func flattenMachineLearningWorkspaceEncryption(input *machinelearningservices.EncryptionProperty) (*[]interface{}, error) {
+	if input == nil || input.Status != machinelearningservices.EncryptionStatusEnabled {
+		return &[]interface{}{}, nil
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"key_vault_id": *encryption.KeyVaultProperties.KeyVaultArmID,
-			"key_id":       *encryption.KeyVaultProperties.KeyIdentifier,
-		},
+	keyVaultId := ""
+	keyVaultKeyId := ""
+	if input.KeyVaultProperties != nil {
+		if input.KeyVaultProperties.KeyIdentifier != nil {
+			keyVaultKeyId = *input.KeyVaultProperties.KeyIdentifier
+		}
+		if input.KeyVaultProperties.KeyVaultArmID != nil {
+			keyVaultId = *input.KeyVaultProperties.KeyVaultArmID
+		}
 	}
+
+	userAssignedIdentityId := ""
+	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity, err)
+		}
+
+		userAssignedIdentityId = id.ID()
+	}
+
+	return &[]interface{}{
+		map[string]interface{}{
+			"user_assigned_identity_id": userAssignedIdentityId,
+			"key_vault_id":              keyVaultId,
+			"key_id":                    keyVaultKeyId,
+		},
+	}, nil
 }

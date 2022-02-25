@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,8 +65,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 					string(endpoints.EndpointTypeAzureEndpoints),
 					string(endpoints.EndpointTypeNestedEndpoints),
 					string(endpoints.EndpointTypeExternalEndpoints),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"target": {
@@ -87,8 +88,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(endpoints.EndpointStatusDisabled),
 					string(endpoints.EndpointStatusEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOh()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"weight": {

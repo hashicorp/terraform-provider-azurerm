@@ -586,7 +586,7 @@ func TestAccApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	})
 }
 
-func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testing.T) {
+func TestAccApplicationGateway_sslCertificateManualChangeIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
@@ -1994,15 +1994,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${data.azurerm_client_config.test.object_id}"
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${azurerm_user_assigned_identity.test.principal_id}"
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -2141,15 +2141,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -3544,7 +3544,8 @@ resource "azurerm_application_gateway" "test" {
     interval            = 300
     unhealthy_threshold = 8
     match {
-      body = ""
+      body        = ""
+      status_code = ["404-500"]
     }
   }
 
@@ -4006,15 +4007,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 
   soft_delete_enabled = true
@@ -4157,15 +4158,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 
   soft_delete_enabled = true

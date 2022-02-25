@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -70,18 +69,17 @@ func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 func TestAccManagedDisk_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	vm := VirtualMachineResource{}
+	vm := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then delete it so we can use the vhd to test import
-			Config:             vm.basicLinuxMachine(data),
+			Config:             vm.authSSH(data),
 			Destroy:            false,
 			ExpectNonEmptyPlan: true,
 			Check: acceptance.ComposeTestCheckFunc(
-				// TODO: switch to using `azurerm_linux_virtual_machine` once Binary Testing is enabled
-				check.That("azurerm_virtual_machine.test").ExistsInAzure(vm),
-				data.CheckWithClientForResource(r.destroyVirtualMachine, "azurerm_virtual_machine.test"),
+				check.That("azurerm_linux_virtual_machine.test").ExistsInAzure(vm),
+				data.CheckWithClientForResource(r.destroyVirtualMachine, "azurerm_linux_virtual_machine.test"),
 			),
 		},
 		{
@@ -1046,16 +1044,16 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
     ]
 
     secret_permissions = [
-      "delete",
-      "get",
-      "set",
+      "Delete",
+      "Get",
+      "Set",
     ]
   }
 
@@ -1295,17 +1293,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -1316,12 +1314,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -1342,9 +1340,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id

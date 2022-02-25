@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,20 +36,21 @@ type LinuxFunctionAppModel struct {
 	StorageAccountKey string `tfschema:"storage_account_access_key"`
 	StorageUsesMSI    bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 
-	AppSettings               map[string]string                    `tfschema:"app_settings"`
-	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
-	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
-	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
-	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
-	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                   bool                                 `tfschema:"enabled"`
-	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
-	HttpsOnly                 bool                                 `tfschema:"https_only"`
-	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
-	Tags                      map[string]string                    `tfschema:"tags"`
+	AppSettings                 map[string]string                    `tfschema:"app_settings"`
+	AuthSettings                []helpers.AuthSettings               `tfschema:"auth_settings"`
+	Backup                      []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled           bool                                 `tfschema:"client_certificate_enabled"`
+	ClientCertMode              string                               `tfschema:"client_certificate_mode"`
+	ConnectionStrings           []helpers.ConnectionString           `tfschema:"connection_string"`
+	DailyMemoryTimeQuota        int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                     bool                                 `tfschema:"enabled"`
+	FunctionExtensionsVersion   string                               `tfschema:"functions_extension_version"`
+	ForceDisableContentShare    bool                                 `tfschema:"content_share_force_disabled"`
+	HttpsOnly                   bool                                 `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
+	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
+	Tags                        map[string]string                    `tfschema:"tags"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -209,6 +211,14 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
 
@@ -410,6 +420,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if functionApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -524,15 +538,16 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppModel{
-				Name:                 id.SiteName,
-				ResourceGroup:        id.ResourceGroup,
-				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
-				Location:             location.NormalizeNilable(functionApp.Location),
-				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:       string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                 tags.ToTypedObject(functionApp.Tags),
-				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                    location.NormalizeNilable(functionApp.Location),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -648,6 +663,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

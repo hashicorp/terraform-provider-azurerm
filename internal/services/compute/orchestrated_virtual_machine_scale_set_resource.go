@@ -81,7 +81,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
+				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
@@ -281,7 +281,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	instances := d.Get("instances").(int)
 	if v, ok := d.GetOk("sku_name"); ok {
 		isLegacy = false
-		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
+		sku, err := expandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
 		if err != nil {
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
@@ -313,11 +313,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
-
+	sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 
 	osType := compute.OperatingSystemTypesWindows
@@ -793,10 +789,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
-				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-				if err != nil {
-					return err
-				}
+				sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
@@ -888,7 +881,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
 				if err != nil {
 					return err
 				}
@@ -988,7 +981,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	var skuName *string
 	var instances int
 	if resp.Sku != nil {
-		skuName, err = azure.FlattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
+		skuName, err = flattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
 		if err != nil || skuName == nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
@@ -1180,4 +1173,35 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	log.Printf("[DEBUG] Deleted Orchestrated Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
+}
+
+func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*compute.Sku, error) {
+	skuParts := strings.Split(input, "_")
+
+	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
+	}
+
+	sku := &compute.Sku{
+		Name:     utils.String(input),
+		Capacity: utils.Int64(int64(capacity)),
+		Tier:     utils.String("Standard"),
+	}
+
+	return sku, nil
+}
+
+func flattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, error) {
+	var skuName string
+	if input != nil && input.Name != nil {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+			skuName = *input.Name
+		} else {
+			skuName = fmt.Sprintf("Standard_%s", *input.Name)
+		}
+
+		return &skuName, nil
+	}
+
+	return nil, fmt.Errorf("Sku struct 'name' is nil")
 }

@@ -261,6 +261,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								Computed: true,
 							},
 
+							// TODO 4.0: change this from enable_* to *_enabled
 							"enable_auto_scaling": {
 								Type:     pluginsdk.TypeBool,
 								Computed: true,
@@ -312,6 +313,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							},
 
+							// TODO 4.0: change this from enable_* to *_enabled
 							"enable_node_public_ip": {
 								Type:     pluginsdk.TypeBool,
 								Computed: true,

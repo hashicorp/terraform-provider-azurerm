@@ -24,9 +24,9 @@ import (
 
 func resourceNetAppVolume() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppVolumeCreateUpdate,
+		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
-		Update: resourceNetAppVolumeCreateUpdate,
+		Update: resourceNetAppVolumeUpdate,
 		Delete: resourceNetAppVolumeDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -288,7 +288,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -319,10 +319,10 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	// Handling security style property
 	securityStyle := d.Get("security_style").(string)
 	if strings.EqualFold(securityStyle, "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0].(string), "cifs") {
-		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for %s", id)
+		return fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
 	}
 	if strings.EqualFold(securityStyle, "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0].(string), "nfsv3") || strings.EqualFold(protocols[0].(string), "nfsv4.1")) {
-		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
+		return fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 	}
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
@@ -413,7 +413,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			propertyMismatch = append(propertyMismatch, "pool_name")
 		}
 		if len(propertyMismatch) > 0 {
-			return fmt.Errorf("Following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source %s: %s", id, strings.Join(propertyMismatch, ", "))
+			return fmt.Errorf("following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source %s: %s", id, strings.Join(propertyMismatch, ", "))
 		}
 	}
 
@@ -451,7 +451,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	// Waiting for volume be completely provisioned
-	if err := waitForVolumeCreation(ctx, client, id); err != nil {
+	if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
 		return err
 	}
 
@@ -488,6 +488,79 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+
+	return resourceNetAppVolumeRead(d, meta)
+}
+
+func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).NetApp.VolumeClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.VolumeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	shouldUpdate := false
+	update := netapp.VolumePatch{
+		VolumePatchProperties: &netapp.VolumePatchProperties{},
+	}
+
+	if d.HasChange("storage_quota_in_gb") {
+		shouldUpdate = true
+		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
+		update.VolumePatchProperties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+	}
+
+	if d.HasChange("export_policy_rule") {
+		shouldUpdate = true
+		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
+		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+		update.VolumePatchProperties.ExportPolicy = exportPolicyRule
+	}
+
+	if d.HasChange("data_protection_snapshot_policy") {
+		// Validating that snapshot policies are not being created in a data protection volume
+		dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
+		dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) == "dst" {
+			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", id.Name, id.ResourceGroup)
+		}
+
+		shouldUpdate = true
+		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
+		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
+		update.VolumePatchProperties.DataProtection = dataProtectionSnapshotPolicy
+	}
+
+	if d.HasChange("throughput_in_mibps") {
+		shouldUpdate = true
+		throughputMibps := d.Get("throughput_in_mibps")
+		update.VolumePatchProperties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+	}
+
+	if d.HasChange("tags") {
+		shouldUpdate = true
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if shouldUpdate {
+		future, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+		if err != nil {
+			return fmt.Errorf("updating Volume %q: %+v", id.Name, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		}
+
+		// Wait for volume to complete update
+		if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+			return err
+		}
+	}
 
 	return resourceNetAppVolumeRead(d, meta)
 }
@@ -628,7 +701,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
+func waitForVolumeCreateOrUpdate(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context had no deadline")
@@ -858,6 +931,67 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 	}
 }
 
+func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *netapp.VolumePatchPropertiesExportPolicy {
+	results := make([]netapp.ExportPolicyRule, 0)
+	for _, item := range input {
+		if item != nil {
+			v := item.(map[string]interface{})
+			ruleIndex := int32(v["rule_index"].(int))
+			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+
+			cifsEnabled := false
+			nfsv3Enabled := false
+			nfsv41Enabled := false
+
+			if vpe := v["protocols_enabled"]; vpe != nil {
+				protocolsEnabled := vpe.([]interface{})
+				if len(protocolsEnabled) != 0 {
+					for _, protocol := range protocolsEnabled {
+						if protocol != nil {
+							switch strings.ToLower(protocol.(string)) {
+							case "cifs":
+								cifsEnabled = true
+							case "nfsv3":
+								nfsv3Enabled = true
+							case "nfsv4.1":
+								nfsv41Enabled = true
+							}
+						}
+					}
+				} else {
+					// todo remove this in version 3.0 of the provider
+					cifsEnabled = v["cifs_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
+					nfsv3Enabled = v["nfsv3_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
+					nfsv41Enabled = v["nfsv4_enabled"].(bool)
+				}
+			}
+
+			unixReadOnly := v["unix_read_only"].(bool)
+			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
+
+			result := netapp.ExportPolicyRule{
+				AllowedClients: utils.String(allowedClients),
+				Cifs:           utils.Bool(cifsEnabled),
+				Nfsv3:          utils.Bool(nfsv3Enabled),
+				Nfsv41:         utils.Bool(nfsv41Enabled),
+				RuleIndex:      utils.Int32(ruleIndex),
+				UnixReadOnly:   utils.Bool(unixReadOnly),
+				UnixReadWrite:  utils.Bool(unixReadWrite),
+				HasRootAccess:  utils.Bool(rootAccessEnabled),
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return &netapp.VolumePatchPropertiesExportPolicy{
+		Rules: &results,
+	}
+}
+
 func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.VolumePropertiesDataProtection {
 	if len(input) == 0 || input[0] == nil {
 		return &netapp.VolumePropertiesDataProtection{}
@@ -899,6 +1033,24 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *netapp
 	}
 
 	return &netapp.VolumePropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *netapp.VolumePatchPropertiesDataProtection {
+	if len(input) == 0 || input[0] == nil {
+		return &netapp.VolumePatchPropertiesDataProtection{}
+	}
+
+	snapshotObject := netapp.VolumeSnapshotProperties{}
+
+	snapshotRaw := input[0].(map[string]interface{})
+
+	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
+		snapshotObject.SnapshotPolicyID = utils.String(v.(string))
+	}
+
+	return &netapp.VolumePatchPropertiesDataProtection{
 		Snapshot: &snapshotObject,
 	}
 }
