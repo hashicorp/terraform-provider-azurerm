@@ -15,7 +15,7 @@ import (
 
 type FunctionAppFunctionResource struct{}
 
-func TestAccAppFunction_basic(t *testing.T) {
+func TestAccFunctionAppFunction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
 	r := FunctionAppFunctionResource{}
 
@@ -30,7 +30,7 @@ func TestAccAppFunction_basic(t *testing.T) {
 	})
 }
 
-func TestAccAppFunction_basicUpdate(t *testing.T) {
+func TestAccFunctionAppFunction_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
 	r := FunctionAppFunctionResource{}
 
@@ -52,7 +52,7 @@ func TestAccAppFunction_basicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAppFunction_requiresImport(t *testing.T) {
+func TestAccFunctionAppFunction_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
 	r := FunctionAppFunctionResource{}
 
@@ -67,7 +67,7 @@ func TestAccAppFunction_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAppFunction_withFiles(t *testing.T) {
+func TestAccFunctionAppFunction_withFiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
 	r := FunctionAppFunctionResource{}
 
