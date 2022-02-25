@@ -2,6 +2,7 @@ package healthcare
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"log"
@@ -15,9 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	consumerGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
-	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-	namespaceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	fhirService "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/fhirservices"
 	iotConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/iotconnectors"
@@ -92,13 +90,13 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 			"eventhub_namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: eventhubValidate.ValidateEventHubName(),
+				ValidateFunc: eventhubValidate.ValidateEventHubNamespaceName(),
 			},
 
-			"eventhub_id": {
+			"eventhub_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: eventhub.ValidateEventhubID,
+				ValidateFunc: eventhubValidate.ValidateEventHubName(),
 			},
 
 			"eventhub_consumer_group_name": {
@@ -113,6 +111,7 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 				ValidateFunc: fhirService.ValidateFhirServiceID,
 			},
 
+			//todo use the fhir service name validation
 			"destination_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -128,24 +127,18 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 				}, false),
 			},
 
-			//todo check if there is any enum of "CollectionContent" in the stable api
-			"device_mapping": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"template_type": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"CollectionContent"}, false),
-						},
+			"destination_fhir_mapping": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				StateFunc:        utils.NormalizeJson,
+				DiffSuppressFunc: suppressJsonOrderingDifference,
+			},
 
-						"template": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-						},
-					},
-				},
+			"device_mapping": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				StateFunc:        utils.NormalizeJson,
+				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
 			"tags": commonschema.Tags(),
@@ -177,38 +170,78 @@ func resourceHealthcareApisIotConnectorCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	eventhubId, err := eventhub.ParseEventhubID(d.Get("eventhub_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing eventhub id error: %+v", err)
-	}
-
-	consumerGroupId, err := consumerGroup.ParseConsumerGroupID(d.Get("eventhub_consumer_group_name").(string))
-	if err != nil {
-		return fmt.Errorf("parsing eventhub consumer group id error: %+v", err)
-	}
+	namespaceName := d.Get("eventhub_namespace_name").(string) + ".servicebus.windows.net"
 
 	parameters := iotConnector.IotConnector{
 		Name:     utils.String(iotConnectorId.IotConnectorName),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Identity: expandIotConnectorIdentity(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &iotConnector.IotConnectorProperties{
 			IngestionEndpointConfiguration: &iotConnector.IotEventHubIngestionEndpointConfiguration{
-				EventHubName:                    &eventhubId.EventHubName,
-				ConsumerGroup:                   &consumerGroupId.ConsumerGroupName,
-				FullyQualifiedEventHubNamespace: utils.String(d.Get("eventhub_namespace_name").(string)),
+				EventHubName:                    utils.String(d.Get("eventhub_name").(string)),
+				ConsumerGroup:                   utils.String(d.Get("eventhub_consumer_group_name").(string)),
+				FullyQualifiedEventHubNamespace: &namespaceName,
 			},
-			DeviceMapping: expandIotConnectorDeviceMapping(d.Get("device_mapping").([]interface{})),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	deviceContentMap := iotConnector.IotMappingProperties{}
+	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
+	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
+		return err //todo fmt
+	}
+	parameters.Properties.DeviceMapping = &deviceContentMap
 
 	if err := client.CreateOrUpdateThenPoll(ctx, iotConnectorId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", iotConnectorId, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 12,
+		Delay:                     60 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"Creating", "Updating"},
+		Target:                    []string{"Succeeded"},
+		Refresh:                   iotConnectorStateRefreshFunc(ctx, client, iotConnectorId),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Iot Connetcor %s to settle down: %+v", iotConnectorId, err)
+	}
+
+	destinationName := d.Get("destination_name").(string)
+	fhirServiceId, err := fhirService.ParseFhirServiceID(d.Get("destination_fhir_service_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing fhir destination id err: %+v", err)
+	}
+
+	iotFhirServiceId := iotConnector.NewFhirDestinationID(iotConnectorId.SubscriptionId, iotConnectorId.ResourceGroupName, iotConnectorId.WorkspaceName, iotConnectorId.IotConnectorName, destinationName)
+	iotFhirServiceParameters := iotConnector.IotFhirDestination{
+		Name:     &destinationName,
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Properties: iotConnector.IotFhirDestinationProperties{
+			FhirServiceResourceId:          fhirServiceId.ID(),
+			ResourceIdentityResolutionType: iotConnector.IotIdentityResolutionType(d.Get("destination_identity_resolution_type").(string)),
+		},
+	}
+
+	fhirMap := iotConnector.IotMappingProperties{}
+	fhirMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("destination_fhir_mapping").(string))
+	if err := json.Unmarshal([]byte(fhirMappingJson), &fhirMap); err != nil {
+		return err
+	}
+	iotFhirServiceParameters.Properties.FhirMapping = fhirMap
+
+	if err := client.IotConnectorFhirDestinationCreateOrUpdateThenPoll(ctx, iotFhirServiceId, iotFhirServiceParameters); err != nil {
+		return fmt.Errorf("updating fhir service %s for the iot connector err: %+v", iotFhirServiceId, err)
+	}
+
 	d.SetId(iotConnectorId.ID())
+
 	return resourceHealthcareServiceRead(d, meta)
 }
+
 func resoruceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -238,11 +271,85 @@ func resoruceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("identity", flattenIotConnectorIdentity(model.Identity))
 
 		if props := model.Properties; props != nil {
-			if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
-				//todo: to deal with the port number, validate if this works
-				namespaceWithSuffix := strings.TrimPrefix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, "https://")
-				namespace:= namespaceWithSuffix[:strings.IndexAny(namespaceWithSuffix, ".")]
+			if props.IngestionEndpointConfiguration.EventHubName != nil {
+				d.Set("eventhub_name", props.IngestionEndpointConfiguration.EventHubName)
+			}
 
+			if props.IngestionEndpointConfiguration.ConsumerGroup != nil {
+				d.Set("eventhub_consumer_group_name", props.IngestionEndpointConfiguration.ConsumerGroup)
+			}
+
+			if props.DeviceMapping != nil {
+				deviceMapData, err := json.Marshal(props.DeviceMapping)
+				if err != nil {
+					return err
+				}
+
+				var m map[string]*json.RawMessage
+				if err = json.Unmarshal(deviceMapData, &m); err != nil {
+					return err
+				}
+				mapContent := ""
+				if v, ok := m["content"]; ok {
+					contents, err := json.Marshal(v)
+					if err != nil {
+						return err
+					}
+					mapContent = string(contents)
+				}
+				d.Set("device_mapping", mapContent)
+			}
+
+			if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
+				d.Set("eventhub_namespace_name", strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, ".servicebus.windows.net"))
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	iotFhirService, err := client.FhirDestinationsListByIotConnector(ctx, *id)
+	if err != nil {
+		log.Printf("retrieving Fhir Destination for iot connector %s error", id)
+		d.Set("destination_fhir_service_id", "")
+	}
+
+	//todo: deal with next page
+	//{
+	//    "error": {
+	//        "code": "BadRequest",
+	//        "message": "Only 1 resource type 'fhirdestinations' can be provisioned in iotconnectors."
+	//    }
+	//}
+	if props := iotFhirService.Model; props != nil && len(*props) > 0 {
+		for _, item := range *props {
+			if item.Name != nil {
+				d.Set("destination_name", item.Name)
+			}
+			if item.Properties.FhirServiceResourceId != "" {
+				d.Set("destination_fhir_service_id", item.Properties.FhirServiceResourceId)
+			}
+			if item.Properties.FhirMapping.Content != nil {
+				fhirMapData, err := json.Marshal(item.Properties.FhirMapping)
+				if err != nil {
+					return err
+				}
+
+				var m map[string]*json.RawMessage
+				if err = json.Unmarshal(fhirMapData, &m); err != nil {
+					return err
+				}
+				mapContent := ""
+				if v, ok := m["content"]; ok {
+					contents, err := json.Marshal(v)
+					if err != nil {
+						return err
+					}
+					mapContent = string(contents)
+				}
+				d.Set("destination_fhir_mapping", mapContent)
 			}
 		}
 	}
@@ -340,27 +447,19 @@ func flattenIotConnectorIdentity(identity *iotConnector.ServiceManagedIdentityId
 	return []interface{}{result}
 }
 
-//
-func expandIotConnectorDeviceMapping(input []interface{}) *iotConnector.IotMappingProperties {
-	rawData := input[0].(map[string]interface{})
-
-	content := make(map[string]interface{})
-	content["templateType"] = rawData["template_type"]
-	content["template"] = rawData["template"]
-
-	return &iotConnector.IotMappingProperties{
-		Content: &[]interface{}{content}[0],
-	}
+func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
+	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-//func flattenIotConnectorDeviceMapping(input *iotConnector.IotMappingProperties) []interface{} {
-//	if input == nil {
-//		return []interface{}{}
-//	}
-//
-//	result := make(map[string]interface{})
-//	if data := input.Content; data != nil {
-//
-//	}
-//
-//}
+func iotConnectorStateRefreshFunc(ctx context.Context, client *iotConnector.IotConnectorsClient, iotConnectorId iotConnector.IotConnectorId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, iotConnectorId)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", iotConnectorId, err)
+			}
+		}
+
+		return resp, string(*resp.Model.Properties.ProvisioningState), nil
+	}
+}
