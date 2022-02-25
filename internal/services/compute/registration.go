@@ -21,26 +21,24 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_availability_set":           dataSourceAvailabilitySet(),
-		"azurerm_dedicated_host":             dataSourceDedicatedHost(),
-		"azurerm_dedicated_host_group":       dataSourceDedicatedHostGroup(),
-		"azurerm_disk_encryption_set":        dataSourceDiskEncryptionSet(),
-		"azurerm_managed_disk":               dataSourceManagedDisk(),
-		"azurerm_image":                      dataSourceImage(),
-		"azurerm_images":                     dataSourceImages(),
-		"azurerm_disk_access":                dataSourceDiskAccess(),
-		"azurerm_platform_image":             dataSourcePlatformImage(),
-		"azurerm_proximity_placement_group":  dataSourceProximityPlacementGroup(),
-		"azurerm_shared_image_gallery":       dataSourceSharedImageGallery(),
-		"azurerm_shared_image_version":       dataSourceSharedImageVersion(),
-		"azurerm_shared_image_versions":      dataSourceSharedImageVersions(),
-		"azurerm_shared_image":               dataSourceSharedImage(),
-		"azurerm_snapshot":                   dataSourceSnapshot(),
-		"azurerm_virtual_machine":            dataSourceVirtualMachine(),
-		"azurerm_virtual_machine_scale_set":  dataSourceVirtualMachineScaleSet(),
-		"azurerm_ssh_public_key":             dataSourceSshPublicKey(),
-		"azurerm_managed_disk_export":        dataSourceManagedDiskExport(),
-		"azurerm_managed_disk_export_revoke": dataSourceManagedDiskExportRevoke(),
+		"azurerm_availability_set":          dataSourceAvailabilitySet(),
+		"azurerm_dedicated_host":            dataSourceDedicatedHost(),
+		"azurerm_dedicated_host_group":      dataSourceDedicatedHostGroup(),
+		"azurerm_disk_encryption_set":       dataSourceDiskEncryptionSet(),
+		"azurerm_managed_disk":              dataSourceManagedDisk(),
+		"azurerm_image":                     dataSourceImage(),
+		"azurerm_images":                    dataSourceImages(),
+		"azurerm_disk_access":               dataSourceDiskAccess(),
+		"azurerm_platform_image":            dataSourcePlatformImage(),
+		"azurerm_proximity_placement_group": dataSourceProximityPlacementGroup(),
+		"azurerm_shared_image_gallery":      dataSourceSharedImageGallery(),
+		"azurerm_shared_image_version":      dataSourceSharedImageVersion(),
+		"azurerm_shared_image_versions":     dataSourceSharedImageVersions(),
+		"azurerm_shared_image":              dataSourceSharedImage(),
+		"azurerm_snapshot":                  dataSourceSnapshot(),
+		"azurerm_virtual_machine":           dataSourceVirtualMachine(),
+		"azurerm_virtual_machine_scale_set": dataSourceVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":            dataSourceSshPublicKey(),
 	}
 }
 
@@ -69,6 +67,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
 		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
+		"azurerm_disk_export":                            resourceDiskExport(),
 	}
 
 	return resources
