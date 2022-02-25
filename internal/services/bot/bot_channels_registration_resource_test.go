@@ -215,7 +215,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.test,
@@ -228,7 +228,7 @@ resource "azurerm_key_vault_key" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.test,
@@ -327,7 +327,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.test,
@@ -439,7 +439,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.test,
@@ -452,7 +452,7 @@ resource "azurerm_key_vault_key" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.test,
