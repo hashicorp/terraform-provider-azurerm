@@ -283,12 +283,17 @@ func flattenSystemAndUserAssignedIdentity(input *track1.ManagedServiceIdentity) 
 		identityIds = append(identityIds, k)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": input.PrincipalID,
-			"tenant_id":    input.TenantID,
-		},
+	// TODO: Not right fix this later
+	if string(input.Type) == string(track1.ManagedServiceIdentityTypeNone) {
+		return []interface{}{}
+	} else {
+		return []interface{}{
+			map[string]interface{}{
+				"type":         string(input.Type),
+				"identity_ids": identityIds,
+				"principal_id": input.PrincipalID,
+				"tenant_id":    input.TenantID,
+			},
+		}
 	}
 }

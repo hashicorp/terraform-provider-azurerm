@@ -255,9 +255,8 @@ func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
 		MaxItems: 6,
 
 		Elem: &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(track1.TransformLowercase),
+			Type:    pluginsdk.TypeString,
+			Default: string(track1.TransformLowercase),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(track1.TransformLowercase),
 				string(track1.TransformRemoveNulls),

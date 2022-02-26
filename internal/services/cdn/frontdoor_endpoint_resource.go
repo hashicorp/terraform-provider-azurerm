@@ -60,11 +60,11 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"origin_response_timeout_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Default:  120,
-			},
+			// "origin_response_timeout_seconds": {
+			// 	Type:     pluginsdk.TypeInt,
+			// 	Optional: true,
+			// 	Default:  60,
+			// },
 
 			"frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
@@ -108,7 +108,9 @@ func resourceFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: &location,
 		AFDEndpointProperties: &track1.AFDEndpointProperties{
 			EnabledState: ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			// OriginResponseTimeoutSeconds: d.Get("origin_response_timeout_seconds").(int),
 		},
+
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -159,10 +161,10 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// BUG API does not currently expose this field so temporarily hardcoding to default value
 		// d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
-		d.Set("origin_response_timeout_seconds", 120)
+		// d.Set("origin_response_timeout_seconds", 60)
 	}
 
-	if err := tags.FlattenAndSet(d, d.Get("tags").(map[string]*string)); err != nil {
+	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
 		return err
 	}
 

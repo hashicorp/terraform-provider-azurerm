@@ -50,6 +50,7 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 			"web_application_firewall": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{

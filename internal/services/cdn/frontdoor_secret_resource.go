@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/profiles"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/secrets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontdoorSecret() *pluginsdk.Resource {
@@ -27,7 +28,7 @@ func resourceFrontdoorSecret() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := secrets.ParseSecretID(id)
+			_, err := parse.FrontdoorSecretID(id)
 			return err
 		}),
 
@@ -42,7 +43,7 @@ func resourceFrontdoorSecret() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: profiles.ValidateProfileID,
+				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
 			"deployment_status": {
@@ -86,34 +87,39 @@ func resourceFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := profiles.ParseProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := secrets.NewSecretID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
+	id := parse.NewFrontdoorSecretID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_frontdoor_secret", id.ID())
 		}
 	}
 
-	props := secrets.Secret{
-		Properties: &secrets.SecretProperties{
+	props := track1.Secret{
+		SecretProperties: &track1.SecretProperties{
 			Parameters: expandSecretSecretParameters(d.Get("parameters").([]interface{})),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.SecretName, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -125,14 +131,14 @@ func resourceFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := secrets.ParseSecretID(d.Id())
+	id, err := parse.FrontdoorSecretID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -141,19 +147,18 @@ func resourceFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.SecretName)
 
-	d.Set("frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("deployment_status", props.DeploymentStatus)
+	if props := resp.SecretProperties; props != nil {
+		d.Set("deployment_status", props.DeploymentStatus)
 
-			if err := d.Set("parameters", flattenSecretSecretParameters(&props.Parameters)); err != nil {
-				return fmt.Errorf("setting `parameters`: %+v", err)
-			}
-			d.Set("profile_name", props.ProfileName)
-			d.Set("provisioning_state", props.ProvisioningState)
+		if err := d.Set("parameters", flattenSecretSecretParameters(&props.Parameters)); err != nil {
+			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
+		d.Set("profile_name", props.ProfileName)
+		d.Set("provisioning_state", props.ProvisioningState)
 	}
+
 	return nil
 }
 
@@ -162,19 +167,24 @@ func resourceFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := secrets.ParseSecretID(d.Id())
+	id, err := parse.FrontdoorSecretID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 
-func expandSecretSecretParameters(input []interface{}) *secrets.SecretParameters {
+func expandSecretSecretParameters(input []interface{}) *track1.SecretParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -190,7 +200,7 @@ func expandSecretSecretParameters(input []interface{}) *secrets.SecretParameters
 	return nil
 }
 
-func flattenSecretSecretParameters(input *secrets.SecretParameters) []interface{} {
+func flattenSecretSecretParameters(input *track1.BasicSecretParameters) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

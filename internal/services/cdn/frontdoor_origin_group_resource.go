@@ -291,7 +291,8 @@ func resourceFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `response_based_origin_error_detection`: %+v", err)
 		}
 
-		d.Set("frontdoor_profile_name", props.ProfileName)
+		// BUG: API does not return the profile name, pull it form the ID
+		d.Set("frontdoor_profile_name", id.ProfileName)
 		d.Set("session_affinity", ConvertEnabledStateToBool(&props.SessionAffinityState))
 		d.Set("restore_traffic_or_new_endpoints_time", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 	}

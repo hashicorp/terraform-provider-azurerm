@@ -406,7 +406,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									},
 
 									"compression_enabled": {
-										Type: pluginsdk.TypeBool,
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
 									},
 
 									"cache_behavior": {
