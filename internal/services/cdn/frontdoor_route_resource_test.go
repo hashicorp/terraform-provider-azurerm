@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,15 +79,15 @@ func TestAccFrontdoorRoute_update(t *testing.T) {
 }
 
 func (r FrontdoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := routes.ParseRouteID(state.ID)
+	id, err := parse.FrontdoorRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontdoorRoutesClient
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

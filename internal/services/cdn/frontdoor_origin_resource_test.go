@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdorigins"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,19 +79,20 @@ func TestAccFrontdoorOrigin_update(t *testing.T) {
 }
 
 func (r FrontdoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := afdorigins.ParseOriginGroupOriginID(state.ID)
+	id, err := parse.FrontdoorOriginID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorOriginsClient
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 

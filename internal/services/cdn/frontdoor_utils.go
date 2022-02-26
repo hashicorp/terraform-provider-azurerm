@@ -5,7 +5,9 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func ConvertFrontdoorTags(tagMap *map[string]string) map[string]*string {
@@ -38,6 +40,29 @@ func ConvertEnabledStateToBool(enabledState *track1.EnabledState) bool {
 	}
 
 	return (*enabledState == track1.EnabledState(track1.EnabledStateEnabled))
+}
+
+func expandResourceReference(input string) *track1.ResourceReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &track1.ResourceReference{
+		ID: utils.String(input),
+	}
+}
+
+func flattenResourceReference(input *track1.ResourceReference) string {
+	result := ""
+	if input == nil {
+		return result
+	}
+
+	if input.ID != nil {
+		result = *input.ID
+	}
+
+	return result
 }
 
 // func ConvertBoolToOriginsEnabledState(isEnabled bool) *afdorigins.EnabledState {
@@ -94,41 +119,41 @@ func ConvertEnabledStateToBool(enabledState *track1.EnabledState) bool {
 // 	return (*enabledState == routes.EnabledState(routes.EnabledStateEnabled))
 // }
 
-// func ConvertBoolToRouteHttpsRedirect(isEnabled bool) *routes.HttpsRedirect {
-// 	out := routes.HttpsRedirect(routes.HttpsRedirectDisabled)
+func ConvertBoolToRouteHttpsRedirect(isEnabled bool) track1.HTTPSRedirect {
+	out := track1.HTTPSRedirect(track1.HTTPSRedirectDisabled)
 
-// 	if isEnabled {
-// 		out = routes.HttpsRedirect(routes.HttpsRedirectEnabled)
-// 	}
+	if isEnabled {
+		out = track1.HTTPSRedirect(track1.HTTPSRedirectEnabled)
+	}
 
-// 	return &out
-// }
+	return out
+}
 
-// func ConvertRouteHttpsRedirectToBool(httpsRedirect *routes.HttpsRedirect) bool {
-// 	if httpsRedirect == nil {
-// 		return false
-// 	}
+func ConvertRouteHttpsRedirectToBool(httpsRedirect *track1.HTTPSRedirect) bool {
+	if httpsRedirect == nil {
+		return false
+	}
 
-// 	return (*httpsRedirect == routes.HttpsRedirect(routes.HttpsRedirectEnabled))
-// }
+	return (*httpsRedirect == track1.HTTPSRedirect(track1.HTTPSRedirectEnabled))
+}
 
-// func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) *routes.LinkToDefaultDomain {
-// 	out := routes.LinkToDefaultDomain(routes.LinkToDefaultDomainDisabled)
+func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) track1.LinkToDefaultDomain {
+	out := track1.LinkToDefaultDomain(track1.LinkToDefaultDomainDisabled)
 
-// 	if isLinked {
-// 		out = routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled)
-// 	}
+	if isLinked {
+		out = track1.LinkToDefaultDomain(track1.LinkToDefaultDomainEnabled)
+	}
 
-// 	return &out
-// }
+	return out
+}
 
-// func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *routes.LinkToDefaultDomain) bool {
-// 	if linkToDefaultDomain == nil {
-// 		return false
-// 	}
+func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *track1.LinkToDefaultDomain) bool {
+	if linkToDefaultDomain == nil {
+		return false
+	}
 
-// 	return (*linkToDefaultDomain == routes.LinkToDefaultDomain(routes.LinkToDefaultDomainEnabled))
-// }
+	return (*linkToDefaultDomain == track1.LinkToDefaultDomain(track1.LinkToDefaultDomainEnabled))
+}
 
 // func ConvertBoolToEndpointsEnabledState(isEnabled bool) *track1.EnabledState {
 // 	out := track1.EnabledState(track1.EnabledStateDisabled)
@@ -181,4 +206,66 @@ func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors [
 	}
 
 	return nil, nil
+}
+
+func SchemaFrontdoorOperator() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Required: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			"Any",
+			"Equal",
+			"Contains",
+			"BeginsWith",
+			"EndsWith",
+			"LessThan",
+			"LessThanOrEqual",
+			"GreaterThan",
+			"GreaterThanOrEqual",
+			"RegEx",
+		}, false),
+	}
+}
+
+func SchemaFrontdoorNegateCondition() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+}
+
+func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 10,
+
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 6,
+
+		Elem: &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(track1.TransformLowercase),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(track1.TransformLowercase),
+				string(track1.TransformRemoveNulls),
+				string(track1.TransformTrim),
+				string(track1.TransformUppercase),
+				string(track1.TransformURLDecode),
+				string(track1.TransformURLEncode),
+			}, false),
+		},
+	}
 }

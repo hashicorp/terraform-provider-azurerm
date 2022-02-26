@@ -165,8 +165,8 @@ func resourceFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interfa
 
 	props := track1.AFDDomain{
 		AFDDomainProperties: &track1.AFDDomainProperties{
-			AzureDNSZone:                       expandCustomDomainResourceReference(d.Get("azure_dns_zone").(string)),
-			PreValidatedCustomDomainResourceID: expandCustomDomainResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
 	}
@@ -221,11 +221,11 @@ func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("host_name", props.HostName)
 		d.Set("frontdoor_profile_name", props.ProfileName)
 
-		if err := d.Set("azure_dns_zone", flattenCustomDomainResourceReference(props.AzureDNSZone)); err != nil {
+		if err := d.Set("azure_dns_zone", flattenResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
 		}
 
-		if err := d.Set("pre_validated_custom_domain_resource_id", flattenCustomDomainResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
+		if err := d.Set("pre_validated_custom_domain_resource_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
 			return fmt.Errorf("setting `pre_validated_custom_domain_resource_id`: %+v", err)
 		}
 
@@ -253,8 +253,8 @@ func resourceFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	props := track1.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
-			AzureDNSZone:                       expandCustomDomainResourceReference(d.Get("azure_dns_zone").([]interface{})),
-			PreValidatedCustomDomainResourceID: expandCustomDomainResourceReference(d.Get("pre_validated_custom_domain_resource_id").([]interface{})),
+			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
 	}
@@ -293,16 +293,6 @@ func resourceFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interfa
 	return err
 }
 
-func expandCustomDomainResourceReference(input interface{}) *track1.ResourceReference {
-	if input == nil {
-		return nil
-	}
-
-	return &track1.ResourceReference{
-		ID: utils.String(input.(string)),
-	}
-}
-
 func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -315,7 +305,7 @@ func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFD
 	return &track1.AFDDomainHTTPSParameters{
 		CertificateType:   certificateTypeValue,
 		MinimumTLSVersion: minimumTlsVersionValue,
-		Secret:            expandCustomDomainResourceReference(v["secret_id"].(string)),
+		Secret:            expandResourceReference(v["secret_id"].(string)),
 	}
 }
 
@@ -329,7 +319,7 @@ func flattenCustomDomainAFDDomainHttpsParameters(input *track1.AFDDomainHTTPSPar
 	result["certificate_type"] = input.CertificateType
 	result["minimum_tls_version"] = input.MinimumTLSVersion
 
-	result["secret_id"] = *flattenCustomDomainResourceReference(input.Secret)
+	result["secret_id"] = flattenResourceReference(input.Secret)
 	return append(results, result)
 }
 
@@ -349,12 +339,4 @@ func flattenCustomDomainDomainValidationProperties(input *track1.DomainValidatio
 		result["validation_token"] = *input.ValidationToken
 	}
 	return append(results, result)
-}
-
-func flattenCustomDomainResourceReference(input *track1.ResourceReference) *string {
-	if input == nil {
-		return nil
-	}
-
-	return input.ID
 }

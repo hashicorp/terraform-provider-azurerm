@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/rulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,7 +30,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rules.ParseRuleID(id)
+			_, err := parse.FrontdoorRuleID(id)
 			return err
 		}),
 
@@ -45,66 +45,846 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: rulesets.ValidateRuleSetID,
+				ValidateFunc: validate.FrontdoorRuleSetID,
 			},
 
+			// I don't need name as a field I can derive the correct value based on what
+			// type of parameter you define in the config
+
+			// string(track1.NameBasicDeliveryRuleActionNameCacheExpiration),
+			// string(track1.NameBasicDeliveryRuleActionNameCacheKeyQueryString),
+			// string(track1.NameBasicDeliveryRuleActionNameModifyRequestHeader),
+			// string(track1.NameBasicDeliveryRuleActionNameModifyResponseHeader),
+			// string(track1.NameBasicDeliveryRuleActionNameOriginGroupOverride),
+			// string(track1.NameBasicDeliveryRuleActionNameRouteConfigurationOverride),
+			// string(track1.NameBasicDeliveryRuleActionNameURLRedirect),
+			// string(track1.NameBasicDeliveryRuleActionNameURLRewrite),
+			// string(track1.NameBasicDeliveryRuleActionNameURLSigning),
+
+			// type BasicDeliveryRuleAction interface {
 			"actions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				MaxItems: 10,
 
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(rules.DeliveryRuleActionCacheExpiration),
-						string(rules.DeliveryRuleActionCacheKeyQueryString),
-						string(rules.DeliveryRuleActionModifyRequestHeader),
-						string(rules.DeliveryRuleActionModifyResponseHeader),
-						string(rules.DeliveryRuleActionOriginGroupOverride),
-						string(rules.DeliveryRuleActionRouteConfigurationOverride),
-						string(rules.DeliveryRuleActionUrlRedirect),
-						string(rules.DeliveryRuleActionUrlRewrite),
-						string(rules.DeliveryRuleActionUrlSigning),
-					}, false),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"url_redirect_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"redirect_type": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RedirectTypeMoved),
+											string(track1.RedirectTypeFound),
+											string(track1.RedirectTypeTemporaryRedirect),
+											string(track1.RedirectTypePermanentRedirect),
+										}, false),
+									},
+
+									"destination_protocol": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.DestinationProtocolMatchRequest),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.DestinationProtocolMatchRequest),
+											string(track1.DestinationProtocolHTTP),
+											string(track1.DestinationProtocolHTTPS),
+										}, false),
+									},
+
+									// TODO: Write validation function for this
+									// Path cannot be empty and must start with /. Leave empty to use the incoming path as destination path.
+									"custom_path": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"custom_hostname": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									// TODO: Write validation function for this
+									// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
+									"custom_query_string": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "",
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"custom_fragment": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+
+						"url_signing_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"algorithm": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.AlgorithmSHA256),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.AlgorithmSHA256),
+										}, false),
+									},
+
+									"parameter_name_override": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MaxItems: 100,
+
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+
+												"param_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"param_indicator": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(track1.ParamIndicatorExpires),
+														string(track1.ParamIndicatorKeyID),
+														string(track1.ParamIndicatorSignature),
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
+						"origin_group_override_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"origin_group_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.FrontdoorOriginGroupID,
+									},
+								},
+							},
+						},
+
+						"url_rewrite_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"source_pattern": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"destination": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"preserve_unmatched_path": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
+
+						"request_header_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"header_action": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.HeaderActionAppend),
+											string(track1.HeaderActionOverwrite),
+											string(track1.HeaderActionDelete),
+										}, false),
+									},
+
+									"header_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"value": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+
+						"response_header_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"header_action": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.HeaderActionAppend),
+											string(track1.HeaderActionOverwrite),
+											string(track1.HeaderActionDelete),
+										}, false),
+									},
+
+									"header_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"value": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+
+						"cache_expiration_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"cache_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.QueryStringBehaviorExcludeAll),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.CacheBehaviorBypassCache),
+											string(track1.CacheBehaviorOverride),
+											string(track1.CacheBehaviorSetIfMissing),
+										}, false),
+									},
+
+									"cache_type": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									// Allowed format is [d.]hh:mm:ss
+									"cache_duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+
+						"cache_key_query_string_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"query_string_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.QueryStringBehaviorExcludeAll),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.QueryStringBehaviorInclude),
+											string(track1.QueryStringBehaviorIncludeAll),
+											string(track1.QueryStringBehaviorExclude),
+											string(track1.QueryStringBehaviorExcludeAll),
+										}, false),
+									},
+
+									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									"query_string_parameters": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
+						},
+
+						"route_configuration_override_parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"origin_group_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.FrontdoorOriginGroupID,
+									},
+
+									"forwarding_protocol": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"query_string_caching_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
+											string(track1.RuleQueryStringCachingBehaviorUseQueryString),
+											string(track1.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+											string(track1.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
+										}, false),
+									},
+
+									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									"query_string_parameters": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+
+									"compression_enabled": {
+										Type: pluginsdk.TypeBool,
+									},
+
+									"cache_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.RuleCacheBehaviorHonorOrigin),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RuleCacheBehaviorHonorOrigin),
+											string(track1.RuleCacheBehaviorOverrideAlways),
+											string(track1.RuleCacheBehaviorOverrideIfOriginMissing),
+										}, false),
+									},
+
+									// Allowed format is [d.]hh:mm:ss
+									"cache_duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 
+			// type BasicDeliveryRuleCondition interface {
 			"conditions": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
+				MaxItems: 5,
 
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(rules.MatchVariableClientPort),
-						string(rules.MatchVariableCookies),
-						string(rules.MatchVariableHostName),
-						string(rules.MatchVariableHttpVersion),
-						string(rules.MatchVariableIsDevice),
-						string(rules.MatchVariablePostArgs),
-						string(rules.MatchVariableQueryString),
-						string(rules.MatchVariableRemoteAddress),
-						string(rules.MatchVariableRequestBody),
-						string(rules.MatchVariableRequestHeader),
-						string(rules.MatchVariableRequestMethod),
-						string(rules.MatchVariableRequestScheme),
-						string(rules.MatchVariableRequestUri),
-						string(rules.MatchVariableServerPort),
-						string(rules.MatchVariableSocketAddr),
-						string(rules.MatchVariableSslProtocol),
-						string(rules.MatchVariableUrlFileExtension),
-						string(rules.MatchVariableUrlFileName),
-						string(rules.MatchVariableUrlPath),
-					}, false),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"remote_addr_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RemoteAddressOperatorAny),
+											string(track1.RemoteAddressOperatorIPMatch),
+											string(track1.RemoteAddressOperatorGeoMatch),
+										}, false),
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"request_method_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"query_string_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"postargs_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									// In the API this is called selector
+									"postargs_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"request_uri_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"request_header_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									// In the API this is called selector
+									"header_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"request_body_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"request_scheme_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"url_path_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"url_extension_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"url_filename_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"http_version_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"cookies_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									// In the API this is called selector
+									"cookie_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"is_device_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"socket_addr_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.SocketAddrOperatorAny),
+											string(track1.SocketAddrOperatorIPMatch),
+										}, false),
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"client_port_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"server_port_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"host_name_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": SchemaFrontdoorOperator(),
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": SchemaFrontdoorMatchValues(),
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+
+						"ssl_protocol_condition": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"negate_condition": SchemaFrontdoorNegateCondition(),
+
+									"match_values": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 3,
+
+										Elem: &pluginsdk.Schema{
+											Type:    pluginsdk.TypeString,
+											Default: string(track1.SslProtocolTLSv12),
+											ValidateFunc: validation.StringInSlice([]string{
+												string(track1.SslProtocolTLSv1),
+												string(track1.SslProtocolTLSv11),
+												string(track1.SslProtocolTLSv12),
+											}, false),
+										},
+									},
+
+									"transforms": SchemaFrontdoorRuleTransforms(),
+								},
+							},
+						},
+						//
+						//
+					},
 				},
 			},
 
 			"match_processing_behavior": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(rules.MatchProcessingBehaviorContinue),
+				Default:  string(track1.MatchProcessingBehaviorContinue),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(rules.MatchProcessingBehaviorContinue),
-					string(rules.MatchProcessingBehaviorStop),
+					string(track1.MatchProcessingBehaviorContinue),
+					string(track1.MatchProcessingBehaviorStop),
 				}, false),
 			},
 
@@ -127,42 +907,48 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	ruleSetId, err := rulesets.ParseRuleSetID(d.Get("frontdoor_rule_set_id").(string))
+	ruleSetId, err := parse.FrontdoorRuleSetID(d.Get("frontdoor_rule_set_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := rules.NewRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroupName, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
+	id := parse.NewFrontdoorRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroup, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_frontdoor_rule", id.ID())
 		}
 	}
 
-	matchProcessingBehaviorValue := rules.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
-	props := rules.Rule{
-		Properties: &rules.RuleProperties{
+	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	props := track1.Rule{
+		RuleProperties: &track1.RuleProperties{
 			Actions:                 expandOptionalRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
-			MatchProcessingBehavior: &matchProcessingBehaviorValue,
+			MatchProcessingBehavior: matchProcessingBehaviorValue,
 			RuleSetName:             &ruleSetId.RuleSetName,
-			Order:                   int64(d.Get("order").(int)),
+			Order:                   utils.Int32(int32(d.Get("order").(int))),
 		},
 	}
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
 
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
+
 	return resourceFrontdoorRuleRead(d, meta)
 }
 
@@ -171,14 +957,14 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rules.ParseRuleID(d.Id())
+	id, err := parse.FrontdoorRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -186,21 +972,19 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", id.RuleName)
-	d.Set("frontdoor_rule_set_id", rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName).ID())
+	d.Set("frontdoor_rule_set_id", parse.NewFrontdoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName).ID())
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("match_processing_behavior", props.MatchProcessingBehavior)
-			d.Set("order", props.Order)
-			d.Set("rule_set_name", props.RuleSetName)
+	if props := resp.RuleProperties; props != nil {
+		d.Set("match_processing_behavior", props.MatchProcessingBehavior)
+		d.Set("order", props.Order)
+		d.Set("rule_set_name", props.RuleSetName)
 
-			if err := d.Set("actions", flattenRuleDeliveryRuleActionArray(&props.Actions)); err != nil {
-				return fmt.Errorf("setting `actions`: %+v", err)
-			}
+		if err := d.Set("actions", flattenRuleDeliveryRuleActionArray(props.Actions)); err != nil {
+			return fmt.Errorf("setting `actions`: %+v", err)
+		}
 
-			if err := d.Set("conditions", flattenRuleDeliveryRuleConditionArray(props.Conditions)); err != nil {
-				return fmt.Errorf("setting `conditions`: %+v", err)
-			}
+		if err := d.Set("conditions", flattenRuleDeliveryRuleConditionArray(props.Conditions)); err != nil {
+			return fmt.Errorf("setting `conditions`: %+v", err)
 		}
 	}
 
@@ -212,23 +996,27 @@ func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rules.ParseRuleID(d.Id())
+	id, err := parse.FrontdoorRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	matchProcessingBehaviorValue := rules.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
-	props := rules.RuleUpdateParameters{
-		Properties: &rules.RuleUpdatePropertiesParameters{
+	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	props := track1.RuleUpdateParameters{
+		RuleUpdatePropertiesParameters: &track1.RuleUpdatePropertiesParameters{
 			Actions:                 expandRequiredRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
-			MatchProcessingBehavior: &matchProcessingBehaviorValue,
-			Order:                   utils.Int64(int64(d.Get("order").(int))),
+			MatchProcessingBehavior: matchProcessingBehaviorValue,
+			Order:                   utils.Int32(int32(d.Get("order").(int))),
 		},
 	}
-	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 
-		return fmt.Errorf("updating %s: %+v", id, err)
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceFrontdoorRuleRead(d, meta)
@@ -239,20 +1027,25 @@ func resourceFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rules.ParseRuleID(d.Id())
+	id, err := parse.FrontdoorRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 
-func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]rules.DeliveryRuleCondition {
-	results := make([]rules.DeliveryRuleCondition, 0)
+func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]track1.BasicDeliveryRuleCondition {
+	results := make([]track1.BasicDeliveryRuleCondition, 0)
 	if len(input) == 0 {
 		return &results
 	}
@@ -260,65 +1053,136 @@ func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]rules.Delivery
 	conditions := utils.ExpandStringSlice(input)
 
 	for _, condition := range *conditions {
-		results = append(results, rules.DeliveryRuleCondition{
-			Name: rules.MatchVariable(condition),
+
+		switch condition {
+		case string(track1.NameSslProtocol):
+			var drspc track1.DeliveryRuleSslProtocolCondition
+			results = append(results, drspc)
+		case string(track1.NameHostName):
+			var drhnc track1.DeliveryRuleHostNameCondition
+			results = append(results, drhnc)
+		case string(track1.NameServerPort):
+			var drspc track1.DeliveryRuleServerPortCondition
+			results = append(results, drspc)
+		case string(track1.NameClientPort):
+			var drcpc track1.DeliveryRuleClientPortCondition
+			results = append(results, drcpc)
+		case string(track1.NameSocketAddr):
+			var drsac track1.DeliveryRuleSocketAddrCondition
+			results = append(results, drsac)
+		case string(track1.NameIsDevice):
+			var dridc track1.DeliveryRuleIsDeviceCondition
+			results = append(results, dridc)
+		case string(track1.NameCookies):
+			var drcc track1.DeliveryRuleCookiesCondition
+			results = append(results, drcc)
+		case string(track1.NameHTTPVersion):
+			var drhvc track1.DeliveryRuleHTTPVersionCondition
+			results = append(results, drhvc)
+		case string(track1.NameURLFileName):
+			var drufnc track1.DeliveryRuleURLFileNameCondition
+			results = append(results, drufnc)
+		case string(track1.NameURLFileExtension):
+			var drufec track1.DeliveryRuleURLFileExtensionCondition
+			results = append(results, drufec)
+		case string(track1.NameURLPath):
+			var drupc track1.DeliveryRuleURLPathCondition
+			results = append(results, drupc)
+		case string(track1.NameRequestScheme):
+			var drrsc track1.DeliveryRuleRequestSchemeCondition
+			results = append(results, drrsc)
+		case string(track1.NameRequestBody):
+			var drrbc track1.DeliveryRuleRequestBodyCondition
+			results = append(results, drrbc)
+		case string(track1.NameRequestHeader):
+			var drrhc track1.DeliveryRuleRequestHeaderCondition
+			results = append(results, drrhc)
+		case string(track1.NameRequestURI):
+			var drruc track1.DeliveryRuleRequestURICondition
+			results = append(results, drruc)
+		case string(track1.NamePostArgs):
+			var drpac track1.DeliveryRulePostArgsCondition
+			results = append(results, drpac)
+		case string(track1.NameQueryString):
+			var drqsc track1.DeliveryRuleQueryStringCondition
+			results = append(results, drqsc)
+		case string(track1.NameRequestMethod):
+			var drrmc track1.DeliveryRuleRequestMethodCondition
+			results = append(results, drrmc)
+		case string(track1.NameRemoteAddress):
+			var drrac track1.DeliveryRuleRemoteAddressCondition
+			results = append(results, drrac)
+		default:
+			var drc track1.DeliveryRuleCondition
+			results = append(results, drc)
+		}
+
+		results = append(results, track1.DeliveryRuleCondition{
+			Name: track1.Name(condition),
 		})
 	}
 
 	return &results
 }
 
-func expandOptionalRuleDeliveryRuleActionArray(input []interface{}) []rules.DeliveryRuleAction {
+// TODO: Get this actually working with new schema
+func expandOptionalRuleDeliveryRuleActionArray(input []interface{}) *[]track1.BasicDeliveryRuleAction {
+	result := make([]track1.BasicDeliveryRuleAction, 0)
 	if len(input) == 0 {
-		return make([]rules.DeliveryRuleAction, 0)
+
+		return &result
 	}
 
-	return expandRuleDeliveryRuleActions(input)
+	result = append(result, track1.BasicDeliveryRuleAction(expandRuleDeliveryRuleActions(input)))
+	return &result
 }
 
-func expandRequiredRuleDeliveryRuleActionArray(input []interface{}) *[]rules.DeliveryRuleAction {
+func expandRequiredRuleDeliveryRuleActionArray(input []interface{}) *[]track1.BasicDeliveryRuleAction {
+	results := make([]track1.BasicDeliveryRuleAction, 0)
 	if len(input) == 0 {
 		return nil
 	}
 
-	results := expandRuleDeliveryRuleActions(input)
+	// results := expandRuleDeliveryRuleActions(input)
 
 	return &results
 }
 
-func expandRuleDeliveryRuleActions(input []interface{}) []rules.DeliveryRuleAction {
-	results := make([]rules.DeliveryRuleAction, 0)
-	actions := utils.ExpandStringSlice(input)
+func expandRuleDeliveryRuleActions(input []interface{}) track1.BasicDeliveryRuleAction {
+	// results := make([]track1.BasicDeliveryRuleAction, 0)
+	// actions := utils.ExpandStringSlice(input)
 
-	for _, action := range *actions {
-		results = append(results, rules.DeliveryRuleAction(action))
-	}
+	// for _, action := range *actions {
+	// 	results = append(results, track1.DeliveryRuleAction{
+	// 		Name: track1.NameBasicDeliveryRuleAction(action),
+	// 	})
+	// }
 
-	return results
+	return nil
 }
 
-func flattenRuleDeliveryRuleConditionArray(input *[]rules.DeliveryRuleCondition) []interface{} {
+func flattenRuleDeliveryRuleConditionArray(input *[]track1.BasicDeliveryRuleCondition) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, condition := range *input {
-		results = append(results, condition.Name)
-	}
+	// for _, condition := range *input {
+	// 	results = append(results, condition.Name)
+	// }
 
 	return results
 }
 
-func flattenRuleDeliveryRuleActionArray(input *[]rules.DeliveryRuleAction) []interface{} {
+func flattenRuleDeliveryRuleActionArray(input *[]track1.BasicDeliveryRuleAction) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, action := range *input {
-		results = append(results, string(action))
-	}
+	// for _, action := range *input {
+	// 	results = append(results, string(action))
+	// }
 
 	return results
 }

@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/afdendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01/routes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routes.ParseRouteID(id)
+			_, err := parse.FrontdoorRouteID(id)
 			return err
 		}),
 
@@ -46,7 +46,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: afdendpoints.ValidateAfdEndpointID,
+				ValidateFunc: validate.FrontdoorEndpointID,
 			},
 
 			"cache_configuration": {
@@ -69,7 +69,6 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 									"/",
 									":",
 									";",
-									"=",
 									"?",
 									"@",
 								}, false),
@@ -79,12 +78,12 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 						"query_string_caching_behavior": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
+							Default:  string(track1.AfdQueryStringCachingBehaviorIgnoreQueryString),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
-								string(routes.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorUseQueryString),
+								string(track1.AfdQueryStringCachingBehaviorIgnoreQueryString),
+								string(track1.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+								string(track1.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
+								string(track1.AfdQueryStringCachingBehaviorUseQueryString),
 							}, false),
 						},
 					},
@@ -124,11 +123,11 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 			"forwarding_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(routes.ForwardingProtocolHttpsOnly),
+				Default:  string(track1.ForwardingProtocolHTTPSOnly),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(routes.ForwardingProtocolHttpOnly),
-					string(routes.ForwardingProtocolHttpsOnly),
-					string(routes.ForwardingProtocolMatchRequest),
+					string(track1.ForwardingProtocolHTTPOnly),
+					string(track1.ForwardingProtocolHTTPSOnly),
+					string(track1.ForwardingProtocolMatchRequest),
 				}, false),
 			},
 
@@ -178,8 +177,8 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(routes.AFDEndpointProtocolsHttp),
-						string(routes.AFDEndpointProtocolsHttps),
+						string(track1.AFDEndpointProtocolsHTTP),
+						string(track1.AFDEndpointProtocolsHTTPS),
 					}, false),
 				},
 			},
@@ -192,37 +191,37 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	afdEndpointId, err := afdendpoints.ParseAfdEndpointID(d.Get("frontdoor_endpoint_id").(string))
+	afdEndpointId, err := parse.FrontdoorEndpointID(d.Get("frontdoor_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := routes.NewRouteID(afdEndpointId.SubscriptionId, afdEndpointId.ResourceGroupName, afdEndpointId.ProfileName, afdEndpointId.EndpointName, d.Get("name").(string))
+	id := parse.NewFrontdoorRouteID(afdEndpointId.SubscriptionId, afdEndpointId.ResourceGroup, afdEndpointId.ProfileName, afdEndpointId.AfdEndpointName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_frontdoor_route", id.ID())
 		}
 	}
 
-	forwardingProtocolValue := routes.ForwardingProtocol(d.Get("forwarding_protocol").(string))
+	forwardingProtocolValue := track1.ForwardingProtocol(d.Get("forwarding_protocol").(string))
 
-	props := routes.Route{
-		Properties: &routes.RouteProperties{
+	props := track1.Route{
+		RouteProperties: &track1.RouteProperties{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
-			EnabledState:        ConvertBoolToRoutesEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  &forwardingProtocolValue,
-			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
+			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			ForwardingProtocol:  forwardingProtocolValue,
+			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         *expandRouteResourceReference(d.Get("origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
@@ -230,11 +229,16 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {
-		props.Properties.OriginPath = utils.String(originPath)
+		props.RouteProperties.OriginPath = utils.String(originPath)
 	}
 
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -246,14 +250,14 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := routes.ParseRouteID(d.Id())
+	id, err := parse.FrontdoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -262,41 +266,40 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.RouteName)
 
-	d.Set("frontdoor_endpoint_id", afdendpoints.NewAfdEndpointID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.EndpointName).ID())
+	d.Set("frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("enabled", ConvertRoutesEnabledStateToBool(props.EnabledState))
-			d.Set("forwarding_protocol", props.ForwardingProtocol)
-			d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(props.HttpsRedirect))
-			d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
-			d.Set("origin_path", props.OriginPath)
-			d.Set("patterns_to_match", props.PatternsToMatch)
+	if props := resp.RouteProperties; props != nil {
+		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("forwarding_protocol", props.ForwardingProtocol)
+		d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
+		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+		d.Set("origin_path", props.OriginPath)
+		d.Set("patterns_to_match", props.PatternsToMatch)
 
-			// BUG: Endpoint name is not being returned by the API
-			d.Set("endpoint_name", id.EndpointName)
+		// BUG: Endpoint name is not being returned by the API
+		d.Set("endpoint_name", id.AfdEndpointName)
 
-			if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
-				return fmt.Errorf("setting `cache_configuration`: %+v", err)
-			}
+		if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
+			return fmt.Errorf("setting `cache_configuration`: %+v", err)
+		}
 
-			if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
-				return fmt.Errorf("setting `custom_domains`: %+v", err)
-			}
+		if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
+			return fmt.Errorf("setting `custom_domains`: %+v", err)
+		}
 
-			if err := d.Set("origin_group_id", flattenRouteResourceReference(&props.OriginGroup)); err != nil {
-				return fmt.Errorf("setting `origin_group_id`: %+v", err)
-			}
+		if err := d.Set("origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
+			return fmt.Errorf("setting `origin_group_id`: %+v", err)
+		}
 
-			if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
-				return fmt.Errorf("setting `rule_set_ids`: %+v", err)
-			}
+		if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
+			return fmt.Errorf("setting `rule_set_ids`: %+v", err)
+		}
 
-			if err := d.Set("supported_protocols", flattenRouteAFDEndpointProtocolsArray(props.SupportedProtocols)); err != nil {
-				return fmt.Errorf("setting `supported_protocols`: %+v", err)
-			}
+		if err := d.Set("supported_protocols", flattenRouteAFDEndpointProtocolsArray(props.SupportedProtocols)); err != nil {
+			return fmt.Errorf("setting `supported_protocols`: %+v", err)
 		}
 	}
+
 	return nil
 }
 
@@ -305,22 +308,22 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := routes.ParseRouteID(d.Id())
+	id, err := parse.FrontdoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	forwardingProtocolValue := routes.ForwardingProtocol(d.Get("forwarding_protocol").(string))
+	forwardingProtocolValue := track1.ForwardingProtocol(d.Get("forwarding_protocol").(string))
 
-	props := routes.RouteUpdateParameters{
-		Properties: &routes.RouteUpdatePropertiesParameters{
+	props := track1.RouteUpdateParameters{
+		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
-			EnabledState:        ConvertBoolToRoutesEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  &forwardingProtocolValue,
-			HttpsRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
+			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			ForwardingProtocol:  forwardingProtocolValue,
+			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         expandRouteResourceReference(d.Get("origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
@@ -328,11 +331,15 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {
-		props.Properties.OriginPath = &originPath
+		props.RouteUpdatePropertiesParameters.OriginPath = &originPath
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceFrontdoorRouteRead(d, meta)
@@ -343,65 +350,60 @@ func resourceFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := routes.ParseRouteID(d.Id())
+	id, err := parse.FrontdoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 
-func expandRouteResourceReference(input string) *routes.ResourceReference {
-	if len(input) == 0 || input == "" {
-		return nil
-	}
-
-	return &routes.ResourceReference{
-		Id: utils.String(input),
-	}
-}
-
-func expandRouteResourceReferenceArray(input []interface{}) *[]routes.ResourceReference {
+func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	results := make([]routes.ResourceReference, 0)
+	results := make([]track1.ResourceReference, 0)
 
 	for _, item := range input {
-		results = append(results, routes.ResourceReference{
-			Id: utils.String(item.(string)),
+		results = append(results, track1.ResourceReference{
+			ID: utils.String(item.(string)),
 		})
 	}
 
 	return &results
 }
 
-func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]routes.AFDEndpointProtocols {
-	results := make([]routes.AFDEndpointProtocols, 0)
+func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]track1.AFDEndpointProtocols {
+	results := make([]track1.AFDEndpointProtocols, 0)
 
 	for _, item := range input {
-		results = append(results, routes.AFDEndpointProtocols(item.(string)))
+		results = append(results, track1.AFDEndpointProtocols(item.(string)))
 	}
 
 	return &results
 }
 
-func expandRouteAfdRouteCacheConfiguration(input []interface{}) *routes.AfdRouteCacheConfiguration {
+func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	queryStringCachingBehaviorValue := routes.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
-	return &routes.AfdRouteCacheConfiguration{
+	queryStringCachingBehaviorValue := track1.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
+	return &track1.AfdRouteCacheConfiguration{
 		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_strings"].([]interface{})),
-		QueryStringCachingBehavior: &queryStringCachingBehaviorValue,
+		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 }
 
@@ -416,13 +418,13 @@ func expandFrontdoorRouteQueryParameters(input []interface{}) *string {
 	return &csv
 }
 
-func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]routes.ActivatedResourceReference {
-	results := make([]routes.ActivatedResourceReference, 0)
+func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.ActivatedResourceReference {
+	results := make([]track1.ActivatedResourceReference, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		results = append(results, routes.ActivatedResourceReference{
-			Id: utils.String(v["id"].(string)),
+		results = append(results, track1.ActivatedResourceReference{
+			ID: utils.String(v["id"].(string)),
 		})
 	}
 	return &results
@@ -443,7 +445,7 @@ func flattenFrontdoorRouteQueryParameters(input *string) []interface{} {
 	return results
 }
 
-func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResourceReference) []interface{} {
+func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if inputs == nil {
 		return results
@@ -452,8 +454,8 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResou
 	for _, input := range *inputs {
 		result := make(map[string]interface{})
 
-		if input.Id != nil {
-			result["id"] = *input.Id
+		if input.ID != nil {
+			result["id"] = *input.ID
 		}
 
 		if input.IsActive != nil {
@@ -465,35 +467,35 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]routes.ActivatedResou
 	return results
 }
 
-func flattenRouteResourceReference(input *routes.ResourceReference) string {
+func flattenRouteResourceReference(input *track1.ResourceReference) string {
 	result := ""
 	if input == nil {
 		return result
 	}
 
-	if input.Id != nil {
-		result = *input.Id
+	if input.ID != nil {
+		result = *input.ID
 	}
 
 	return result
 }
 
-func flattenRouteResourceReferenceArry(input *[]routes.ResourceReference) []interface{} {
+func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.Id != nil {
-			results = append(results, *item.Id)
+		if item.ID != nil {
+			results = append(results, *item.ID)
 		}
 	}
 
 	return results
 }
 
-func flattenRouteAFDEndpointProtocolsArray(input *[]routes.AFDEndpointProtocols) []interface{} {
+func flattenRouteAFDEndpointProtocolsArray(input *[]track1.AFDEndpointProtocols) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -506,7 +508,7 @@ func flattenRouteAFDEndpointProtocolsArray(input *[]routes.AFDEndpointProtocols)
 	return results
 }
 
-func flattenFrontdoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfiguration) []interface{} {
+func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -518,8 +520,8 @@ func flattenFrontdoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfigur
 		result["query_strings"] = flattenFrontdoorRouteQueryParameters(input.QueryParameters)
 	}
 
-	if input.QueryStringCachingBehavior != nil {
-		result["query_string_caching_behavior"] = *input.QueryStringCachingBehavior
+	if input.QueryStringCachingBehavior != "" {
+		result["query_string_caching_behavior"] = input.QueryStringCachingBehavior
 	}
 
 	return append(results, result)
