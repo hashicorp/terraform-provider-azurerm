@@ -1660,14 +1660,14 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
-		searchDomains = strings.Split(*input.SearchDomains, " ")
+		searchDomains = strings.Fields(*input.SearchDomains)
 	}
 	output["search_domains"] = searchDomains
 
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
-		options = strings.Split(*input.Options, " ")
+		options = strings.Fields(*input.Options)
 	}
 	output["options"] = options
 
