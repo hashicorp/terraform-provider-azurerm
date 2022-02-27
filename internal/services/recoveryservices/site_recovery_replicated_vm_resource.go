@@ -108,6 +108,25 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"target_availability_zone",
+				},
+			},
+			"target_availability_zone": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				// Default:  "None",
+				Computed: true,
+				ForceNew: true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
+				ConflictsWith: []string{
+					"target_availability_set_id",
+				},
 			},
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
@@ -239,6 +258,13 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		targetAvailabilitySetID = nil
 	}
 
+	var targetAvailabilityZone *string
+	if id, isSet := d.GetOk("target_availability_zone"); isSet {
+		targetAvailabilityZone = utils.String(id.(string))
+	} else {
+		targetAvailabilityZone = nil
+	}
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -284,6 +310,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryContainerID:       &targetProtectionContainerId,
 				RecoveryResourceGroupID:   &targetResourceGroupId,
 				RecoveryAvailabilitySetID: targetAvailabilitySetID,
+				RecoveryAvailabilityZone:  targetAvailabilityZone,
 				VMManagedDisks:            &managedDisks,
 			},
 		},
@@ -451,6 +478,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_vm_id", a2aDetails.FabricObjectID)
 		d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupID)
 		d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
+		d.Set("target_availability_zone", a2aDetails.RecoveryAvailabilityZone)
 		d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkID)
 		if a2aDetails.ProtectedManagedDisks != nil {
 			disksOutput := make([]interface{}, 0)
