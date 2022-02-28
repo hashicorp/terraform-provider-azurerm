@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
+* `cancel_rolling_upgrades_before_deletion` - (Optional) Cancel Rolling Upgrades before deleting the VMSS extensions during destroy phase. Defaults to false.
+
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Scale Set Extensions can be found using the Azure CLI, via:
 
 ```shell

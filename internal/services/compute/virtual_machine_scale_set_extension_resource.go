@@ -110,6 +110,12 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
+
+			"cancel_rolling_upgrades_before_deletion": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -339,6 +345,11 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	cancelRollingUpgradesBeforeDeletion := d.Get("cancel_rolling_upgrades_before_deletion").(bool)
+	if cancelRollingUpgradesBeforeDeletion {
+		meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)

@@ -107,6 +107,12 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
+			"cancel_rolling_upgrades_before_deletion": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"computer_name_prefix": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1213,6 +1219,11 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	cancelRollingUpgradesBeforeDeletion := d.Get("cancel_rolling_upgrades_before_deletion").(bool)
+	if cancelRollingUpgradesBeforeDeletion {
+		meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.Name)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")

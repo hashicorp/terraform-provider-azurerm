@@ -103,6 +103,12 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
+			"cancel_rolling_upgrades_before_deletion": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"computer_name_prefix": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1147,6 +1153,11 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	cancelRollingUpgradesBeforeDeletion := d.Get("cancel_rolling_upgrades_before_deletion").(bool)
+	if cancelRollingUpgradesBeforeDeletion {
+		meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.Name)
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
