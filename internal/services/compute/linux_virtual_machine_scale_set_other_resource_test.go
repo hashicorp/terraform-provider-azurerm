@@ -439,8 +439,8 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 
 // TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 3.0
 func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := WindowsVirtualMachineScaleSetResource{}
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// old: terminate_notification
