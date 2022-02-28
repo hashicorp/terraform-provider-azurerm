@@ -286,6 +286,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"termination_notification": virtualMachineTerminationNotificationSchema(),
+
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -647,6 +649,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	if v, ok := d.GetOk("termination_notification"); ok {
+		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("timezone"); ok {
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
@@ -844,6 +850,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
+		}
+	}
+
+	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
+		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
 
@@ -1168,6 +1180,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if d.HasChange("termination_notification") {
+		shouldUpdate = true
+
+		notificationRaw := d.Get("termination_notification").([]interface{})
+		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
 	}
 
 	if d.HasChange("additional_capabilities") {
