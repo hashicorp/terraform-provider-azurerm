@@ -93,13 +93,6 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func MongoCollectionAutoscaleSettingsSchema() *pluginsdk.Schema {
-	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
-	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
-
-	return autoscaleSettingsDatabaseSchema
-}
-
 func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

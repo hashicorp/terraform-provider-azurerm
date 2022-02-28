@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_service_plan" "example" {
-  name                = "example"
+  name                = "example-plan"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
   os_type             = "Linux"
@@ -33,7 +33,7 @@ resource "azurerm_service_plan" "example" {
 }
 
 resource "azurerm_linux_web_app" "example" {
-  name                = "example"
+  name                = "example-linux-web-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_service_plan.example.location
   service_plan_id     = azurerm_service_plan.example.id

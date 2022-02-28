@@ -28,6 +28,7 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 	}
 }
 
+// Deprecated: use `commonschema.ResourceGroupNameForDataSource()` instead
 func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,

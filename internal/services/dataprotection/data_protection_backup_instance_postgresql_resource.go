@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
@@ -48,7 +49,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"vault_id": {
 				Type:         schema.TypeString,

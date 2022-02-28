@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -187,7 +187,7 @@ func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.ThreePointOhBeta() {
-		out["resource_group_name"] = azure.SchemaResourceGroupNameForDataSource()
+		out["resource_group_name"] = commonschema.ResourceGroupNameForDataSource()
 	}
 
 	return out
