@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
@@ -109,11 +110,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith: []string{
-					"target_availability_zone",
+					"target_zone",
 				},
 			},
-			"target_zone": commonschema.ZonesSingle()
-			},
+			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
@@ -245,7 +245,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var targetAvailabilityZone *string
-	if zone, isSet := d.GetOk("target_availability_zone"); isSet {
+	if zone, isSet := d.GetOk("target_zone"); isSet {
 		targetAvailabilityZone = utils.String(zone.(string))
 	} else {
 		targetAvailabilityZone = nil
@@ -464,7 +464,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_vm_id", a2aDetails.FabricObjectID)
 		d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupID)
 		d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
-		d.Set("target_availability_zone", a2aDetails.RecoveryAvailabilityZone)
+		d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 		d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkID)
 		if a2aDetails.ProtectedManagedDisks != nil {
 			disksOutput := make([]interface{}, 0)
