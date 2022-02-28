@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
@@ -45,9 +45,9 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				ValidateFunc: validate.ElasticMonitorName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku": {
 				Type:     pluginsdk.TypeList,
@@ -162,11 +162,7 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewElasticMonitorID(subscriptionId, resourceGroup, name)
-
+	id := parse.NewElasticMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -191,13 +187,13 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, &body)
 	if err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -217,12 +213,13 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Elastic monitor %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -237,9 +234,11 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("user_info", flattenUserInfo(props.ElasticProperties))
 		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
 	}
+
 	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -260,7 +259,7 @@ func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
-		return fmt.Errorf("updating Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	return resourceElasticMonitorRead(d, meta)
 }
@@ -277,12 +276,13 @@ func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
-		return fmt.Errorf("deleting Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
+
 	return nil
 }
 

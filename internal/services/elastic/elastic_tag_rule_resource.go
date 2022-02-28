@@ -18,9 +18,9 @@ import (
 
 func resourceElasticTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceElasticTagRuleCreateorUpdate,
+		Create: resourceElasticTagRuleCreate,
 		Read:   resourceElasticTagRuleRead,
-		Update: resourceElasticTagRuleCreateorUpdate,
+		Update: resourceElasticTagRuleUpdate,
 		Delete: resourceElasticTagRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -104,7 +104,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Elastic.TagRuleClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -114,20 +114,16 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	ruleSetName := d.Get("name").(string)
 
-	id := parse.NewElasticTagRuleID(subscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, ruleSetName)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+	id := parse.NewElasticTagRuleID(subscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_elastic_tag_rule", *existing.ID)
-		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_elastic_tag_rule", id.ID())
 	}
 
 	body := elastic.MonitoringTagRules{
@@ -140,6 +136,28 @@ func resourceElasticTagRuleCreateorUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	return resourceElasticTagRuleRead(d, meta)
+}
+
+func resourceElasticTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Elastic.TagRuleClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ElasticTagRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	body := &elastic.MonitoringTagRules{
+		Properties: &elastic.MonitoringTagRulesProperties{
+			LogRules: expandLogRules(d.Get("log_rules").([]interface{})),
+		},
+	}
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, body); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceElasticTagRuleRead(d, meta)
 }
 
@@ -156,22 +174,21 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Elastic monitor %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("monitor_id", parse.NewElasticMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
 	d.Set("name", id.TagRuleName)
+	d.Set("monitor_id", parse.NewElasticMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
 			return fmt.Errorf("setting `log_rules`: %+v", err)
 		}
 	}
-	d.SetId(id.ID())
 
 	return nil
 }
@@ -186,25 +203,13 @@ func resourceElasticTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Elastic %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	d.Set("log_rules", nil)
-
-	body := elastic.MonitoringTagRules{
-		Properties: &elastic.MonitoringTagRulesProperties{
-			LogRules: expandLogRules(d.Get("log_rules").([]interface{})),
-		},
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
-		return fmt.Errorf("removing Tag Rules configuration from %q: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
