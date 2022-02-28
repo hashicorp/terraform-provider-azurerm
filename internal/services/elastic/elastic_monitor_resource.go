@@ -55,86 +55,43 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"user_info": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"email_address": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.ElasticEmailAddress,
-						},
-					},
-				},
+			"elastic_cloud_email_address": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ElasticEmailAddress,
 			},
 
-			"monitoring_status": {
+			"monitoring_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
 
-			"elastic_cloud_user": {
-				Type:     pluginsdk.TypeList,
+			"elastic_cloud_deployment_id": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"email_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"elastic_cloud_sso_default_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
-
-			"elastic_cloud_deployment": {
-				Type:     pluginsdk.TypeList,
+			"elastic_cloud_sso_default_url": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"deployment_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"azure_subscription_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"elasticsearch_region": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"elasticsearch_service_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"kibana_service_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"kibana_sso_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			},
+			"elastic_cloud_user_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"elasticsearch_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"kibana_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"kibana_sso_uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -160,7 +117,7 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled
-	if d.Get("monitoring_status").(bool) {
+	if d.Get("monitoring_enabled").(bool) {
 		monitoringStatus = monitorsresource.MonitoringStatusEnabled
 	}
 
@@ -170,7 +127,9 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Name: d.Get("sku_name").(string),
 		},
 		Properties: &monitorsresource.MonitorProperties{
-			UserInfo:         expandMonitorUserInfo(d.Get("user_info").([]interface{})),
+			UserInfo: &monitorsresource.UserInfo{
+				EmailAddress: utils.String(d.Get("elastic_cloud_email_address").(string)),
+			},
 			MonitoringStatus: &monitoringStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -212,18 +171,27 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			if err := d.Set("elastic_cloud_user", flattenElasticCloudUser(props.ElasticProperties)); err != nil {
-				return fmt.Errorf("setting `elastic_cloud_user`: %+v", err)
-			}
-			if err := d.Set("elastic_cloud_deployment", flattenElasticCloudDeployment(props.ElasticProperties)); err != nil {
-				return fmt.Errorf("setting `elastic_cloud_deployment`: %+v", err)
-			}
-			d.Set("user_info", flattenUserInfo(props.ElasticProperties))
 			monitoringEnabled := false
 			if props.MonitoringStatus != nil {
 				monitoringEnabled = *props.MonitoringStatus == monitorsresource.MonitoringStatusEnabled
 			}
-			d.Set("monitoring_status", monitoringEnabled)
+			d.Set("monitoring_enabled", monitoringEnabled)
+
+			if elastic := props.ElasticProperties; elastic != nil {
+				if elastic.ElasticCloudDeployment != nil {
+					// AzureSubscriptionId is the same as the subscription deployed into, so no point exposing it
+					// ElasticsearchRegion is `{Cloud}-{Region}` - so the same as location/not worth exposing for now?
+					d.Set("elastic_cloud_deployment_id", elastic.ElasticCloudDeployment.DeploymentId)
+					d.Set("elasticsearch_service_url", elastic.ElasticCloudDeployment.ElasticsearchServiceUrl)
+					d.Set("kibana_service_url", elastic.ElasticCloudDeployment.KibanaServiceUrl)
+					d.Set("kibana_sso_uri", elastic.ElasticCloudDeployment.KibanaSsoUrl)
+				}
+				if elastic.ElasticCloudUser != nil {
+					d.Set("elastic_cloud_user_id", elastic.ElasticCloudUser.Id)
+					d.Set("elastic_cloud_email_address", elastic.ElasticCloudUser.EmailAddress)
+					d.Set("elastic_cloud_sso_default_url", elastic.ElasticCloudUser.ElasticCloudSsoDefaultUrl)
+				}
+			}
 		}
 
 		skuName := ""
@@ -277,123 +245,4 @@ func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	return &monitorsresource.UserInfo{
-		EmailAddress: utils.String(v["email_address"].(string)),
-	}
-}
-
-func flattenUserInfo(input *monitorsresource.ElasticProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var email_address string
-	if input.ElasticCloudUser != nil {
-		if input.ElasticCloudUser.EmailAddress != nil {
-			email_address = *input.ElasticCloudUser.EmailAddress
-		}
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"email_address": email_address,
-		},
-	}
-}
-
-func flattenElasticCloudUser(input *monitorsresource.ElasticProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var elastic_cloud_user []interface{}
-
-	if input.ElasticCloudUser != nil {
-		var email_address string
-		if input.ElasticCloudUser.EmailAddress != nil {
-			email_address = *input.ElasticCloudUser.EmailAddress
-		}
-		var id string
-		if input.ElasticCloudUser.Id != nil {
-			id = *input.ElasticCloudUser.Id
-		}
-		var elastic_cloud_sso_default_url string
-		if input.ElasticCloudUser.ElasticCloudSsoDefaultUrl != nil {
-			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultUrl
-		}
-		elastic_cloud_user = []interface{}{
-			map[string]interface{}{
-				"email_address":                 email_address,
-				"id":                            id,
-				"elastic_cloud_sso_default_url": elastic_cloud_sso_default_url,
-			},
-		}
-
-	} else {
-		elastic_cloud_user = make([]interface{}, 0)
-	}
-
-	return elastic_cloud_user
-}
-
-func flattenElasticCloudDeployment(input *monitorsresource.ElasticProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var elastic_cloud_deployment []interface{}
-
-	if input.ElasticCloudDeployment != nil {
-		var name string
-		if input.ElasticCloudDeployment.Name != nil {
-			name = *input.ElasticCloudDeployment.Name
-		}
-		var deployment_id string
-		if input.ElasticCloudDeployment.DeploymentId != nil {
-			deployment_id = *input.ElasticCloudDeployment.DeploymentId
-		}
-		var azure_subscription_id string
-		if input.ElasticCloudDeployment.AzureSubscriptionId != nil {
-			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionId
-		}
-		var elasticsearch_region string
-		if input.ElasticCloudDeployment.ElasticsearchRegion != nil {
-			elasticsearch_region = *input.ElasticCloudDeployment.ElasticsearchRegion
-		}
-		var elasticsearch_service_url string
-		if input.ElasticCloudDeployment.ElasticsearchServiceUrl != nil {
-			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceUrl
-		}
-		var kibana_service_url string
-		if input.ElasticCloudDeployment.KibanaServiceUrl != nil {
-			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceUrl
-		}
-		var kibana_sso_url string
-		if input.ElasticCloudDeployment.KibanaSsoUrl != nil {
-			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoUrl
-		}
-		elastic_cloud_deployment = []interface{}{
-			map[string]interface{}{
-				"name":                      name,
-				"deployment_id":             deployment_id,
-				"azure_subscription_id":     azure_subscription_id,
-				"elasticsearch_region":      elasticsearch_region,
-				"elasticsearch_service_url": elasticsearch_service_url,
-				"kibana_service_url":        kibana_service_url,
-				"kibana_sso_url":            kibana_sso_url,
-			},
-		}
-
-	} else {
-		elastic_cloud_deployment = make([]interface{}, 0)
-	}
-
-	return elastic_cloud_deployment
 }
