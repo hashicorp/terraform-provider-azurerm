@@ -112,20 +112,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					"target_availability_zone",
 				},
 			},
-			"target_availability_zone": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				// Default:  "None",
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
-				ConflictsWith: []string{
-					"target_availability_set_id",
-				},
+			"target_zone": commonschema.ZonesSingle()
 			},
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
