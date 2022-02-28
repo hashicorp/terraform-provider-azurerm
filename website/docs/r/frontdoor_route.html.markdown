@@ -50,7 +50,7 @@ resource "azurerm_frontdoor_route" "test" {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
     query_strings                 = ["account", "settings"]
     compression_enabled           = true
-    mime_types_to_compress        = ["text/html", "text/javascript", "text/xml"]
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
   }
 }
 ```
@@ -68,6 +68,8 @@ The following arguments are supported:
 * `frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
+
+~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuraton file. 
 
 * `custom_domains` - (Optional) A `custom_domains` block as defined below.
 
@@ -101,7 +103,7 @@ A `cache_configuration` block supports the following:
 
 ~> **NOTE:** Content won't be compressed when the requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `mime_types_to_compress` - (Optional) A list of one or more `MIME Types` to compress. Must be a valid `MIME Type`(e.g. `application`, `audio`, `font`, `image`, `message`, `model`, `multipart`, `text` or `video`) and a `subtype` consisting of only letters, numbers, hyphens, periods and plus symbols, concatenated with a slash(e.g. `application/vnd.1000minds.decision-model+xml`).
+* `content_types_to_compress` - (Optional) A list of one or more `Content types` (formerly known as `MIME types`) to compress. Must be a valid `Content Type`(e.g. `application`, `audio`, `font`, `image`, `message`, `model`, `multipart`, `text` or `video`) and a `subtype`, consisting of only letters, numbers, hyphens, periods and plus symbols, concatenated with a slash(e.g. `application/vnd.1000minds.decision-model+xml`).
 
 ---
 

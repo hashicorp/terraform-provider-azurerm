@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -106,13 +105,13 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						"mime_types_to_compress": {
+						"content_types_to_compress": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: ValidateMimeTypes,
+								ValidateFunc: ValidateContentTypes,
 							},
 						},
 					},
@@ -237,13 +236,11 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	forwardingProtocolValue := track1.ForwardingProtocol(d.Get("forwarding_protocol").(string))
-
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  forwardingProtocolValue,
+			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
@@ -344,14 +341,11 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	forwardingProtocolValue := track1.ForwardingProtocol(d.Get("forwarding_protocol").(string))
-
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  forwardingProtocolValue,
+			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
@@ -359,6 +353,10 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
+	}
+
+	if cacheConfiguration := expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})); cacheConfiguration != nil {
+		props.RouteUpdatePropertiesParameters.CacheConfiguration = cacheConfiguration
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {
@@ -439,13 +437,14 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
-	if comprssionEnabled {
-		compressionSettings := &track1.CompressionSettings{
-			IsCompressionEnabled:   utils.Bool(comprssionEnabled),
-			ContentTypesToCompress: utils.ExpandStringSlice(v["mime_types_to_compress"].([]interface{})),
-		}
-		cacheConfiguration.CompressionSettings = compressionSettings
+	compressionSettings := &track1.CompressionSettings{}
+	compressionSettings.IsCompressionEnabled = utils.Bool(comprssionEnabled)
+
+	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
+		compressionSettings.ContentTypesToCompress = utils.ExpandStringSlice(contentTypes)
 	}
+
+	cacheConfiguration.CompressionSettings = compressionSettings
 
 	return cacheConfiguration
 }
@@ -554,27 +553,18 @@ func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfigur
 		result["query_string_caching_behavior"] = input.QueryStringCachingBehavior
 	}
 
-	// map[contentTypesToCompress:[text/html text/javascript text/xml] isCompressionEnabled:true]
 	if input.CompressionSettings != nil {
+		compressionSettings := input.CompressionSettings.(map[string]interface{})
+		compressionEnabled := compressionSettings["isCompressionEnabled"].(bool)
+		contentTypesToCompress := compressionSettings["contentTypesToCompress"].([]interface{})
 
-		foo := input.CompressionSettings.(map[string]interface{})
-		x := foo["isCompressionEnabled"].(bool)
-		y := foo["contentTypesToCompress"].([]interface{})
-
-		compress := make([]string, 0)
-		for _, toot := range y {
-			compress = append(compress, toot.(string))
+		contentTypes := make([]string, 0)
+		for _, contentType := range contentTypesToCompress {
+			contentTypes = append(contentTypes, contentType.(string))
 		}
 
-		result["compression_enabled"] = x
-		result["query_string_caching_behavior"] = utils.FlattenStringSlice(&compress)
-
-		log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  plugin.terraform-provider-azurerm: *************************************************\n")
-		log.Printf("compressionSettings :: CompressionSettings    (%+v)", foo)
-		log.Printf("compressionSettings :: contentTypesToCompress (%+v)", x)
-		log.Printf("compressionSettings :: isCompressionEnabled   (%+v)", y)
-		log.Printf("*************************************************\n")
-
+		result["compression_enabled"] = compressionEnabled
+		result["content_types_to_compress"] = utils.FlattenStringSlice(&contentTypes)
 	}
 
 	return append(results, result)

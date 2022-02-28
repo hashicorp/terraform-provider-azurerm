@@ -84,42 +84,6 @@ func flattenResourceReference(input *track1.ResourceReference) string {
 // 	return (*enabledState == afdorigins.EnabledState(afdorigins.EnabledStateEnabled))
 // }
 
-// func ConvertBoolToOriginGroupsEnabledState(isEnabled bool) *afdorigingroups.EnabledState {
-// 	out := afdorigingroups.EnabledState(afdorigingroups.EnabledStateDisabled)
-
-// 	if isEnabled {
-// 		out = afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled)
-// 	}
-
-// 	return &out
-// }
-
-// func ConvertOriginGroupsEnabledStateToBool(enabledState *afdorigingroups.EnabledState) bool {
-// 	if enabledState == nil {
-// 		return false
-// 	}
-
-// 	return (*enabledState == afdorigingroups.EnabledState(afdorigingroups.EnabledStateEnabled))
-// }
-
-// func ConvertBoolToRoutesEnabledState(isEnabled bool) *routes.EnabledState {
-// 	out := routes.EnabledState(routes.EnabledStateDisabled)
-
-// 	if isEnabled {
-// 		out = routes.EnabledState(routes.EnabledStateEnabled)
-// 	}
-
-// 	return &out
-// }
-
-// func ConvertRoutesEnabledStateToBool(enabledState *routes.EnabledState) bool {
-// 	if enabledState == nil {
-// 		return false
-// 	}
-
-// 	return (*enabledState == routes.EnabledState(routes.EnabledStateEnabled))
-// }
-
 func ConvertBoolToRouteHttpsRedirect(isEnabled bool) track1.HTTPSRedirect {
 	out := track1.HTTPSRedirect(track1.HTTPSRedirectDisabled)
 
@@ -156,34 +120,6 @@ func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *track1.LinkToDef
 	return (*linkToDefaultDomain == track1.LinkToDefaultDomain(track1.LinkToDefaultDomainEnabled))
 }
 
-// func ConvertBoolToEndpointsEnabledState(isEnabled bool) *track1.EnabledState {
-// 	out := track1.EnabledState(track1.EnabledStateDisabled)
-
-// 	if isEnabled {
-// 		out = track1.EnabledState(track1.EnabledStateEnabled)
-// 	}
-
-// 	return &out
-// }
-
-// func ConvertBoolToEndpointsEnabledState(isEnabled bool) *track1.EnabledState {
-// 	out := afdendpoints.EnabledState(afdendpoints.EnabledStateDisabled)
-
-// 	if isEnabled {
-// 		out = afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled)
-// 	}
-
-// 	return &out
-// }
-
-// func ConvertEndpointsEnabledStateToBool(enabledState *afdendpoints.EnabledState) bool {
-// 	if enabledState == nil {
-// 		return false
-// 	}
-
-// 	return (*enabledState == afdendpoints.EnabledState(afdendpoints.EnabledStateEnabled))
-// }
-
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {
 	if warn, err := validation.IsIPv6Address(i, k); len(err) == 0 {
 		return warn, err
@@ -203,7 +139,7 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 
 func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers.`, k))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers`, k))
 	}
 
 	return nil, nil
@@ -270,24 +206,24 @@ func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
 	}
 }
 
-func ValidateMimeTypes(i interface{}, k string) (_ []string, errors []error) {
+func ValidateContentTypes(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	// Per the IANA no whitespace is allowed in a MIME Type
+	// Per the IANA no whitespace is allowed in a Content Type
 	if strings.Contains(v, " ") {
 		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
 	}
 
 	if strings.Contains(v, ";") {
-		// MIME Type has a parameter, error out
-		return nil, append(errors, fmt.Errorf(`%q is not valid, MIME Types with parameters are not allowed, got %q`, k, v))
+		// Content Type has a parameter, error out
+		return nil, append(errors, fmt.Errorf(`%q is not valid, Content Types with parameters are not allowed, got %q`, k, v))
 	}
 
 	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid MIME Type(e.g. application, audio, font, image, message, model, multipart, text or video) and a subtype, consisting of only letters, numbers, hyphens, periods and plus symbols, concatenated with a slash(e.g. application/vnd.1000minds.decision-model+xml), got %q`, k, v))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid Content Type and a subtype concatenated with a slash(e.g. text/html), got %q`, k, v))
 	}
 
 	return nil, nil
