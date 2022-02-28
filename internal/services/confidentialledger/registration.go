@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// Registration type for Azure Confidential Ledger.
 type Registration struct{}
 
 // Name is the name of this Service

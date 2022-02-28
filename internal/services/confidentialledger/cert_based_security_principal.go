@@ -1,7 +1,6 @@
 package confidentialledger
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
@@ -37,19 +36,19 @@ func flattenConfidentialLedgerCertBasedSecurityPrincipal(input *[]confidentialle
 	output := make([]interface{}, 0, len(*input))
 
 	for _, item := range *input {
-		cert := ""
-		ledgerRoleName := string(confidentialledger.LedgerRoleNameReader)
+		var cert string
+		var ledgerRoleName string
 
 		if item.Cert != nil {
 			cert = *item.Cert
 		} else {
-			return nil, errors.New(fmt.Sprintf("error flattening cert-based security principal (no certificate): %v", item))
+			return nil, fmt.Errorf("error flattening cert-based security principal (no certificate): %v", item)
 		}
 
 		if item.LedgerRoleName != nil {
 			ledgerRoleName = string(*item.LedgerRoleName)
 		} else {
-			return nil, errors.New(fmt.Sprintf("error flattening cert-based security principal (no assigned role): %v", item))
+			return nil, fmt.Errorf("error flattening cert-based security principal (no assigned role): %v", item)
 		}
 
 		aadBasedSecurityPrincipal := map[string]interface{}{
