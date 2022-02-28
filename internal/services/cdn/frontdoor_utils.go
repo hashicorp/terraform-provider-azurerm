@@ -281,14 +281,13 @@ func ValidateMimeTypes(i interface{}, k string) (_ []string, errors []error) {
 		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
 	}
 
-	mimeParts := strings.Split(v, ";")
-	if len(mimeParts) > 1 {
+	if strings.Contains(v, ";") {
 		// MIME Type has a parameter, error out
-		return nil, append(errors, fmt.Errorf(`%q is not valid, MIME Type parameters are not allowed, got %q`, k, v))
+		return nil, append(errors, fmt.Errorf(`%q is not valid, MIME Types with parameters are not allowed, got %q`, k, v))
 	}
 
 	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid MIME Type. A valid MIME Type must start with type (e.g. application, audio, font, image, message, model, multipart, text or video) followed by a slash and a subtype(e.g. text/html). The MIME Type may also be followed by an optional parameter type by specifying the paramerter type with a semi-colon after the MIME Type to provide additional details about the MIME Type(e.g. text/plain;charset=UTF-8), got %q`, k, v))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid MIME Type(e.g. application, audio, font, image, message, model, multipart, text or video) and a subtype, consisting of only letters, numbers, hyphens, periods and plus symbols, concatenated with a slash(e.g. application/vnd.1000minds.decision-model+xml), got %q`, k, v))
 	}
 
 	return nil, nil

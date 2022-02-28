@@ -101,7 +101,7 @@ A `cache_configuration` block supports the following:
 
 ~> **NOTE:** Content won't be compressed when the requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `mime_types_to_compress` - (Optional) A list of one or more `MIME Types` to compress. Must be a valid `MIME Type`, a valid `MIME type` consists of a `type` and a `subtype` concatenated with a slash (e.g. `text/html`).
+* `mime_types_to_compress` - (Optional) A list of one or more `MIME Types` to compress. Must be a valid `MIME Type`(e.g. `application`, `audio`, `font`, `image`, `message`, `model`, `multipart`, `text` or `video`) and a `subtype` consisting of only letters, numbers, hyphens, periods and plus symbols, concatenated with a slash(e.g. `application/vnd.1000minds.decision-model+xml`).
 
 ---
 
