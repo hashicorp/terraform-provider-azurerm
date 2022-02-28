@@ -34,22 +34,23 @@ resource "azurerm_frontdoor_endpoint" "test" {
 }
 
 resource "azurerm_frontdoor_route" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
-  enabled               = true
+  name                      = "acctest-c-%d"
+  frontdoor_endpoint_id     = azurerm_frontdoor_endpoint.test.id
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+  enabled                   = true
 
   forwarding_protocol    = "HttpsOnly"
   https_redirect         = true
   link_to_default_domain = true
   patterns_to_match      = ["/*"]
   supported_protocols    = ["Http", "Https"]
-
-  origin_group_id = azurerm_frontdoor_origin_group.test.id
-  rule_set_ids    = [azurerm_frontdoor_rule_set.test.id]
+  rule_set_ids           = [azurerm_frontdoor_rule_set.test.id]
 
   cache_configuration {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
     query_strings                 = ["account", "settings"]
+    compression_enabled           = true
+    mime_types_to_compress        = ["text/html", "text/javascript", "text/xml"]
   }
 }
 ```
@@ -62,7 +63,9 @@ The following arguments are supported:
 
 * `frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
 
-* `origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group.
+* `frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Route to be created.
+
+* `frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 
@@ -74,11 +77,11 @@ The following arguments are supported:
 
 * `https_redirect` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
-~> **NOTE:** The `https_redirect` rule is the first rule that gets executed.
+~> **NOTE:** The `https_redirect` rule is the first rule that will be executed.
 
 * `link_to_default_domain` - (Optional) Will this route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
-* `origin_path` - (Optional) A directory path on the origin that AzureFrontDoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
+* `origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
 
 * `patterns_to_match` - (Optional) The route patterns of the rule.
 
@@ -90,9 +93,15 @@ A `cache_configuration` block supports the following:
 
 * `query_string_caching_behavior` - (Optional) Defines how the Frontdoor will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
 
-~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_strings` will be used as an include list or an ignore list.
+~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_strings` field will be used as an include list or an ignore list.
 
 * `query_strings` - (Optional) Query strings to include or ignore.
+
+* `compression_enabled` - (Optional) Is content compression enabled? Possible values are `true` or `false`. Defaults to `false`. 
+
+~> **NOTE:** Content won't be compressed when the requested content is smaller than `1 byte` or larger than `1 MB`.
+
+* `mime_types_to_compress` - (Optional) A list of one or more `MIME Types` to compress. Must be a valid `MIME Type`, a valid `MIME type` consists of a `type` and a `subtype` concatenated with a slash (e.g. `text/html`).
 
 ---
 
@@ -110,7 +119,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Route.
 
-* `endpoint_name` - The name of the Frontdoor Endpoint which holds the Frontdoor Route.
+* `frontdoor_endpoint_name` - The name of the Frontdoor Endpoint which holds the Frontdoor Route.
 
 ---
 

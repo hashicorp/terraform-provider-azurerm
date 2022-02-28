@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -49,6 +50,25 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorEndpointID,
 			},
 
+			"frontdoor_origin_group_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FrontdoorOriginGroupID,
+			},
+
+			"frontdoor_origin_ids": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				ForceNew: true,
+
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.FrontdoorOriginID,
+				},
+			},
+
+			// NOTE: AfdRouteCacheConfiguration to disable caching, do not provide block in API call.
 			"cache_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -57,21 +77,14 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
+						// NOTE: CSV string to API
 						"query_strings": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringNotInSlice([]string{
-									"&",
-									",",
-									"/",
-									":",
-									";",
-									"?",
-									"@",
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringDoesNotContainAny(","),
 							},
 						},
 
@@ -85,6 +98,22 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 								string(track1.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
 								string(track1.AfdQueryStringCachingBehaviorUseQueryString),
 							}, false),
+						},
+
+						"compression_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"mime_types_to_compress": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: ValidateMimeTypes,
+							},
 						},
 					},
 				},
@@ -113,11 +142,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-			},
-
-			"endpoint_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Default:  true,
 			},
 
 			"forwarding_protocol": {
@@ -140,11 +165,6 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 			"link_to_default_domain": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-			},
-
-			"origin_group_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
 			},
 
 			"origin_path": {
@@ -173,6 +193,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 			"supported_protocols": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 2,
 
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -181,6 +202,11 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 						string(track1.AFDEndpointProtocolsHTTPS),
 					}, false),
 				},
+			},
+
+			"frontdoor_endpoint_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -215,17 +241,20 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
-			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  forwardingProtocolValue,
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         expandResourceReference(d.Get("origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
+	}
+
+	if cacheConfiguration := expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})); cacheConfiguration != nil {
+		props.RouteProperties.CacheConfiguration = cacheConfiguration
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {
@@ -242,6 +271,8 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	d.Set("frontdoor_origin_ids", utils.ExpandStringSlice(d.Get("frontdoor_origin_ids").([]interface{})))
+
 	return resourceFrontdoorRouteRead(d, meta)
 }
 
@@ -277,7 +308,7 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
 		// BUG: Endpoint name is not being returned by the API
-		d.Set("endpoint_name", id.AfdEndpointName)
+		d.Set("frontdoor_endpoint_name", id.AfdEndpointName)
 
 		if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache_configuration`: %+v", err)
@@ -287,8 +318,8 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `custom_domains`: %+v", err)
 		}
 
-		if err := d.Set("origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
-			return fmt.Errorf("setting `origin_group_id`: %+v", err)
+		if err := d.Set("frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
+			return fmt.Errorf("setting `frontdoor_origin_group_id`: %+v", err)
 		}
 
 		if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
@@ -323,7 +354,7 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			ForwardingProtocol:  forwardingProtocolValue,
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         expandResourceReference(d.Get("origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
@@ -401,10 +432,22 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	v := input[0].(map[string]interface{})
 
 	queryStringCachingBehaviorValue := track1.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
-	return &track1.AfdRouteCacheConfiguration{
+	comprssionEnabled := v["compression_enabled"].(bool)
+
+	cacheConfiguration := &track1.AfdRouteCacheConfiguration{
 		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
+
+	if comprssionEnabled {
+		compressionSettings := &track1.CompressionSettings{
+			IsCompressionEnabled:   utils.Bool(comprssionEnabled),
+			ContentTypesToCompress: utils.ExpandStringSlice(v["mime_types_to_compress"].([]interface{})),
+		}
+		cacheConfiguration.CompressionSettings = compressionSettings
+	}
+
+	return cacheConfiguration
 }
 
 func expandFrontdoorRouteQueryParameters(input []interface{}) *string {
@@ -467,19 +510,6 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResou
 	return results
 }
 
-func flattenRouteResourceReference(input *track1.ResourceReference) string {
-	result := ""
-	if input == nil {
-		return result
-	}
-
-	if input.ID != nil {
-		result = *input.ID
-	}
-
-	return result
-}
-
 func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -522,6 +552,29 @@ func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfigur
 
 	if input.QueryStringCachingBehavior != "" {
 		result["query_string_caching_behavior"] = input.QueryStringCachingBehavior
+	}
+
+	// map[contentTypesToCompress:[text/html text/javascript text/xml] isCompressionEnabled:true]
+	if input.CompressionSettings != nil {
+
+		foo := input.CompressionSettings.(map[string]interface{})
+		x := foo["isCompressionEnabled"].(bool)
+		y := foo["contentTypesToCompress"].([]interface{})
+
+		compress := make([]string, 0)
+		for _, toot := range y {
+			compress = append(compress, toot.(string))
+		}
+
+		result["compression_enabled"] = x
+		result["query_string_caching_behavior"] = utils.FlattenStringSlice(&compress)
+
+		log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  plugin.terraform-provider-azurerm: *************************************************\n")
+		log.Printf("compressionSettings :: CompressionSettings    (%+v)", foo)
+		log.Printf("compressionSettings :: contentTypesToCompress (%+v)", x)
+		log.Printf("compressionSettings :: isCompressionEnabled   (%+v)", y)
+		log.Printf("*************************************************\n")
+
 	}
 
 	return append(results, result)

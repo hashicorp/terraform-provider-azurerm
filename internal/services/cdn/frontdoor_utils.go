@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
@@ -267,4 +268,28 @@ func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
 			}, false),
 		},
 	}
+}
+
+func ValidateMimeTypes(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	// Per the IANA no whitespace is allowed in a MIME Type
+	if strings.Contains(v, " ") {
+		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
+	}
+
+	mimeParts := strings.Split(v, ";")
+	if len(mimeParts) > 1 {
+		// MIME Type has a parameter, error out
+		return nil, append(errors, fmt.Errorf(`%q is not valid, MIME Type parameters are not allowed, got %q`, k, v))
+	}
+
+	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid MIME Type. A valid MIME Type must start with type (e.g. application, audio, font, image, message, model, multipart, text or video) followed by a slash and a subtype(e.g. text/html). The MIME Type may also be followed by an optional parameter type by specifying the paramerter type with a semi-colon after the MIME Type to provide additional details about the MIME Type(e.g. text/plain;charset=UTF-8), got %q`, k, v))
+	}
+
+	return nil, nil
 }
