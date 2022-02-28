@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -219,9 +220,41 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// Check and wait for the Function to have no in flight operations
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+
+			createWait := &pluginsdk.StateChangeConf{
+				Pending: []string{"busy", "unknown"},
+				Target:  []string{"ready"},
+				Refresh: func() (result interface{}, state string, err error) {
+					function, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+					if err != nil || function.SiteConfig == nil {
+						return "unknown", "unknown", err
+					}
+					if function.SiteProperties.InProgressOperationID != nil {
+						return "busy", "busy", nil
+					}
+					return "ready", "ready", nil
+				},
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = createWait.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be ready", *appId)
+			}
+
+			locks.ByID(appId.ID())
+			defer locks.UnlockByID(appId.ID())
+
 			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, fnEnvelope)
 			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				fn, _ := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				return fmt.Errorf("creating %s - State: %#v / InProgressOperationID: %#v", id, *fn.SiteProperties.State, fn.SiteProperties.InProgressOperationID)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -308,6 +341,37 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+
+			deleteWait := &pluginsdk.StateChangeConf{
+				Pending: []string{"busy", "unknown"},
+				Target:  []string{"ready"},
+				Refresh: func() (result interface{}, state string, err error) {
+					function, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+					if err != nil || function.SiteConfig == nil {
+						return "unknown", "unknown", err
+					}
+					if function.SiteProperties.InProgressOperationID != nil {
+						return "busy", "busy", nil
+					}
+					return "ready", "ready", nil
+				},
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = deleteWait.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be settled", *id)
+			}
+
+			fnID := parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.FunctionName).ID()
+			locks.ByID(fnID)
+			defer locks.UnlockByID(fnID)
+
 			if _, err = client.DeleteFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -354,6 +418,37 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("test_data") {
 				existing.TestData = utils.String(appFunction.TestData)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+
+			updateWait := &pluginsdk.StateChangeConf{
+				Pending: []string{"busy", "unknown"},
+				Target:  []string{"ready"},
+				Refresh: func() (result interface{}, state string, err error) {
+					function, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+					if err != nil || function.SiteConfig == nil {
+						return "unknown", "unknown", err
+					}
+					if function.SiteProperties.InProgressOperationID != nil {
+						return "busy", "busy", nil
+					}
+					return "ready", "ready", nil
+				},
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = updateWait.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be ready", *id)
+			}
+
+			fnID := parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.FunctionName).ID()
+			locks.ByID(fnID)
+			defer locks.UnlockByID(fnID)
 
 			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, existing)
 			if err != nil {
