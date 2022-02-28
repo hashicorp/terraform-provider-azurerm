@@ -44,6 +44,20 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"virtual_router_asn": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"virtual_router_ips": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+				Set: pluginsdk.HashString,
+			},
+
 			"tags": tags.SchemaDataSource(),
 
 			"default_route_table_id": {
@@ -85,6 +99,18 @@ func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
+
+		var virtualRouterAsn *int64
+		if props.VirtualRouterAsn != nil {
+			virtualRouterAsn = props.VirtualRouterAsn
+		}
+		d.Set("virtual_router_asn", virtualRouterAsn)
+
+		var virtualRouterIps *[]string
+		if props.VirtualRouterIps != nil {
+			virtualRouterIps = props.VirtualRouterIps
+		}
+		d.Set("virtual_router_ips", virtualRouterIps)
 	}
 
 	virtualHub, err := parse.VirtualHubID(*resp.ID)
