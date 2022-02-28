@@ -794,7 +794,6 @@ resource "azurerm_network_interface" "test" {
     name                          = "vm-%[1]d"
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test-source.id
   }
 }
 
@@ -832,22 +831,6 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
 }
 
-resource "azurerm_public_ip" "test-source" {
-  name                = "pubip%[1]d-source"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-
-resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
-}
-
 resource "azurerm_storage_account" "test" {
   name                     = "acct%[1]d"
   location                 = azurerm_resource_group.test.location
@@ -869,6 +852,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test1.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+  target_network_id                       = azurerm_virtual_network.test1.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -880,8 +864,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
   network_interface {
     source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = "snet-%[1]d_2"
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
+    target_subnet_name            = "snet-%[1]d"
   }
 
   depends_on = [
