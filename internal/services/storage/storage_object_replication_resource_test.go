@@ -3,7 +3,6 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -16,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageObjectReplicationResource struct {
-	SecondarySubscriptionId string
-}
+type StorageObjectReplicationResource struct{}
 
 func TestAccStorageObjectReplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
@@ -122,11 +119,10 @@ func TestAccStorageObjectReplication_update(t *testing.T) {
 
 func TestAccStorageObjectReplication_crossSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
-	secondarySubscriptionId := os.Getenv("ARM_TEST_SUBSCRIPTION_ID_ALT")
-	if secondarySubscriptionId == "" {
-		t.Skipf("`ARM_TEST_SUBSCRIPTION_ID_ALT` is not specified")
+	if data.Subscriptions.Secondary == "" {
+		t.Skipf("The secondary subscription is not specified")
 	}
-	r := StorageObjectReplicationResource{SecondarySubscriptionId: secondarySubscriptionId}
+	r := StorageObjectReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossSubscription(data),
@@ -397,5 +393,5 @@ resource "azurerm_storage_object_replication" "test" {
     destination_container_name = azurerm_storage_container.dst.name
   }
 }
-`, r.SecondarySubscriptionId, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }

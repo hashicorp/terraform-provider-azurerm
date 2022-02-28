@@ -23,14 +23,8 @@ func NewObjectReplicationID(srcId, dstId objectreplicationpolicies.ObjectReplica
 
 func (id ObjectReplicationId) String() string {
 	segments := []string{
-		fmt.Sprintf("Source Name %q", id.Src.ObjectReplicationPolicyId),
-		fmt.Sprintf("Source Storage Account Name %q", id.Src.AccountName),
-		fmt.Sprintf("Source Resource Group %q", id.Src.ResourceGroupName),
-		fmt.Sprintf("Source Subscription Id %q", id.Src.SubscriptionId),
-		fmt.Sprintf("Destination Name %q", id.Dst.ObjectReplicationPolicyId),
-		fmt.Sprintf("Destination Storage Account Name %q", id.Dst.AccountName),
-		fmt.Sprintf("Destination Resource Group %q", id.Dst.ResourceGroupName),
-		fmt.Sprintf("Destination Subscription Id %q", id.Dst.SubscriptionId),
+		fmt.Sprintf("Source %q", id.Src),
+		fmt.Sprintf("Destination %q", id.Dst),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Object Replication", segmentsStr)
