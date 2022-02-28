@@ -1,8 +1,17 @@
 package elastic
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/elastic"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
