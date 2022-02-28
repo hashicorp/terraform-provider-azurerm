@@ -259,8 +259,8 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var targetAvailabilityZone *string
-	if id, isSet := d.GetOk("target_availability_zone"); isSet {
-		targetAvailabilityZone = utils.String(id.(string))
+	if zone, isSet := d.GetOk("target_availability_zone"); isSet {
+		targetAvailabilityZone = utils.String(zone.(string))
 	} else {
 		targetAvailabilityZone = nil
 	}
