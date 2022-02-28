@@ -611,7 +611,7 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
