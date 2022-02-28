@@ -87,6 +87,52 @@ func TestAccElasticMonitor_update(t *testing.T) {
 	})
 }
 
+func TestAccElasticMonitor_logs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
+	r := ElasticMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// this proves that we don't need to destroy the `logs` block separately
+			Config: r.logs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccElasticMonitor_logsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
+	r := ElasticMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// create with it
+			Config: r.logs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// update it
+			Config: r.logsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// remove just the `logs` block
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ElasticMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitorsresource.ParseMonitorID(state.ID)
 	if err != nil {
@@ -181,6 +227,78 @@ resource "azurerm_elastic_monitor" "test" {
   sku_name                    = "ess-monthly-consumption_Monthly"
   elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
   monitoring_enabled          = false
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ElasticMonitorResource) logs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-elastic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_elastic_monitor" "test" {
+  name                        = "acctest-elastic%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+
+  logs {
+    filtering_tag {
+       action = "Include"
+       name   = "TerraformAccTest"
+       value  = "RandomValue%[1]d"
+    }
+
+    # NOTE: these are intentionally not set to true here for testing purposes
+    send_activity_logs     = false
+    send_azuread_logs      = false
+    send_subscription_logs = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ElasticMonitorResource) logsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-elastic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_elastic_monitor" "test" {
+  name                        = "acctest-elastic%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+
+  logs {
+    filtering_tag {
+       action = "Include"
+       name   = "TerraformAccTest"
+       value  = "UpdatedValue-%[1]d"
+    }
+
+    # NOTE: these are intentionally not set to true here for testing purposes
+    send_activity_logs     = false
+    send_azuread_logs      = false
+    send_subscription_logs = false
+  }
 
   tags = {
     ENV = "Test"
