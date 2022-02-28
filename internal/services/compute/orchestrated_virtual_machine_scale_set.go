@@ -1769,9 +1769,14 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			"write_accelerator_enabled":      writeAcceleratorEnabled,
 			"ultra_ssd_disk_iops_read_write": iops,
 			"ultra_ssd_disk_mbps_read_write": mbps,
-			"disk_iops_read_write":           iops,
-			"disk_mbps_read_write":           mbps,
 		})
+
+		if !features.ThreePointOhBeta() {
+			output = append(output, map[string]interface{}{
+				"disk_iops_read_write": iops,
+				"disk_mbps_read_write": mbps,
+			})
+		}
 	}
 
 	return output
