@@ -103,86 +103,88 @@ func (r ElasticMonitorResource) Exists(ctx context.Context, client *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r ElasticMonitorResource) template(data acceptance.TestData) string {
+func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-elastic-%d"
-  location = "%s"
-}
-`, data.RandomInteger%1000, data.Locations.Primary)
-}
 
-func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-	%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-elastic-%[1]d"
+  location = "%[2]s"
+}
 
 resource "azurerm_elastic_monitor" "test" {
-  name                = "test-tf-elastic-basic-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "staging_Monthly"
-
-  user_info {
-    email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-  }
+  name                        = "acctest-elastic%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
 }
-`, r.template(data), data.RandomInteger%1000)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ElasticMonitorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
-resource "azurerm_elastic_monitor" "testImport" {
-  name                = azurerm_elastic_monitor.test.name
-  resource_group_name = azurerm_elastic_monitor.test.resource_group_name
-  location            = azurerm_elastic_monitor.test.location
-  sku_name            = "staging_Monthly"
+%s
 
-  user_info {
-    email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-  }
+resource "azurerm_elastic_monitor" "import" {
+  name                        = azurerm_elastic_monitor.test.name
+  resource_group_name         = azurerm_elastic_monitor.test.resource_group_name
+  location                    = azurerm_elastic_monitor.test.location
+  sku_name                    = azurerm_elastic_monitor.test.sku_name
+  elastic_cloud_email_address = azurerm_elastic_monitor.test.elastic_cloud_email_address
 }
 `, r.basic(data))
 }
 
 func (r ElasticMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
-resource "azurerm_elastic_monitor" "test" {
-  name                = "test-tf-elastic-basic-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "staging_Monthly"
+provider "azurerm" {
+  features {}
+}
 
-  user_info {
-    email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-elastic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_elastic_monitor" "test" {
+  name                        = "acctest-elastic%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+
   tags = {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger%1000)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ElasticMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
-resource "azurerm_elastic_monitor" "test" {
-  name                = "test-tf-elastic-complete-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "staging_Monthly"
-  monitoring_status   = false
+provider "azurerm" {
+  features {}
+}
 
-  user_info {
-    email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-elastic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_elastic_monitor" "test" {
+  name                        = "acctest-elastic%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  monitoring_enabled          = false
+
   tags = {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger%1000)
+`, data.RandomInteger, data.Locations.Primary)
 }
