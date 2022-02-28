@@ -119,7 +119,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"zones": commonschema.ZoneSingleOptional(),
+						"zones": commonschema.ZonesMultipleComputed(),
 
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
