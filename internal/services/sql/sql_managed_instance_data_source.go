@@ -33,7 +33,7 @@ func dataSourceArmSqlMiServer() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku_name": {
 				Type:     schema.TypeString,
