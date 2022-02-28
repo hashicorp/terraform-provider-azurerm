@@ -39,7 +39,9 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Eventhub.NamespacesClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+
+			var cancel context.CancelFunc
+			ctx, cancel = timeouts.ForRead(ctx, d)
 			defer cancel()
 
 			id, err := namespaces.ParseNamespaceID(d.Id())
