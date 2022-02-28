@@ -74,6 +74,16 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"state": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(sql.BlobAuditingPolicyStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.BlobAuditingPolicyStateEnabled),
+					string(sql.BlobAuditingPolicyStateDisabled),
+				}, false),
+			},
 		},
 	}
 }
@@ -106,7 +116,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-			State:                       sql.BlobAuditingPolicyStateEnabled,
+			State:                       sql.BlobAuditingPolicyState(d.Get("state").(string)),
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
@@ -168,6 +178,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+		d.Set("state", props.State)
 	}
 
 	return nil
