@@ -49,20 +49,10 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"sku": {
-				Type:     pluginsdk.TypeList,
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-					},
-				},
 			},
 
 			"user_info": {
@@ -180,7 +170,9 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	body := monitorsresource.ElasticMonitorResource{
 		Location: location.Normalize(d.Get("location").(string)),
-		Sku:      expandMonitorResourceSku(d.Get("sku").([]interface{})),
+		Sku: &monitorsresource.ResourceSku{
+			Name: d.Get("sku_name").(string),
+		},
 		Properties: &monitorsresource.MonitorProperties{
 			UserInfo:         expandMonitorUserInfo(d.Get("user_info").([]interface{})),
 			MonitoringStatus: &monitoringStatus,
@@ -238,9 +230,11 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("monitoring_status", monitoringEnabled)
 		}
 
-		if err := d.Set("sku", flattenMonitorResourceSku(model.Sku)); err != nil {
-			return fmt.Errorf("setting `sku`: %+v", err)
+		skuName := ""
+		if model.Sku != nil {
+			skuName = model.Sku.Name
 		}
+		d.Set("sku_name", skuName)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -287,16 +281,6 @@ func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func expandMonitorResourceSku(input []interface{}) *monitorsresource.ResourceSku {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &monitorsresource.ResourceSku{
-		Name: v["name"].(string),
-	}
 }
 
 func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
@@ -416,16 +400,4 @@ func flattenElasticCloudDeployment(input *monitorsresource.ElasticProperties) []
 	}
 
 	return elastic_cloud_deployment
-}
-
-func flattenMonitorResourceSku(input *monitorsresource.ResourceSku) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name": input.Name,
-		},
-	}
 }

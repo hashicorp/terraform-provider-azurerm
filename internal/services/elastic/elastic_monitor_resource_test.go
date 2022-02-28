@@ -123,11 +123,10 @@ resource "azurerm_elastic_monitor" "test" {
   name                = "test-tf-elastic-basic-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku_name            = "staging_Monthly"
+
   user_info {
     email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-  }
-  sku {
-    name = "staging_Monthly"
   }
 }
 `, r.template(data), data.RandomInteger%1000)
@@ -140,9 +139,8 @@ resource "azurerm_elastic_monitor" "testImport" {
   name                = azurerm_elastic_monitor.test.name
   resource_group_name = azurerm_elastic_monitor.test.resource_group_name
   location            = azurerm_elastic_monitor.test.location
-  sku {
-    name = "staging_Monthly"
-  }
+  sku_name            = "staging_Monthly"
+
   user_info {
     email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
   }
@@ -157,9 +155,8 @@ resource "azurerm_elastic_monitor" "test" {
   name                = "test-tf-elastic-basic-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku {
-    name = "staging_Monthly"
-  }
+  sku_name            = "staging_Monthly"
+
   user_info {
     email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
   }
@@ -177,13 +174,12 @@ resource "azurerm_elastic_monitor" "test" {
   name                = "test-tf-elastic-complete-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku {
-    name = "staging_Monthly"
-  }
+  sku_name            = "staging_Monthly"
+  monitoring_status   = false
+
   user_info {
     email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
   }
-  monitoring_status = false
   tags = {
     ENV = "Test"
   }
