@@ -5,11 +5,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/monitorsresource"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/rules"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +33,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ElasticTagRuleID(id)
+			_, err := rules.ParseTagRuleID(id)
 			return err
 		}),
 
@@ -40,7 +42,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticMonitorID,
+				ValidateFunc: monitorsresource.ValidateMonitorID,
 			},
 
 			"name": {
@@ -110,28 +112,28 @@ func resourceElasticTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := parse.ElasticMonitorID(d.Get("monitor_id").(string))
+	monitorId, err := monitorsresource.ParseMonitorID(d.Get("monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewElasticTagRuleID(subscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	id := rules.NewTagRuleID(subscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
+	existing, err := client.TagRulesGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_elastic_tag_rule", id.ID())
 	}
 
-	body := elastic.MonitoringTagRules{
-		Properties: &elastic.MonitoringTagRulesProperties{
+	body := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules: expandLogRules(d.Get("log_rules").([]interface{})),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
+	if _, err := client.TagRulesCreateOrUpdate(ctx, id, body); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -144,17 +146,17 @@ func resourceElasticTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticTagRuleID(d.Id())
+	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	body := &elastic.MonitoringTagRules{
-		Properties: &elastic.MonitoringTagRulesProperties{
+	body := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules: expandLogRules(d.Get("log_rules").([]interface{})),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, body); err != nil {
+	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, body); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -166,14 +168,14 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticTagRuleID(d.Id())
+	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := client.TagRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -181,12 +183,14 @@ func resourceElasticTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.TagRuleName)
-	d.Set("monitor_id", parse.NewElasticMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("name", id.RuleSetName)
+	d.Set("monitor_id", monitorsresource.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName).ID())
 
-	if props := resp.Properties; props != nil {
-		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
-			return fmt.Errorf("setting `log_rules`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
+				return fmt.Errorf("setting `log_rules`: %+v", err)
+			}
 		}
 	}
 
@@ -198,31 +202,26 @@ func resourceElasticTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticTagRuleID(d.Id())
+	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
-	if err != nil {
+	if err := client.TagRulesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandLogRules(input []interface{}) *elastic.LogRules {
+func expandLogRules(input []interface{}) *rules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 	filteringTag := v["filtering_tag"].([]interface{})
 
-	return &elastic.LogRules{
+	return &rules.LogRules{
 		SendAadLogs:          utils.Bool(v["send_aad_logs"].(bool)),
 		SendSubscriptionLogs: utils.Bool(v["send_subscription_logs"].(bool)),
 		SendActivityLogs:     utils.Bool(v["send_activity_logs"].(bool)),
@@ -230,74 +229,80 @@ func expandLogRules(input []interface{}) *elastic.LogRules {
 	}
 }
 
-func expandFilteringTag(input []interface{}) *[]elastic.FilteringTag {
-	filteringTags := make([]elastic.FilteringTag, 0)
+func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
+	filteringTags := make([]rules.FilteringTag, 0)
 
 	for _, v := range input {
 		config := v.(map[string]interface{})
 		name := config["name"].(string)
 		value := config["value"].(string)
-		action := config["action"].(string)
+		action := rules.TagAction(config["action"].(string))
 
-		filteringTag := elastic.FilteringTag{
+		filteringTags = append(filteringTags, rules.FilteringTag{
 			Name:   utils.String(name),
 			Value:  utils.String(value),
-			Action: elastic.TagAction(action),
-		}
-
-		filteringTags = append(filteringTags, filteringTag)
+			Action: &action,
+		})
 	}
 
 	return &filteringTags
 }
 
-func flattenLogRules(input *elastic.LogRules) []interface{} {
+func flattenLogRules(input *rules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-
+	sendAadLogs := false
 	if input.SendAadLogs != nil {
-		result["send_aad_logs"] = *input.SendAadLogs
+		sendAadLogs = *input.SendAadLogs
 	}
 
+	sendSubscriptionLogs := false
 	if input.SendSubscriptionLogs != nil {
-		result["send_subscription_logs"] = *input.SendSubscriptionLogs
+		sendSubscriptionLogs = *input.SendSubscriptionLogs
 	}
 
+	sendActivityLogs := false
 	if input.SendActivityLogs != nil {
-		result["send_activity_logs"] = *input.SendActivityLogs
+		sendActivityLogs = *input.SendActivityLogs
 	}
 
-	result["filtering_tag"] = flattenFilteringTags(input.FilteringTags)
-	return append(results, result)
-
+	return append(results, map[string]interface{}{
+		"filtering_tag":          flattenFilteringTags(input.FilteringTags),
+		"send_aad_logs":          sendAadLogs,
+		"send_activity_logs":     sendActivityLogs,
+		"send_subscription_logs": sendSubscriptionLogs,
+	})
 }
 
-func flattenFilteringTags(input *[]elastic.FilteringTag) []interface{} {
+func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	var t elastic.TagAction
-
 	for _, filteringTagRules := range *input {
-		result := make(map[string]interface{})
+		action := ""
+		if filteringTagRules.Action != nil {
+			action = string(*filteringTagRules.Action)
+		}
 
+		name := ""
 		if filteringTagRules.Name != nil {
-			result["name"] = *filteringTagRules.Name
+			name = *filteringTagRules.Name
 		}
+
+		value := ""
 		if filteringTagRules.Value != nil {
-			result["value"] = *filteringTagRules.Value
+			value = *filteringTagRules.Value
 		}
-		if filteringTagRules.Action != "" {
-			t = filteringTagRules.Action
-			result["action"] = t
-		}
-		results = append(results, result)
+		results = append(results, map[string]interface{}{
+			"action": action,
+			"name":   name,
+			"value":  value,
+		})
 	}
 	return results
 }

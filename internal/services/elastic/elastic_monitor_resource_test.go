@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/monitorsresource"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -86,18 +88,19 @@ func TestAccElasticMonitor_update(t *testing.T) {
 }
 
 func (r ElasticMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ElasticMonitorID(state.ID)
+	id, err := monitorsresource.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Elastic.MonitorClient.Get(ctx, id.ResourceGroup, id.MonitorName)
+
+	resp, err := client.Elastic.MonitorClient.MonitorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ElasticMonitorResource) template(data acceptance.TestData) string {

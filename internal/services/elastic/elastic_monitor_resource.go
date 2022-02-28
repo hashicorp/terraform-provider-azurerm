@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/monitorsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -33,7 +33,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ElasticMonitorID(id)
+			_, err := monitorsresource.ParseMonitorID(id)
 			return err
 		}),
 
@@ -151,7 +151,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -162,38 +162,34 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewElasticMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
+	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.MonitorsGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %q: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_elastic_monitor", id.ID())
 	}
 
-	monitoringStatus := elastic.MonitoringStatusDisabled
+	monitoringStatus := monitorsresource.MonitoringStatusDisabled
 	if d.Get("monitoring_status").(bool) {
-		monitoringStatus = elastic.MonitoringStatusEnabled
+		monitoringStatus = monitorsresource.MonitoringStatusEnabled
 	}
 
-	body := elastic.MonitorResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+	body := monitorsresource.ElasticMonitorResource{
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku:      expandMonitorResourceSku(d.Get("sku").([]interface{})),
-		Properties: &elastic.MonitorProperties{
+		Properties: &monitorsresource.MonitorProperties{
 			UserInfo:         expandMonitorUserInfo(d.Get("user_info").([]interface{})),
-			MonitoringStatus: monitoringStatus,
+			MonitoringStatus: &monitoringStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, &body)
-	if err != nil {
+	if err := client.MonitorsCreateThenPoll(ctx, id, body); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -205,41 +201,53 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticMonitorID(d.Id())
+	id, err := monitorsresource.ParseMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
+	resp, err := client.MonitorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.MonitorName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.Properties; props != nil {
-		if err := d.Set("elastic_cloud_user", flattenElasticCloudUser(props.ElasticProperties)); err != nil {
-			return fmt.Errorf("setting `elastic_cloud_user`: %+v", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			if err := d.Set("elastic_cloud_user", flattenElasticCloudUser(props.ElasticProperties)); err != nil {
+				return fmt.Errorf("setting `elastic_cloud_user`: %+v", err)
+			}
+			if err := d.Set("elastic_cloud_deployment", flattenElasticCloudDeployment(props.ElasticProperties)); err != nil {
+				return fmt.Errorf("setting `elastic_cloud_deployment`: %+v", err)
+			}
+			d.Set("user_info", flattenUserInfo(props.ElasticProperties))
+			monitoringEnabled := false
+			if props.MonitoringStatus != nil {
+				monitoringEnabled = *props.MonitoringStatus == monitorsresource.MonitoringStatusEnabled
+			}
+			d.Set("monitoring_status", monitoringEnabled)
 		}
-		if err := d.Set("elastic_cloud_deployment", flattenElasticCloudDeployment(props.ElasticProperties)); err != nil {
-			return fmt.Errorf("setting `elastic_cloud_deployment`: %+v", err)
+
+		if err := d.Set("sku", flattenMonitorResourceSku(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
-		d.Set("user_info", flattenUserInfo(props.ElasticProperties))
-		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -247,18 +255,18 @@ func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticMonitorID(d.Id())
+	id, err := monitorsresource.ParseMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	body := elastic.MonitorResourceUpdateParameters{}
+	body := monitorsresource.ElasticMonitorResourceUpdateParameters{}
 
 	if d.HasChange("tags") {
 		body.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
+	if _, err := client.MonitorsUpdate(ctx, *id, body); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	return resourceElasticMonitorRead(d, meta)
@@ -269,45 +277,40 @@ func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticMonitorID(d.Id())
+	id, err := monitorsresource.ParseMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName)
-	if err != nil {
+	if err := client.MonitorsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandMonitorResourceSku(input []interface{}) *elastic.ResourceSku {
+func expandMonitorResourceSku(input []interface{}) *monitorsresource.ResourceSku {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	return &elastic.ResourceSku{
-		Name: utils.String(v["name"].(string)),
+	return &monitorsresource.ResourceSku{
+		Name: v["name"].(string),
 	}
 }
 
-func expandMonitorUserInfo(input []interface{}) *elastic.UserInfo {
+func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	return &elastic.UserInfo{
+	return &monitorsresource.UserInfo{
 		EmailAddress: utils.String(v["email_address"].(string)),
 	}
 }
 
-func flattenUserInfo(input *elastic.Properties) []interface{} {
+func flattenUserInfo(input *monitorsresource.ElasticProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -325,7 +328,7 @@ func flattenUserInfo(input *elastic.Properties) []interface{} {
 	}
 }
 
-func flattenElasticCloudUser(input *elastic.Properties) []interface{} {
+func flattenElasticCloudUser(input *monitorsresource.ElasticProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -338,12 +341,12 @@ func flattenElasticCloudUser(input *elastic.Properties) []interface{} {
 			email_address = *input.ElasticCloudUser.EmailAddress
 		}
 		var id string
-		if input.ElasticCloudUser.ID != nil {
-			id = *input.ElasticCloudUser.ID
+		if input.ElasticCloudUser.Id != nil {
+			id = *input.ElasticCloudUser.Id
 		}
 		var elastic_cloud_sso_default_url string
-		if input.ElasticCloudUser.ElasticCloudSsoDefaultURL != nil {
-			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultURL
+		if input.ElasticCloudUser.ElasticCloudSsoDefaultUrl != nil {
+			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultUrl
 		}
 		elastic_cloud_user = []interface{}{
 			map[string]interface{}{
@@ -360,7 +363,7 @@ func flattenElasticCloudUser(input *elastic.Properties) []interface{} {
 	return elastic_cloud_user
 }
 
-func flattenElasticCloudDeployment(input *elastic.Properties) []interface{} {
+func flattenElasticCloudDeployment(input *monitorsresource.ElasticProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -373,28 +376,28 @@ func flattenElasticCloudDeployment(input *elastic.Properties) []interface{} {
 			name = *input.ElasticCloudDeployment.Name
 		}
 		var deployment_id string
-		if input.ElasticCloudDeployment.DeploymentID != nil {
-			deployment_id = *input.ElasticCloudDeployment.DeploymentID
+		if input.ElasticCloudDeployment.DeploymentId != nil {
+			deployment_id = *input.ElasticCloudDeployment.DeploymentId
 		}
 		var azure_subscription_id string
-		if input.ElasticCloudDeployment.AzureSubscriptionID != nil {
-			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionID
+		if input.ElasticCloudDeployment.AzureSubscriptionId != nil {
+			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionId
 		}
 		var elasticsearch_region string
 		if input.ElasticCloudDeployment.ElasticsearchRegion != nil {
 			elasticsearch_region = *input.ElasticCloudDeployment.ElasticsearchRegion
 		}
 		var elasticsearch_service_url string
-		if input.ElasticCloudDeployment.ElasticsearchServiceURL != nil {
-			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceURL
+		if input.ElasticCloudDeployment.ElasticsearchServiceUrl != nil {
+			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceUrl
 		}
 		var kibana_service_url string
-		if input.ElasticCloudDeployment.KibanaServiceURL != nil {
-			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceURL
+		if input.ElasticCloudDeployment.KibanaServiceUrl != nil {
+			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceUrl
 		}
 		var kibana_sso_url string
-		if input.ElasticCloudDeployment.KibanaSsoURL != nil {
-			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoURL
+		if input.ElasticCloudDeployment.KibanaSsoUrl != nil {
+			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoUrl
 		}
 		elastic_cloud_deployment = []interface{}{
 			map[string]interface{}{
@@ -415,18 +418,14 @@ func flattenElasticCloudDeployment(input *elastic.Properties) []interface{} {
 	return elastic_cloud_deployment
 }
 
-func flattenMonitorResourceSku(input *elastic.ResourceSku) []interface{} {
+func flattenMonitorResourceSku(input *monitorsresource.ResourceSku) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"name": name,
+			"name": input.Name,
 		},
 	}
 }

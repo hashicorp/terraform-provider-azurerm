@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/rules"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,21 +61,21 @@ func TestAccElasticMonitorTagRule_update(t *testing.T) {
 }
 
 func (r TagRuleElasticMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ElasticTagRuleID(state.ID)
+	id, err := rules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Elastic.TagRuleClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := client.Elastic.TagRuleClient.TagRulesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Elastic Monitor rules %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if *resp.Properties.LogRules.SendActivityLogs == false && *resp.Properties.LogRules.SendSubscriptionLogs == false {
-		return utils.Bool(false), nil
-	}
-
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r TagRuleElasticMonitorResource) template(data acceptance.TestData) string {
