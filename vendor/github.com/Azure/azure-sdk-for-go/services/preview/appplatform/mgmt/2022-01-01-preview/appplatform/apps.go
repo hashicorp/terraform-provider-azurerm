@@ -96,7 +96,7 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -180,7 +180,7 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -269,7 +269,7 @@ func (client AppsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -351,7 +351,7 @@ func (client AppsClient) GetResourceUploadURLPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -433,7 +433,7 @@ func (client AppsClient) ListPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -501,6 +501,91 @@ func (client AppsClient) ListComplete(ctx context.Context, resourceGroupName str
 	return
 }
 
+// SetActiveDeployments set existing Deployment under the app as active
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// appName - the name of the App resource.
+// activeDeploymentCollection - a list of Deployment name to be active.
+func (client AppsClient) SetActiveDeployments(ctx context.Context, resourceGroupName string, serviceName string, appName string, activeDeploymentCollection ActiveDeploymentCollection) (result AppsSetActiveDeploymentsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.SetActiveDeployments")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.SetActiveDeploymentsPreparer(ctx, resourceGroupName, serviceName, appName, activeDeploymentCollection)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "SetActiveDeployments", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.SetActiveDeploymentsSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "SetActiveDeployments", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// SetActiveDeploymentsPreparer prepares the SetActiveDeployments request.
+func (client AppsClient) SetActiveDeploymentsPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, activeDeploymentCollection ActiveDeploymentCollection) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"appName":           autorest.Encode("path", appName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/setActiveDeployments", pathParameters),
+		autorest.WithJSON(activeDeploymentCollection),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// SetActiveDeploymentsSender sends the SetActiveDeployments request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) SetActiveDeploymentsSender(req *http.Request) (future AppsSetActiveDeploymentsFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// SetActiveDeploymentsResponder handles the response to the SetActiveDeployments request. The method always
+// closes the http.Response Body.
+func (client AppsClient) SetActiveDeploymentsResponder(resp *http.Response) (result AppResource, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Update operation to update an exiting App.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -543,7 +628,7 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -641,7 +726,7 @@ func (client AppsClient) ValidateDomainPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-09-01-preview"
+	const APIVersion = "2022-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
