@@ -404,7 +404,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn terminate notification on
+		// turn termination notification on
 		{
 			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -414,7 +414,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn terminate notification off
+		// turn termination notification off
 		{
 			Config: r.otherTerminationNotification(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -424,7 +424,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn terminate notification on again
+		// turn termination notification on again
 		{
 			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
