@@ -118,7 +118,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				// Default:  "None",
 				Computed: true,
 				ForceNew: true,
-				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1",
 					"2",
