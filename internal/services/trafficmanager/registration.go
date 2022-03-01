@@ -1,6 +1,7 @@
 package trafficmanager
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -35,11 +36,16 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	out := map[string]*pluginsdk.Resource{
 		"azurerm_traffic_manager_azure_endpoint":    resourceAzureEndpoint(),
 		"azurerm_traffic_manager_external_endpoint": resourceExternalEndpoint(),
 		"azurerm_traffic_manager_nested_endpoint":   resourceNestedEndpoint(),
-		"azurerm_traffic_manager_endpoint":          resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":           resourceArmTrafficManagerProfile(),
 	}
+
+	if !features.ThreePointOhBeta() {
+		out["azurerm_traffic_manager_endpoint"] = resourceArmTrafficManagerEndpoint()
+	}
+
+	return out
 }

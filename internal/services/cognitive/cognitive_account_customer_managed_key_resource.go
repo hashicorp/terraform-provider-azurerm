@@ -31,7 +31,10 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := cognitiveservicesaccounts.ParseAccountID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"cognitive_account_id": {

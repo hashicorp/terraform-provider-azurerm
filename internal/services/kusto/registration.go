@@ -1,6 +1,7 @@
 package kusto
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,12 +35,11 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	out := map[string]*pluginsdk.Resource{
 		"azurerm_kusto_cluster":                         resourceKustoCluster(),
 		"azurerm_kusto_cluster_customer_managed_key":    resourceKustoClusterCustomerManagedKey(),
 		"azurerm_kusto_cluster_principal_assignment":    resourceKustoClusterPrincipalAssignment(),
 		"azurerm_kusto_database":                        resourceKustoDatabase(),
-		"azurerm_kusto_database_principal":              resourceKustoDatabasePrincipal(),
 		"azurerm_kusto_database_principal_assignment":   resourceKustoDatabasePrincipalAssignment(),
 		"azurerm_kusto_eventgrid_data_connection":       resourceKustoEventGridDataConnection(),
 		"azurerm_kusto_eventhub_data_connection":        resourceKustoEventHubDataConnection(),
@@ -47,4 +47,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_kusto_attached_database_configuration": resourceKustoAttachedDatabaseConfiguration(),
 		"azurerm_kusto_script":                          resourceKustoDatabaseScript(),
 	}
+
+	if !features.ThreePointOhBeta() {
+		out["azurerm_kusto_database_principal"] = resourceKustoDatabasePrincipal()
+	}
+
+	return out
 }

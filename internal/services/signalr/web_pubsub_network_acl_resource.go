@@ -40,7 +40,10 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WebPubsubID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"web_pubsub_id": {
