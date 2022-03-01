@@ -61,7 +61,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(1, 128), // TODO - proper validation here, "must start with a letter and can contain letters, numbers (0-9), dashes ("-"), and underscores ("_")."
+			ValidateFunc: validate.FunctionAppFunctionName, // TODO - proper validation here, "must start with a letter and can contain letters, numbers (0-9), dashes ("-"), and underscores ("_")."
 			Description:  "The name of the function.",
 		},
 
@@ -88,10 +88,18 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"language": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // TODO - find the valida list of strings
-			Description:  "The language the Function is written in.",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Csharp",
+				"Custom",
+				"Java",
+				"Javascript",
+				"Python",
+				"PowerShell",
+				"TypeScript",
+			}, false), // TODO - find the valida list of strings
+			Description: "The language the Function is written in.",
 		},
 
 		"file": {
@@ -122,7 +130,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 		"test_data": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // Can an empty string be valid here?
+			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The test data for the function.",
 		},
 	}
@@ -191,8 +199,6 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := parse.NewFunctionAppFunctionID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, appFunction.Name)
-
-			// TODO - Do we need to (or can we?) check the function runtime is ready?
 
 			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
