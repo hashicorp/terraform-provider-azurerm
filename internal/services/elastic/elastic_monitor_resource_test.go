@@ -161,7 +161,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_monitor" "test" {
-  name                        = "acctest-elastic%[1]d"
+  name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -196,7 +196,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_monitor" "test" {
-  name                        = "acctest-elastic%[1]d"
+  name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -221,7 +221,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_monitor" "test" {
-  name                        = "acctest-elastic%[1]d"
+  name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -247,7 +247,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_monitor" "test" {
-  name                        = "acctest-elastic%[1]d"
+  name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -281,7 +281,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_monitor" "test" {
-  name                        = "acctest-elastic%[1]d"
+  name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"

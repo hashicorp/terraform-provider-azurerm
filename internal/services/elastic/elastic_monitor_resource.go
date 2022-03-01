@@ -29,10 +29,10 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 		Delete: resourceElasticMonitorDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -343,8 +343,6 @@ func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
-	// TODO: do we need to remove the log configuration too?
 
 	if err := client.MonitorsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
