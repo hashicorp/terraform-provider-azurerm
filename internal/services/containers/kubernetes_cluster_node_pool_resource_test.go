@@ -105,7 +105,7 @@ func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.availabilitySetConfig(data),
+			Config:      r.availabilitySetConfig(data),
 			ExpectError: regexp.MustCompile("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet"),
 		},
 	})
