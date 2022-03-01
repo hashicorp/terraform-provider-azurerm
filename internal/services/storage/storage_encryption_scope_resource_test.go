@@ -391,7 +391,7 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "Unwrapkey", "Wrapkey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -399,7 +399,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
 }
 
 resource "azurerm_key_vault_key" "first" {
@@ -407,7 +407,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,

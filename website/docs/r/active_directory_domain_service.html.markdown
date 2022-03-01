@@ -96,7 +96,8 @@ resource azurerm_subnet_network_security_group_association "deploy" {
 }
 
 resource "azuread_group" "dc_admins" {
-  display_name = "AAD DC Administrators"
+  display_name     = "AAD DC Administrators"
+  security_enabled = true
 }
 
 resource "azuread_user" "admin" {

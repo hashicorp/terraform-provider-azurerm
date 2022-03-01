@@ -165,11 +165,11 @@ resource "azurerm_key_vault" "test" {
     ]
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
   }
 
@@ -178,13 +178,13 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.test.object_id
 
     secret_permissions = [
-      "get",
-      "list",
+      "Get",
+      "List",
     ]
 
     certificate_permissions = [
-      "get",
-      "list",
+      "Get",
+      "List",
     ]
   }
 }

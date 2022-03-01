@@ -169,4 +169,4 @@ It's also possible to use multiple Provider blocks within a single Terraform con
 
 ## Features
 
-The `features` block allows configuring the behaviour of the Azure Provider, more information can be found on [the dedicated page for the `features` block](features-block.html).
+The `features` block allows configuring the behaviour of the Azure Provider, more information can be found on [the dedicated page for the `features` block](guides/features-block.html).

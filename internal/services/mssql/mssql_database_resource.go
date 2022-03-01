@@ -397,13 +397,13 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	// hyper-scale SKU's do not support LRP currently
 	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
 
+			// hyper-scale SKU's do not support LRP currently
 			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
 				longTermRetentionPolicy.BaseLongTermRetentionPolicyProperties = longTermRetentionProps
 			}

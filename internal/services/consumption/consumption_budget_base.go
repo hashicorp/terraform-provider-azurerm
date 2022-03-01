@@ -390,7 +390,7 @@ func (br consumptionBudgetBaseResource) readFunc(scopeFieldName string) sdk.Reso
 
 			resp, err := client.Get(ctx, id.Scope, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(resp.Response) {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s, %+v", *id, err)

@@ -31,7 +31,7 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 

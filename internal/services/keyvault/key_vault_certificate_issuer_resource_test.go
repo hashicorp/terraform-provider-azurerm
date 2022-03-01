@@ -187,19 +187,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "Manageissuers",
+      "Setissuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -254,19 +254,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "Manageissuers",
+      "Setissuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }

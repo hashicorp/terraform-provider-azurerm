@@ -223,8 +223,8 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 }
 

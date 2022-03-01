@@ -61,7 +61,7 @@ func (d MsSqlManagedInstanceDataSource) Arguments() map[string]*pluginsdk.Schema
 			ValidateFunc: validate.ValidateMsSqlServerName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 

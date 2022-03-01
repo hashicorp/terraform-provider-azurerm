@@ -39,10 +39,10 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		}, importVirtualMachineScaleSet(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(time.Minute * 30),
-			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
+			Create: pluginsdk.DefaultTimeout(time.Minute * 60),
 			Read:   pluginsdk.DefaultTimeout(time.Minute * 5),
-			Delete: pluginsdk.DefaultTimeout(time.Minute * 30),
+			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
+			Delete: pluginsdk.DefaultTimeout(time.Minute * 60),
 		},
 
 		// TODO: exposing requireGuestProvisionSignal once it's available

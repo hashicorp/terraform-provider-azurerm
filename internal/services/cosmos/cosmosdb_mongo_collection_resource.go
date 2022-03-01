@@ -97,7 +97,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.MongoCollectionAutoscaleSettingsSchema(),
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"index": {
 				Type:     pluginsdk.TypeSet,

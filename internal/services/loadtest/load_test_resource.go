@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/sdk/2021-12-01-preview/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -37,7 +38,7 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"tags": tags.Schema(),
 	}

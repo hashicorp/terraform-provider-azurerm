@@ -1044,16 +1044,16 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
     ]
 
     secret_permissions = [
-      "delete",
-      "get",
-      "set",
+      "Delete",
+      "Get",
+      "Set",
     ]
   }
 
@@ -1293,17 +1293,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -1314,12 +1314,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -1340,9 +1340,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
