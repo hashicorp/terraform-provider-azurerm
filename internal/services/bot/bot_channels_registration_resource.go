@@ -148,6 +148,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"isolated_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"tags": tags.Schema(),
@@ -210,11 +211,8 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(resourceId.ID())
 
-	if v, ok := d.GetOk("isolated_network_enabled"); ok && v.(bool) {
-		return resourceBotChannelsRegistrationUpdate(d, meta)
-	} else {
-		return resourceBotChannelsRegistrationRead(d, meta)
-	}
+	// As `d.GetOk()` cannot identify whether `isolated_network_enabled` is set when it is set as `false` in tf config, so it always has to be updated
+	return resourceBotChannelsRegistrationUpdate(d, meta)
 }
 
 func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -255,7 +253,13 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
-		d.Set("isolated_network_enabled", props.PublicNetworkAccess == botservice.PublicNetworkAccessEnabled)
+
+		if props.PublicNetworkAccess == botservice.PublicNetworkAccessDisabled {
+			d.Set("isolated_network_enabled", false)
+		} else {
+			// To be compatible with old version, `isolated_network_enabled` would be set to default value `true` when `isolated_network_enabled` is empty string or `Enabled` at service side
+			d.Set("isolated_network_enabled", true)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -277,9 +281,9 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		displayName = id.Name
 	}
 
-	publicNetworkAccess := botservice.PublicNetworkAccessEnabled
+	publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
 	if enabled := d.Get("isolated_network_enabled").(bool); !enabled {
-		publicNetworkAccess = botservice.PublicNetworkAccessDisabled
+		publicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
 	}
 
 	bot := botservice.Bot{
@@ -294,7 +298,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
-			PublicNetworkAccess:               publicNetworkAccess,
+			PublicNetworkAccess:               publicNetworkAccessEnabled,
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
