@@ -91,7 +91,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"Csharp",
+				"CSharp",
 				"Custom",
 				"Java",
 				"Javascript",

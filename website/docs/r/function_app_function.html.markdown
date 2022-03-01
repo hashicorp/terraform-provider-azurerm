@@ -171,7 +171,7 @@ The following arguments are supported:
 
 * `file` - (Optional) A `file` block as detailed below. Changing this forces a new resource to be created.
 
-* `language` - (Optional) The language the Function is written in. Possible values are `Csharp`, `Custom`, `Java`, `Javascript`, `Python`, `PowerShell`, and `TypeScript`.
+* `language` - (Optional) The language the Function is written in. Possible values are `CSharp`, `Custom`, `Java`, `Javascript`, `Python`, `PowerShell`, and `TypeScript`.
 
 ~> **NOTE:** when using `Custom` language, you must specify the code handler in the `host.json` file for your function. See the [official docs](https://docs.microsoft.com/en-us/azure/azure-functions/functions-custom-handlers#hostjson) for more information.
 
