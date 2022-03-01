@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
 
+BUG FIXES:
+
+* `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+
 ## 2.98.0 (February 25, 2022)
 
 FEATURES:
