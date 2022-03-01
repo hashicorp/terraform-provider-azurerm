@@ -56,7 +56,6 @@ func dataSourceStack() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"filtering_tag": {
