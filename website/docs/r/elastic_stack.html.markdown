@@ -43,9 +43,33 @@ The following arguments are supported:
 
 ---
 
+* `logs` - (Optional) A `logs` block as defined below.
+
 * `monitoring_enabled` - (Optional) Specifies if the Elastic Stack should have monitoring configured? Defaults to `true`. Changing this forces a new Elastic Stack to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Elastic Stack.
+
+---
+
+The `filtering_tag` block supports the following:
+
+* `action` - (Required) Specifies the type of action which should be taken when the Tag matches the `name` and `value`. Possible values are `Exclude` and `Include`.
+
+* `name` - (Required) Specifies the name (key) of the Tag which should be filtered.
+
+* `value` - (Required) Specifies the value of the Tag which should be filtered.
+
+---
+
+The `logs` block supports the following:
+
+* `filtering_tag` - (Optional) A list of `filtering_tag` blocks as defined above.
+
+* `send_activity_logs` - (Optional) Specifies if the Azure Activity Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
+
+* `send_azuread_logs` - (Optional) Specifies if the AzureAD Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
+
+* `send_subscription_logs` - (Optional) Specifies if the Azure Subscription Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
 
 ## Attributes Reference
 

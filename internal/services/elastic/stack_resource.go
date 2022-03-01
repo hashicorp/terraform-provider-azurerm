@@ -107,19 +107,22 @@ func resourceStack() *pluginsdk.Resource {
 							},
 						},
 
-						"send_azuread_logs": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
 						"send_activity_logs": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
+						},
+
+						"send_azuread_logs": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"send_subscription_logs": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},

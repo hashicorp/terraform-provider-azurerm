@@ -58,11 +58,36 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which this Elastic Stack exists.
 
+* `logs` - A `logs` block as defined below.
+
 * `monitoring_enabled` - Specifies if monitoring is enabled on this Elastic Stack or not.
 
 * `sku_name` - The name of the SKU used for this Elastic Stack.
 
 * `tags` - A mapping of tags assigned to the Elastic Stack.
+
+---
+
+The `filtering_tag` block exports the following:
+
+* `action` - The type of action which is taken when the Tag matches the `name` and `value`.
+
+* `name` - The name (key) of the Tag which should be filtered.
+
+* `value` - The value of the Tag which should be filtered.
+
+---
+
+The `logs` block exports the following:
+
+* `filtering_tag` - A list of `filtering_tag` blocks as defined above.
+
+* `send_activity_logs` - Should the Azure Activity Logs should be sent to the Elastic Stack cluster?
+
+* `send_azuread_logs` - Should the AzureAD Logs should be sent to the Elastic Stack cluster?
+
+* `send_subscription_logs` - Should the Azure Subscription Logs should be sent to the Elastic Stack cluster?
+
 
 ## Timeouts
 
