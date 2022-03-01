@@ -183,8 +183,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -330,8 +329,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -456,8 +454,7 @@ resource "azurerm_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -606,8 +603,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
