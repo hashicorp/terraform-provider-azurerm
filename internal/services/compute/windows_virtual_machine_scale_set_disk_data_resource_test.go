@@ -782,7 +782,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
+    storage_account_type           = "UltraSSD_LRS"
     caching                        = "None"
     disk_size_gb                   = 10
     lun                            = 10
@@ -834,7 +834,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
+    storage_account_type           = "UltraSSD_LRS"
     caching                        = "None"
     disk_size_gb                   = 10
     lun                            = 10
@@ -886,7 +886,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
+    storage_account_type           = "UltraSSD_LRS"
     caching                        = "None"
     disk_size_gb                   = 10
     lun                            = 10
