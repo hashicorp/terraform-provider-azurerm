@@ -697,7 +697,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"role_based_access_control_enabled": func() *schema.Schema {
-				if !features.ThreePointOh() {
+				if !features.ThreePointOhBeta() {
 					return &schema.Schema{
 						Type:          pluginsdk.TypeBool,
 						Optional:      true,
