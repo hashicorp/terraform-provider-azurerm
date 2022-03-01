@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -255,7 +255,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
-		d.Set("isolated_network_enabled", props.IsIsolated)
+		d.Set("isolated_network_enabled", props.PublicNetworkAccess == botservice.PublicNetworkAccessEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -277,6 +277,11 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		displayName = id.Name
 	}
 
+	publicNetworkAccess := botservice.PublicNetworkAccessEnabled
+	if enabled := d.Get("isolated_network_enabled").(bool); !enabled {
+		publicNetworkAccess = botservice.PublicNetworkAccessDisabled
+	}
+
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
 			DisplayName:                       utils.String(displayName),
@@ -289,7 +294,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
-			IsIsolated:                        utils.Bool(d.Get("isolated_network_enabled").(bool)),
+			PublicNetworkAccess:               publicNetworkAccess,
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
