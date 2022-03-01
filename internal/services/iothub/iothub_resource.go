@@ -472,9 +472,8 @@ func resourceIotHub() *pluginsdk.Resource {
 				},
 
 				"network_rule_set": {
-					Type:          pluginsdk.TypeList,
-					Optional:      true,
-					ConflictsWith: []string{"ip_filter_rule"},
+					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"default_action": {
