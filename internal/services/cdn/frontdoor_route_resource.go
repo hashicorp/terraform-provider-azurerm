@@ -238,6 +238,7 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
+			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
@@ -248,10 +249,6 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
-	}
-
-	if cacheConfiguration := expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})); cacheConfiguration != nil {
-		props.RouteProperties.CacheConfiguration = cacheConfiguration
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {
@@ -343,6 +340,7 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
+			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
@@ -353,10 +351,6 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
-	}
-
-	if cacheConfiguration := expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})); cacheConfiguration != nil {
-		props.RouteUpdatePropertiesParameters.CacheConfiguration = cacheConfiguration
 	}
 
 	if originPath := d.Get("origin_path").(string); originPath != "" {

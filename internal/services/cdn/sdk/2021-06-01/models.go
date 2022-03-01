@@ -9,12 +9,13 @@ package cdn
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
@@ -11023,9 +11024,9 @@ func (rp RouteProperties) MarshalJSON() ([]byte, error) {
 	if rp.PatternsToMatch != nil {
 		objectMap["patternsToMatch"] = rp.PatternsToMatch
 	}
-	if rp.CacheConfiguration != nil {
-		objectMap["cacheConfiguration"] = rp.CacheConfiguration
-	}
+
+	objectMap["cacheConfiguration"] = rp.CacheConfiguration
+
 	if rp.ForwardingProtocol != "" {
 		objectMap["forwardingProtocol"] = rp.ForwardingProtocol
 	}
@@ -11248,9 +11249,9 @@ func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	if rupp.PatternsToMatch != nil {
 		objectMap["patternsToMatch"] = rupp.PatternsToMatch
 	}
-	if rupp.CacheConfiguration != nil {
-		objectMap["cacheConfiguration"] = rupp.CacheConfiguration
-	}
+
+	objectMap["cacheConfiguration"] = rupp.CacheConfiguration
+
 	if rupp.ForwardingProtocol != "" {
 		objectMap["forwardingProtocol"] = rupp.ForwardingProtocol
 	}

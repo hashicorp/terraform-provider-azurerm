@@ -138,8 +138,49 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 }
 
 func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers`, k))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers, got %q`, v, k))
+	}
+
+	return nil, nil
+}
+
+func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if m, regexErrs := validate.RegExHelper(i, k, `^([0-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, v, "365.23:59:59", k))
+	}
+
+	return nil, nil
+}
+
+func ValidateContentTypes(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	// Per the IANA no whitespace is allowed in a Content Type
+	if strings.Contains(v, " ") {
+		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
+	}
+
+	if strings.Contains(v, ";") {
+		// Content Type has a parameter, error out
+		return nil, append(errors, fmt.Errorf(`%q is not valid, Content Types with parameters are not allowed, got %q`, k, v))
+	}
+
+	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid Content Type and a subtype concatenated with a slash(e.g. text/html), got %q`, k, v))
 	}
 
 	return nil, nil
@@ -204,27 +245,4 @@ func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
 			}, false),
 		},
 	}
-}
-
-func ValidateContentTypes(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	// Per the IANA no whitespace is allowed in a Content Type
-	if strings.Contains(v, " ") {
-		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
-	}
-
-	if strings.Contains(v, ";") {
-		// Content Type has a parameter, error out
-		return nil, append(errors, fmt.Errorf(`%q is not valid, Content Types with parameters are not allowed, got %q`, k, v))
-	}
-
-	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid Content Type and a subtype concatenated with a slash(e.g. text/html), got %q`, k, v))
-	}
-
-	return nil, nil
 }

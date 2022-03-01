@@ -70,7 +70,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"url_redirect_parameters": {
+						"url_redirect_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -132,7 +132,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"url_signing_parameters": {
+						"url_signing_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -179,7 +179,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"origin_group_override_parameters": {
+						"origin_group_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -196,7 +196,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"url_rewrite_parameters": {
+						"url_rewrite_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -225,7 +225,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"request_header_parameters": {
+						"request_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -258,7 +258,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"response_header_parameters": {
+						"response_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -291,7 +291,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"cache_expiration_parameters": {
+						"cache_expiration_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -316,17 +316,17 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									// Allowed format is [d.]hh:mm:ss
+									// Allowed format is [d.]hh:mm:ss, maximum duration is 366 days
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: ValidateFrontdoorCacheDuration,
 									},
 								},
 							},
 						},
 
-						"cache_key_query_string_parameters": {
+						"cache_key_query_string_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -352,6 +352,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 1,
 
+										// TODO: Must not contain ? or &, must have =
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -361,7 +362,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"route_configuration_override_parameters": {
+						"route_configuration_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -394,7 +395,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									},
 
 									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
-									"query_string_parameters": {
+									"query_string_action": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
