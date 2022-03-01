@@ -61,7 +61,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.FunctionAppFunctionName, // TODO - proper validation here, "must start with a letter and can contain letters, numbers (0-9), dashes ("-"), and underscores ("_")."
+			ValidateFunc: validate.FunctionAppFunctionName,
 			Description:  "The name of the function.",
 		},
 
