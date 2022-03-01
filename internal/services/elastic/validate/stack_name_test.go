@@ -52,7 +52,7 @@ func TestElasticMonitorsName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ElasticMonitorName(v.input, "name")
+		_, errors := ElasticStackName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

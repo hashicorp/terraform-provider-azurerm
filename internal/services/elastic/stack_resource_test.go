@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ElasticMonitorResource struct{}
+type StackResourceTest struct{}
 
-func TestAccElasticMonitor_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,9 +31,9 @@ func TestAccElasticMonitor_basic(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitor_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,9 +45,9 @@ func TestAccElasticMonitor_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitor_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -59,9 +59,9 @@ func TestAccElasticMonitor_complete(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitor_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -87,9 +87,9 @@ func TestAccElasticMonitor_update(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitor_logs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_logs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// this proves that we don't need to destroy the `logs` block separately
@@ -102,9 +102,9 @@ func TestAccElasticMonitor_logs(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitor_logsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_monitor", "test")
-	r := ElasticMonitorResource{}
+func TestAccElasticStack_logsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
+	r := StackResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// create with it
@@ -133,7 +133,7 @@ func TestAccElasticMonitor_logsUpdate(t *testing.T) {
 	})
 }
 
-func (r ElasticMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StackResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitorsresource.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (r ElasticMonitorResource) Exists(ctx context.Context, client *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
+func (r StackResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -160,7 +160,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_monitor" "test" {
+resource "azurerm_elastic_stack" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -170,21 +170,21 @@ resource "azurerm_elastic_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticMonitorResource) requiresImport(data acceptance.TestData) string {
+func (r StackResourceTest) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_elastic_monitor" "import" {
-  name                        = azurerm_elastic_monitor.test.name
-  resource_group_name         = azurerm_elastic_monitor.test.resource_group_name
-  location                    = azurerm_elastic_monitor.test.location
-  sku_name                    = azurerm_elastic_monitor.test.sku_name
-  elastic_cloud_email_address = azurerm_elastic_monitor.test.elastic_cloud_email_address
+resource "azurerm_elastic_stack" "import" {
+  name                        = azurerm_elastic_stack.test.name
+  resource_group_name         = azurerm_elastic_stack.test.resource_group_name
+  location                    = azurerm_elastic_stack.test.location
+  sku_name                    = azurerm_elastic_stack.test.sku_name
+  elastic_cloud_email_address = azurerm_elastic_stack.test.elastic_cloud_email_address
 }
 `, r.basic(data))
 }
 
-func (r ElasticMonitorResource) update(data acceptance.TestData) string {
+func (r StackResourceTest) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -195,7 +195,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_monitor" "test" {
+resource "azurerm_elastic_stack" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -209,7 +209,7 @@ resource "azurerm_elastic_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticMonitorResource) complete(data acceptance.TestData) string {
+func (r StackResourceTest) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -220,7 +220,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_monitor" "test" {
+resource "azurerm_elastic_stack" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -235,7 +235,7 @@ resource "azurerm_elastic_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticMonitorResource) logs(data acceptance.TestData) string {
+func (r StackResourceTest) logs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,7 +246,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_monitor" "test" {
+resource "azurerm_elastic_stack" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -269,7 +269,7 @@ resource "azurerm_elastic_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticMonitorResource) logsUpdated(data acceptance.TestData) string {
+func (r StackResourceTest) logsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -280,7 +280,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_monitor" "test" {
+resource "azurerm_elastic_stack" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location

@@ -21,12 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceElasticMonitor() *pluginsdk.Resource {
+func resourceStack() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceElasticMonitorCreate,
-		Read:   resourceElasticMonitorRead,
-		Update: resourceElasticMonitorUpdate,
-		Delete: resourceElasticMonitorDelete,
+		Create: resourceStackCreate,
+		Read:   resourceStackRead,
+		Update: resourceStackUpdate,
+		Delete: resourceStackDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -46,7 +46,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticMonitorName,
+				ValidateFunc: validate.ElasticStackName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -156,7 +156,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 	}
 }
 
-func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStackCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -211,10 +211,10 @@ func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceElasticMonitorRead(d, meta)
+	return resourceStackRead(d, meta)
 }
 
-func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStackRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -292,7 +292,7 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStackUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -331,10 +331,10 @@ func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceElasticMonitorRead(d, meta)
+	return resourceStackRead(d, meta)
 }
 
-func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStackDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

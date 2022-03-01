@@ -1,12 +1,12 @@
 ---
 subcategory: "Elastic"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_elastic_monitor"
+page_title: "Azure Resource Manager: azurerm_elastic_stack"
 description: |-
-  Manages a Elastic Monitor.
+  Manages an Elastic Stack in Elastic Cloud.
 ---
 
-# azurerm_elastic_monitor
+# azurerm_elastic_stack
 
 Manages an Elastic Stack in Elastic Cloud.
 
@@ -18,8 +18,8 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_elastic_monitor" "test" {
-  name                        = "example-elastic-cloud"
+resource "azurerm_elastic_stack" "test" {
+  name                        = "example-elastic-stack"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -31,7 +31,7 @@ resource "azurerm_elastic_monitor" "test" {
 
 The following arguments are supported:
 
-* `elastic_cloud_email_address` - (Required) Specifies the Email Address which should be associated with this Elastic Stack account. Changing this forces a new elastic Monitor to be created.
+* `elastic_cloud_email_address` - (Required) Specifies the Email Address which should be associated with this Elastic Stack account. Changing this forces a new Elastic Stack to be created.
 
 * `location` - (Required) The Azure Region where the Elastic Stack should exist. Changing this forces a new Elastic Stack to be created.
 
@@ -79,5 +79,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Elastic Stack's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_elastic_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
+terraform import azurerm_elastic_stack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
 ```
