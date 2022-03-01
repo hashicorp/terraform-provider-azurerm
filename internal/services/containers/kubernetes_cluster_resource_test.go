@@ -17,7 +17,7 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion   = "1.20.13"
+	olderKubernetesVersion   = "1.21.7"
 	currentKubernetesVersion = "1.22.4"
 )
 
