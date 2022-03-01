@@ -186,7 +186,7 @@ The following arguments are supported:
 
 A `secure_ldap` block supports the following:
 
-* `enabled` - (Required) Whether to enable secure LDAP for the managed domain. Defaults to `false`.
+* `enabled` - (Required) Whether to enable secure LDAP for the managed domain. Defaults to `false`. For more information, please see [official documentation on enabling LDAPS](https://docs.microsoft.com/en-us/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.
 
 * `external_access_enabled` - (Optional) Whether to enable external access to LDAPS over the Internet. Defaults to `false`.
 
