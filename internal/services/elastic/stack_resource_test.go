@@ -25,6 +25,12 @@ func TestAccElasticStack_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("elastic_cloud_deployment_id").Exists(),
+				check.That(data.ResourceName).Key("elastic_cloud_sso_default_url").Exists(),
+				check.That(data.ResourceName).Key("elastic_cloud_user_id").Exists(),
+				check.That(data.ResourceName).Key("elasticsearch_service_url").Exists(),
+				check.That(data.ResourceName).Key("kibana_service_url").Exists(),
+				check.That(data.ResourceName).Key("kibana_sso_uri").Exists(),
 			),
 		},
 		data.ImportStep(),
