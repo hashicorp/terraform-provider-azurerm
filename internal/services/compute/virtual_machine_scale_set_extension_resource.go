@@ -349,7 +349,10 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 
 	cancelRollingUpgradesBeforeDeletion := d.Get("cancel_rolling_upgrades_before_deletion").(bool)
 	if cancelRollingUpgradesBeforeDeletion {
-		meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
+		err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
+		if err != nil {
+			return err
+		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)

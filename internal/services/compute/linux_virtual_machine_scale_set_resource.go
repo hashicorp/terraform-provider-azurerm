@@ -1157,7 +1157,10 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 
 	cancelRollingUpgradesBeforeDeletion := d.Get("cancel_rolling_upgrades_before_deletion").(bool)
 	if cancelRollingUpgradesBeforeDeletion {
-		meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.Name)
+		err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
