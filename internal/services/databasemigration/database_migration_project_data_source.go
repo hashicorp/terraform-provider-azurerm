@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
@@ -39,7 +38,7 @@ func dataSourceDatabaseMigrationProject() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"source_platform": {
 				Type:     pluginsdk.TypeString,

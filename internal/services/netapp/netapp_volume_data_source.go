@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -31,7 +32,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -94,7 +95,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"remote_volume_location": azure.SchemaLocationForDataSource(),
+						"remote_volume_location": commonschema.LocationComputed(),
 
 						"remote_volume_resource_id": {
 							Type:     pluginsdk.TypeString,
@@ -141,9 +142,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)

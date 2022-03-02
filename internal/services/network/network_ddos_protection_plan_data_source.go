@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -28,9 +28,9 @@ func dataSourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
-
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
 
 			"virtual_network_ids": {
 				Type:     pluginsdk.TypeList,
@@ -66,9 +66,8 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta int
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DdosProtectionPlanPropertiesFormat; props != nil {
 		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)

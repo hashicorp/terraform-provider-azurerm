@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -61,7 +61,8 @@ func dataSourceVirtualWan() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
-			"location": azure.SchemaLocationForDataSource(),
+
+			"location": commonschema.LocationComputed(),
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -88,9 +89,8 @@ func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.VirtualWanProperties; props != nil {
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
