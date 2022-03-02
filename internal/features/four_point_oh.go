@@ -8,7 +8,7 @@ package features
 // This will be used to signify resources which will be Deprecated in 4.0,
 // but not Removed (which will happen in a later, presumably 5.0 release).
 func DeprecatedInFourPointOh(deprecationMessage string) string {
-	if !FourPointOh() {
+	if !FourPointOhBeta() {
 		return ""
 	}
 
