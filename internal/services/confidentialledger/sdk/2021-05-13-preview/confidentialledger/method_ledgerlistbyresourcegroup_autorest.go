@@ -8,25 +8,26 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type LedgerListByResourceGroupResponse struct {
+type LedgerListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]ConfidentialLedger
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (LedgerListByResourceGroupResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (LedgerListByResourceGroupOperationResponse, error)
 }
 
 type LedgerListByResourceGroupCompleteResult struct {
 	Items []ConfidentialLedger
 }
 
-func (r LedgerListByResourceGroupResponse) HasMore() bool {
+func (r LedgerListByResourceGroupOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r LedgerListByResourceGroupResponse) LoadMore(ctx context.Context) (resp LedgerListByResourceGroupResponse, err error) {
+func (r LedgerListByResourceGroupOperationResponse) LoadMore(ctx context.Context) (resp LedgerListByResourceGroupOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -34,15 +35,15 @@ func (r LedgerListByResourceGroupResponse) LoadMore(ctx context.Context) (resp L
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type LedgerListByResourceGroupOptions struct {
+type LedgerListByResourceGroupOperationOptions struct {
 	Filter *string
 }
 
-func DefaultLedgerListByResourceGroupOptions() LedgerListByResourceGroupOptions {
-	return LedgerListByResourceGroupOptions{}
+func DefaultLedgerListByResourceGroupOperationOptions() LedgerListByResourceGroupOperationOptions {
+	return LedgerListByResourceGroupOperationOptions{}
 }
 
-func (o LedgerListByResourceGroupOptions) toQueryString() map[string]interface{} {
+func (o LedgerListByResourceGroupOperationOptions) toQueryString() map[string]interface{} {
 	out := make(map[string]interface{})
 
 	if o.Filter != nil {
@@ -53,7 +54,7 @@ func (o LedgerListByResourceGroupOptions) toQueryString() map[string]interface{}
 }
 
 // LedgerListByResourceGroup ...
-func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context, id ResourceGroupId, options LedgerListByResourceGroupOptions) (resp LedgerListByResourceGroupResponse, err error) {
+func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (resp LedgerListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForLedgerListByResourceGroup(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerListByResourceGroup", nil, "Failure preparing request")
@@ -75,12 +76,12 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context,
 }
 
 // LedgerListByResourceGroupComplete retrieves all of the results into a single object
-func (c ConfidentialLedgerClient) LedgerListByResourceGroupComplete(ctx context.Context, id ResourceGroupId, options LedgerListByResourceGroupOptions) (LedgerListByResourceGroupCompleteResult, error) {
-	return c.LedgerListByResourceGroupCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerPredicate{})
+func (c ConfidentialLedgerClient) LedgerListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (LedgerListByResourceGroupCompleteResult, error) {
+	return c.LedgerListByResourceGroupCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
 }
 
 // LedgerListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id ResourceGroupId, options LedgerListByResourceGroupOptions, predicate ConfidentialLedgerPredicate) (resp LedgerListByResourceGroupCompleteResult, err error) {
+func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListByResourceGroupCompleteResult, err error) {
 	items := make([]ConfidentialLedger, 0)
 
 	page, err := c.LedgerListByResourceGroup(ctx, id, options)
@@ -119,7 +120,7 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredi
 }
 
 // preparerForLedgerListByResourceGroup prepares the LedgerListByResourceGroup request.
-func (c ConfidentialLedgerClient) preparerForLedgerListByResourceGroup(ctx context.Context, id ResourceGroupId, options LedgerListByResourceGroupOptions) (*http.Request, error) {
+func (c ConfidentialLedgerClient) preparerForLedgerListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -164,7 +165,7 @@ func (c ConfidentialLedgerClient) preparerForLedgerListByResourceGroupWithNextLi
 
 // responderForLedgerListByResourceGroup handles the response to the LedgerListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c ConfidentialLedgerClient) responderForLedgerListByResourceGroup(resp *http.Response) (result LedgerListByResourceGroupResponse, err error) {
+func (c ConfidentialLedgerClient) responderForLedgerListByResourceGroup(resp *http.Response) (result LedgerListByResourceGroupOperationResponse, err error) {
 	type page struct {
 		Values   []ConfidentialLedger `json:"value"`
 		NextLink *string              `json:"nextLink"`
@@ -179,7 +180,7 @@ func (c ConfidentialLedgerClient) responderForLedgerListByResourceGroup(resp *ht
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LedgerListByResourceGroupResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LedgerListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForLedgerListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerListByResourceGroup", nil, "Failure preparing request")

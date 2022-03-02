@@ -1,19 +1,19 @@
 package confidentialledger
 
-type ConfidentialLedgerPredicate struct {
+type ConfidentialLedgerOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p ConfidentialLedgerPredicate) Matches(input ConfidentialLedger) bool {
+func (p ConfidentialLedgerOperationPredicate) Matches(input ConfidentialLedger) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Location != nil && (input.Location == "" && *p.Location != input.Location) {
+	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
 		return false
 	}
 

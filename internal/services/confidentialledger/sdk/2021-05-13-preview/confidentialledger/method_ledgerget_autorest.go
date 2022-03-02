@@ -8,13 +8,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type LedgerGetResponse struct {
+type LedgerGetOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *ConfidentialLedger
 }
 
 // LedgerGet ...
-func (c ConfidentialLedgerClient) LedgerGet(ctx context.Context, id LedgerId) (result LedgerGetResponse, err error) {
+func (c ConfidentialLedgerClient) LedgerGet(ctx context.Context, id LedgerId) (result LedgerGetOperationResponse, err error) {
 	req, err := c.preparerForLedgerGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerGet", nil, "Failure preparing request")
@@ -53,7 +53,7 @@ func (c ConfidentialLedgerClient) preparerForLedgerGet(ctx context.Context, id L
 
 // responderForLedgerGet handles the response to the LedgerGet request. The method always
 // closes the http.Response Body.
-func (c ConfidentialLedgerClient) responderForLedgerGet(resp *http.Response) (result LedgerGetResponse, err error) {
+func (c ConfidentialLedgerClient) responderForLedgerGet(resp *http.Response) (result LedgerGetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

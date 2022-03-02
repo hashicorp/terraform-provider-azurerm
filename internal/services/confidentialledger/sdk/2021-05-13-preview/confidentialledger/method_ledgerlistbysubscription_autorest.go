@@ -8,25 +8,26 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type LedgerListBySubscriptionResponse struct {
+type LedgerListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]ConfidentialLedger
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (LedgerListBySubscriptionResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (LedgerListBySubscriptionOperationResponse, error)
 }
 
 type LedgerListBySubscriptionCompleteResult struct {
 	Items []ConfidentialLedger
 }
 
-func (r LedgerListBySubscriptionResponse) HasMore() bool {
+func (r LedgerListBySubscriptionOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r LedgerListBySubscriptionResponse) LoadMore(ctx context.Context) (resp LedgerListBySubscriptionResponse, err error) {
+func (r LedgerListBySubscriptionOperationResponse) LoadMore(ctx context.Context) (resp LedgerListBySubscriptionOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -34,15 +35,15 @@ func (r LedgerListBySubscriptionResponse) LoadMore(ctx context.Context) (resp Le
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type LedgerListBySubscriptionOptions struct {
+type LedgerListBySubscriptionOperationOptions struct {
 	Filter *string
 }
 
-func DefaultLedgerListBySubscriptionOptions() LedgerListBySubscriptionOptions {
-	return LedgerListBySubscriptionOptions{}
+func DefaultLedgerListBySubscriptionOperationOptions() LedgerListBySubscriptionOperationOptions {
+	return LedgerListBySubscriptionOperationOptions{}
 }
 
-func (o LedgerListBySubscriptionOptions) toQueryString() map[string]interface{} {
+func (o LedgerListBySubscriptionOperationOptions) toQueryString() map[string]interface{} {
 	out := make(map[string]interface{})
 
 	if o.Filter != nil {
@@ -53,7 +54,7 @@ func (o LedgerListBySubscriptionOptions) toQueryString() map[string]interface{} 
 }
 
 // LedgerListBySubscription ...
-func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, id SubscriptionId, options LedgerListBySubscriptionOptions) (resp LedgerListBySubscriptionResponse, err error) {
+func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (resp LedgerListBySubscriptionOperationResponse, err error) {
 	req, err := c.preparerForLedgerListBySubscription(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerListBySubscription", nil, "Failure preparing request")
@@ -75,12 +76,12 @@ func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, 
 }
 
 // LedgerListBySubscriptionComplete retrieves all of the results into a single object
-func (c ConfidentialLedgerClient) LedgerListBySubscriptionComplete(ctx context.Context, id SubscriptionId, options LedgerListBySubscriptionOptions) (LedgerListBySubscriptionCompleteResult, error) {
-	return c.LedgerListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerPredicate{})
+func (c ConfidentialLedgerClient) LedgerListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (LedgerListBySubscriptionCompleteResult, error) {
+	return c.LedgerListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
 }
 
 // LedgerListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id SubscriptionId, options LedgerListBySubscriptionOptions, predicate ConfidentialLedgerPredicate) (resp LedgerListBySubscriptionCompleteResult, err error) {
+func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListBySubscriptionCompleteResult, err error) {
 	items := make([]ConfidentialLedger, 0)
 
 	page, err := c.LedgerListBySubscription(ctx, id, options)
@@ -119,7 +120,7 @@ func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredic
 }
 
 // preparerForLedgerListBySubscription prepares the LedgerListBySubscription request.
-func (c ConfidentialLedgerClient) preparerForLedgerListBySubscription(ctx context.Context, id SubscriptionId, options LedgerListBySubscriptionOptions) (*http.Request, error) {
+func (c ConfidentialLedgerClient) preparerForLedgerListBySubscription(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -164,7 +165,7 @@ func (c ConfidentialLedgerClient) preparerForLedgerListBySubscriptionWithNextLin
 
 // responderForLedgerListBySubscription handles the response to the LedgerListBySubscription request. The method always
 // closes the http.Response Body.
-func (c ConfidentialLedgerClient) responderForLedgerListBySubscription(resp *http.Response) (result LedgerListBySubscriptionResponse, err error) {
+func (c ConfidentialLedgerClient) responderForLedgerListBySubscription(resp *http.Response) (result LedgerListBySubscriptionOperationResponse, err error) {
 	type page struct {
 		Values   []ConfidentialLedger `json:"value"`
 		NextLink *string              `json:"nextLink"`
@@ -179,7 +180,7 @@ func (c ConfidentialLedgerClient) responderForLedgerListBySubscription(resp *htt
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LedgerListBySubscriptionResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LedgerListBySubscriptionOperationResponse, err error) {
 			req, err := c.preparerForLedgerListBySubscriptionWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerListBySubscription", nil, "Failure preparing request")

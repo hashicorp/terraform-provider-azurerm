@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
-type LedgerCreateResponse struct {
+type LedgerCreateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
 }
 
 // LedgerCreate ...
-func (c ConfidentialLedgerClient) LedgerCreate(ctx context.Context, id LedgerId, input ConfidentialLedger) (result LedgerCreateResponse, err error) {
+func (c ConfidentialLedgerClient) LedgerCreate(ctx context.Context, id LedgerId, input ConfidentialLedger) (result LedgerCreateOperationResponse, err error) {
 	req, err := c.preparerForLedgerCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "confidentialledger.ConfidentialLedgerClient", "LedgerCreate", nil, "Failure preparing request")
@@ -64,7 +64,7 @@ func (c ConfidentialLedgerClient) preparerForLedgerCreate(ctx context.Context, i
 
 // senderForLedgerCreate sends the LedgerCreate request. The method will close the
 // http.Response Body if it receives an error.
-func (c ConfidentialLedgerClient) senderForLedgerCreate(ctx context.Context, req *http.Request) (future LedgerCreateResponse, err error) {
+func (c ConfidentialLedgerClient) senderForLedgerCreate(ctx context.Context, req *http.Request) (future LedgerCreateOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
