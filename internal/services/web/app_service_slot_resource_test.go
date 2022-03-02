@@ -200,7 +200,7 @@ func TestAccAppServiceSlot_siteConfig(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.siteConfig(data),
+			Config: r.ipRestrictionHeaders(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
