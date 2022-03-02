@@ -36,10 +36,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 		Update: resourceKeyVaultKeyUpdate,
 		Delete: resourceKeyVaultKeyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ParseNestedItemID(id)
 			return err
-		}),
+		}, nestedItemResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
