@@ -181,7 +181,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -312,7 +312,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

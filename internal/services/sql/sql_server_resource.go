@@ -118,7 +118,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
@@ -154,7 +154,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"storage_account_access_key": {

@@ -136,7 +136,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.OperatingSystemTypesWindows),
 						string(compute.OperatingSystemTypesLinux),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 

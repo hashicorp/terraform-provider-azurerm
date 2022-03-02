@@ -59,7 +59,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VirtualNetworkGatewayTypeExpressRoute),
 					string(network.VirtualNetworkGatewayTypeVpn),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"vpn_type": {
@@ -71,7 +71,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VpnTypeRouteBased),
 					string(network.VpnTypePolicyBased),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -275,7 +275,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 									string(network.VpnClientProtocolIkeV2),
 									string(network.VpnClientProtocolOpenVPN),
 									string(network.VpnClientProtocolSSTP),
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
@@ -1000,7 +1000,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 func validateVirtualNetworkGatewayPolicyBasedVpnSku() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.SchemaValidateFunc {
@@ -1014,7 +1014,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.SchemaValidateFunc {
@@ -1027,7 +1027,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw4AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw5AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc {
@@ -1038,7 +1038,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {
