@@ -66,7 +66,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 					string(accounts.TierTypeCommitmentFiveZeroZeroTB),
 					string(accounts.TierTypeCommitmentOnePB),
 					string(accounts.TierTypeCommitmentFivePB),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"encryption_state": {
@@ -77,7 +77,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionStateEnabled),
 					string(accounts.EncryptionStateDisabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -88,7 +88,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionConfigTypeServiceManaged),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -99,7 +99,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallStateEnabled),
 					string(accounts.FirewallStateDisabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -110,7 +110,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallAllowAzureIpsStateEnabled),
 					string(accounts.FirewallAllowAzureIpsStateDisabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

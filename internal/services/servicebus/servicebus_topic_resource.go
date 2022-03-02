@@ -86,7 +86,7 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.EntityStatusActive),
 					string(servicebus.EntityStatusDisabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

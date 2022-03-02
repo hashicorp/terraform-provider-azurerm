@@ -42,7 +42,7 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, !features.ThreePointOh()),
+		}, !features.ThreePointOhBeta()),
 		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 	}
 }
@@ -749,7 +749,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Required:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
+			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
