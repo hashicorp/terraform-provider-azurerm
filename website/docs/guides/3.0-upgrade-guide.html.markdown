@@ -16,6 +16,11 @@ Version 3.0 of the AzureRM Provider is a major release and as such includes some
 
 When upgrading to v3.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)) - the next major release of the AzureRM Provider (v4.0) will require Terraform 1.0 or later.
 
+If you're using [the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) you should also be aware that:
+
+* Version 1.1 of Terraform Core introduces support for Microsoft Graph (MSAL) authentication - although this is disabled by default and needs to be enabled using a feature flag (`use_microsoft_graph = true`), otherwise Azure Active Directory (ADAL) authentication is used.
+* In the future version 1.2 of Terraform Core will switch to using Microsoft Graph (MSAL) authentication by default (changing the default value of the feature flag `use_microsoft_graph` from `false` to `true`) - however note that this feature-flag will be removed in a future release of Terraform Core.
+
 ### Pinning your Provider Version
 
 We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the AzureRM Provider, like so:
@@ -25,7 +30,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.97.0"
+      version = "=2.99.0"
     }
   }
 }
@@ -502,13 +507,15 @@ The deprecated block `eventhub_endpoint` will be removed in favour of the `event
 
 The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
 
+### Resource: `azurerm_eventhub_namespace_customer_managed_key`
+
+Destroying this resource will become a noop (non-operation) rather than deleting and recreating the parent EventHub Namespace - instead to remove the Customer Managed Key the parent EventHub Namespace must be tainted and recreated.
+
+This is intentional to highlight that the EventHub Namespace - including all of it's sub-resources and any data stored within them - will need to be destroyed and recreated to remove the Customer Managed Key, due to the design of the Service.
+
 ### Resource: `azurerm_eventhub_namespace_disaster_recovery_config`
 
 The deprecated field `alternate_name` will be removed since any DRC created with an alternate cannot be deleted.
-
-### Resource: `azurerm_firewall_policy`
-
-The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_firewall`
 
@@ -517,6 +524,10 @@ The field `sku_name` will become Required.
 The field `sku_tier` will become Required.
 
 The default value for the field `threat_intel_mode` will change from "Alert" to null and will not accept `""` as a valid value.
+
+### Resource: `azurerm_firewall_policy`
+
+The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_frontdoor`
 
@@ -744,7 +755,7 @@ The deprecated field `portal_url` will be removed since it is no longer supporte
 
 The field `zones` has been renamed `zone` (as this only accepts a single value) to be consistent across the Provider.
 
-### Resource: `azurerm_management_group`
+### Resource: `azurerm_machine_learning`
 
 The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
 

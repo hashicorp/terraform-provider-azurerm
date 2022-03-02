@@ -119,7 +119,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ConnectionModeAll),
 					string(servers.ConnectionModeReadOnly),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

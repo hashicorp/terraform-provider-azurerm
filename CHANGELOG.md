@@ -3,6 +3,14 @@
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
+* `azurem_iothub` - deprecate `ip_filter_rule` in favour of `network_rule_set` [GH-15590]
+* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
+
+BUG FIXES:
+
+* `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
+* `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
 
 ## 2.98.0 (February 25, 2022)
 

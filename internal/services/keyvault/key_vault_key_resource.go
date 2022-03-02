@@ -31,11 +31,15 @@ import (
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceKeyVaultKeyCreate,
-		Read:     resourceKeyVaultKeyRead,
-		Update:   resourceKeyVaultKeyUpdate,
-		Delete:   resourceKeyVaultKeyDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceKeyVaultKeyCreate,
+		Read:   resourceKeyVaultKeyRead,
+		Update: resourceKeyVaultKeyUpdate,
+		Delete: resourceKeyVaultKeyDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

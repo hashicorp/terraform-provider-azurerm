@@ -71,7 +71,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 					string(network.ProbeProtocolHTTP),
 					string(network.ProbeProtocolHTTPS),
 					string(network.ProbeProtocolTCP),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"port": {

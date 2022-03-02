@@ -55,8 +55,12 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 		Read:   resourceHDInsightHadoopClusterRead,
 		Update: hdinsightClusterUpdate("Hadoop", resourceHDInsightHadoopClusterRead),
 		Delete: hdinsightClusterDelete("Hadoop"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -132,7 +136,7 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
+										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 									},
 
 									"install_script_action": {

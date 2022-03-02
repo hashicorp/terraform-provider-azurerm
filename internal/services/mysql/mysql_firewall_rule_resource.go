@@ -24,8 +24,10 @@ func resourceMySqlFirewallRule() *pluginsdk.Resource {
 		Update: resourceMySqlFirewallRuleCreateUpdate,
 		Delete: resourceMySqlFirewallRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
