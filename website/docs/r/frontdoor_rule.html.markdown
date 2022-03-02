@@ -29,11 +29,12 @@ resource "azurerm_frontdoor_rule_set" "test" {
 }
 
 resource "azurerm_frontdoor_rule" "test" {
-  name                  = "example-rule"
-  frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
-  order                 = 1
+  name                      = "example-rule"
+  frontdoor_rule_set_id     = azurerm_frontdoor_rule_set.test.id
+  order                     = 1
+  match_processing_behavior = "Continue"
 
-    actions {
+  actions {
     cache_expiration_action {
       cache_behavior = "SetIfMissing"
       cache_type     = "All"
@@ -59,7 +60,7 @@ resource "azurerm_frontdoor_rule" "test" {
       operator         = "Any"
       negate_condition = false
       match_values     = ["Delete"]
-      transform        = ["Lowercase"]
+      transforms       = ["Lowercase"]
     }
 
     is_device_condition {
@@ -72,7 +73,7 @@ resource "azurerm_frontdoor_rule" "test" {
       postargs_name    = "customerName"
       operator         = "BeginsWith"
       match_values     = ["J", "K"]
-      transform        = ["Uppercase"]
+      transforms       = ["Uppercase"]
     }
 
     request_method_condition {
@@ -84,12 +85,10 @@ resource "azurerm_frontdoor_rule" "test" {
     url_filename_condition {
       operator         = "Equal"
       negate_condition = false
-      matchValues      = ["media.mp4"]
-      transform        = ["Lowercase"]
+      match_values     = ["media.mp4"]
+      transforms       = ["Lowercase"]
     }
   }
-
-  match_processing_behavior = "Continue"
 }
 ```
 
