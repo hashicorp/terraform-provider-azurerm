@@ -279,7 +279,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		if !features.ThreePointOhBeta() {
+			d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		}
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
