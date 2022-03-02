@@ -48,6 +48,22 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorRuleSetID,
 			},
 
+			"match_processing_behavior": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(track1.MatchProcessingBehaviorContinue),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(track1.MatchProcessingBehaviorContinue),
+					string(track1.MatchProcessingBehaviorStop),
+				}, false),
+			},
+
+			"order": {
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			// I don't need name as a field I can derive the correct value based on what
 			// type of parameter you define in the config
 
@@ -65,7 +81,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 			"actions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 10,
+				MaxItems: 5,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -89,7 +105,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									"destination_protocol": {
+									"redirect_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Default:  string(track1.DestinationProtocolMatchRequest),
@@ -102,13 +118,13 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									// TODO: Write validation function for this
 									// Path cannot be empty and must start with /. Leave empty to use the incoming path as destination path.
-									"custom_path": {
+									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"custom_hostname": {
+									"destination_hostname": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -116,16 +132,16 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									// TODO: Write validation function for this
 									// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
-									"custom_query_string": {
+									"query_string": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "",
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"custom_fragment": {
+									"destination_fragment": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -206,7 +222,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"source_pattern": {
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
@@ -302,7 +318,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.QueryStringBehaviorExcludeAll),
+										Default:  string(track1.CacheBehaviorSetIfMissing),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(track1.CacheBehaviorBypassCache),
 											string(track1.CacheBehaviorOverride),
@@ -311,12 +327,15 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									},
 
 									"cache_type": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "All",
+										ValidateFunc: validation.StringInSlice([]string{
+											"All",
+										}, false),
 									},
 
-									// Allowed format is [d.]hh:mm:ss, maximum duration is 366 days
+									// Allowed format is d.hh:mm:ss, maximum duration is 366 days
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -347,87 +366,15 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									},
 
 									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									// not valid when IncludeAll or ExcludeAll behavior is defined
 									"query_string_parameters": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										MaxItems: 1,
-
-										// TODO: Must not contain ? or &, must have =
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-									},
-								},
-							},
-						},
-
-						"route_configuration_override_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"origin_group_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validate.FrontdoorOriginGroupID,
-									},
-
-									"forwarding_protocol": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"query_string_caching_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
-											string(track1.RuleQueryStringCachingBehaviorUseQueryString),
-											string(track1.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-											string(track1.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-										}, false),
-									},
-
-									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
-									"query_string_action": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 1,
+										MaxItems: 100,
 
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
+											Type: pluginsdk.TypeString,
 										},
-									},
-
-									"compression_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"cache_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(track1.RuleCacheBehaviorHonorOrigin),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RuleCacheBehaviorHonorOrigin),
-											string(track1.RuleCacheBehaviorOverrideAlways),
-											string(track1.RuleCacheBehaviorOverrideIfOriginMissing),
-										}, false),
-									},
-
-									// Allowed format is [d.]hh:mm:ss
-									"cache_duration": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -440,7 +387,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 			"conditions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 5,
+				MaxItems: 10,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -466,8 +413,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
 									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -480,17 +425,11 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+									"operator": SchemaFrontdoorOperatorEqualOnly(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values": SchemaFrontdoorRequestMethodMatchValues(),
 								},
 							},
 						},
@@ -568,6 +507,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 
 									// In the API this is called selector
+									// match_values are optional if operator is Any
 									"header_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -597,7 +537,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values": SchemaFrontdoorMatchValuesRequired(),
 
 									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
@@ -612,17 +552,11 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+									"operator": SchemaFrontdoorOperatorEqualOnly(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values": SchemaFrontdoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -639,7 +573,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values": SchemaFrontdoorUrlPathConditionMatchValues(),
 
 									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
@@ -658,7 +592,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values": SchemaFrontdoorMatchValuesRequired(),
 
 									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
@@ -677,7 +611,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values": SchemaFrontdoorMatchValuesRequired(),
 
 									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
@@ -692,17 +626,11 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+									"operator": SchemaFrontdoorOperatorEqualOnly(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values": SchemaFrontdoorHttpVersionMatchValues(),
 								},
 							},
 						},
@@ -741,21 +669,16 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+									"operator": SchemaFrontdoorOperatorEqualOnly(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values": SchemaFrontdoorIsDeviceMatchValues(),
 								},
 							},
 						},
 
+						// DeliveryRuleSocketAddrCondition
 						"socket_addr_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -782,6 +705,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// DeliveryRuleClientPortCondition
 						"client_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -801,6 +725,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// DeliveryRuleServerPortCondition
 						"server_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -820,6 +745,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// DeliveryRuleHostNameCondition
 						"host_name_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -839,6 +765,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// DeliveryRuleSslProtocolCondition
 						"ssl_protocol_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -879,22 +806,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						//
 					},
 				},
-			},
-
-			"match_processing_behavior": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(track1.MatchProcessingBehaviorContinue),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(track1.MatchProcessingBehaviorContinue),
-					string(track1.MatchProcessingBehaviorStop),
-				}, false),
-			},
-
-			"order": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"rule_set_name": {

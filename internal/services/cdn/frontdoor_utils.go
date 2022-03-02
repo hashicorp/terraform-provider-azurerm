@@ -163,27 +163,63 @@ func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors
 	return nil, nil
 }
 
-func ValidateContentTypes(i interface{}, k string) (_ []string, errors []error) {
+func ValidateFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	// Per the IANA no whitespace is allowed in a Content Type
-	if strings.Contains(v, " ") {
-		return nil, append(errors, fmt.Errorf(`%q must not contain any whitespace, got %q`, k, v))
-	}
-
-	if strings.Contains(v, ";") {
-		// Content Type has a parameter, error out
-		return nil, append(errors, fmt.Errorf(`%q is not valid, Content Types with parameters are not allowed, got %q`, k, v))
-	}
-
-	if m, regexErrs := validate.RegExHelper(i, k, `^(application|audio|font|image|message|model|multipart|text|video)\/[-\w]+(\.[-\w]+)*([+][-\w]+)?$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be a valid Content Type and a subtype concatenated with a slash(e.g. text/html), got %q`, k, v))
+	if strings.HasPrefix(v, "/") {
+		return nil, append(errors, fmt.Errorf(`%q must not start with the URLs paths leading slash(e.g. /), got %q`, k, v))
 	}
 
 	return nil, nil
+}
+
+func validContentTypes() []string {
+	return []string{
+		"application/eot",
+		"application/font",
+		"application/font-sfnt",
+		"application/javascript",
+		"application/json",
+		"application/opentype",
+		"application/otf",
+		"application/pkcs7-mime",
+		"application/truetype",
+		"application/ttf",
+		"application/vnd.ms-fontobject",
+		"application/xhtml+xml",
+		"application/xml",
+		"application/xml+rss",
+		"application/x-font-opentype",
+		"application/x-font-truetype",
+		"application/x-font-ttf",
+		"application/x-httpd-cgi",
+		"application/x-mpegurl",
+		"application/x-opentype",
+		"application/x-otf",
+		"application/x-perl",
+		"application/x-ttf",
+		"application/x-javascript",
+		"font/eot",
+		"font/ttf",
+		"font/otf",
+		"font/opentype",
+		"image/svg+xml",
+		"text/css",
+		"text/csv",
+		"text/html",
+		"text/javascript",
+		"text/js",
+		"text/plain",
+		"text/richtext",
+		"text/tab-separated-values",
+		"text/xml",
+		"text/x-script",
+		"text/x-component",
+		"text/x-java-source",
+	}
 }
 
 func SchemaFrontdoorOperator() *pluginsdk.Schema {
@@ -191,16 +227,27 @@ func SchemaFrontdoorOperator() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Required: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			"Any",
-			"Equal",
-			"Contains",
-			"BeginsWith",
-			"EndsWith",
-			"LessThan",
-			"LessThanOrEqual",
-			"GreaterThan",
-			"GreaterThanOrEqual",
-			"RegEx",
+			string(track1.OperatorAny),
+			string(track1.OperatorEqual),
+			string(track1.OperatorContains),
+			string(track1.OperatorBeginsWith),
+			string(track1.OperatorEndsWith),
+			string(track1.OperatorLessThan),
+			string(track1.OperatorLessThanOrEqual),
+			string(track1.OperatorGreaterThan),
+			string(track1.OperatorGreaterThanOrEqual),
+			string(track1.OperatorRegEx),
+		}, false),
+	}
+}
+
+func SchemaFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+		Default:  string(track1.OperatorEqual),
+		ValidateFunc: validation.StringInSlice([]string{
+			string(track1.OperatorEqual),
 		}, false),
 	}
 }
@@ -217,7 +264,33 @@ func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		MaxItems: 10,
+		MaxItems: 25,
+
+		// In some cases it is valid for this to be an empty string
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
+		},
+	}
+}
+
+func SchemaFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 25,
+
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: ValidateFrontdoorUrlPathConditionMatchValue,
+		},
+	}
+}
+
+func SchemaFrontdoorMatchValuesRequired() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 25,
 
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
@@ -226,11 +299,84 @@ func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
 	}
 }
 
+func SchemaFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 7,
+
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice([]string{
+				"GET",
+				"POST",
+				"PUT",
+				"DELETE",
+				"HEAD",
+				"OPTIONS",
+				"TRACE",
+			}, false),
+		},
+	}
+}
+
+func SchemaFrontdoorProtocolMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+
+		Elem: &pluginsdk.Schema{
+			Type:    pluginsdk.TypeString,
+			Default: "HTTP",
+			ValidateFunc: validation.StringInSlice([]string{
+				"HTTP",
+				"HTTPS",
+			}, false),
+		},
+	}
+}
+
+func SchemaFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+
+		Elem: &pluginsdk.Schema{
+			Type:    pluginsdk.TypeString,
+			Default: "Mobile",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Mobile",
+				"Desktop",
+			}, false),
+		},
+	}
+}
+
+func SchemaFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 4,
+
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice([]string{
+				"2.0",
+				"1.1",
+				"1.0",
+				"0.9",
+			}, false),
+		},
+	}
+}
+
 func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		MaxItems: 6,
+		MaxItems: 4,
 
 		Elem: &pluginsdk.Schema{
 			Type:    pluginsdk.TypeString,

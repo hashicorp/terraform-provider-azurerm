@@ -111,7 +111,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: ValidateContentTypes,
+								ValidateFunc: validation.StringInSlice(validContentTypes(), false),
 							},
 						},
 					},
