@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
 * `azurem_iothub` - deprecate `ip_filter_rule` in favour of `network_rule_set` [GH-15590]
+* `azurerm_machine_learning_compute_instance` - updating the validation on `name` [GH-14839]
 * `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
 
 BUG FIXES:
