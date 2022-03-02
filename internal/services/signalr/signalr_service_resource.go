@@ -73,41 +73,39 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sku := d.Get("sku").([]interface{})
-	var featureFlags []interface{}
-	if d.Get("features") != nil {
-		featureFlags = d.Get("features").(*pluginsdk.Set).List()
-	}
 	connectivityLogsEnabled := false
-	if d.Get("connectivity_logs_enabled") != nil {
-		connectivityLogsEnabled = d.Get("connectivity_logs_enabled").(bool)
+	if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+		connectivityLogsEnabled = v.(bool)
 	}
 	messagingLogsEnabled := false
-	if d.Get("messaging_logs_enabled") != nil {
-		messagingLogsEnabled = d.Get("messaging_logs_enabled").(bool)
+	if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+		messagingLogsEnabled = v.(bool)
 	}
 	liveTraceEnabled := false
-	if d.Get("live_trace_enabled") != nil {
-		liveTraceEnabled = d.Get("live_trace_enabled").(bool)
+	if v, ok := d.GetOk("live_trace_enabled"); ok {
+		liveTraceEnabled = v.(bool)
 	}
 	serviceMode := "Default"
-	if d.Get("service_mode") != nil {
-		serviceMode = d.Get("service_mode").(string)
+	if v, ok := d.GetOk("service_mode"); ok {
+		serviceMode = v.(string)
 	}
 
 	cors := d.Get("cors").([]interface{})
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := make([]signalr.SignalRFeature, 0)
-	if len(featureFlags) > 0 {
-		expandedFeatures = *expandSignalRFeatures(featureFlags)
+	if !features.ThreePointOh() {
+		var featureFlags []interface{}
+		if v, ok := d.GetOk("features"); ok {
+			featureFlags = v.(*pluginsdk.Set).List()
+		}
+		if len(featureFlags) > 0 {
+			expandedFeatures = *expandSignalRFeatures(featureFlags)
+		}
 	} else {
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
 		expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
-
-		if serviceMode == "" {
-			serviceMode = "Default"
-		}
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 	}
 
@@ -260,32 +258,32 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChange("connectivity_logs_enabled") {
 				connectivityLogsEnabled := false
-				if d.Get("connectivity_logs_enabled") != nil {
-					connectivityLogsEnabled = d.Get("connectivity_logs_enabled").(bool)
+				if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+					connectivityLogsEnabled = v.(bool)
 				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
 			}
 
 			if d.HasChange("messaging_logs_enabled") {
 				messagingLogsEnabled := false
-				if d.Get("messaging_logs_enabled") != nil {
-					messagingLogsEnabled = d.Get("messaging_logs_enabled").(bool)
+				if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+					messagingLogsEnabled = v.(bool)
 				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
 			}
 
 			if d.HasChange("live_trace_enabled") {
 				liveTraceEnabled := false
-				if d.Get("live_trace_enabled") != nil {
-					liveTraceEnabled = d.Get("live_trace_enabled").(bool)
+				if v, ok := d.GetOk("live_trace_enabled"); ok {
+					liveTraceEnabled = v.(bool)
 				}
 				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
 			}
 
 			if d.HasChange("service_mode") {
 				serviceMode := "Default"
-				if d.Get("service_mode") != nil {
-					serviceMode = d.Get("service_mode").(string)
+				if v, ok := d.GetOk("service_mode"); ok {
+					serviceMode = v.(string)
 				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 			}
