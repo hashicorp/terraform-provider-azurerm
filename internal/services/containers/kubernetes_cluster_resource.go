@@ -516,17 +516,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						// TODO - Make this schema case sensitive once issue https://github.com/Azure/azure-rest-api-specs/issues/18056
+						// TODO - Remove the DiffSuppressFunc and make the ValidateFunc case-sensitive once https://github.com/hashicorp/pandora/issues/417 is resolved and is normalized during Unmarshalling.
 						"load_balancer_sku": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(containerservice.LoadBalancerSkuStandard),
-							ForceNew: true,
-							// TODO: fix the casing in the Swagger
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          string(containerservice.LoadBalancerSkuStandard),
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, true),
 						},
 
 						"outbound_type": {

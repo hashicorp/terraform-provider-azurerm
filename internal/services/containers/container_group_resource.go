@@ -59,17 +59,19 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// TODO - Make this schema case sensitive once issue https://github.com/Azure/azure-rest-api-specs/issues/18053 is resolved.
+			// TODO - Remove the DiffSuppressFunc and make the ValidateFunc case-sensitive once https://github.com/hashicorp/pandora/issues/417 is resolved and is normalized during Unmarshalling.
 			"ip_address_type": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          "Public",
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
-				}, !features.ThreePointOh()),
+				}, true),
 			},
 
 			"network_profile_id": {
