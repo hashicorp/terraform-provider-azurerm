@@ -54,7 +54,40 @@ resource "azurerm_frontdoor_rule" "test" {
     }
   }
 
-  conditions = ["HostName", "IsDevice", "PostArgs", "RequestMethod"]
+  conditions {
+    host_name_condition {
+      operator         = "Any"
+      negate_condition = false
+      match_values     = ["Delete"]
+      transform        = ["Lowercase"]
+    }
+
+    is_device_condition {
+      operator         = "Equal",
+      negate_condition = false,
+      match_values     = ["Mobile"]
+    }
+
+    post_args_condition {
+      postargs_name    = "customerName"
+      operator         = "BeginsWith"
+      match_values     = ["J", "K"]
+      transform        = ["Uppercase"]
+    }
+
+    request_method_condition {
+      operator         = "Equal"
+      negate_condition = false
+      match_values     = ["DELETE"]
+    }
+
+    url_filename_condition {
+      operator         = "Equal"
+      negate_condition = false
+      matchValues      = ["media.mp4"]
+      transform        = ["Lowercase"]
+    }
+  }
 
   match_processing_behavior = "Continue"
 }
