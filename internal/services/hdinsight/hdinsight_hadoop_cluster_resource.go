@@ -465,8 +465,15 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 				if targetInstanceCount := role.TargetInstanceCount; targetInstanceCount != nil {
 					edgeNode["target_instance_count"] = targetInstanceCount
 				}
-				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil {
-					edgeNode["vm_size"] = hardwareProfile.VMSize
+				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil && hardwareProfile.VMSize != nil {
+					vmSize := ""
+					// the Azure API is inconsistent here, so rewrite this into the casing we expect
+					for _, v := range validate.NodeDefinitionVMSize {
+						if strings.EqualFold(v, *hardwareProfile.VMSize) {
+							vmSize = v
+						}
+					}
+					edgeNode["vm_size"] = vmSize
 				}
 			}
 		}
