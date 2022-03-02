@@ -284,18 +284,17 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey"
     ]
   }
-}
 
-resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = "%s"
-  object_id    = "${azurerm_user_assigned_identity.test.principal_id}"
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${azurerm_user_assigned_identity.test.principal_id}"
 
-  key_permissions = [
-    "Get",
-    "WrapKey",
-    "UnwrapKey"
-  ]
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -312,6 +311,11 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+}
+
+data "azurerm_batch_account" "test" {
+  name                = "${azurerm_batch_account.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
