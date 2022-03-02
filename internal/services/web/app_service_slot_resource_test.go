@@ -1692,7 +1692,7 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AppServiceSlotResource) siteConfig(data acceptance.TestData) string {
+func (r AppServiceSlotResource) ipRestrictionHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
