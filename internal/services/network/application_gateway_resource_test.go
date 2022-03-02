@@ -3109,6 +3109,8 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
+    host_name                      = "application.test.com"
+    require_sni                    = false
   }
 
   http_listener {
@@ -3431,6 +3433,7 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    minimum_servers     = 0
   }
 
   probe {
@@ -5542,7 +5545,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                           = azurerm_resource_group.test.name
   virtual_network_name                          = azurerm_virtual_network.test.name
   address_prefix                                = "10.0.0.0/24"
-  enforce_private_link_service_network_policies = true
+  enforce_private_link_service_network_policies = false
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5697,7 +5700,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_address_pool {
-    name = local.backend_address_pool_name
+    name  = local.backend_address_pool_name
+    fqdns = ["foo.com", "bar.com"]
   }
 
   backend_http_settings {
@@ -5968,13 +5972,20 @@ resource "azurerm_application_gateway" "test" {
       rule_sequence = 1
 
       condition {
-        variable = "var_uri_path"
-        pattern  = ".*article/(.*)/(.*)"
+        variable    = "var_uri_path"
+        pattern     = ".*article/(.*)/(.*)"
+        ignore_case = false
+        negate      = false
+      }
+      response_header_configuration {
+        header_name  = "X-custom"
+        header_value = "customvalue"
       }
 
       url {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
+        reroute      = false
       }
     }
   }
