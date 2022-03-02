@@ -194,7 +194,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
   log_monitoring_enabled                  = false
-  state                                   = "Enabled"
+  enabled                                 = true
 }
 `, r.template(data))
 }
@@ -222,7 +222,7 @@ resource "azurerm_mssql_server" "test" {
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id = azurerm_mssql_server.test.id
-  state     = "Disabled"
+  enabled   = false
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

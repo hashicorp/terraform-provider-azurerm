@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `database_id` - (Required) The ID of the sql database to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `state` - (Required) The state of the extended auditing policy. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
-->**NOTE:**  If `state` is Enabled, `storage_endpoint` or `log_monitoring_enabled` are required.
+->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 
