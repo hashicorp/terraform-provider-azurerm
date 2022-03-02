@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -57,28 +56,28 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"location": azure.SchemaLocation(),
 
-			"type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayTypeExpressRoute),
-					string(network.VirtualNetworkGatewayTypeVpn),
-				}, !features.ThreePointOhBeta()),
-			},
+		"type": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.VirtualNetworkGatewayTypeExpressRoute),
+				string(network.VirtualNetworkGatewayTypeVpn),
+			}, !features.ThreePointOhBeta()),
+		},
 
-			"vpn_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(network.VpnTypeRouteBased),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnTypeRouteBased),
-					string(network.VpnTypePolicyBased),
-				}, !features.ThreePointOhBeta()),
-			},
+		"vpn_type": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			Default:          string(network.VpnTypeRouteBased),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.VpnTypeRouteBased),
+				string(network.VpnTypePolicyBased),
+			}, !features.ThreePointOhBeta()),
+		},
 
 		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_bgp": {
@@ -271,23 +270,23 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-						"vpn_client_protocols": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.VpnClientProtocolIkeV2),
-									string(network.VpnClientProtocolOpenVPN),
-									string(network.VpnClientProtocolSSTP),
-								}, !features.ThreePointOhBeta()),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							},
+					"vpn_client_protocols": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.VpnClientProtocolIkeV2),
+								string(network.VpnClientProtocolOpenVPN),
+								string(network.VpnClientProtocolSSTP),
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
 				},
 			},
+		},
 
 		"bgp_settings": {
 			Type:     pluginsdk.TypeList,
