@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
 * `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
 
 ## 2.98.0 (February 25, 2022)
