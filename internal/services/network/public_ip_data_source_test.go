@@ -79,6 +79,7 @@ resource "azurerm_public_ip" "test" {
   domain_name_label       = "acctest-%d"
   idle_timeout_in_minutes = 30
   sku                     = "Standard"
+  zones                   = ["1", "2"]
 
   ip_tags = {
     RoutingPreference = "Internet"
