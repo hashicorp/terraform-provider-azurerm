@@ -69,7 +69,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"network_profile_id": {
@@ -88,7 +88,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.OperatingSystemTypesWindows),
 					string(containerinstance.OperatingSystemTypesLinux),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"image_registry_credential": {
@@ -136,7 +136,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 					string(containerinstance.ContainerGroupRestartPolicyAlways),
 					string(containerinstance.ContainerGroupRestartPolicyNever),
 					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"dns_name_label": {

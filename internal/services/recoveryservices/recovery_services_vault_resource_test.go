@@ -387,9 +387,6 @@ resource "azurerm_key_vault" "test" {
       "set",
     ]
   }
-  lifecycle {
-    ignore_changes = [soft_delete_enabled]
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {

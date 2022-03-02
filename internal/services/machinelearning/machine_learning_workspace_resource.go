@@ -173,7 +173,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						out = append(out, "Enterprise")
 					}
 					return out
-				}(), !features.ThreePointOh()),
+				}(), !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

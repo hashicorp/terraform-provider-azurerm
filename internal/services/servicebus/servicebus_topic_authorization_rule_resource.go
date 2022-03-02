@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -81,7 +81,7 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				Optional:      true,
 				Computed:      true,
 				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
+				ValidateFunc:  resourcegroups.ValidateName,
 				Deprecated:    `Deprecated in favor of "topic_id"`,
 				ConflictsWith: []string{"topic_id"},
 			},

@@ -923,7 +923,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -936,7 +936,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Enabled",
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"email_addresses": {
@@ -963,7 +963,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"storage_account_access_key": {

@@ -136,7 +136,7 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
+										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 									},
 
 									"install_script_action": {

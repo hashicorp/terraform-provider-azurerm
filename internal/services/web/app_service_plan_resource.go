@@ -67,7 +67,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 					"Linux",
 					"Windows",
 					"xenon",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

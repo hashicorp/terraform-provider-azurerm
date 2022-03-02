@@ -69,7 +69,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 					string(endpoints.EndpointTypeAzureEndpoints),
 					string(endpoints.EndpointTypeNestedEndpoints),
 					string(endpoints.EndpointTypeExternalEndpoints),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -92,7 +92,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(endpoints.EndpointStatusDisabled),
 					string(endpoints.EndpointStatusEnabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
