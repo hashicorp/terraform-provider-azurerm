@@ -1220,7 +1220,7 @@ resource "azurerm_container_group" "test" {
   }
   dns_config {
     nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
-    options        = ["one:option", "two:option", "red:option", "blue:option"]
+    options        = null
     search_domains = ["default.svc.cluster.local."]
   }
 
@@ -1371,7 +1371,7 @@ resource "azurerm_container_group" "test" {
 
   dns_config {
     nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
-    options        = ["one:option", "two:option", "red:option", "blue:option"]
+    options        = null
     search_domains = ["default.svc.cluster.local."]
   }
 
