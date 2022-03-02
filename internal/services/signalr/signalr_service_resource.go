@@ -248,8 +248,8 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("features") {
 			var featuresRaw []interface{}
-			if d.Get("features") != nil {
-				featuresRaw = d.Get("features").(*pluginsdk.Set).List()
+			if v, ok := d.GetOk("features"); ok {
+				featuresRaw = v.(*pluginsdk.Set).List()
 			}
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
