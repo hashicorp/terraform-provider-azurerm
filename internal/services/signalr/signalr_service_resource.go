@@ -94,7 +94,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := make([]signalr.SignalRFeature, 0)
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		var featureFlags []interface{}
 		if v, ok := d.GetOk("features"); ok {
 			featureFlags = v.(*pluginsdk.Set).List()
@@ -175,8 +175,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_port", props.PublicPort)
 			d.Set("server_port", props.ServerPort)
 
-			if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
-				return fmt.Errorf("setting `features`: %+v", err)
+			if !features.ThreePointOhBeta() {
+				if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
+					return fmt.Errorf("setting `features`: %+v", err)
+				}
 			}
 
 			connectivityLogsEnabled := false
@@ -246,7 +248,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
-		if d.HasChange("features") {
+		if !features.ThreePointOhBeta() && d.HasChange("features") {
 			var featuresRaw []interface{}
 			if v, ok := d.GetOk("features"); ok {
 				featuresRaw = v.(*pluginsdk.Set).List()
