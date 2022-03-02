@@ -41,13 +41,13 @@ resource "azurerm_servicebus_topic" "test" {
   namespace_id = azurerm_servicebus_namespace.test.id
 }
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "acctestservicebussubscription-%d"
-  topic_id            = azurerm_servicebus_topic.test.id
-  max_delivery_count  = 10
+  name               = "acctestservicebussubscription-%d"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
 }
 data "azurerm_servicebus_subscription" "test" {
-  name                = azurerm_servicebus_subscription.test.name
-  topic_id            = azurerm_servicebus_topic.test.id
+  name     = azurerm_servicebus_subscription.test.name
+  topic_id = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

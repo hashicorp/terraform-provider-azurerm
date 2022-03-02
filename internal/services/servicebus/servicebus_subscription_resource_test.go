@@ -277,8 +277,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_subscription" "test" {
@@ -290,6 +290,7 @@ resource "azurerm_servicebus_subscription" "test" {
   dead_lettering_on_message_expiration = true
 	%[3]s
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, "")
 }

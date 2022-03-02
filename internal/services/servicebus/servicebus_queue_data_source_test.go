@@ -42,8 +42,8 @@ func (ServiceBusQueueDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_servicebus_queue" "test" {
-  name                = azurerm_servicebus_queue.test.name
-  namespace_id        = azurerm_servicebus_namespace.test.id
+  name         = azurerm_servicebus_queue.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, ServiceBusQueueResource{}.basic(data))
 }

@@ -55,8 +55,8 @@ func (ServiceBusQueueAuthorizationRuleDataSource) basic(data acceptance.TestData
 %s
 
 data "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = azurerm_servicebus_queue_authorization_rule.test.name
-  queue_id            = azurerm_servicebus_queue.test.id
+  name     = azurerm_servicebus_queue_authorization_rule.test.name
+  queue_id = azurerm_servicebus_queue.test.id
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.base(data, true, true, true))
 }
@@ -66,8 +66,8 @@ func (ServiceBusQueueAuthorizationRuleDataSource) queueAliasPolicy(data acceptan
 %s
 
 data "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = azurerm_servicebus_queue_authorization_rule.test.name
-  queue_id            = azurerm_servicebus_queue.example.id
+  name     = azurerm_servicebus_queue_authorization_rule.test.name
+  queue_id = azurerm_servicebus_queue.example.id
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.withAliasConnectionString(data))
 }

@@ -66,8 +66,8 @@ func (ServiceBusTopicAuthorizationRuleDataSource) topicAliasPolicy(data acceptan
 %s
 
 data "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = azurerm_servicebus_topic_authorization_rule.test.name
-  topic_id            = azurerm_servicebus_topic.example.id
+  name     = azurerm_servicebus_topic_authorization_rule.test.name
+  topic_id = azurerm_servicebus_topic.example.id
 }
 `, ServiceBusTopicAuthorizationRuleResource{}.withAliasConnectionString(data))
 }
