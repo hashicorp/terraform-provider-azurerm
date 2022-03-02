@@ -194,7 +194,7 @@ func TestAccAppServiceSlot_storageAccounts(t *testing.T) {
 	})
 }
 
-func TestAccAppServiceSlot_siteConfig(t *testing.T) {
+func TestAccAppServiceSlot_ipRestrictionHeaders(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
