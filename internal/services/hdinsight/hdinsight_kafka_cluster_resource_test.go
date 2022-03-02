@@ -388,13 +388,6 @@ func TestAccHDInsightKafkaCluster_restProxy(t *testing.T) {
 	r := HDInsightKafkaClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.restProxyDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kafka_rest_proxy_endpoint").Exists(),
-			),
-		},
-		{
 			Config: r.restProxy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
