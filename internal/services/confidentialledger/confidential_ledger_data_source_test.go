@@ -15,29 +15,25 @@ func TestAccConfidentialLedgerDataSource_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: ConfidentialLedgerResource{}.certBasedAdministrator(data),
-		},
-		{
-			Config: ConfidentialLedgerDataSource{}.certBasedAdministrator(data),
+			Config: ConfidentialLedgerDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(ConfidentialLedgerResource{}),
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("aad_based_security_principals.0.ledger_role_name").Exists(),
-				check.That(data.ResourceName).Key("cert_based_security_principals.0.cert").Exists(),
-				check.That(data.ResourceName).Key("cert_based_security_principals.0.ledger_role_name").Exists(),
-				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("identity_service_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ledger_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ledger_type").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("tags").Exists(),
+				check.That(data.ResourceName).Key("azuread_based_service_principal.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("azuread_based_service_principal.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("azuread_based_service_principal.0.ledger_role_name").Exists(),
+				check.That(data.ResourceName).Key("certificate_based_security_principal.0.ledger_role_name").Exists(),
+				check.That(data.ResourceName).Key("certificate_based_security_principal.0.pem_public_key").Exists(),
 			),
 		},
 	})
 }
 
-func (ConfidentialLedgerDataSource) certBasedAdministrator(data acceptance.TestData) string {
-	template := ConfidentialLedgerResource{}.certBasedAdministrator(data)
+func (ConfidentialLedgerDataSource) basic(data acceptance.TestData) string {
+	template := ConfidentialLedgerResource{}.certBased(data)
 	return fmt.Sprintf(`
 %s
 

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -24,130 +24,122 @@ func dataSourceConfidentialLedger() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		// This should match the Schema in resourceConfidentialLedger
 		Schema: map[string]*pluginsdk.Schema{
-			"aad_based_security_principals": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"principal_id": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"tenant_id": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Administrator",
-								"Contributor",
-								"Reader",
-							}, false),
-						},
-					},
-				},
-			},
-
-			"cert_based_security_principals": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"cert": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Administrator",
-								"Contributor",
-								"Reader",
-							}, false),
-						},
-					},
-				},
-			},
-
+			// Required
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ConfidentialLedgerName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			// Computed
+			"azuread_based_service_principal": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ledger_role_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"certificate_based_security_principal": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ledger_role_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"pem_public_key": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"ledger_type": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Public",
-					"Private",
-				}, false),
+				Computed: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"tags": commonschema.TagsDataSource(),
 
-			"tags": commonschema.Tags(),
+			"identity_service_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"ledger_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	// Warning!! This is not a duplicate of resourceConfidentialLedgerRead.
-
 	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := confidentialledger.NewLedgerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// One difference - the request does not come in with an id.
-	resourceId := confidentialledger.NewLedgerID(subscriptionId, resourceGroup, name)
-
-	resp, err := client.LedgerGet(ctx, resourceId)
+	resp, err := client.LedgerGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", resourceId.ID())
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("error retrieving %s: %+v", resourceId.ID(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// Another difference - the id must be set.
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
-	d.Set("name", resourceId.LedgerName)
-	d.Set("resource_group_name", resourceId.ResourceGroupName)
+	d.Set("name", id.LedgerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("ledger_type", string(*model.Properties.LedgerType))
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("tags", model.Tags)
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-		aadBasedUsers, err := flattenConfidentialLedgerAADBasedSecurityPrincipal(model.Properties.AadBasedSecurityPrincipals)
-		if err != nil {
-			return fmt.Errorf("error retrieving AAD-based users for %s: %+v", resourceId.ID(), err)
+		if props := model.Properties; props != nil {
+			if err := d.Set("azuread_based_service_principal", flattenAADBasedSecurityPrincipal(props.AadBasedSecurityPrincipals)); err != nil {
+				return fmt.Errorf("setting `aad_based_security_principals`: %+v", err)
+			}
+			if err := d.Set("certificate_based_security_principal", flattenCertBasedSecurityPrincipal(props.CertBasedSecurityPrincipals)); err != nil {
+				return fmt.Errorf("setting `certificate_based_security_principal`: %+v", err)
+			}
+
+			ledgerType := ""
+			if props.LedgerType != nil {
+				ledgerType = string(*props.LedgerType)
+			}
+			d.Set("ledger_type", ledgerType)
+
+			d.Set("ledger_endpoint", props.LedgerUri)
+			d.Set("identity_service_endpoint", props.IdentityServiceUri)
 		}
 
-		certBasedUsers, err := flattenConfidentialLedgerCertBasedSecurityPrincipal(model.Properties.CertBasedSecurityPrincipals)
-		if err != nil {
-			return fmt.Errorf("error retrieving cert-based users for %s: %+v", resourceId.ID(), err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
-
-		d.Set("aad_based_security_principals", aadBasedUsers)
-		d.Set("cert_based_security_principals", certBasedUsers)
 	}
 
 	return nil

@@ -8,21 +8,29 @@ description: |-
 
 # azurerm_confidential_ledger
 
-Manages an Azure Confidential Ledger.
+Manages a Confidential Ledger.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_confidential_ledger" "ledger" {
-  name                = "MyConfidentialLedger"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  ledger_type         = "Public"
+  name                = "example-ledger"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  ledger_type         = "Private"
+
+  aad_based_security_principals {
+    principal_id     = data.azurerm_client_config.current.object_id
+    tenant_id        = data.azurerm_client_config.current.tenant_id
+    ledger_role_name = "Administrator"
+  }
 }
 ```
 
@@ -32,74 +40,44 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Confidential Ledger. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group where the Confidential Ledger exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Confidential Ledger exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Confidential Ledger exists.
+* `location` - (Required) Specifies the supported Azure location where the Confidential Ledger exists. Changing this forces a new resource to be created.
 
-* `ledger_type` - (Required) Specifies the type of Confidential Ledger. Possible values are "Public" and "Private".
+* `azuread_service_principal` - (Required) A list of `azuread_service_principal` blocks as defined below.
 
-~> **NOTE:** `ledger_type` cannot be changed after the Confidential Ledger has been created.
-
-* `aad_based_security_principals` - (Optional) An `aadBasedSecurityPrincipal` block as defined below.
-
-* `cert_based_security_principals` - (Optional) A `certBasedSecurityPrincipal` block as defined below.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `ledger_type` - (Required) Specifies the type of Confidential Ledger. Possible values are `Private` and `Public`. Changing this forces a new resource to be created.
 
 ---
 
-A `aadBasedSecurityPrincipal` block supports the following:
+* `cert_based_security_principals` - (Optional) A list of `cert_based_security_principals` blocks as defined below.
 
-* `principal_id` - (Required) The identifier for the Azure Activate Directory service principal.
-
-* `tenant_id` - (Required) The identifier for the tenant containing the specificed service principal.
-
-* `ledger_role_name` - (Required) The role to assign to the identity. Possible values are "Administrator", "Contributor", and "Reader".
+* `tags` - (Optional) A mapping of tags to assign to the Confidential Ledger.
 
 ---
 
-A `certBasedSecurityPrincipal` block supports the following:
+A `azuread_based_service_principal` block supports the following:
 
-* `cert` - (Required) The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
+* `ledger_role_name` - (Required) Specifies the Ledger Role to grant this AzureAD Service Principal. Possible values are `Administrator`, `Contributor` and `Reader`.
 
-* `ledger_role_name` - (Required) The role to assign to the identity. Possible values are "Administrator", "Contributor", and "Reader".
+* `principal_id` - (Required) Specifies the Principal ID of the AzureAD Service Principal.
+
+* `tenant_id` - (Required) Specifies the Tenant ID for this AzureAD Service Principal.
+
+---
+
+A `certificate_based_security_principal` block supports the following:
+
+* `ledger_role_name` - (Required) Specifies the Ledger Role to grant this Certificate Security Principal. Possible values are `Administrator`, `Contributor` and `Reader`.
+
+* `pem_public_key` - (Required) The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
 
 ---
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name` - Specifies the name of the Confidential Ledger. Changing this forces a new resource to be created.
-
-* `resource_group_name` - The name of the resource group where the Confidential Ledger exists.
-
-* `location` - Specifies the supported Azure location where the Confidential Ledger exists.
-
-* `ledger_type` - Specifies the type of Confidential Ledger.
-
-* `aad_based_security_principals` - An `aadBasedSecurityPrincipal` block as defined below.
-
-* `cert_based_security_principals` - A `certBasedSecurityPrincipal` block as defined below.
-
-* `tags` - A mapping of tags to assign to the resource.
-
----
-
-A `aadBasedSecurityPrincipal` block supports the following:
-
-* `principal_id` - The identifier for the Azure Activate Directory service principal.
-
-* `tenant_id` - The identifier for the tenant containing the specificed service principal.
-
-* `ledger_role_name` - The role to assign to the identity.
-
----
-
-A `certBasedSecurityPrincipal` block supports the following:
-
-* `cert` - The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
-
-* `ledger_role_name` - The role to assign to the identity.
+* `id` - The ID of this Confidential Ledger.
 
 ## Timeouts
 
@@ -115,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Confidential Ledgers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_confidential_ledger.testLedger /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ledgerRG/providers/Microsoft.ConfidentialLedger/Ledgers/testLedger
+terraform import azurerm_confidential_ledger.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-group/providers/Microsoft.ConfidentialLedger/ledgers/example-ledger
 ```
