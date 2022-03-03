@@ -17,7 +17,7 @@ import (
 
 type BotChannelEmailResource struct{}
 
-func TestAccBotChannelEmail_basic(t *testing.T) {
+func testAccBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
@@ -35,7 +35,7 @@ func TestAccBotChannelEmail_basic(t *testing.T) {
 	})
 }
 
-func TestAccBotChannelEmail_update(t *testing.T) {
+func testAccBotChannelEmail_update(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
