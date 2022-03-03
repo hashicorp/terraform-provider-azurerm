@@ -225,7 +225,14 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
+		skuName := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range servicebus.PossibleSkuNameValues() {
+			if strings.EqualFold(string(v), string(sku.Name)) {
+				skuName = string(v)
+			}
+		}
+		d.Set("sku", skuName)
 		d.Set("capacity", sku.Capacity)
 	}
 
