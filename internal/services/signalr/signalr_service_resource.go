@@ -547,6 +547,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -559,6 +565,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -571,6 +583,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -583,6 +601,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return "Default"
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
