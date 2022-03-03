@@ -10,6 +10,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_batch_job` - fix issue where creation failed when multiple `common_environment_properties` were set [GH-15686]
+* `azurerm_container_group` - fix issue when parsing empty or omitted `dns_config.options` and `dns_config.search_domains` [GH-15618]
 * `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
 * `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
 * `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
