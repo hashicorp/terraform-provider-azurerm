@@ -226,7 +226,7 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "3.6"
   tier                = "Standard"
   rstudio             = true
 
