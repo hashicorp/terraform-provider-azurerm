@@ -94,7 +94,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 					string(sql.SecurityAlertPolicyStateDisabled),
 					string(sql.SecurityAlertPolicyStateEnabled),
 					string(sql.SecurityAlertPolicyStateNew),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

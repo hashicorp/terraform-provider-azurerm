@@ -86,7 +86,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 

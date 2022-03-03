@@ -255,7 +255,7 @@ func schemaAppServiceIdentity() *pluginsdk.Schema {
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
@@ -307,7 +307,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
@@ -340,7 +340,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"JAVA",
 						"JETTY",
 						"TOMCAT",
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
@@ -362,7 +362,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 

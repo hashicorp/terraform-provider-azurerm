@@ -3,8 +3,8 @@ package validate
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 )
 
 // RedisEnterpriseClusterLocationFlashSkuSupport - validates that the passed location supports the flash sku type or not

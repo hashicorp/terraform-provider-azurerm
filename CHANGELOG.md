@@ -1,22 +1,37 @@
-## 2.98.0 (Unreleased)
-
-FEATURES:
-
-* New Beta Resource: `azurerm_function_app_active_slot` [GH-15246]
-* New Beta Resource: `azurerm_web_app_active_slot` [GH-15246]
+## 2.99.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` [GH-15507]
-* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
+* dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
+* `azurem_iothub` - deprecate `ip_filter_rule` in favour of `network_rule_set` [GH-15590]
+* `azurerm_machine_learning_compute_instance` - updating the validation on `name` [GH-14839]
+* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection [GH-15529]
-* `azurerm_firewall_policy` - wait for completion after calling create [GH-15561]
+* `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
+* `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
+
+## 2.98.0 (February 25, 2022)
+
+FEATURES:
+
+* New Beta Resource: `azurerm_function_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
+* New Beta Resource: `azurerm_web_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` ([#15507](https://github.com/hashicorp/terraform-provider-azurerm/issues/15507))
+* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection ([#15529](https://github.com/hashicorp/terraform-provider-azurerm/issues/15529))
+* `azurerm_firewall_policy` - will not wait for resource to finish provisioning after creation ([#15561](https://github.com/hashicorp/terraform-provider-azurerm/issues/15561))
 
 ## 2.97.0 (February 18, 2022)
 

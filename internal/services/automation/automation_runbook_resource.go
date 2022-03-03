@@ -74,7 +74,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(automation.RunbookTypeEnumPowerShell),
 					string(automation.RunbookTypeEnumPowerShellWorkflow),
 					string(automation.RunbookTypeEnumScript),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"log_progress": {

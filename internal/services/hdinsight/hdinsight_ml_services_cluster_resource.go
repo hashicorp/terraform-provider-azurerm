@@ -62,8 +62,11 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 		Read:   resourceHDInsightMLServicesClusterRead,
 		Update: hdinsightClusterUpdate("MLServices", resourceHDInsightMLServicesClusterRead),
 		Delete: hdinsightClusterDelete("MLServices"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

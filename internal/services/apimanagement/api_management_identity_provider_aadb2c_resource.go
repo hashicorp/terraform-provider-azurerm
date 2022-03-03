@@ -23,8 +23,8 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 		Read:   resourceArmApiManagementIdentityProviderAADB2CRead,
 		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
 		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeAadB2C),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

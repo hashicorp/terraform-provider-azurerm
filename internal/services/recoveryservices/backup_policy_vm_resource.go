@@ -90,7 +90,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(backup.ScheduleRunTypeDaily),
 								string(backup.ScheduleRunTypeWeekly),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"time": { // applies to all backup schedules & retention times (they all must be the same)
@@ -183,7 +183,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 									string(backup.WeekOfMonthThird),
 									string(backup.WeekOfMonthFourth),
 									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 							},
 						},
 
@@ -237,7 +237,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 									string(backup.WeekOfMonthThird),
 									string(backup.WeekOfMonthFourth),
 									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 							},
 						},
 
