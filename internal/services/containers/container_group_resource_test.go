@@ -1370,7 +1370,7 @@ resource "azurerm_container_group" "test" {
   }
 
   dns_config {
-    nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
+    nameservers = ["reddog.microsoft.com", "somecompany.somedomain"]
   }
 
   identity {
