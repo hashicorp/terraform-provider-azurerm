@@ -1,7 +1,7 @@
 ---
 subcategory: "Confidential Ledger"
 layout: "azurerm"
-page_title: "Azure Confidential Ledger: azurerm_confidential_ledger"
+page_title: "Confidential Ledger: azurerm_confidential_ledger"
 description: |-
   Manages a Confidential Ledger.
 ---
@@ -72,12 +72,15 @@ A `certificate_based_security_principal` block supports the following:
 
 * `pem_public_key` - (Required) The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
 
----
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of this Confidential Ledger.
+
+* `identity_service_endpoint` - The Identity Service Endpoint for this Confidential Ledger.
+
+* `ledger_endpoint` - The Endpoint for this Confidential Ledger.
 
 ## Timeouts
 
