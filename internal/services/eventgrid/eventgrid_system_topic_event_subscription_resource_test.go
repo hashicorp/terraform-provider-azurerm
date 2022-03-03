@@ -268,7 +268,7 @@ func TestAccEventGridSystemTopicEventSubscription_userIdentity(t *testing.T) {
 
 func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesStatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
-	r := EventGridEventSubscriptionResource{}
+	r := EventGridSystemTopicEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -288,6 +288,36 @@ func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesStatic(t *te
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesMixed(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesWithMultipleTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.system"),
+
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-secret!"),
+			),
+		},
+		data.ImportStep("delivery_property.2.value"),
 	})
 }
 
@@ -1292,7 +1322,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
+func (EventGridSystemTopicEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1352,6 +1382,75 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     secret      = false
   }
   
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesWithMultipleTypes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_queue_endpoint {
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
+  }
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name  = "test-dynamic-1"
+    type         = "Dynamic"
+    source_field = "data.system"
+  }
+  
+  delivery_property {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "this-value-is-secret!"
+    secret      = true
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
