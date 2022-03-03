@@ -259,7 +259,10 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 
 			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, fnEnvelope)
 			if err != nil {
-				fn, _ := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				fn, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading parent %s: %+v", appId, err)
+				}
 				return fmt.Errorf("creating %s - State: %#v / InProgressOperationID: %#v", id, *fn.SiteProperties.State, fn.SiteProperties.InProgressOperationID)
 			}
 

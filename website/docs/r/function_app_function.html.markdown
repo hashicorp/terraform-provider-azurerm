@@ -122,7 +122,7 @@ resource "azurerm_windows_function_app" "test" {
 resource "azurerm_function_app_function" "example" {
   name            = "example-function-app-function"
   function_app_id = azurerm_linux_function_app.example.id
-  language        = "Python"
+  language        = "CSharp"
 
   file {
     name    = "run.csx"

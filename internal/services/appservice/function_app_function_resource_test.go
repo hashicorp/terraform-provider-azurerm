@@ -137,7 +137,7 @@ resource "azurerm_function_app_function" "test" {
     ]
   })
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
 func (r FunctionAppFunctionResource) basicUpdate(data acceptance.TestData) string {
@@ -176,7 +176,7 @@ resource "azurerm_function_app_function" "test" {
     ]
   })
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
 func (r FunctionAppFunctionResource) withLocalFiles(data acceptance.TestData) string {
@@ -236,7 +236,7 @@ resource "azurerm_function_app_function" "import" {
 `, r.basic(data))
 }
 
-func (r FunctionAppFunctionResource) template(data acceptance.TestData) string {
+func (r FunctionAppFunctionResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"
