@@ -266,6 +266,31 @@ func TestAccEventGridSystemTopicEventSubscription_userIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesStatic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-2"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.1.value").HasValue("string"),
+				check.That(data.ResourceName).Key("delivery_property.1.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SystemTopicEventSubscriptionID(state.ID)
 	if err != nil {
@@ -1263,6 +1288,70 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.sender
   ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_queue_endpoint {
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
+  }
+
+  delivery_property {
+    header_name = "test-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name = "test-2"
+    type        = "Static"
+    value       = "string"
+    secret      = false
+  }
+  
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
