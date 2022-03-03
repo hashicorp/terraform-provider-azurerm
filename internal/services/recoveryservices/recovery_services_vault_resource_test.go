@@ -384,7 +384,7 @@ resource "azurerm_key_vault" "test" {
       "Verify",
     ]
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
