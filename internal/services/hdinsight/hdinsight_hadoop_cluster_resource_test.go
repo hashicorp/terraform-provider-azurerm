@@ -700,7 +700,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_hadoop_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -791,7 +790,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -842,7 +840,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -911,7 +908,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -982,7 +978,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1048,7 +1043,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1107,7 +1101,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1168,7 +1161,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1620,7 +1612,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1706,7 +1697,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1794,7 +1784,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1856,7 +1845,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
