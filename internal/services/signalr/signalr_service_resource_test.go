@@ -289,9 +289,6 @@ func TestAccSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 	config := r.withServiceMode(data, "Serverless")
-	if features.ThreePointOhBeta() {
-		config = r.withServiceModeThreePointOh(data, "Serverless")
-	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: config,
@@ -385,9 +382,6 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 	config := r.withUpstreamEndpoints(data)
-	if features.ThreePointOhBeta() {
-		config = r.withUpstreamEndpointsThreePointOh(data)
-	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: config,
@@ -527,57 +521,40 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func (r SignalRServiceResource) withServiceMode(data acceptance.TestData, serviceMode string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Free_F1"
-    capacity = 1
-  }
-
+	featuresSnippet := fmt.Sprintf(`
   features {
     flag  = "ServiceMode"
     value = "%s"
   }
-
   features {
     flag  = "EnableConnectivityLogs"
     value = "False"
   }
-
   features {
     flag  = "EnableMessagingLogs"
     value = "False"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
-}
+`, serviceMode)
+	if features.ThreePointOhBeta() {
+		featuresSnippet = fmt.Sprintf(`
+  service_mode = "%s"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled = false
+`, serviceMode)
+	}
 
-func (r SignalRServiceResource) withServiceModeThreePointOh(data acceptance.TestData, serviceMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
+  name                = "acctestSignalR-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -585,46 +562,15 @@ resource "azurerm_signalr_service" "test" {
     name     = "Free_F1"
     capacity = 1
   }
-  service_mode = "%s"
-  #features {
-  # flag  = "ServiceMode"
-  # value = "%s"
-  #}
-  connectivity_logs_enabled = false
-  #features {
-  #  flag  = "EnableConnectivityLogs"
-  #  value = "False"
-  #}
-  messaging_logs_enabled = false
-  #features {
-  #  flag  = "EnableMessagingLogs"
-  #  value = "False"
-  #}
+
+  %[3]s
+
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode, serviceMode)
+`, data.RandomInteger, data.Locations.Primary, featuresSnippet)
 }
 
 func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Free_F1"
-    capacity = 1
-  }
-
+	featuresSnippet := `
   features {
     flag  = "ServiceMode"
     value = "Serverless"
@@ -639,39 +585,15 @@ resource "azurerm_signalr_service" "test" {
     flag  = "EnableMessagingLogs"
     value = "False"
   }
+`
+	if features.ThreePointOhBeta() {
+		featuresSnippet = `
+  service_mode = "Serverless"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled = false
+`
+	}
 
-  upstream_endpoint {
-    category_pattern = ["*"]
-    event_pattern    = ["*"]
-    hub_pattern      = ["*"]
-    url_template     = "http://foo.com/{hub}/api/{category}/{event}"
-  }
-
-  upstream_endpoint {
-    category_pattern = ["connections", "messages"]
-    event_pattern    = ["*"]
-    hub_pattern      = ["hub1"]
-    url_template     = "http://foo.com"
-  }
-
-  upstream_endpoint {
-    category_pattern = ["*"]
-    event_pattern    = ["connect", "disconnect"]
-    hub_pattern      = ["hub1", "hub2"]
-    url_template     = "http://foo3.com"
-  }
-
-  upstream_endpoint {
-    category_pattern = ["connections"]
-    event_pattern    = ["disconnect"]
-    hub_pattern      = ["*"]
-    url_template     = "http://foo4.com"
-  }
-}
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r SignalRServiceResource) withUpstreamEndpointsThreePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -691,21 +613,8 @@ resource "azurerm_signalr_service" "test" {
     name     = "Free_F1"
     capacity = 1
   }
-  service_mode = "Serverless"
-  #features {
-  #  flag  = "ServiceMode"
-  #  value = "Serverless"
-  #}
-  connectivity_logs_enabled = false
-  #features {
-  #  flag  = "EnableConnectivityLogs"
-  #  value = "False"
-  #}
-  messaging_logs_enabled = false
-  #features {
-  #  flag  = "EnableMessagingLogs"
-  #  value = "False"
-  #}
+
+  %s
 
   upstream_endpoint {
     category_pattern = ["*"]
@@ -735,7 +644,7 @@ resource "azurerm_signalr_service" "test" {
     url_template     = "http://foo4.com"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, featuresSnippet)
 }
 
 func (r SignalRServiceResource) withFeatureFlags(data acceptance.TestData) string {
