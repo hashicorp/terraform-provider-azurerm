@@ -20,8 +20,9 @@ ENHANCEMENTS:
 * Data source `azurerm_servicebus_subscription` - added `topic_id` property [GH-15671]
 * Data source `azurerm_servicebus_topic` - added `namespace_id` property [GH-15671]
 * Data source `azurerm_servicebus_topic_authorization_rule` - added `topic_id` property [GH-15671]
-* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
+* `azurerm_lb_nat_rule` - `frontend_port` and `backend_port` now support `0` [GH-15694]
 * `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment`, `azurerm_subscription_policy_assignment` - `parameters` can now be updated [GH-15623]
+* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
 
 BUG FIXES:
 
