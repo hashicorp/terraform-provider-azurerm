@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -427,7 +426,7 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	comprssionEnabled := v["compression_enabled"].(bool)
 
 	cacheConfiguration := &track1.AfdRouteCacheConfiguration{
-		QueryParameters:            expandFrontdoorRouteQueryParameters(v["query_strings"].([]interface{})),
+		QueryParameters:            ExpandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
@@ -443,17 +442,6 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	return cacheConfiguration
 }
 
-func expandFrontdoorRouteQueryParameters(input []interface{}) *string {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := utils.ExpandStringSlice(input)
-	csv := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(*v)), ","), "[]")
-
-	return &csv
-}
-
 func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.ActivatedResourceReference {
 	results := make([]track1.ActivatedResourceReference, 0)
 	for _, item := range input {
@@ -464,21 +452,6 @@ func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.A
 		})
 	}
 	return &results
-}
-
-func flattenFrontdoorRouteQueryParameters(input *string) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	v := strings.Split(*input, ",")
-
-	for _, s := range v {
-		results = append(results, s)
-	}
-
-	return results
 }
 
 func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResourceReference) []interface{} {
@@ -540,7 +513,7 @@ func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfigur
 	result := make(map[string]interface{})
 
 	if input.QueryParameters != nil {
-		result["query_strings"] = flattenFrontdoorRouteQueryParameters(input.QueryParameters)
+		result["query_strings"] = FlattenCsvToStringSlice(input.QueryParameters)
 	}
 
 	if input.QueryStringCachingBehavior != "" {

@@ -35,12 +35,6 @@ resource "azurerm_frontdoor_rule" "test" {
   match_processing_behavior = "Continue"
 
   actions {
-    cache_expiration_action {
-      cache_behavior = "SetIfMissing"
-      cache_type     = "All"
-      cache_duration = "5.23:59:59"
-    }
-
     url_redirect_action {
       redirect_type        = "PermanentRedirect"
       destination_protocol = "MatchRequest"
@@ -50,9 +44,7 @@ resource "azurerm_frontdoor_rule" "test" {
       destination_fragment = "UrlRedirect"
     }
 
-    origin_group_override_action {
-      origin_group_id = azurerm_frontdoor_origin_group.test.id
-    }
+
   }
 
   conditions {
@@ -118,21 +110,15 @@ An `actions` block supports the following:
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
-* `url_signing_action` - (Optional) A `url_signing_action` block as defined below.
-
 * `url_rewrite_action` - (Optional) A `url_rewrite_action` block as defined below.
 
 * `url_redirect_action` - (Optional) A `url_redirect_action` block as defined below.
 
-* `origin_group_override_action` - (Optional) A `origin_group_override_action` block as defined below.
+* `route_configuration_override_action` - (Optional) A `route_configuration_override_action` block as defined below.
 
 * `request_header_action` - (Optional) A `request_header_action` block as defined below.
 
 * `response_header_action` - (Optional) A `response_header_action` block as defined below.
-
-* `cache_expiration_action` - (Optional) A `cache_expiration_action` block as defined below.
-
-* `cache_key_query_string_action` - (Optional) A `cache_key_query_string_action` block as defined below.
 
 ---
 
@@ -152,19 +138,25 @@ A `url_redirect_action` block supports the following:
 
 ---
 
-A `url_signing_action` block supports the following:
+A `route_configuration_override_action` block supports the following:
 
-* `algorithm` - (Optional) The algorithm to use for URL signing. Possible value is `SHA256`. Defaults to `SHA256`.
+* `origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
 
-* `parameter_name_override` - (Required) One or more `parameter_name_override` blocks as defined below.
+* `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
-~>**NOTE:** The `parameter_name_override` defines which query string parameters in the URL to be considered for expires.
+* `query_string_caching_behavior` - (Optional)  `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` guery strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
 
----
+* `query_string_parameters` - (Optional) A list of query string parameter names.
 
-A `origin_group_override_action` block supports the following:
+~>**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
-* `origin_group_id` - (Required) The origin group that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
+* `compression_enabled` - (Optional) Should Frontdoor dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
+
+~>**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
+
+* `cache_behavior` - (Optional) `HonorOrigin` Frontdoor will always honor origin response header directive. If the origin directive is missing, Frontdoor will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
+
+* `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.hh:mm:ss` format(e.g. `365.23:59:59`). 
 
 ---
 
@@ -195,26 +187,6 @@ A `request_header_action` block supports the following:
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Required) The value to append or overwrite.
-
----
-
-* A `cache_expiration_action` block supports the following:
-
-*  `cache_behavior` - (Optional) Possible values include `BypassCache`, `Override`, `SetIfMissing`. `Bypass` the content should not be cached. `Override` the TTL value returned from your origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `SetIfMissing` if no TTL value gets returned from your origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Defaults to `SetIfMissing`.
-
-* `cache_type` - (Optional) The type of cache this action should apply to. Possible value `All`. Defaults to `All`.
-
-* `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.hh:mm:ss` format.
-
----
-
-* A `cache_key_query_string_action` block supports the following:
-
-* `query_string_behavior` - (Optional) `Include` query strings specified in the parameters get included when the cache key gets generated. `IncludeAll` cache every unique URL, each unique URL will have its own cache key. `Exclude` query strings specified in the parameters get excluded when the cache key gets generated. `ExcludeAll` guery strings aren't considered when the cache key gets generated. Possible values inclued `Include`, `IncludeAll`, `Exclude`  or `ExcludeAll`. Defaults to `ExcludeAll`.
-
-* `query_string_parameters` - (Optional) A list of query string parameter names.
-
-~>**NOTE:** `query_string_parameters` is a required field when the `query_string_behavior` is set to `Include` or `Exclude`.
 
 ---
 
@@ -257,6 +229,36 @@ A `conditions` block supports the following:
 * `cookies_condition` - (Optional) A `cookies_condition` block as defined below.
 
 * `is_device_condition` - (Optional) A `is_device_condition` block as defined below.
+
+* `socket_addr_condition` - (Optional) A `socket_addr_condition` block as defined below.
+
+* `client_port_condition` - (Optional) A `client_port_condition` block as defined below.
+
+* `server_port_condition` - (Optional) A `server_port_condition` block as defined below.
+
+* `host_name_condition` - (Optional) A `host_name_condition` block as defined below.
+
+* `ssl_protocol_condition` - (Optional) A `ssl_protocol_condition` block as defined below.
+
+---
+
+A `ssl_protocol_condition` block supports the following:
+
+---
+
+A `host_name_condition` block supports the following:
+
+---
+
+A `server_port_condition` block supports the following:
+
+---
+
+A `client_port_condition` block supports the following:
+
+---
+
+A `socket_addr_condition` block supports the following:
 
 ---
 
@@ -502,7 +504,7 @@ Server variables can be specified using the following formats:
 
 Action Server variables are supported on the following actions:
 
-* `cache_key_query_string_action`
+* `route_configuration_override_action`
 * `request_header_action`
 * `response_header_action`
 * `url_redirect_action`
@@ -577,7 +579,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Rule.
 
-* `rule_set_name` - The name of the Frontdoor Rule Set containing this Frontdoor Rule.
+* `frontdoor_rule_set_name` - The name of the Frontdoor Rule Set containing this Frontdoor Rule.
 
 ## Timeouts
 

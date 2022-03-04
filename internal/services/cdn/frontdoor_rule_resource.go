@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -86,6 +87,8 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
+						// Name: UrlRedirect
+						// DeliveryRuleUrlRedirectActionParameters
 						"url_redirect_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -148,70 +151,8 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"url_signing_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"algorithm": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(track1.AlgorithmSHA256),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.AlgorithmSHA256),
-										}, false),
-									},
-
-									"parameter_name_override": {
-										Type:     pluginsdk.TypeList,
-										Required: true,
-										MaxItems: 100,
-
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-
-												"param_name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"param_indicator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(track1.ParamIndicatorExpires),
-														string(track1.ParamIndicatorKeyID),
-														string(track1.ParamIndicatorSignature),
-													}, false),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
-						"origin_group_override_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"origin_group_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validate.FrontdoorOriginGroupID,
-									},
-								},
-							},
-						},
-
+						// Name: URLRewrite
+						// URLRewriteAction
 						"url_rewrite_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -241,6 +182,8 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// Name: ModifyRequestHeader
+						// DeliveryRuleRequestHeaderAction
 						"request_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -274,6 +217,8 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
+						// Name: ModifyResponseHeader (NameBasicDeliveryRuleActionNameModifyResponseHeader)
+						// DeliveryRuleResponseHeaderAction
 						"response_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -282,32 +227,33 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"header_action": {
+									"origin_group_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.FrontdoorOriginGroupID,
+									},
+
+									"redirect_protocol": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
+										Default:  string(track1.DestinationProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.HeaderActionAppend),
-											string(track1.HeaderActionOverwrite),
-											string(track1.HeaderActionDelete),
+											string(track1.DestinationProtocolMatchRequest),
+											string(track1.DestinationProtocolHTTP),
+											string(track1.DestinationProtocolHTTPS),
 										}, false),
-									},
-
-									"header_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"value": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
 						},
 
-						"cache_expiration_action": {
+						// 'Cache_Expiration’, ‘Cache_Key_Query_String’ and ‘Origin_Group_Override' Actions
+						// are only supported in the 2020-09-01 API version. All calls for these Actions
+						// will fail 90 days after GA of the AFDx service.
+
+						// Name: RouteConfigurationOverride (NameBasicDeliveryRuleActionNameRouteConfigurationOverride)
+						// DeliveryRuleRouteConfigurationOverrideAction
+						"route_configuration_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -315,53 +261,32 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"cache_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(track1.CacheBehaviorSetIfMissing),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.CacheBehaviorBypassCache),
-											string(track1.CacheBehaviorOverride),
-											string(track1.CacheBehaviorSetIfMissing),
-										}, false),
-									},
-
-									"cache_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  "All",
-										ValidateFunc: validation.StringInSlice([]string{
-											"All",
-										}, false),
-									},
-
-									// Allowed format is d.hh:mm:ss, maximum duration is 366 days
-									"cache_duration": {
+									"origin_group_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: ValidateFrontdoorCacheDuration,
+										ValidateFunc: validate.FrontdoorOriginGroupID,
 									},
-								},
-							},
-						},
 
-						"cache_key_query_string_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"query_string_behavior": {
+									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.QueryStringBehaviorExcludeAll),
+										Default:  string(track1.ForwardingProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.QueryStringBehaviorInclude),
-											string(track1.QueryStringBehaviorIncludeAll),
-											string(track1.QueryStringBehaviorExclude),
-											string(track1.QueryStringBehaviorExcludeAll),
+											string(track1.ForwardingProtocolHTTPOnly),
+											string(track1.ForwardingProtocolHTTPSOnly),
+											string(track1.ForwardingProtocolMatchRequest),
+										}, false),
+									},
+
+									"query_string_caching_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
+											string(track1.RuleQueryStringCachingBehaviorUseQueryString),
+											string(track1.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+											string(track1.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
 										}, false),
 									},
 
@@ -376,10 +301,35 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 										},
 									},
+
+									// Content won't be compressed on AzureFrontDoor when requested content is smaller than 1 byte or larger than 1 MB.
+									"compression_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"cache_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(track1.RuleCacheBehaviorHonorOrigin),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(track1.RuleCacheBehaviorHonorOrigin),
+											string(track1.RuleCacheBehaviorOverrideAlways),
+											string(track1.RuleCacheBehaviorOverrideIfOriginMissing),
+										}, false),
+									},
+
+									// Allowed format is d.hh:mm:ss, maximum duration is 366 days
+									"cache_duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: ValidateFrontdoorCacheDuration,
+									},
 								},
 							},
 						},
-					},
+					}, // end of Actions
 				},
 			},
 
@@ -808,7 +758,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				},
 			},
 
-			"rule_set_name": {
+			"frontdoor_rule_set_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -842,9 +792,14 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
+	if err != nil {
+		return tf.ImportAsExistsError("error expanding actions", id.ID())
+	}
+
 	props := track1.Rule{
 		RuleProperties: &track1.RuleProperties{
-			Actions:                 expandOptionalRuleDeliveryRuleActionArray(d.Get("actions").([]interface{})),
+			Actions:                 &actions,
 			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
 			RuleSetName:             &ruleSetId.RuleSetName,
@@ -891,7 +846,7 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if props := resp.RuleProperties; props != nil {
 		d.Set("match_processing_behavior", props.MatchProcessingBehavior)
 		d.Set("order", props.Order)
-		d.Set("rule_set_name", props.RuleSetName)
+		d.Set("frontdoor_rule_set_name", props.RuleSetName)
 
 		if err := d.Set("actions", flattenRuleDeliveryRuleActionArray(props.Actions)); err != nil {
 			return fmt.Errorf("setting `actions`: %+v", err)
@@ -964,91 +919,184 @@ func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]track1.BasicDe
 		return &results
 	}
 
-	conditions := utils.ExpandStringSlice(input)
+	// conditions := utils.ExpandStringSlice(input)
 
-	for _, condition := range *conditions {
+	// for _, condition := range *conditions {
 
-		switch condition {
-		case string(track1.NameSslProtocol):
-			var drspc track1.DeliveryRuleSslProtocolCondition
-			results = append(results, drspc)
-		case string(track1.NameHostName):
-			var drhnc track1.DeliveryRuleHostNameCondition
-			results = append(results, drhnc)
-		case string(track1.NameServerPort):
-			var drspc track1.DeliveryRuleServerPortCondition
-			results = append(results, drspc)
-		case string(track1.NameClientPort):
-			var drcpc track1.DeliveryRuleClientPortCondition
-			results = append(results, drcpc)
-		case string(track1.NameSocketAddr):
-			var drsac track1.DeliveryRuleSocketAddrCondition
-			results = append(results, drsac)
-		case string(track1.NameIsDevice):
-			var dridc track1.DeliveryRuleIsDeviceCondition
-			results = append(results, dridc)
-		case string(track1.NameCookies):
-			var drcc track1.DeliveryRuleCookiesCondition
-			results = append(results, drcc)
-		case string(track1.NameHTTPVersion):
-			var drhvc track1.DeliveryRuleHTTPVersionCondition
-			results = append(results, drhvc)
-		case string(track1.NameURLFileName):
-			var drufnc track1.DeliveryRuleURLFileNameCondition
-			results = append(results, drufnc)
-		case string(track1.NameURLFileExtension):
-			var drufec track1.DeliveryRuleURLFileExtensionCondition
-			results = append(results, drufec)
-		case string(track1.NameURLPath):
-			var drupc track1.DeliveryRuleURLPathCondition
-			results = append(results, drupc)
-		case string(track1.NameRequestScheme):
-			var drrsc track1.DeliveryRuleRequestSchemeCondition
-			results = append(results, drrsc)
-		case string(track1.NameRequestBody):
-			var drrbc track1.DeliveryRuleRequestBodyCondition
-			results = append(results, drrbc)
-		case string(track1.NameRequestHeader):
-			var drrhc track1.DeliveryRuleRequestHeaderCondition
-			results = append(results, drrhc)
-		case string(track1.NameRequestURI):
-			var drruc track1.DeliveryRuleRequestURICondition
-			results = append(results, drruc)
-		case string(track1.NamePostArgs):
-			var drpac track1.DeliveryRulePostArgsCondition
-			results = append(results, drpac)
-		case string(track1.NameQueryString):
-			var drqsc track1.DeliveryRuleQueryStringCondition
-			results = append(results, drqsc)
-		case string(track1.NameRequestMethod):
-			var drrmc track1.DeliveryRuleRequestMethodCondition
-			results = append(results, drrmc)
-		case string(track1.NameRemoteAddress):
-			var drrac track1.DeliveryRuleRemoteAddressCondition
-			results = append(results, drrac)
-		default:
-			var drc track1.DeliveryRuleCondition
-			results = append(results, drc)
-		}
+	// 	switch condition {
+	// 	case string(track1.NameSslProtocol):
+	// 		var drspc track1.DeliveryRuleSslProtocolCondition
+	// 		results = append(results, drspc)
+	// 	case string(track1.NameHostName):
+	// 		var drhnc track1.DeliveryRuleHostNameCondition
+	// 		results = append(results, drhnc)
+	// 	case string(track1.NameServerPort):
+	// 		var drspc track1.DeliveryRuleServerPortCondition
+	// 		results = append(results, drspc)
+	// 	case string(track1.NameClientPort):
+	// 		var drcpc track1.DeliveryRuleClientPortCondition
+	// 		results = append(results, drcpc)
+	// 	case string(track1.NameSocketAddr):
+	// 		var drsac track1.DeliveryRuleSocketAddrCondition
+	// 		results = append(results, drsac)
+	// 	case string(track1.NameIsDevice):
+	// 		var dridc track1.DeliveryRuleIsDeviceCondition
+	// 		results = append(results, dridc)
+	// 	case string(track1.NameCookies):
+	// 		var drcc track1.DeliveryRuleCookiesCondition
+	// 		results = append(results, drcc)
+	// 	case string(track1.NameHTTPVersion):
+	// 		var drhvc track1.DeliveryRuleHTTPVersionCondition
+	// 		results = append(results, drhvc)
+	// 	case string(track1.NameURLFileName):
+	// 		var drufnc track1.DeliveryRuleURLFileNameCondition
+	// 		results = append(results, drufnc)
+	// 	case string(track1.NameURLFileExtension):
+	// 		var drufec track1.DeliveryRuleURLFileExtensionCondition
+	// 		results = append(results, drufec)
+	// 	case string(track1.NameURLPath):
+	// 		var drupc track1.DeliveryRuleURLPathCondition
+	// 		results = append(results, drupc)
+	// 	case string(track1.NameRequestScheme):
+	// 		var drrsc track1.DeliveryRuleRequestSchemeCondition
+	// 		results = append(results, drrsc)
+	// 	case string(track1.NameRequestBody):
+	// 		var drrbc track1.DeliveryRuleRequestBodyCondition
+	// 		results = append(results, drrbc)
+	// 	case string(track1.NameRequestHeader):
+	// 		var drrhc track1.DeliveryRuleRequestHeaderCondition
+	// 		results = append(results, drrhc)
+	// 	case string(track1.NameRequestURI):
+	// 		var drruc track1.DeliveryRuleRequestURICondition
+	// 		results = append(results, drruc)
+	// 	case string(track1.NamePostArgs):
+	// 		var drpac track1.DeliveryRulePostArgsCondition
+	// 		results = append(results, drpac)
+	// 	case string(track1.NameQueryString):
+	// 		var drqsc track1.DeliveryRuleQueryStringCondition
+	// 		results = append(results, drqsc)
+	// 	case string(track1.NameRequestMethod):
+	// 		var drrmc track1.DeliveryRuleRequestMethodCondition
+	// 		results = append(results, drrmc)
+	// 	case string(track1.NameRemoteAddress):
+	// 		var drrac track1.DeliveryRuleRemoteAddressCondition
+	// 		results = append(results, drrac)
+	// 	default:
+	// 		var drc track1.DeliveryRuleCondition
+	// 		results = append(results, drc)
+	// 	}
 
-		results = append(results, track1.DeliveryRuleCondition{
-			Name: track1.Name(condition),
-		})
-	}
+	// 	results = append(results, track1.DeliveryRuleCondition{
+	// 		Name: track1.Name(condition),
+	// 	})
+	// }
 
 	return &results
 }
 
-// TODO: Get this actually working with new schema
-func expandOptionalRuleDeliveryRuleActionArray(input []interface{}) *[]track1.BasicDeliveryRuleAction {
-	result := make([]track1.BasicDeliveryRuleAction, 0)
-	if len(input) == 0 {
+func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeliveryRuleAction, error) {
+	actions := make([]track1.BasicDeliveryRuleAction, 0)
 
-		return &result
+	type expandFunc func(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error)
+
+	actionTypes := map[string]expandFunc{
+		"route_configuration_override_action": frontdoorruleactions.ExpandFrontdoorRouteConfigurationOverrideAction,
+		"request_header_action":               frontdoorruleactions.ExpandFrontdoorRequestHeaderAction,
+		"response_header_action":              frontdoorruleactions.ExpandFrontdoorResponseHeaderAction,
+		"url_redirect_action":                 frontdoorruleactions.ExpandFrontdoorUrlRedirectAction,
+		"url_rewrite_action":                  frontdoorruleactions.ExpandFrontdoorUrlRewriteAction,
 	}
 
-	result = append(result, track1.BasicDeliveryRuleAction(expandRuleDeliveryRuleActions(input)))
-	return &result
+	foo := input[0].(map[string]interface{})
+
+	for actionTypeName, expandFunc := range actionTypes {
+		raw := foo[actionTypeName].([]interface{})
+		expanded, err := expandFunc(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		actions = append(actions, *expanded...)
+	}
+
+	return actions, nil
+}
+
+func flattenFrontdoorActions(actions *[]track1.BasicDeliveryRuleAction) (*map[string][]interface{}, error) {
+	type flattenFunc = func(track1.BasicDeliveryRuleAction) (*map[string]interface{}, error)
+	type validateFunc = func(track1.BasicDeliveryRuleAction) bool
+
+	actionTypes := map[string]struct {
+		flattenFunc  flattenFunc
+		validateFunc validateFunc
+	}{
+		"route_configuration_override": {
+			flattenFunc: frontdoorruleactions.FlattenFrontdoorRouteConfigurationOverrideAction,
+			validateFunc: func(action track1.BasicDeliveryRuleAction) bool {
+				_, ok := action.AsDeliveryRuleRouteConfigurationOverrideAction()
+				return ok
+			},
+		},
+		"request_header_action": {
+			flattenFunc: frontdoorruleactions.FlattenFrontdoorRequestHeaderAction,
+			validateFunc: func(action track1.BasicDeliveryRuleAction) bool {
+				_, ok := action.AsDeliveryRuleRequestHeaderAction()
+				return ok
+			},
+		},
+		"response_header_action": {
+			flattenFunc: frontdoorruleactions.FlattenFrontdoorResponseHeaderAction,
+			validateFunc: func(action track1.BasicDeliveryRuleAction) bool {
+				_, ok := action.AsDeliveryRuleResponseHeaderAction()
+				return ok
+			},
+		},
+		"url_redirect_action": {
+			flattenFunc: frontdoorruleactions.FlattenFrontdoorUrlRedirectAction,
+			validateFunc: func(action track1.BasicDeliveryRuleAction) bool {
+				_, ok := action.AsURLRedirectAction()
+				return ok
+			},
+		},
+		"url_rewrite_action": {
+			flattenFunc: frontdoorruleactions.FlattenFrontdoorUrlRewriteAction,
+			validateFunc: func(action track1.BasicDeliveryRuleAction) bool {
+				_, ok := action.AsURLRewriteAction()
+				return ok
+			},
+		},
+	}
+
+	// first ensure there's a map for all of the keys
+	output := make(map[string][]interface{})
+	for actionName := range actionTypes {
+		output[actionName] = make([]interface{}, 0)
+	}
+
+	// intentionally bail here now we have defaults populated
+	if actions == nil {
+		return &output, nil
+	}
+
+	// then iterate over all the actions and map them as necessary
+	for _, action := range *actions {
+		for actionName, actionType := range actionTypes {
+			suitable := actionType.validateFunc(action)
+			if !suitable {
+				continue
+			}
+
+			mapped, err := actionType.flattenFunc(action)
+			if err != nil {
+				return nil, err
+			}
+
+			output[actionName] = append(output[actionName], mapped)
+			break
+		}
+	}
+
+	return &output, nil
 }
 
 func expandRequiredRuleDeliveryRuleActionArray(input []interface{}) *[]track1.BasicDeliveryRuleAction {

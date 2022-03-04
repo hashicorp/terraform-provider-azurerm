@@ -53,6 +53,34 @@ func expandResourceReference(input string) *track1.ResourceReference {
 	}
 }
 
+// Takes a Slice of strings and transforms it into a CSV formatted string.
+func ExpandStringSliceToCsvFormat(input []interface{}) *string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := utils.ExpandStringSlice(input)
+	csv := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(*v)), ","), "[]")
+
+	return &csv
+}
+
+// Takes a CSV formatted string and transforms it into a Slice of strings.
+func FlattenCsvToStringSlice(input *string) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	v := strings.Split(*input, ",")
+
+	for _, s := range v {
+		results = append(results, s)
+	}
+
+	return results
+}
+
 func flattenResourceReference(input *track1.ResourceReference) string {
 	result := ""
 	if input == nil {
