@@ -64,13 +64,13 @@ resource "azurerm_web_app_hybrid_connection" "example" {
 
 The following arguments are supported:
 
-* `hostname` - (Required) The hostname of the endpoint.
-
-* `port` - (Required) The port to use for the endpoint
+* `web_app_id` - (Required) The ID of the Web App for this Hybrid Connection. Changing this forces a new resource to be created.
 
 * `relay_id` - (Required) The ID of the Relay Hybrid Connection to use. Changing this forces a new resource to be created.
 
-* `web_app_id` - (Required) The ID of the Web App for this Hybrid Connection. Changing this forces a new resource to be created.
+* `hostname` - (Required) The hostname of the endpoint.
+
+* `port` - (Required) The port to use for the endpoint.
 
 ---
 

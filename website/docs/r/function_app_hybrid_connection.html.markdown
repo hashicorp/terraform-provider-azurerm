@@ -57,9 +57,9 @@ resource "azurerm_windows_function_app" "example" {
 
 resource "azurerm_function_app_hybrid_connection" "example" {
   function_app_id = azurerm_windows_web_app.example.id
-  relay_id   = azurerm_relay_hybrid_connection.example.id
-  hostname   = "myhostname.example"
-  port       = 8081
+  relay_id        = azurerm_relay_hybrid_connection.example.id
+  hostname        = "myhostname.example"
+  port            = 8081
 }
 ```
 
@@ -69,11 +69,11 @@ The following arguments are supported:
 
 * `function_app_id` - (Required) The ID of the Function App for this Hybrid Connection. Changing this forces a new resource to be created.
 
+* `relay_id` - (Required) The ID of the Relay Hybrid Connection to use. Changing this forces a new resource to be created.
+
 * `hostname` - (Required) The hostname of the endpoint.
 
 * `port` - (Required) The port to use for the endpoint
-
-* `relay_id` - (Required) The ID of the Relay Hybrid Connection to use. Changing this forces a new resource to be created.
 
 ---
 
