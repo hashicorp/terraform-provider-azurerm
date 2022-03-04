@@ -11,6 +11,13 @@ ENHANCEMENTS:
 * `azurerm_machine_learning_compute_instance` - updating the validation on `name` [GH-14839]
 * `azurerm_mssql_database_extended_auditing_policy` - support for the `enabled` property [GH-15624]
 * `azurerm_mssql_server_extended_auditing_policy` - support for the `enabled` property [GH-15624]
+* Data source `azurerm_servicebus_namespace_authorization_rule` - added `namespace_id` property [GH-15671]
+* Data source `azurerm_servicebus_namespace_disaster_recovery_config` - added `namespace_id` property [GH-15671]
+* Data source `azurerm_servicebus_queue` - added `namespace_id` property [GH-15671]
+* Data source `azurerm_servicebus_queue_authorization_rule` - added `queue_id` property [GH-15671]
+* Data source `azurerm_servicebus_subscription` - added `topic_id` property [GH-15671]
+* Data source `azurerm_servicebus_topic` - added `namespace_id` property [GH-15671]
+* Data source `azurerm_servicebus_topic_authorization_rule` - added `topic_id` property [GH-15671]
 * `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
 * `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment`, `azurerm_subscription_policy_assignment` - `parameters` can now be updated [GH-15623]
 
