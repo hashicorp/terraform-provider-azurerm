@@ -482,13 +482,15 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 		password = d.Get("gateway.0.password").(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":  enabled,
-			"username": username,
-			"password": password,
-		},
+	out := map[string]interface{}{
+		"username": username,
+		"password": password,
 	}
+	if !features.ThreePointOhBeta() {
+		out["enabled"] = enabled
+	}
+
+	return []interface{}{out}
 }
 
 func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
