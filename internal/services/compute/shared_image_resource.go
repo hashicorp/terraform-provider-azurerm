@@ -161,7 +161,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"support_accelerated_network": {
+			"accelerated_network_support_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -201,7 +201,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Value: utils.String("TrustedLaunch"),
 		})
 	}
-	if d.Get("support_accelerated_network").(bool) {
+	if d.Get("accelerated_network_support_enabled").(bool) {
 		features = append(features, compute.GalleryImageFeature{
 			Name:  utils.String("IsAcceleratedNetworkSupported"),
 			Value: utils.String("true"),
@@ -290,7 +290,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		trustedLaunchEnabled := false
-		supportAcceleratedNetwork := false
+		acceleratedNetworkSupportEnabled := false
 		if features := props.Features; features != nil {
 			for _, feature := range *features {
 				if feature.Name == nil || feature.Value == nil {
@@ -302,12 +302,12 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				}
 
 				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
-					supportAcceleratedNetwork = strings.EqualFold(*feature.Value, "true")
+					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 				}
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-		d.Set("support_accelerated_network", supportAcceleratedNetwork)
+		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

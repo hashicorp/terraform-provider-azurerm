@@ -110,12 +110,12 @@ func TestAccSharedImage_withTrustedLaunchEnabled(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_withSupportAcceleratedNetwork(t *testing.T) {
+func TestAccSharedImage_withAcceleratedNetworkSupportEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withSupportAcceleratedNetwork(data),
+			Config: r.withAcceleratedNetworkSupportEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -314,7 +314,7 @@ resource "azurerm_shared_image" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (SharedImageResource) withSupportAcceleratedNetwork(data acceptance.TestData) string {
+func (SharedImageResource) withAcceleratedNetworkSupportEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -337,7 +337,8 @@ resource "azurerm_shared_image" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   os_type                     = "Linux"
-  support_accelerated_network = true
+
+  accelerated_network_support_enabled = true
 
   identifier {
     publisher = "AccTesPublisher%d"
