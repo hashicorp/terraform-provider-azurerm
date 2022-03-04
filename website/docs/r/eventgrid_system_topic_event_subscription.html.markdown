@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -200,6 +200,8 @@ A `delivery_identity` supports the following:
 ---
 
 A `delivery_property` supports the following:
+
+~> **NOTE:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
 
 * `header_name` - (Required) The name of the header to send on to the destination
 
