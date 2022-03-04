@@ -1,13 +1,11 @@
 package iothub
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -944,80 +942,15 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
-	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
-	// if we delete directly, the func `client.Delete` will throw error
-	// so first wait for the iotHub state become succeed
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Activating", "Transitioning"},
-		Target:  []string{"Succeeded"},
-		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for ProvisioningState of %s to become `Succeeded`: %+v", id, err)
-	}
-
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		return err
 	}
-
-	return waitForIotHubToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
-}
-
-func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string, d *pluginsdk.ResourceData) error {
-	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	return nil
-}
-
-func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		if res.Properties == nil || res.Properties.ProvisioningState == nil {
-			return res, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, *res.Properties.ProvisioningState, nil
-	}
-}
-
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
