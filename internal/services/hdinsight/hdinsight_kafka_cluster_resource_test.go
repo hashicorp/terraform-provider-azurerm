@@ -1090,7 +1090,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1102,7 +1102,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1178,7 +1178,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1190,7 +1190,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

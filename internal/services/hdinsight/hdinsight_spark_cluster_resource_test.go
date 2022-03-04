@@ -1517,7 +1517,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1528,7 +1528,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1604,7 +1604,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1615,7 +1615,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1846,7 +1846,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
