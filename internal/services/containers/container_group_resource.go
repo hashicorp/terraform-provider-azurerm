@@ -62,7 +62,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          "Public",
+				Default:          string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{

@@ -1120,7 +1120,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1161,7 +1161,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1246,7 +1246,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1287,7 +1287,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Basic"
+    load_balancer_sku  = "basic"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1757,7 +1757,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
@@ -1836,7 +1836,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1895,7 +1895,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 3
     }
@@ -1965,7 +1965,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
     }
@@ -2013,7 +2013,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "kubenet"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 2
       outbound_ports_allocated  = 8000
@@ -2146,7 +2146,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = [azurerm_public_ip_prefix.test.id]
     }
@@ -2215,7 +2215,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = []
     }
