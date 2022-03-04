@@ -1351,21 +1351,18 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 }
 
-resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  enable_partitioning = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1381,9 +1378,12 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
-    storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
   }
 
   delivery_property {
