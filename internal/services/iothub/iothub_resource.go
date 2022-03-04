@@ -790,23 +790,13 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, ""); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, "")
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	timeout := pluginsdk.TimeoutUpdate
-	if d.IsNewResource() {
-		timeout = pluginsdk.TimeoutCreate
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Activating", "Transitioning"},
-		Target:  []string{"Succeeded"},
-		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
