@@ -58,12 +58,11 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoints": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"enforce_private_link_endpoint_network_policies": {
@@ -127,7 +126,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("route_table_id", routeTableId)
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-		if err := d.Set("service_endpoints", pluginsdk.NewSet(pluginsdk.HashString, serviceEndpoints)); err != nil {
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 	}

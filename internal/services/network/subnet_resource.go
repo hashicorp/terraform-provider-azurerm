@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -77,12 +78,23 @@ func resourceSubnet() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
 			},
 
-			"service_endpoints": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-			},
+			"service_endpoints": func() *pluginsdk.Schema {
+				if !features.ThreePointOhBeta() {
+					return &pluginsdk.Schema{
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					}
+				}
+				return &pluginsdk.Schema{
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
+				}
+			}(),
 
 			"service_endpoint_policy_ids": {
 				Type:     pluginsdk.TypeSet,
@@ -231,11 +243,16 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies))
 	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies))
 
-	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-
 	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+
+	if features.ThreePointOhBeta() {
+		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+		properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	} else {
+		serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
+		properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	}
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -350,8 +367,13 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoints") {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		if features.ThreePointOhBeta() {
+			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else {
+			serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		}
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -445,7 +467,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(string(props.PrivateLinkServiceNetworkPolicies)))
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-		if err := d.Set("service_endpoints", pluginsdk.NewSet(pluginsdk.HashString, serviceEndpoints)); err != nil {
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 
