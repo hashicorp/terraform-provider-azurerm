@@ -154,7 +154,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
-`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
+`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
