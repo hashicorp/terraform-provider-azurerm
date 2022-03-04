@@ -1,30 +1,33 @@
-package hybridkubernetes
+package arckubernetes
 
 import (
 	"fmt"
+	"regexp"
 	"time"
+
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridkubernetes/sdk/2021-10-01/hybridkubernetes"
+	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/sdk/2021-10-01/hybridkubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceHybridKubernetesConnectedCluster() *pluginsdk.Resource {
+func resourceArcKubernetesCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHybridKubernetesConnectedClusterCreate,
-		Read:   resourceHybridKubernetesConnectedClusterRead,
-		Update: resourceHybridKubernetesConnectedClusterUpdate,
-		Delete: resourceHybridKubernetesConnectedClusterDelete,
+		Create: resourceArcKubernetesClusterCreate,
+		Read:   resourceArcKubernetesClusterRead,
+		Update: resourceArcKubernetesClusterUpdate,
+		Delete: resourceArcKubernetesClusterDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -34,7 +37,7 @@ func resourceHybridKubernetesConnectedCluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := hybridkubernetes.ParseConnectedClusterID(id)
+			_, err := arckubernetes.ParseConnectedClusterID(id)
 			return err
 		}),
 
@@ -43,34 +46,61 @@ func resourceHybridKubernetesConnectedCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-_a-zA-Z0-9]{1,260}$"),
+					"The name of Arc Kubernetes Cluster can only include alphanumeric characters, underscores, hyphens, has a maximum length of 260 characters, and must be unique.",
+				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"agent_public_key_certificate": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azValidate.Base64EncodedString,
 			},
 
 			"distribution": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityRequired(),
+			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			"infrastructure": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"provisioning_state": {
+			"agent_version": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"offering": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"total_core_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"total_node_count": {
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -79,13 +109,13 @@ func resourceHybridKubernetesConnectedCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceHybridKubernetesConnectedClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HybridKubernetes.HybridKubernetesClient
+func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := hybridkubernetes.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := arckubernetes.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.ConnectedClusterGet(ctx, id)
@@ -96,20 +126,20 @@ func resourceHybridKubernetesConnectedClusterCreate(d *pluginsdk.ResourceData, m
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_hybrid_kubernetes_connected_cluster", id.ID())
+			return tf.ImportAsExistsError("azurerm_arc_kubernetes_cluster", id.ID())
 		}
 	}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
-	props := hybridkubernetes.ConnectedCluster{
-		Identity: *identity,
+	location := location.Normalize(d.Get("location").(string))
+	props := arckubernetes.ConnectedCluster{
+		Identity: *identityValue,
 		Location: location,
-		Properties: hybridkubernetes.ConnectedClusterProperties{
+		Properties: arckubernetes.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
 			Distribution:              utils.String(d.Get("distribution").(string)),
 			Infrastructure:            utils.String(d.Get("infrastructure").(string)),
@@ -122,15 +152,15 @@ func resourceHybridKubernetesConnectedClusterCreate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
-	return resourceHybridKubernetesConnectedClusterRead(d, meta)
+	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceHybridKubernetesConnectedClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HybridKubernetes.HybridKubernetesClient
+func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := hybridkubernetes.ParseConnectedClusterID(d.Id())
+	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -142,7 +172,7 @@ func resourceHybridKubernetesConnectedClusterRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.ClusterName)
@@ -155,9 +185,13 @@ func resourceHybridKubernetesConnectedClusterRead(d *pluginsdk.ResourceData, met
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 		d.Set("agent_public_key_certificate", props.AgentPublicKeyCertificate)
+		d.Set("agent_version", props.AgentVersion)
 		d.Set("distribution", props.Distribution)
 		d.Set("infrastructure", props.Infrastructure)
-		d.Set("provisioning_state", props.ProvisioningState)
+		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("offering", props.Offering)
+		d.Set("total_core_count", props.TotalCoreCount)
+		d.Set("total_node_count", props.TotalNodeCount)
 
 		if err := tagsHelper.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -167,39 +201,39 @@ func resourceHybridKubernetesConnectedClusterRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceHybridKubernetesConnectedClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HybridKubernetes.HybridKubernetesClient
+func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := hybridkubernetes.ParseConnectedClusterID(d.Id())
+	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := hybridkubernetes.ConnectedClusterPatch{
+	props := arckubernetes.ConnectedClusterPatch{
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.ConnectedClusterUpdate(ctx, *id, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	return resourceHybridKubernetesConnectedClusterRead(d, meta)
+	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceHybridKubernetesConnectedClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HybridKubernetes.HybridKubernetesClient
+func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := hybridkubernetes.ParseConnectedClusterID(d.Id())
+	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if err := client.ConnectedClusterDeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

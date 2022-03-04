@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
@@ -48,7 +49,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridkubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
@@ -141,6 +141,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		appconfiguration.Registration{},
 		springcloud.Registration{},
 		applicationinsights.Registration{},
+		arckubernetes.Registration{},
 		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
@@ -179,7 +180,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		hsm.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
-		hybridkubernetes.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},

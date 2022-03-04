@@ -14,6 +14,7 @@ import (
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
+	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
@@ -52,7 +53,6 @@ import (
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
-	hybridkubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridkubernetes/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	iothub "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
@@ -125,6 +125,7 @@ type Client struct {
 	AppInsights           *applicationInsights.Client
 	AppPlatform           *appPlatform.Client
 	AppService            *appService.Client
+	ArcKubernetes         *arckubernetes.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
@@ -163,7 +164,6 @@ type Client struct {
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
 	HealthCare            *healthcare.Client
-	HybridKubernetes      *hybridkubernetes.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
 	IoTTimeSeriesInsights *timeseriesinsights.Client
@@ -238,6 +238,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppInsights = applicationInsights.NewClient(o)
 	client.AppPlatform = appPlatform.NewClient(o)
 	client.AppService = appService.NewClient(o)
+	client.ArcKubernetes = arckubernetes.NewClient(o)
 	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
@@ -276,7 +277,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
-	client.HybridKubernetes = hybridkubernetes.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
