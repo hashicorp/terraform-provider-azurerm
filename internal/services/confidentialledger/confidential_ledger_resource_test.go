@@ -117,14 +117,6 @@ func TestAccConfidentialLedger_certBased(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// re-add it
-			Config: r.certBased(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
