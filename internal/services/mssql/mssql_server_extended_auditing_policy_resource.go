@@ -44,6 +44,12 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerID,
 			},
 
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"storage_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -113,12 +119,17 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 
 	params := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
-			State:                       sql.BlobAuditingPolicyStateEnabled,
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
+	}
+
+	if d.Get("enabled").(bool) {
+		params.ExtendedServerBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateEnabled
+	} else {
+		params.ExtendedServerBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateDisabled
 	}
 
 	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
@@ -189,6 +200,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
 
 		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
