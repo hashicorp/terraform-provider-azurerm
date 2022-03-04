@@ -233,7 +233,11 @@ The deprecated field `soft_delete_enabled` will be removed since the Azure API a
 
 ### Data Source: `azurerm_kubernetes_cluster`
 
+The deprecated block `addon_profile` will be removed in favour of the `azure_policy_enabled`, `http_application_routing_enabled` and `open_service_mesh_enabled` properties and the `ingress_application_gateway`, `key_vault_secrets_provider` and `oms_agent` blocks.
+
 The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
+
+The deprecated block `role_based_access_control` will be removed in favour of the `role_based_access_control_enabled` property and the `azure_active_directory_role_based_access_control` block.
 
 ### Data Source: `azurerm_kubernetes_cluster_node_pool`
 
