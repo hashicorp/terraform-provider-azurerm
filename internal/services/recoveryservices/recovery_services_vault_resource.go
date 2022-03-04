@@ -201,6 +201,22 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
+
+	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
+	if _, ok := d.GetOk("encryption"); ok {
+		updateFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, recoveryservices.PatchVault{
+			Properties: &recoveryservices.VaultProperties{
+				Encryption: encryption,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
+		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update encryption of %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
+	}
+
 	cfg := backup.ResourceVaultConfigResource{
 		Properties: &backup.ResourceVaultConfig{
 			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
@@ -284,21 +300,6 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	})
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
-	if _, ok := d.GetOk("encryption"); ok {
-		updateFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, recoveryservices.PatchVault{
-			Properties: &recoveryservices.VaultProperties{
-				Encryption: encryption,
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
-		}
-		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update encryption of %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
-		}
 	}
 
 	d.SetId(id.ID())

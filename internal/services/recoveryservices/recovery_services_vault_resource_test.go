@@ -425,7 +425,7 @@ resource "azurerm_recovery_services_vault" "test" {
     type = "SystemAssigned"
   }
 
-  soft_delete_enabled = true
+  soft_delete_enabled = false
 
   encryption {
     key_id                            = azurerm_key_vault_key.test[%[5]d].id
