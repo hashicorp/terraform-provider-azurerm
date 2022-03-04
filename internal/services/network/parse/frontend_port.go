@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type FrontendPortId struct {
@@ -42,7 +42,7 @@ func (id FrontendPortId) ID() string {
 
 // FrontendPortID parses a FrontendPort ID into an FrontendPortId struct
 func FrontendPortID(input string) (*FrontendPortId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

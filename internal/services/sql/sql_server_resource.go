@@ -9,9 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -30,8 +33,10 @@ func resourceSqlServer() *pluginsdk.Resource {
 		Update: resourceSqlServerCreateUpdate,
 		Delete: resourceSqlServerDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -59,7 +64,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.0",
 					"12.0",
-				}, true),
+				}, false),
 			},
 
 			"administrator_login": {
@@ -85,30 +90,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
@@ -136,7 +118,8 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, true),
+								}, !features.ThreePointOhBeta()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
 
@@ -165,13 +148,13 @@ func resourceSqlServer() *pluginsdk.Resource {
 						"state": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"storage_account_access_key": {
@@ -215,37 +198,35 @@ func resourceSqlServer() *pluginsdk.Resource {
 
 func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminUsername := d.Get("administrator_login").(string)
-	version := d.Get("version").(string)
-
-	t := d.Get("tags").(map[string]interface{})
-	metadata := tags.Expand(t)
-
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_server", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_server", id.ID())
 		}
 	}
 
+	adminUsername := d.Get("administrator_login").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	tags := tags.Expand(d.Get("tags").(map[string]interface{}))
+	version := d.Get("version").(string)
+
 	parameters := sql.Server{
 		Location: utils.String(location),
-		Tags:     metadata,
+		Tags:     tags,
 		ServerProperties: &sql.ServerProperties{
 			Version:            utils.String(version),
 			AdministratorLogin: utils.String(adminUsername),
@@ -253,7 +234,11 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		sqlServerIdentity := expandAzureRmSqlServerIdentity(d)
+		sqlServerIdentity, err := expandAzureRmSqlServerIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		parameters.Identity = sqlServerIdentity
 	}
 
@@ -262,44 +247,48 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		parameters.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasConflict(future.Response()) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", id.Name)
 		}
 
-		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	connection := sql.ServerConnectionPolicy{
 		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
 			ConnectionType: sql.ServerConnectionType(d.Get("connection_policy").(string)),
 		},
 	}
-	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
+	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
+		return fmt.Errorf("creating/updating Connection Policy for %s: %+v", id, err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
-	if _, err = auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
+	if err != nil {
+		return fmt.Errorf("creating/updating Auditing Policy for %s: %+v", id, err)
+	}
+	if err := auditingFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of Auditing Policy for %s: %+v", id, err)
 	}
 
-	if _, err = secPolicyClient.CreateOrUpdate(ctx, resGroup, name, *expandSqlServerThreatDetectionPolicy(d)); err != nil {
-		return fmt.Errorf("setting database threat detection policy: %+v", err)
+	policyInput := expandSqlServerThreatDetectionPolicy(d)
+	policyFuture, err := secPolicyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, policyInput)
+	if err != nil {
+		return fmt.Errorf("updating database threat detection policy for %s: %+v", id, err)
+	}
+	if err := policyFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of database threat detection policy for %s: %+v", id, err)
 	}
 
 	return resourceSqlServerRead(d, meta)
@@ -321,22 +310,22 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] SQL Server %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Blob Connection Policy for SQL Server %q (Resource Group %q): %v ", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Blob Connection Policy for %s: %+v", *id, err)
 	}
 
 	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for SQL Server %q (Resource Group %q): %v ", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Blob Auditing Policy for %s: %v ", *id, err)
 	}
 
 	secPolicy, err := secPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -356,10 +345,10 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	if serverProperties := resp.ServerProperties; serverProperties != nil {
-		d.Set("version", serverProperties.Version)
-		d.Set("administrator_login", serverProperties.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
+	if props := resp.ServerProperties; props != nil {
+		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		d.Set("version", props.Version)
 	}
 
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
@@ -385,42 +374,48 @@ func resourceSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmSqlServerIdentity(d *pluginsdk.ResourceData) *sql.ResourceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if len(identities) == 0 {
-		return &sql.ResourceIdentity{}
+func expandAzureRmSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := identities[0].(map[string]interface{})
-	identityType := sql.IdentityType(identity["type"].(string))
+
+	if expanded.Type == identity.TypeNone {
+		return &sql.ResourceIdentity{}, nil
+	}
+
 	return &sql.ResourceIdentity{
-		Type: identityType,
-	}
+		Type: sql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
-func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
-	if identity == nil {
-		return []interface{}{}
-	}
-	result := make(map[string]interface{})
-	result["type"] = identity.Type
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
+func flattenAzureRmSqlServerIdentity(input *sql.ResourceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
 	}
 
-	return []interface{}{result}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.ServerSecurityAlertPolicy) []interface{} {
@@ -468,7 +463,7 @@ func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql
 	return []interface{}{securityAlertPolicy}
 }
 
-func expandSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) *sql.ServerSecurityAlertPolicy {
+func expandSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.ServerSecurityAlertPolicy {
 	policy := sql.ServerSecurityAlertPolicy{
 		SecurityAlertPolicyProperties: &sql.SecurityAlertPolicyProperties{
 			State: sql.SecurityAlertPolicyStateDisabled,
@@ -478,7 +473,7 @@ func expandSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) *sql.Server
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
-		return &policy
+		return policy
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
@@ -512,9 +507,7 @@ func expandSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) *sql.Server
 		if v, ok := securityAlert["storage_endpoint"]; ok {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
-
-		return &policy
 	}
 
-	return &policy
+	return policy
 }

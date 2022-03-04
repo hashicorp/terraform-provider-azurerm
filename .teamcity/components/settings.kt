@@ -5,7 +5,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.0.3"
+var defaultTerraformCoreVersion = "1.1.5"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -14,8 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
-        "germany" to LocationConfiguration("germanynortheast", "germanycentral", "", false)
+        "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly

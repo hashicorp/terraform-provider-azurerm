@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
-* `identity` - (Optional) An `identity` block is documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the Cognitive Account. Defaults to `true`.
 
@@ -70,13 +70,13 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
-* `outbound_network_access_restrited` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
+* `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 
 * `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
 
-* `storage` - (Optional) An `identity` block is documented below.
+* `storage` - (Optional) A `storage` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

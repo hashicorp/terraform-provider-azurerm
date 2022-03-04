@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -29,7 +29,7 @@ type ServicePlanDataSourceModel struct {
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"`
-	NumberOfWorkers           int               `tfschema:"number_of_workers"`
+	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
 	Tags                      map[string]string `tfschema:"tags"`
 }
@@ -50,13 +50,13 @@ func (r ServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ServicePlanName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
@@ -78,7 +78,7 @@ func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"number_of_workers": {
+		"worker_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -130,7 +130,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 				if sku.Name != nil {
 					servicePlan.Sku = *sku.Name
 					if sku.Capacity != nil {
-						servicePlan.NumberOfWorkers = int(*sku.Capacity)
+						servicePlan.WorkerCount = int(*sku.Capacity)
 					}
 				}
 			}

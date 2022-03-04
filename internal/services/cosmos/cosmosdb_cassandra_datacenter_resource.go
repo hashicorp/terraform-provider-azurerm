@@ -9,10 +9,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -56,7 +57,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				ValidateFunc: validate.CassandraClusterID,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"delegated_management_subnet_id": {
 				Type:         pluginsdk.TypeString,
@@ -80,6 +81,11 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
+			},
+			"availability_zones_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 		},
 	}
@@ -108,6 +114,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 			DelegatedSubnetID:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
 			Sku:                utils.String(d.Get("sku_name").(string)),
+			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
 			DiskCapacity:       utils.Int32(int32(d.Get("disk_count").(int))),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		},
@@ -157,6 +164,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_count", props.NodeCount)
 			d.Set("disk_count", int(*props.DiskCapacity))
 			d.Set("sku_name", props.Sku)
+			d.Set("availability_zones_enabled", props.AvailabilityZone)
 		}
 	}
 	return nil

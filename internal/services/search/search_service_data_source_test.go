@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SearchServiceDataSource struct {
-}
+type SearchServiceDataSource struct{}
 
 func TestAccDataSourceSearchService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_search_service", "test")

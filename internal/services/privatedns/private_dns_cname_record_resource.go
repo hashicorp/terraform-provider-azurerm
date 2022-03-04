@@ -92,7 +92,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", resourceId.ID())
 		}
 	}
 

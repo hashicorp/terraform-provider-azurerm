@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -43,257 +46,43 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: webValidate.AppServiceName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"app_service_plan_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"app_settings": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"auth_settings": schemaAppServiceAuthSettings(),
-
-			"connection_string": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ConnectionStringTypeAPIHub),
-								string(web.ConnectionStringTypeCustom),
-								string(web.ConnectionStringTypeDocDb),
-								string(web.ConnectionStringTypeEventHub),
-								string(web.ConnectionStringTypeMySQL),
-								string(web.ConnectionStringTypeNotificationHub),
-								string(web.ConnectionStringTypePostgreSQL),
-								string(web.ConnectionStringTypeRedisCache),
-								string(web.ConnectionStringTypeServiceBus),
-								string(web.ConnectionStringTypeSQLAzure),
-								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"value": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			// todo remove for 3.0 as it doesn't do anything
-			"client_affinity_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
-			},
-
-			"client_cert_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Required",
-					"Optional",
-				}, false),
-			},
-
-			"daily_memory_time_quota": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-			},
-
-			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_builtin_logging": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"https_only": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"identity": schemaAppServiceIdentity(),
-
-			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  "",
-				ValidateFunc: validation.StringInSlice([]string{
-					"linux",
-					"",
-				}, false),
-			},
-
-			"key_vault_reference_identity_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: msivalidate.UserAssignedIdentityID,
-			},
-
-			"site_config": schemaAppServiceFunctionAppSiteConfig(),
-
-			"source_control": schemaAppServiceSiteSourceControl(),
-
-			"storage_account_name": {
-				Type: pluginsdk.TypeString,
-				// Required: true, // Uncomment this in 3.0
-				Optional:      true,
-				Computed:      true, // Remove this in 3.0
-				ForceNew:      true,
-				ValidateFunc:  storageValidate.StorageAccountName,
-				ConflictsWith: []string{"storage_connection_string"},
-			},
-
-			"storage_account_access_key": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // Remove this in 3.0
-				// Required: true, // Uncomment this in 3.0
-				Sensitive:     true,
-				ValidateFunc:  validation.NoZeroValues,
-				ConflictsWith: []string{"storage_connection_string"},
-			},
-
-			// TODO remove this in 3.0
-			"storage_connection_string": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Sensitive:     true,
-				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
-			},
-
-			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "~1",
-			},
-
-			"tags": tags.Schema(),
-
-			// Computed Only
-
-			"custom_domain_verification_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"default_hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"outbound_ip_addresses": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"possible_outbound_ip_addresses": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"site_credential": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-		},
+		Schema: resourceFunctionAppSchema(),
 	}
 }
 
 func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_function_app", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("the name %q used for the Function App needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -307,7 +96,6 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
@@ -323,26 +111,32 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for %s: %s", id, err)
 	}
 
-	siteConfig.AppSettings = &basicAppSettings
+	siteConfig.AppSettings = appSettingsMapToNameValuePair(appSettings)
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
@@ -354,12 +148,14 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -377,33 +173,24 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
 		// TODO - Do we need to lock the function app for updates?
-		_, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
 		if err != nil {
-			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("failed to create %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         read.ID,
+		ID:                         utils.String(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
-	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
+	if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, auth); err != nil {
+		return fmt.Errorf("updating auth settings for %s: %+v", id, err)
 	}
 
 	return resourceFunctionAppUpdate(d, meta)
@@ -430,7 +217,6 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
@@ -477,14 +263,18 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(clientAffinityEnabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
@@ -496,8 +286,10 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -670,8 +462,11 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		if !features.ThreePointOhBeta() {
+			d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+		}
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -692,7 +487,9 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
 	connectionString := appSettings["AzureWebJobsStorage"]
-	d.Set("storage_connection_string", connectionString)
+	if !features.ThreePointOhBeta() {
+		d.Set("storage_connection_string", connectionString)
+	}
 
 	// This teases out the necessary attributes from the storage connection string
 	connectionStringParts := strings.Split(connectionString, ";")
@@ -743,7 +540,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
@@ -803,4 +600,244 @@ func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func resourceFunctionAppSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: webValidate.AppServiceName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"app_service_plan_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
+		"app_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"auth_settings": schemaAppServiceAuthSettings(),
+
+		"connection_string": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(web.ConnectionStringTypeAPIHub),
+							string(web.ConnectionStringTypeCustom),
+							string(web.ConnectionStringTypeDocDb),
+							string(web.ConnectionStringTypeEventHub),
+							string(web.ConnectionStringTypeMySQL),
+							string(web.ConnectionStringTypeNotificationHub),
+							string(web.ConnectionStringTypePostgreSQL),
+							string(web.ConnectionStringTypeRedisCache),
+							string(web.ConnectionStringTypeServiceBus),
+							string(web.ConnectionStringTypeSQLAzure),
+							string(web.ConnectionStringTypeSQLServer),
+						}, !features.ThreePointOhBeta()),
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					},
+
+					"value": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
+
+		"client_cert_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Required",
+				"Optional",
+			}, false),
+		},
+
+		"daily_memory_time_quota": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+		},
+
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_builtin_logging": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"https_only": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"identity": func() *schema.Schema {
+			if !features.ThreePointOhBeta() {
+				return schemaAppServiceIdentity()
+			}
+
+			return commonschema.SystemAssignedUserAssignedIdentityOptional()
+		}(),
+
+		"os_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "",
+			ValidateFunc: validation.StringInSlice([]string{
+				"linux",
+				"",
+			}, false),
+		},
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+		},
+
+		"site_config": schemaAppServiceFunctionAppSiteConfig(),
+
+		"source_control": schemaAppServiceSiteSourceControl(),
+
+		//lintignore: S013
+		"storage_account_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			Computed:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageAccountName,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"storage_connection_string"}
+				}
+				return []string{}
+			}(),
+		},
+
+		//lintignore: S013
+		"storage_account_access_key": {
+			Type:     pluginsdk.TypeString,
+			Required: features.ThreePointOhBeta(),
+			Optional: !features.ThreePointOhBeta(),
+			Computed: !features.ThreePointOhBeta(),
+			ForceNew: true,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"storage_connection_string"}
+				}
+				return []string{}
+			}(),
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "~1",
+		},
+
+		"tags": tags.Schema(),
+
+		// Computed Only
+
+		"custom_domain_verification_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"possible_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"site_credential": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"username": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"password": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
+	}
+	if !features.ThreePointOhBeta() {
+		out["storage_connection_string"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			Sensitive:     true,
+			Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
+			ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+		}
+
+		out["client_affinity_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
+		}
+
+	}
+
+	return out
 }

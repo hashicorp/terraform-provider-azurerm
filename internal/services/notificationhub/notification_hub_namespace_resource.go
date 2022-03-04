@@ -7,15 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -65,9 +64,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.Basic),
-					string(notificationhubs.Free),
-					string(notificationhubs.Standard),
+					string(notificationhubs.SkuNameBasic),
+					string(notificationhubs.SkuNameFree),
+					string(notificationhubs.SkuNameStandard),
 				}, false),
 			},
 
@@ -81,10 +80,10 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.Messaging),
-					string(notificationhubs.NotificationHub),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+					string(notificationhubs.NamespaceTypeMessaging),
+					string(notificationhubs.NamespaceTypeNotificationHub),
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"tags": tags.Schema(),

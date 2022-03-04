@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -66,8 +67,8 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 					"Linux",
 					"Windows",
 					"xenon",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"sku": {
@@ -140,24 +141,24 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 
 func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_plan", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
 		}
 	}
 
@@ -172,7 +173,7 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	properties.IsXenon = &isXenon
 
 	if kind == "xenon" && !isXenon {
-		return fmt.Errorf("Creating or updating App Service Plan %q (Resource Group %q): when kind is set to xenon, is_xenon property should be set to true", name, resGroup)
+		return fmt.Errorf("creating or updating %s: when kind is set to xenon, is_xenon property should be set to true", id)
 	}
 
 	appServicePlan := web.AppServicePlan{
@@ -214,24 +215,16 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerfarmName, appServicePlan)
 	if err != nil {
-		return fmt.Errorf("creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServicePlanRead(d, meta)
 }

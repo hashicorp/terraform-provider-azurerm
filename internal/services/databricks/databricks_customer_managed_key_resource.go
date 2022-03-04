@@ -22,10 +22,10 @@ import (
 
 func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: DatabricksWorkspaceCustomerManagedKeyCreateUpdate,
-		Read:   DatabricksWorkspaceCustomerManagedKeyRead,
-		Update: DatabricksWorkspaceCustomerManagedKeyCreateUpdate,
-		Delete: DatabricksWorkspaceCustomerManagedKeyDelete,
+		Create: databricksWorkspaceCustomerManagedKeyCreateUpdate,
+		Read:   databricksWorkspaceCustomerManagedKeyRead,
+		Update: databricksWorkspaceCustomerManagedKeyCreateUpdate,
+		Delete: databricksWorkspaceCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -78,7 +78,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -98,9 +98,9 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	// Not sure if I should also lock the key vault here too
 	// or at the very least the key?
-	locks.ByName(id.Name, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.Name, "azurerm_databricks_workspace")
-	var encryptionEnabled, infrastructureEnabled bool
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	var encryptionEnabled bool
 
 	workspace, err := workspaceClient.Get(ctx, *id)
 	if err != nil {
@@ -108,18 +108,12 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	}
 	if model := workspace.Model; model != nil {
 		if parameters := model.Properties.Parameters; parameters != nil {
-			if parameters.RequireInfrastructureEncryption != nil {
-				infrastructureEnabled = model.Properties.Parameters.RequireInfrastructureEncryption.Value
-			}
 			if parameters.PrepareEncryption != nil {
 				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 			}
 		}
 	}
 
-	if infrastructureEnabled {
-		return fmt.Errorf("%s: `infrastructure_encryption_enabled` must be set to `false`", *id)
-	}
 	if !encryptionEnabled {
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
@@ -130,7 +124,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, id.ResourceGroup, id.Name)
+	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 	if d.IsNewResource() {
 		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
@@ -162,10 +156,10 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	d.SetId(resourceID.ID())
-	return DatabricksWorkspaceCustomerManagedKeyRead(d, meta)
+	return databricksWorkspaceCustomerManagedKeyRead(d, meta)
 }
 
-func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +223,7 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,8 +236,8 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
 
 	// Not sure if I should also lock the key vault here too
-	locks.ByName(workspaceID.Name, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(workspaceID.Name, "azurerm_databricks_workspace")
+	locks.ByName(workspaceID.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(workspaceID.WorkspaceName, "azurerm_databricks_workspace")
 
 	workspace, err := client.Get(ctx, workspaceID)
 	if err != nil {

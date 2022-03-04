@@ -3,6 +3,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
@@ -47,8 +48,11 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 		Read:   resourceHDInsightHBaseClusterRead,
 		Update: hdinsightClusterUpdate("HBase", resourceHDInsightHBaseClusterRead),
 		Delete: hdinsightClusterDelete("HBase"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -88,6 +92,8 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 			"gateway": SchemaHDInsightsGateway(),
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
+
+			"network": SchemaHDInsightsNetwork(),
 
 			"security_profile": SchemaHDInsightsSecurityProfile(),
 
@@ -162,6 +168,9 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	hbaseRoles := hdInsightRoleDefinition{
 		HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
 		WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
@@ -180,8 +189,8 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_hbase_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_hbase_cluster", id.ID())
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -191,6 +200,7 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("HBase"),
 				ComponentVersion: componentVersions,
@@ -296,8 +306,15 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
+		tier := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range hdinsight.PossibleTierValues() {
+			if strings.EqualFold(string(v), string(props.Tier)) {
+				tier = string(v)
+			}
+		}
+		d.Set("tier", tier)
 		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tier", string(props.Tier))
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
@@ -310,6 +327,12 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
+		}
+
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
+			}
 		}
 
 		hbaseRoles := hdInsightRoleDefinition{

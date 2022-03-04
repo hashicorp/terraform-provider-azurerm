@@ -43,7 +43,21 @@ The following attributes are exported:
 
 * `location` - The location where the Machine Learning Workspace exists.
 
+* `identity` - An `identity` block as defined below.
+
 * `tags` - A mapping of tags assigned to the Machine Learning Workspace.
+
+---
+
+The `identity` block exports the following attributes:
+
+* `type` - The Type of Managed Identity assigned to this Machine Learning Workspace.
+
+* `identity_ids` - A list of User Assigned Identity IDs assigned to this Machine Learning Workspace.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Identity assigned to this Machine Learning Workspace.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Identity assigned to this Machine Learning Workspace.
 
 ### Timeouts
 

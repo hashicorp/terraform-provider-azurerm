@@ -9,11 +9,13 @@ on:
       - '.teamcity/**'
       - '.github/workflows/**'
 
+concurrency:
+  group: 'tctest-${{ github.head_ref }}'
+  cancel-in-progress: true
+
 jobs:
   teamcity-test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1

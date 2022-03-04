@@ -74,7 +74,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	id := authorizations.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	id := authorizations.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroupName, privateCloudId.PrivateCloudName, name)
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -117,8 +117,8 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("private_cloud_id", privateclouds.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+	d.Set("name", id.AuthorizationName)
+	d.Set("private_cloud_id", privateclouds.NewPrivateCloudID(subscriptionId, id.ResourceGroupName, id.PrivateCloudName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

@@ -6,52 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":              testAccKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                         testAccKubernetesCluster_basicVMSS,
-	"requiresImport":                    testAccKubernetesCluster_requiresImport,
-	"criticalAddonsTaint":               testAccKubernetesCluster_criticalAddonsTaint,
-	"kubeletAndLinuxOSConfig":           testAccKubernetesCluster_kubeletAndLinuxOSConfig,
-	"kubeletAndLinuxOSConfig_partial":   testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial,
-	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
-	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
-	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
-	"nodePoolOther":                     testAccKubernetesCluster_nodePoolOther,
-	"paidSku":                           testAccKubernetesCluster_paidSku,
-	"podSubnet":                         testAccKubernetesCluster_podSubnet,
-	"upgradeConfig":                     testAccKubernetesCluster_upgrade,
-	"tags":                              testAccKubernetesCluster_tags,
-	"windowsProfile":                    testAccKubernetesCluster_windowsProfile,
-	"windowsProfileLicense":             testAccKubernetesCluster_windowsProfileLicense,
-	"updateWindowsProfileLicense":       TestAccKubernetesCluster_updateWindowsProfileLicense,
-	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
-	"osSku":                             testAccKubernetesCluster_osSku,
-	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
-	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
-	"privateClusterPublicFqdn":          testAccKubernetesCluster_privateClusterPublicFqdn,
-	"privateClusterPrivateDNS":          testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
-	"privateClusterPrivateDNSSystem":    testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
-	"privateClusterPrivateDNSAndSP":     testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
-	"privateClusterPrivateDNSSubDomain": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain,
-	"upgradeChannel":                    testAccKubernetesCluster_upgradeChannel,
-	"ultraSSD":                          testAccKubernetesCluster_ultraSSD,
-}
-
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicAvailabilitySet(t)
-}
-
-func TestAccKubernetesCluster_sameSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_sameSizeVMSSConfig(t)
-}
-
-func testAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -79,11 +40,6 @@ func testAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicAvailabilitySetSensitive(t)
-}
-
-func testAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -112,7 +68,7 @@ func testAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
 	})
 }
 
-func testAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
+func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -140,11 +96,6 @@ func testAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_basicVMSS(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicVMSS(t)
-}
-
-func testAccKubernetesCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -172,11 +123,6 @@ func testAccKubernetesCluster_basicVMSS(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_requiresImport(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_requiresImport(t)
-}
-
-func testAccKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -195,11 +141,6 @@ func testAccKubernetesCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_criticalAddonsTaint(t)
-}
-
-func testAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -216,11 +157,6 @@ func testAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_kubeletAndLinuxOSConfig(t)
-}
-
-func testAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -236,11 +172,6 @@ func testAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t)
-}
-
-func testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -256,11 +187,6 @@ func testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_linuxProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_linuxProfile(t)
-}
-
-func testAccKubernetesCluster_linuxProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -283,11 +209,6 @@ func testAccKubernetesCluster_linuxProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodeLabels(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_nodeLabels(t)
-}
-
-func testAccKubernetesCluster_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	labels1 := map[string]string{"key": "value"}
@@ -320,11 +241,6 @@ func testAccKubernetesCluster_nodeLabels(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_nodeResourceGroup(t)
-}
-
-func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -340,11 +256,6 @@ func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_nodePoolOther(t)
-}
-
-func testAccKubernetesCluster_nodePoolOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -360,11 +271,6 @@ func testAccKubernetesCluster_nodePoolOther(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeSkuTier(t)
-}
-
-func testAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -394,11 +300,6 @@ func testAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_paidSku(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_paidSku(t)
-}
-
-func testAccKubernetesCluster_paidSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -414,11 +315,6 @@ func testAccKubernetesCluster_paidSku(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_podSubnet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_podSubnet(t)
-}
-
-func testAccKubernetesCluster_podSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -434,11 +330,6 @@ func testAccKubernetesCluster_podSubnet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_upgrade(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgrade(t)
-}
-
-func testAccKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -461,11 +352,6 @@ func testAccKubernetesCluster_upgrade(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_tags(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_tags(t)
-}
-
-func testAccKubernetesCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -488,11 +374,6 @@ func testAccKubernetesCluster_tags(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_windowsProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_windowsProfile(t)
-}
-
-func testAccKubernetesCluster_windowsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -519,11 +400,6 @@ func testAccKubernetesCluster_windowsProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_windowsProfileLicense(t)
-}
-
-func testAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -541,11 +417,6 @@ func testAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_updateWindowsProfileLicense(t)
-}
-
-func testAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -575,11 +446,6 @@ func testAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_diskEncryption(t)
-}
-
-func testAccKubernetesCluster_diskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -598,11 +464,6 @@ func testAccKubernetesCluster_diskEncryption(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_upgradeChannel(t)
-}
-
-func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -657,11 +518,6 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicMaintenanceConfig(t)
-}
-
-func testAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -677,11 +533,6 @@ func testAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_completeMaintenanceConfig(t)
-}
-
-func testAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -697,11 +548,6 @@ func testAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_updateMaintenanceConfig(t)
-}
-
-func testAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -731,11 +577,6 @@ func testAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_ultraSSD(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_ultraSSD(t)
-}
-
-func testAccKubernetesCluster_ultraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -765,11 +606,6 @@ func testAccKubernetesCluster_ultraSSD(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterPublicFqdn(t)
-}
-
-func testAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -792,11 +628,6 @@ func testAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_osSku(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_osSku(t)
-}
-
-func testAccKubernetesCluster_osSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -1741,7 +1572,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
@@ -1751,10 +1581,10 @@ resource "azurerm_key_vault_access_policy" "acctest" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "create",
-    "delete",
-    "purge",
+    "Get",
+    "Create",
+    "Delete",
+    "Purge",
   ]
 }
 
@@ -1794,9 +1624,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption-perm" {
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 }
 
@@ -1967,7 +1797,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1987,6 +1818,35 @@ resource "azurerm_kubernetes_cluster" "test" {
     ultra_ssd_enabled  = %t
     availability_zones = ["1", "2", "3"]
   }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name              = "default"
+    node_count        = 1
+    vm_size           = "Standard_D2s_v3"
+    ultra_ssd_enabled = %t
+    zones             = ["1", "2", "3"]
+  }
+
   identity {
     type = "SystemAssigned"
   }

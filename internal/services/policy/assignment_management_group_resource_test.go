@@ -44,6 +44,40 @@ func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicy(t *testing.T)
 	})
 }
 
+func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
+	r := ManagementGroupAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessageUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
 	r := ManagementGroupAssignmentTestResource{}
@@ -67,6 +101,43 @@ func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicySet(t *testing
 			Config: r.withBuiltInPolicySetBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
+	r := ManagementGroupAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessageUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("2"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.1.content").HasValue("test2"),
+				check.That(data.ResourceName).Key("non_compliance_message.1.policy_definition_reference_id").HasValue("AINE_MinimumPasswordLength"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -246,6 +317,63 @@ resource "azurerm_management_group_policy_assignment" "test" {
 `, template, data.RandomString, data.Locations.Primary, data.Locations.Secondary)
 }
 
+func (r ManagementGroupAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = ["%[3]s"]
+    }
+  })
+}
+`, template, data.RandomString, data.Locations.Primary)
+}
+
+func (r ManagementGroupAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = ["%[3]s"]
+    }
+  })
+}
+`, template, data.RandomString, data.Locations.Primary)
+}
+
 func (r ManagementGroupAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -298,6 +426,71 @@ resource "azurerm_management_group_policy_assignment" "test" {
   metadata = jsonencode({
     "category" : "Testing"
   })
+}
+`, template, data.RandomString, data.Locations.Primary)
+}
+
+func (r ManagementGroupAssignmentTestResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomString, data.Locations.Primary)
+}
+
+func (r ManagementGroupAssignmentTestResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  non_compliance_message {
+    content                        = "test2"
+    policy_definition_reference_id = "AINE_MinimumPasswordLength"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomString, data.Locations.Primary)
 }

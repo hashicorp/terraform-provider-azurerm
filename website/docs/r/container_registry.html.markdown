@@ -28,17 +28,16 @@ resource "azurerm_container_registry" "acr" {
   location            = azurerm_resource_group.rg.location
   sku                 = "Premium"
   admin_enabled       = false
-  georeplications = [
-    {
-      location                = "East US"
-      zone_redundancy_enabled = true
-      tags                    = {}
-    },
-    {
-      location                = "westeurope"
-      zone_redundancy_enabled = true
-      tags                    = {}
-  }]
+  georeplications {
+    location                = "East US"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
+  georeplications {
+    location                = "westeurope"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
 }
 ```
 
@@ -84,6 +83,50 @@ data "azurerm_key_vault_key" "example" {
 }
 
 
+
+```
+
+## Example Usage (Attaching a Container Registry to a Kubernetes Cluster)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_container_registry" "example" {
+  name                = "containerRegistry1"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_kubernetes_cluster" "example" {
+  name                = "example-aks1"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  dns_prefix          = "exampleaks1"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    Environment = "Production"
+  }
+}
+
+resource "azurerm_role_assignment" "example" {
+  principal_id                     = azurerm_kubernetes_cluster.example.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = azurerm_container_registry.example.id
+  skip_service_principal_aad_check = true
+}
 
 ```
 
@@ -135,9 +178,15 @@ The following arguments are supported:
 
   ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
-* `identity` - (Optional) An `identity` block as documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `encryption` - (Optional) An `encryption` block as documented below.
+
+* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? Defaults to `false`. This is only supported on resources with the `Standard` or `Premium` SKU.
+
+* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? Defaults to `false`. This is only supported on resources with the `Premium` SKU.
+
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 

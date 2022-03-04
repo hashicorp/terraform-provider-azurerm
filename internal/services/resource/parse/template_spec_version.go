@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type TemplateSpecVersionId struct {
@@ -42,7 +42,7 @@ func (id TemplateSpecVersionId) ID() string {
 
 // TemplateSpecVersionID parses a TemplateSpecVersion ID into an TemplateSpecVersionId struct
 func TemplateSpecVersionID(input string) (*TemplateSpecVersionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

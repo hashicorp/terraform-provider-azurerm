@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -84,7 +85,7 @@ resources and will be removed in version 3.0 of the Azure Provider.
 				Optional: true,
 			},
 
-			"location": azure.SchemaLocationOptional(),
+			"location": commonschema.LocationOptional(),
 
 			//lintignore:XS003
 			"identity": {
@@ -99,8 +100,8 @@ resources and will be removed in version 3.0 of the Azure Provider.
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(policy.None),
-								string(policy.SystemAssigned),
+								string(policy.ResourceIdentityTypeNone),
+								string(policy.ResourceIdentityTypeSystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -346,7 +347,7 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.EnforcementModeDefault)
 		d.Set("metadata", flattenJSON(props.Metadata))
 
 		json, err := flattenParameterValuesValueToString(props.Parameters)
@@ -417,7 +418,10 @@ func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	notScopesRes := make([]string, 0)
 
 	for _, notScope := range input {
-		notScopesRes = append(notScopesRes, notScope.(string))
+		s, ok := notScope.(string)
+		if ok {
+			notScopesRes = append(notScopesRes, s)
+		}
 	}
 
 	return &notScopesRes

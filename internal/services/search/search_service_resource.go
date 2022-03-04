@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -122,32 +125,7 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(search.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
@@ -156,12 +134,25 @@ func resourceSearchService() *pluginsdk.Resource {
 
 func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	id := parse.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		}
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 
 	publicNetworkAccess := search.Enabled
@@ -169,19 +160,9 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkAccess = search.Disabled
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, nil)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_search_service", *existing.ID)
-		}
+	expandedIdentity, err := expandSearchServiceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	properties := search.Service{
@@ -195,8 +176,8 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
-		Identity: expandSearchServiceIdentity(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(t),
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -209,22 +190,16 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties, nil)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, nil)
-	if err != nil {
-		return fmt.Errorf("issuing get request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSearchServiceRead(d, meta)
 }
 
@@ -241,19 +216,17 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Search Service: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -309,7 +282,7 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("deleting Search Service %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -360,38 +333,31 @@ func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
 	return result
 }
 
-func expandSearchServiceIdentity(input []interface{}) *search.Identity {
-	if len(input) == 0 || input[0] == nil {
-		return &search.Identity{
-			Type: search.None,
-		}
+func expandSearchServiceIdentity(input []interface{}) (*search.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := input[0].(map[string]interface{})
+
 	return &search.Identity{
-		Type: search.IdentityType(identity["type"].(string)),
-	}
+		Type: search.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
-func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
-	if identity == nil || identity.Type == search.None {
-		return make([]interface{}, 0)
+func flattenSearchServiceIdentity(input *search.Identity) []interface{} {
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transition.TenantId = *input.TenantID
+		}
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }

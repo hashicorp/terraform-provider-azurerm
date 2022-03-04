@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NatGatewayResource struct {
-}
+type NatGatewayResource struct{}
 
 func TestAccNatGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")

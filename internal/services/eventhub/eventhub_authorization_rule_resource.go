@@ -24,8 +24,10 @@ func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
 		Update: resourceEventHubAuthorizationRuleCreateUpdate,
 		Delete: resourceEventHubAuthorizationRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := eventhubs.ParseEventhubAuthorizationRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -72,7 +74,7 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
 
-	id := eventhubs.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
+	id := eventhubs.NewEventhubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := eventhubsClient.GetAuthorizationRule(ctx, id)
 		if err != nil {
@@ -86,22 +88,21 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	locks.ByName(id.EventHubName, eventHubResourceName)
+	defer locks.UnlockByName(id.EventHubName, eventHubResourceName)
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
 	parameters := authorizationruleseventhubs.AuthorizationRule{
-		Name: &id.Name,
+		Name: &id.AuthorizationRuleName,
 		Properties: &authorizationruleseventhubs.AuthorizationRuleProperties{
 			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
-	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
+		localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.AuthorizationRuleName)
 		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
 		}
@@ -130,7 +131,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.ParseAuthorizationRuleID(d.Id())
+	id, err := eventhubs.ParseEventhubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,10 +145,10 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("eventhub_name", id.EventhubName)
+	d.Set("name", id.AuthorizationRuleName)
+	d.Set("eventhub_name", id.EventHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if properties := model.Properties; properties != nil {
@@ -158,7 +159,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
+	localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.AuthorizationRuleName)
 	keysResp, err := authorizationRulesClient.EventHubsListKeys(ctx, localId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
@@ -181,13 +182,13 @@ func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.ParseAuthorizationRuleID(d.Id())
+	id, err := eventhubs.ParseEventhubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	locks.ByName(id.EventHubName, eventHubResourceName)
+	defer locks.UnlockByName(id.EventHubName, eventHubResourceName)
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)

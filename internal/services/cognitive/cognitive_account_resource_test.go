@@ -6,17 +6,16 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CognitiveAccountResource struct {
-}
+type CognitiveAccountResource struct{}
 
 func TestAccCognitiveAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
@@ -274,8 +273,8 @@ func TestAccCognitiveAccount_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -290,8 +289,8 @@ func TestAccCognitiveAccount_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -314,17 +313,17 @@ func TestAccCognitiveAccount_metricsAdvisor(t *testing.T) {
 }
 
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cognitive.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cognitive.AccountsClient.AccountsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (CognitiveAccountResource) basic(data acceptance.TestData) string {
@@ -520,6 +519,11 @@ resource "azurerm_cognitive_account" "import" {
 }
 
 func (CognitiveAccountResource) complete(data acceptance.TestData) string {
+	outboundNetworkAccessRestrictedName := "outbound_network_access_restricted = true"
+	if !features.ThreePointOhBeta() {
+		outboundNetworkAccessRestrictedName = "outbound_network_access_restrited = true"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -537,16 +541,16 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "Face"
   sku_name            = "S0"
 
-  fqdns                             = ["foo.com", "bar.com"]
-  public_network_access_enabled     = false
-  outbound_network_access_restrited = true
-  local_auth_enabled                = false
+  fqdns                         = ["foo.com", "bar.com"]
+  public_network_access_enabled = false
+  local_auth_enabled            = false
+  %s
 
   tags = {
     Acceptance = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, outboundNetworkAccessRestrictedName)
 }
 
 func (CognitiveAccountResource) qnaRuntimeEndpoint(data acceptance.TestData, url string) string {

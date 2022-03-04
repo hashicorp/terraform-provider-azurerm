@@ -200,5 +200,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Streaming Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_streaming_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/mediaservices/service1/streamingendpoints/endpoint1
+terraform import azurerm_media_streaming_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/service1/streamingendpoints/endpoint1
 ```

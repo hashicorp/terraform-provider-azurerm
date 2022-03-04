@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -83,6 +83,9 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
 	}
 
+	// @tombuildsstuff: intentionally leaving this for now, since this'll need
+	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
+	// but needs to be fixed (resourcegroups -> resourceGroups)
 	d.SetId(*resp.ID)
 
 	return resourceResourceGroupRead(d, meta)

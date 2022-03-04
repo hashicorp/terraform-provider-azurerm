@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VideoAnalyzerEdgeModuleResource struct {
-}
+type VideoAnalyzerEdgeModuleResource struct{}
 
 func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer_edge_module", "test")
@@ -146,6 +145,5 @@ resource "azurerm_video_analyzer" "test" {
     azurerm_role_assignment.reader,
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
 }

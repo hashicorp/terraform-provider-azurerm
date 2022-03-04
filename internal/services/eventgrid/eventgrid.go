@@ -1,9 +1,8 @@
 package eventgrid
 
 import (
-	"fmt"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -49,49 +48,17 @@ func IdentitySchema() *schema.Schema {
 	}
 }
 
-func IdentitySchemaForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.IdentityTypeNone),
-						string(eventgrid.IdentityTypeSystemAssigned),
-						string(eventgrid.IdentityTypeUserAssigned),
-					}, false),
-				},
-
-				"identity_ids": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-
-				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func eventSubscriptionPublicNetworkAccessEnabled() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeBool,
+		Optional: true,
+		Default:  true,
+	}
+}
+
+func localAuthEnabled() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  true,
 	}
@@ -112,9 +79,9 @@ func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
 				"action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(eventgrid.Allow),
+					Default:  string(eventgrid.IPActionTypeAllow),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.Allow),
+						string(eventgrid.IPActionTypeAllow),
 					}, false),
 				},
 			},
@@ -124,13 +91,13 @@ func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
 
 func expandPublicNetworkAccess(d *pluginsdk.ResourceData) eventgrid.PublicNetworkAccess {
 	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		enabled := eventgrid.Disabled
+		enabled := eventgrid.PublicNetworkAccessDisabled
 		if v.(bool) {
-			enabled = eventgrid.Enabled
+			enabled = eventgrid.PublicNetworkAccessEnabled
 		}
 		return enabled
 	}
-	return eventgrid.Disabled
+	return eventgrid.PublicNetworkAccessDisabled
 }
 
 func expandInboundIPRules(d *pluginsdk.ResourceData) *[]eventgrid.InboundIPRule {
@@ -154,7 +121,7 @@ func expandInboundIPRules(d *pluginsdk.ResourceData) *[]eventgrid.InboundIPRule 
 }
 
 func flattenPublicNetworkAccess(in eventgrid.PublicNetworkAccess) bool {
-	return in == eventgrid.Enabled
+	return in == eventgrid.PublicNetworkAccessEnabled
 }
 
 func flattenInboundIPRules(in *[]eventgrid.InboundIPRule) []interface{} {
@@ -177,63 +144,49 @@ func flattenInboundIPRules(in *[]eventgrid.InboundIPRule) []interface{} {
 }
 
 func expandIdentity(input []interface{}) (*eventgrid.IdentityInfo, error) {
-	if len(input) == 0 || input[0] == nil {
-		return &eventgrid.IdentityInfo{
-			Type: eventgrid.IdentityTypeNone,
-		}, nil
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	raw := input[0].(map[string]interface{})
-
-	identity := eventgrid.IdentityInfo{
-		Type: eventgrid.IdentityType(raw["type"].(string)),
+	out := eventgrid.IdentityInfo{
+		Type: eventgrid.IdentityType(string(expanded.Type)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
-	identityIds := make(map[string]*eventgrid.UserIdentityProperties)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &eventgrid.UserIdentityProperties{}
-	}
-
-	if len(identityIds) > 0 {
-		if identity.Type != eventgrid.IdentityTypeUserAssigned && identity.Type != eventgrid.IdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*eventgrid.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &eventgrid.UserIdentityProperties{
+				// intentionally empty
+			}
 		}
-
-		identity.UserAssignedIdentities = identityIds
 	}
 
-	return &identity, nil
+	return &out, nil
 }
 
-func flattenIdentity(input *eventgrid.IdentityInfo) []interface{} {
-	if input == nil || input.Type == eventgrid.IdentityTypeNone {
-		return []interface{}{}
-	}
+func flattenIdentity(input *eventgrid.IdentityInfo) (*[]interface{}, error) {
+	var transform *identity.SystemOrUserAssignedMap
 
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
 		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }

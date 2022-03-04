@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceMySQLResource struct {
-}
+type LinkedServiceMySQLResource struct{}
 
 func TestAccDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
@@ -94,7 +93,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_mysql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -120,7 +119,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_mysql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"

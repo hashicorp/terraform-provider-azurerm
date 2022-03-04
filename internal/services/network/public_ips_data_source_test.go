@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PublicIPsResource struct {
-}
+type PublicIPsResource struct{}
 
 func TestAccDataSourcePublicIPs_namePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
@@ -136,7 +135,6 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
   nat_gateway_id       = azurerm_nat_gateway.test.id
   public_ip_address_id = element(azurerm_public_ip.test.*.id, 3)
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

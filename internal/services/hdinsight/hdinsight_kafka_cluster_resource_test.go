@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightKafkaClusterResource struct {
-}
+type HDInsightKafkaClusterResource struct{}
 
 func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
@@ -1289,7 +1288,8 @@ func (r HDInsightKafkaClusterResource) restProxy(data acceptance.TestData) strin
 provider "azuread" {}
 
 resource "azuread_group" "test" {
-  name = "acctesthdi-%d"
+  display_name     = "acctesthdi-%d"
+  security_enabled = true
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
@@ -1344,7 +1344,8 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   rest_proxy {
-    security_group_id = azuread_group.test.id
+    security_group_id   = azuread_group.test.id
+    security_group_name = azuread_group.test.display_name
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)

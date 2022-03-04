@@ -3,12 +3,14 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -60,7 +62,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Geo"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -280,6 +282,34 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createOnlineSecondaryMode(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+		{
+			Config: r.createOnlineSecondaryMode(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+	})
+}
+
 func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "primary")
 	r := MsSqlDatabaseResource{}
@@ -424,10 +454,10 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccountTypeLRS(data),
+			Config: r.storageAccountTypeLocal(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 			),
 		},
 		data.ImportStep("sample_name"),
@@ -664,6 +694,50 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skipf("This test runs only on 3.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTransitDataEncryptionOnDwSku(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withTransitDataEncryptionOnDwSku(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skipf("This test runs only on 3.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.errorOnDisabledEncryption(data),
+			ExpectError: regexp.MustCompile("transparent data encryption can only be disabled on Data Warehouse SKUs"),
+		},
 	})
 }
 
@@ -986,6 +1060,37 @@ resource "azurerm_mssql_database" "secondary" {
 `, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
 }
 
+func (r MsSqlDatabaseResource) createOnlineSecondaryMode(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "second" {
+  name     = "acctestRG-mssql2-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_mssql_server" "second" {
+  name                         = "acctest-sqlserver2-%[2]d"
+  resource_group_name          = azurerm_resource_group.second.name
+  location                     = azurerm_resource_group.second.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs-%[2]d"
+  server_id                   = azurerm_mssql_server.second.id
+  create_mode                 = "OnlineSecondary"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  tags = {
+    tag = "%[4]s"
+  }
+}
+`, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
+}
+
 func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1146,7 +1251,6 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[1]d"
   server_id = azurerm_mssql_server.test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -1182,11 +1286,10 @@ resource "azurerm_mssql_database" "restore" {
   create_mode                 = "Restore"
   restore_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_database_ids[0]
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) storageAccountTypeLocal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1194,7 +1297,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_mssql_server.test.id
 
-  storage_account_type = "LRS"
+  storage_account_type = "Local"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1618,4 +1721,29 @@ resource "azurerm_mssql_database" "test" {
   geo_backup_enabled = false
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withTransitDataEncryptionOnDwSku(data acceptance.TestData, state bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name                                = "acctest-db-%d"
+  server_id                           = azurerm_mssql_server.test.id
+  sku_name                            = "DW100c"
+  transparent_data_encryption_enabled = %t
+}
+`, r.template(data), data.RandomInteger, state)
+}
+
+func (r MsSqlDatabaseResource) errorOnDisabledEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name                                = "acctest-db-%d"
+  server_id                           = azurerm_mssql_server.test.id
+  transparent_data_encryption_enabled = false
+}
+`, r.template(data), data.RandomInteger)
 }

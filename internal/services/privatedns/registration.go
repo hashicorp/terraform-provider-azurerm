@@ -6,6 +6,10 @@ import (
 
 type Registration struct{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/dns"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Private DNS"

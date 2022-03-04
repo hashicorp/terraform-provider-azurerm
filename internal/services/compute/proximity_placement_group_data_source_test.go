@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ProximityPlacementGroupDataSource struct {
-}
+type ProximityPlacementGroupDataSource struct{}
 
 func TestAccProximityPlacementGroupDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_proximity_placement_group", "test")

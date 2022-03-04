@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,7 +26,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_key": {
 				Type:     pluginsdk.TypeString,
@@ -49,27 +50,28 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Automation Account %q (Resource Group %q) was not found", name, resourceGroupName)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on Automation %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("retreiving %s: %+v", id, err)
 	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	iresp, err := iclient.Get(ctx, resourceGroupName, name)
+	iresp, err := iclient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(iresp.Response) {
-			return fmt.Errorf("Error: Automation Account Registration Information %q (Resource Group %q) was not found", name, resourceGroupName)
+			return fmt.Errorf("%q Account Registration Information was not found", id)
 		}
-		return fmt.Errorf("making Read request on Automation Account Registration Information %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("retreiving Automation Account Registration Information %s: %+v", id, err)
 	}
-	d.Set("primary_key", iresp.Keys.Primary)
-	d.Set("secondary_key", iresp.Keys.Secondary)
+	if iresp.Keys != nil {
+		d.Set("primary_key", iresp.Keys.Primary)
+		d.Set("secondary_key", iresp.Keys.Secondary)
+	}
 	d.Set("endpoint", iresp.Endpoint)
 	return nil
 }

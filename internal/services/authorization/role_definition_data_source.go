@@ -20,7 +20,6 @@ func dataSourceArmRoleDefinition() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,

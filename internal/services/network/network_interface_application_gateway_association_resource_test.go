@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct {
-}
+type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct{}
 
 func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_gateway_backend_address_pool_association", "test")
@@ -205,7 +204,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "test" {
   network_interface_id    = azurerm_network_interface.test.id
   ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = azurerm_application_gateway.test.backend_address_pool.0.id
+  backend_address_pool_id = [azurerm_application_gateway.test.backend_address_pool.0.id]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -215,9 +214,9 @@ func (r NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource)
 %s
 
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "import" {
-  network_interface_id    = azurerm_network_interface_application_gateway_backend_address_pool_association.test.network_interface_id
-  ip_configuration_name   = azurerm_network_interface_application_gateway_backend_address_pool_association.test.ip_configuration_name
-  backend_address_pool_id = azurerm_network_interface_application_gateway_backend_address_pool_association.test.backend_address_pool_id
+  network_interface_id     = azurerm_network_interface_application_gateway_backend_address_pool_association.test.network_interface_id
+  ip_configuration_name    = azurerm_network_interface_application_gateway_backend_address_pool_association.test.ip_configuration_name
+  backend_address_pool_ids = [azurerm_network_interface_application_gateway_backend_address_pool_association.test.backend_address_pool_id]
 }
 `, r.basic(data))
 }
@@ -241,14 +240,14 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "test" {
-  network_interface_id    = azurerm_network_interface.test.id
-  ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = azurerm_application_gateway.test.backend_address_pool.0.id
+  network_interface_id     = azurerm_network_interface.test.id
+  ip_configuration_name    = "testconfiguration1"
+  backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool.0.id]
 }
 `, r.template(data), data.RandomInteger)
 }

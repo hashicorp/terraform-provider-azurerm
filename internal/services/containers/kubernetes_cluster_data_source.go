@@ -6,9 +6,15 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,9 +36,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"addon_profile": {
 				Type:     pluginsdk.TypeList,
@@ -180,6 +186,46 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"azure_keyvault_secrets_provider": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+									"secret_rotation_enabled": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_rotation_interval": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_identity": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"client_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -188,103 +234,113 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"max_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"min_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"enable_auto_scaling": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"availability_zones": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+					Schema: func() map[string]*pluginsdk.Schema {
+						s := map[string]*pluginsdk.Schema{
+							"name": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
 
-						"vm_size": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tags": tags.SchemaDataSource(),
-
-						"os_disk_size_gb": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"vnet_subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"orchestrator_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"max_pods": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"node_labels": {
-							Type:     pluginsdk.TypeMap,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+							"type": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
 							},
-						},
 
-						"node_taints": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						},
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"enable_node_public_ip": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
+							"max_count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"node_public_ip_prefix_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+							"min_count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
-						"upgrade_settings": upgradeSettingsForDataSourceSchema(),
-					},
+							// TODO 4.0: change this from enable_* to *_enabled
+							"enable_auto_scaling": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"vm_size": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"tags": commonschema.TagsDataSource(),
+
+							"os_disk_size_gb": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"vnet_subnet_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"os_type": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"orchestrator_version": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"max_pods": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"node_labels": {
+								Type:     pluginsdk.TypeMap,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"node_taints": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							},
+
+							// TODO 4.0: change this from enable_* to *_enabled
+							"enable_node_public_ip": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"node_public_ip_prefix_id": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"upgrade_settings": upgradeSettingsForDataSourceSchema(),
+
+							"zones": commonschema.ZonesMultipleComputed(),
+						}
+
+						if !features.ThreePointOhBeta() {
+							s["availability_zones"] = &schema.Schema{
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							}
+						}
+
+						return s
+					}(),
 				},
 			},
 
@@ -326,30 +382,36 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+			"identity": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"principal_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"tenant_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
 						},
-						"user_assigned_identity_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+					}
+				}
+
+				return commonschema.SystemOrUserAssignedIdentityComputed()
+			}(),
 
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
@@ -607,37 +669,37 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Managed Kubernetes Cluster %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	profile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -706,9 +768,9 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
+			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
 			}
 
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
@@ -722,7 +784,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	identity, err := flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)
+	identity, err := flattenClusterDataSourceIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -952,6 +1014,38 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	}
 	values["open_service_mesh"] = openServiceMeshes
 
+	azureKeyvaultSecretsProviders := make([]interface{}, 0)
+	if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
+		enabled := false
+		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		enableSecretRotation := "false"
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v == utils.String("true") {
+			enableSecretRotation = *v
+		}
+
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+			rotationPollInterval = *v
+		}
+
+		azureKeyvaultSecretsProviderIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+		if err != nil {
+			return err
+		}
+
+		output := map[string]interface{}{
+			"enabled":                  enabled,
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+		}
+		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, output)
+	}
+	values["azure_keyvault_secrets_provider"] = azureKeyvaultSecretsProviders
+
 	return []interface{}{values}
 }
 
@@ -973,7 +1067,7 @@ func flattenKubernetesClusterDataSourceAddOnIdentityProfile(profile *containerse
 
 	userAssignedIdentityID := ""
 	if resourceid := profile.ResourceID; resourceid != nil {
-		parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 		if err != nil {
 			return nil, err
 		}
@@ -1073,8 +1167,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			vmSize = *profile.VMSize
 		}
 
-		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
-			"availability_zones":       utils.FlattenStringSlice(profile.AvailabilityZones),
+		out := map[string]interface{}{
 			"count":                    count,
 			"enable_auto_scaling":      enableAutoScaling,
 			"enable_node_public_ip":    enableNodePublicIP,
@@ -1093,7 +1186,12 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"upgrade_settings":         flattenUpgradeSettings(profile.UpgradeSettings),
 			"vm_size":                  vmSize,
 			"vnet_subnet_id":           vnetSubnetId,
-		})
+			"zones":                    zones.Flatten(profile.AvailabilityZones),
+		}
+		if !features.ThreePointOhBeta() {
+			out["availability_zones"] = utils.FlattenStringSlice(profile.AvailabilityZones)
+		}
+		agentPoolProfiles = append(agentPoolProfiles, out)
 	}
 
 	return agentPoolProfiles
@@ -1118,7 +1216,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -1256,40 +1354,65 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
-	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
-
-	identity := make(map[string]interface{})
-
-	identity["principal_id"] = ""
-	if input.PrincipalID != nil {
-		identity["principal_id"] = *input.PrincipalID
-	}
-
-	identity["tenant_id"] = ""
-	if input.TenantID != nil {
-		identity["tenant_id"] = *input.TenantID
-	}
-
-	identity["user_assigned_identity_id"] = ""
-	if input.UserAssignedIdentities != nil {
-		keys := []string{}
-		for key := range input.UserAssignedIdentities {
-			keys = append(keys, key)
+func flattenClusterDataSourceIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
+	if !features.ThreePointOhBeta() {
+		// if it's none, omit the block
+		if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
+			return &[]interface{}{}, nil
 		}
-		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
-			if err != nil {
-				return nil, err
+
+		identity := make(map[string]interface{})
+
+		identity["principal_id"] = ""
+		if input.PrincipalID != nil {
+			identity["principal_id"] = *input.PrincipalID
+		}
+
+		identity["tenant_id"] = ""
+		if input.TenantID != nil {
+			identity["tenant_id"] = *input.TenantID
+		}
+
+		identity["user_assigned_identity_id"] = ""
+		if input.UserAssignedIdentities != nil {
+			keys := []string{}
+			for key := range input.UserAssignedIdentities {
+				keys = append(keys, key)
 			}
-			identity["user_assigned_identity_id"] = parsedId.ID()
+			if len(keys) > 0 {
+				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
+				if err != nil {
+					return nil, err
+				}
+				identity["user_assigned_identity_id"] = parsedId.ID()
+			}
+		}
+
+		identity["type"] = string(input.Type)
+
+		return &[]interface{}{identity}, nil
+	}
+
+	var transform *identity.SystemOrUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
 		}
 	}
 
-	identity["type"] = string(input.Type)
-
-	return []interface{}{identity}, nil
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }

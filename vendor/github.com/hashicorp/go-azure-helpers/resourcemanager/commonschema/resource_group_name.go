@@ -33,7 +33,7 @@ func ResourceGroupNameDeprecatedComputed() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameForDataSource() *schema.Schema {
+func ResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
@@ -41,7 +41,7 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
+func ResourceGroupNameOptionalComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		ForceNew:     true,
@@ -51,7 +51,7 @@ func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameOptional() *schema.Schema {
+func ResourceGroupNameOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
@@ -59,7 +59,7 @@ func SchemaResourceGroupNameOptional() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameSetOptional() *schema.Schema {
+func ResourceGroupNameSetOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,

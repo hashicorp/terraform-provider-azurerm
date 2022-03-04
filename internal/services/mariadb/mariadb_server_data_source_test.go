@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MariaDbServerDataSource struct {
-}
+type MariaDbServerDataSource struct{}
 
 func TestAccMariaDbServerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")

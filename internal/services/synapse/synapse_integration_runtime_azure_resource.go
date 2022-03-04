@@ -110,7 +110,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", id.ID())
 		}
 	}
 

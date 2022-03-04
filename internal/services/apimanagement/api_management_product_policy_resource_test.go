@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementProductPolicyResource struct {
-}
+type ApiManagementProductPolicyResource struct{}
 
 func TestAccApiManagementProductPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
@@ -79,17 +78,14 @@ func TestAccApiManagementProductPolicy_update(t *testing.T) {
 }
 
 func (ApiManagementProductPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ProductPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
 
-	resp, err := clients.ApiManagement.ProductPoliciesClient.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
+	resp, err := clients.ApiManagement.ProductPoliciesClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Product Policy (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CassandraDatacenterResource struct {
-}
+type CassandraDatacenterResource struct{}
 
 func TestAccCassandraDatacenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
@@ -114,6 +113,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   node_count                     = %[3]d
   disk_count                     = 4
   sku_name                       = "Standard_DS14_v2"
+  availability_zones_enabled     = false
 }
 `, data.RandomInteger, data.Locations.Secondary, nodeCount)
 }

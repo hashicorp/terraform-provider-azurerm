@@ -32,6 +32,21 @@ func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	})
 }
 
+func TestAccStorageEncryptionScope_keyVaultKeyVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
+	r := StorageEncryptionScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultKeyVersionless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageEncryptionScope_keyVaultKeyRequireInfrastructureEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResource{}
@@ -206,6 +221,28 @@ resource "azurerm_storage_encryption_scope" "test" {
 `, template, data.RandomInteger)
 }
 
+func (t StorageEncryptionScopeResource) keyVaultKeyVersionless(data acceptance.TestData) string {
+	template := t.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestES%d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.KeyVault"
+  key_vault_key_id   = azurerm_key_vault_key.first.versionless_id
+}
+`, template, data.RandomInteger)
+}
+
 func (t StorageEncryptionScopeResource) keyVaultKeyUpdated(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
@@ -345,7 +382,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -354,7 +390,7 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "Unwrapkey", "Wrapkey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -362,7 +398,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
 }
 
 resource "azurerm_key_vault_key" "first" {

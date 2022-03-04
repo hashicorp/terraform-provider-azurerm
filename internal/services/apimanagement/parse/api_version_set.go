@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApiVersionSetId struct {
@@ -42,7 +42,7 @@ func (id ApiVersionSetId) ID() string {
 
 // ApiVersionSetID parses a ApiVersionSet ID into an ApiVersionSetId struct
 func ApiVersionSetID(input string) (*ApiVersionSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

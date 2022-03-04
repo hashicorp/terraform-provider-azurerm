@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -82,6 +82,7 @@ func resourceApiManagementRedisCache() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
@@ -118,8 +119,11 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.CacheContractProperties.Description = utils.String(v.(string))
 	}
 
+	// Remove the extra / in the ResourceID so the redis cache can be associated to the api mgmt service as expected,
+	// otherwise, the resourceId behave like
+	// "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
 	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
-		parameters.CacheContractProperties.ResourceID = utils.String(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint + v.(string))
+		parameters.CacheContractProperties.ResourceID = utils.String(strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/") + v.(string))
 	}
 
 	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
@@ -158,7 +162,8 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 
 		cacheId := ""
 		if props.ResourceID != nil {
-			cacheId = strings.TrimPrefix(*props.ResourceID, meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint)
+			// correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
+			cacheId = strings.TrimPrefix(*props.ResourceID, strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/"))
 		}
 		d.Set("redis_cache_id", cacheId)
 		d.Set("cache_location", props.UseFromLocation)

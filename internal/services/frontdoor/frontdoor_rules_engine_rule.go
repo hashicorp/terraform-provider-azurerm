@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -51,7 +52,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: azValidate.FrontDoorName,
 			},
-			"location": location.SchemaComputed(),
+			"location": commonschema.LocationComputed(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -84,7 +85,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"variable": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -94,7 +94,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											"RequestMethod",
 											"QueryString",
 											"PostArgs",
-											"RequestURI",
+											"RequestUri",
 											"RequestPath",
 											"RequestFilename",
 											"RequestFilenameExtension",
@@ -148,7 +148,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  true, // TODO 3,0 change to false- needs to change https://github.com/hashicorp/terraform-provider-azurerm/pull/13605
+										Default:  !features.ThreePointOhBeta(),
 									},
 
 									"value": {
@@ -170,14 +170,12 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"request_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -209,7 +207,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -276,7 +273,7 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngineAction {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return frontdoors.RulesEngineAction{}
 	}
 
@@ -294,7 +291,7 @@ func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngin
 }
 
 func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	output := make([]frontdoors.HeaderAction, 0)
@@ -319,7 +316,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 }
 
 func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEngineRule {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -346,7 +343,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEng
 }
 
 func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors.RulesEngineMatchCondition {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -381,7 +378,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 }
 
 func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoors.Transform {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &[]frontdoors.Transform{}
 	}
 

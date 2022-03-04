@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -46,14 +46,37 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: azValidate.QueueName(),
 			},
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azValidate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"namespace_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azValidate.NamespaceID,
+				ConflictsWith: []string{"namespace_name", "resource_group_name"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - Remove in favor of namespace_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azValidate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of namespace_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  resourcegroups.ValidateName,
+				Deprecated:    `Deprecated in favor of "namespace_id"`,
+				ConflictsWith: []string{"namespace_id"},
+			},
 
 			// Optional
 			"auto_delete_on_idle": {
@@ -83,18 +106,21 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_batched_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_express": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_partitioning": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -181,6 +207,14 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Queue creation/update.")
 
+	var resourceId parse.QueueId
+	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
+		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
+		resourceId = parse.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
+	} else {
+		resourceId = parse.NewQueueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	}
+
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
@@ -191,7 +225,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	status := servicebus.EntityStatus(d.Get("status").(string))
 
-	resourceId := parse.NewQueueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
 		if err != nil {
@@ -200,7 +233,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID())
 		}
 	}
@@ -296,6 +329,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("name", id.Name)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if props := resp.SBQueueProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)

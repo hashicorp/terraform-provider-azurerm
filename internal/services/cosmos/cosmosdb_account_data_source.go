@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,9 +32,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"tags": tags.SchemaDataSource(),
 
@@ -51,11 +53,13 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_failover": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -143,6 +147,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_multiple_write_locations": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -226,28 +231,26 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: CosmosDB Account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on AzureRM CosmosDB Account %s (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("kind", string(resp.Kind))
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
@@ -278,7 +281,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for i, l := range policies {
 				locations[i] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}
@@ -286,7 +289,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for _, l := range *props.FailoverPolicies {
 				locations[*l.FailoverPriority] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}
@@ -334,9 +337,9 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
+		log.Printf("[ERROR] Unable to List Write keys for %s: %s", id, err)
 	} else {
 		d.Set("primary_key", keys.PrimaryMasterKey)
 		d.Set("secondary_key", keys.SecondaryMasterKey)
@@ -344,9 +347,9 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("secondary_master_key", keys.SecondaryMasterKey)
 	}
 
-	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
+	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
+		log.Printf("[ERROR] Unable to List read-only keys for %s: %s", id, err)
 	} else {
 		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)

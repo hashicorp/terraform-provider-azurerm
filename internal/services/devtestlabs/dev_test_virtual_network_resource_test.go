@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestVirtualNetworkResource struct {
-}
+type DevTestVirtualNetworkResource struct{}
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 	validNames := []string{
@@ -100,16 +99,14 @@ func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 }
 
 func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DevTestVirtualNetworkID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	labName := id.Path["labs"]
-	name := id.Path["virtualnetworks"]
 
-	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, id.ResourceGroup, labName, name, "")
+	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group: %q): %v", name, labName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.VirtualNetworkProperties != nil), nil

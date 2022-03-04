@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestGlobalVMShutdownScheduleResource struct {
-}
+type DevTestGlobalVMShutdownScheduleResource struct{}
 
 func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
@@ -226,6 +225,5 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "test" {
     Environment = "Production"
   }
 }
-
 `, r.template(data))
 }

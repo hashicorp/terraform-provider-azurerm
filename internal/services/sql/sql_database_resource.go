@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -43,301 +44,7 @@ func resourceSqlDatabase() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ValidateMsSqlDatabaseName,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"server_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ValidateMsSqlServerName,
-			},
-
-			"create_mode": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(sql.Default),
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.CreateModeCopy),
-					string(sql.CreateModeDefault),
-					string(sql.CreateModeNonReadableSecondary),
-					string(sql.CreateModeOnlineSecondary),
-					string(sql.CreateModePointInTimeRestore),
-					string(sql.CreateModeRecovery),
-					string(sql.CreateModeRestore),
-					string(sql.CreateModeRestoreLongTermRetentionBackup),
-				}, true),
-			},
-
-			"import": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"storage_uri": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-						"storage_key": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"storage_key_type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"StorageAccessKey",
-								"SharedAccessKey",
-							}, true),
-						},
-						"administrator_login": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-						"administrator_login_password": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"authentication_type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"ADPassword",
-								"SQL",
-							}, true),
-						},
-						"operation_mode": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Default:          "Import",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Import",
-							}, true),
-						},
-					},
-				},
-			},
-
-			"source_database_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"restore_point_in_time": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
-
-			"edition": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.Basic),
-					string(sql.Business),
-					string(sql.BusinessCritical),
-					string(sql.DataWarehouse),
-					string(sql.Free),
-					string(sql.GeneralPurpose),
-					string(sql.Hyperscale),
-					string(sql.Premium),
-					string(sql.PremiumRS),
-					string(sql.Standard),
-					string(sql.Stretch),
-					string(sql.System),
-					string(sql.System2),
-					string(sql.Web),
-				}, true),
-			},
-
-			"collation": {
-				Type:             pluginsdk.TypeString,
-				DiffSuppressFunc: suppress.CaseDifference,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-			},
-
-			"max_size_bytes": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"max_size_gb": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"requested_service_objective_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
-			"requested_service_objective_name": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.StringIsNotEmpty,
-				// TODO: add validation once the Enum's complete
-				// https://github.com/Azure/azure-rest-api-specs/issues/1609
-			},
-
-			"source_database_deletion_date": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
-
-			"elastic_pool_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"encryption": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"creation_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"default_secondary_location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"threat_detection_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"disabled_alerts": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Set:      pluginsdk.HashString,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Sql_Injection",
-									"Sql_Injection_Vulnerability",
-									"Access_Anomaly",
-								}, true),
-							},
-						},
-
-						"email_account_admins": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
-								string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
-							}, true),
-						},
-
-						"email_addresses": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Set: pluginsdk.HashString,
-						},
-
-						"retention_days": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-
-						"state": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyStateDisabled),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyStateDisabled),
-								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew),
-							}, true),
-						},
-
-						"storage_account_access_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"storage_endpoint": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// TODO - 3.0: Remove this property
-						"use_server_default": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
-							}, true),
-							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-						},
-					},
-				},
-			},
-
-			"read_scale": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceSqlDatabaseSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
@@ -361,42 +68,39 @@ func resourceSqlDatabase() *pluginsdk.Resource {
 
 func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	createMode := d.Get("create_mode").(string)
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
-
-	if createMode == string(sql.CreateModeOnlineSecondary) && len(auditingPolicies) > 0 {
-		return fmt.Errorf("could not configure auditing policies on SQL Database %q (Resource Group %q, Server %q) in online secondary create mode", name, resourceGroup, serverName)
-	}
-
-	zoneRedundant := d.Get("zone_redundant").(bool)
-	t := d.Get("tags").(map[string]interface{})
-
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_database", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_database", id.ID())
 		}
 	}
+
+	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
+	createMode := sql.CreateMode(d.Get("create_mode").(string))
+	if createMode == sql.CreateModeOnlineSecondary && len(auditingPolicies) > 0 {
+		return fmt.Errorf("auditing policies are not supported on an online secondary for %s", id)
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
-			CreateMode:    sql.CreateMode(createMode),
-			ZoneRedundant: utils.Bool(zoneRedundant),
+			CreateMode:    createMode,
+			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -476,23 +180,23 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	if _, ok := d.GetOk("import"); ok {
-		if !strings.EqualFold(createMode, "default") {
+		if createMode != sql.CreateModeDefault {
 			return fmt.Errorf("import can only be used when create_mode is Default")
 		}
 		importParameters := expandAzureRmSqlDatabaseImport(d)
-		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
-		if err2 != nil {
-			return err2
+		importFuture, err := client.CreateImportOperation(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
+		if err != nil {
+			return err
 		}
 
 		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -500,24 +204,18 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
-	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
-	}
-
-	d.SetId(*resp.ID)
-
-	if _, err = threatClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
+	d.SetId(id.ID())
+	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
-	if createMode != string(sql.CreateModeOnlineSecondary) {
+	if createMode != sql.CreateModeOnlineSecondary {
 		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
 		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
 			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingProps); err != nil {
-			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverName, resourceGroup, err)
+		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
+			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
 		}
 	}
 
@@ -537,12 +235,12 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Sql Database %s: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
@@ -553,7 +251,13 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("name", resp.Name)
+	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -589,21 +293,8 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
-
-		readScale := props.ReadScale
-		if readScale == sql.ReadScaleEnabled {
-			d.Set("read_scale", true)
-		} else {
-			d.Set("read_scale", false)
-		}
-
+		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 		d.Set("zone_redundant", props.ZoneRedundant)
-	}
-
-	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
 
 	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
@@ -661,7 +352,9 @@ func flattenArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy 
 
 	threatDetectionPolicy["state"] = string(properties.State)
 	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
-	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
+	if !features.ThreePointOhBeta() {
+		threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
+	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
@@ -735,7 +428,9 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 
 		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
 		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
-		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
+		if !features.ThreePointOhBeta() {
+			properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
+		}
 
 		if v, ok := threatDetection["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -767,4 +462,307 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 	}
 
 	return &policy
+}
+
+func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ValidateMsSqlDatabaseName,
+		},
+
+		"location": azure.SchemaLocation(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"server_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ValidateMsSqlServerName,
+		},
+
+		"create_mode": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Default:          string(sql.Default),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.CreateModeCopy),
+				string(sql.CreateModeDefault),
+				string(sql.CreateModeNonReadableSecondary),
+				string(sql.CreateModeOnlineSecondary),
+				string(sql.CreateModePointInTimeRestore),
+				string(sql.CreateModeRecovery),
+				string(sql.CreateModeRestore),
+				string(sql.CreateModeRestoreLongTermRetentionBackup),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		"import": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_uri": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"storage_key": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+					"storage_key_type": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						ValidateFunc: validation.StringInSlice([]string{
+							"StorageAccessKey",
+							"SharedAccessKey",
+						}, !features.ThreePointOhBeta()),
+					},
+					"administrator_login": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"administrator_login_password": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+					"authentication_type": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						ValidateFunc: validation.StringInSlice([]string{
+							"ADPassword",
+							"SQL",
+						}, !features.ThreePointOhBeta()),
+					},
+					"operation_mode": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Default:          "Import",
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Import",
+						}, !features.ThreePointOhBeta()),
+					},
+				},
+			},
+		},
+
+		"source_database_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"restore_point_in_time": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"edition": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.Basic),
+				string(sql.Business),
+				string(sql.BusinessCritical),
+				string(sql.DataWarehouse),
+				string(sql.Free),
+				string(sql.GeneralPurpose),
+				string(sql.Hyperscale),
+				string(sql.Premium),
+				string(sql.PremiumRS),
+				string(sql.Standard),
+				string(sql.Stretch),
+				string(sql.System),
+				string(sql.System2),
+				string(sql.Web),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		"collation": {
+			Type:             pluginsdk.TypeString,
+			DiffSuppressFunc: suppress.CaseDifference,
+			Optional:         true,
+			Computed:         true,
+			ForceNew:         true,
+		},
+
+		"max_size_bytes": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"max_size_gb": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"requested_service_objective_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"requested_service_objective_name": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validation.StringIsNotEmpty,
+			// TODO: add validation once the Enum's complete
+			// https://github.com/Azure/azure-rest-api-specs/issues/1609
+		},
+
+		"source_database_deletion_date": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"elastic_pool_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"encryption": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"creation_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"default_secondary_location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"threat_detection_policy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disabled_alerts": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Set:      pluginsdk.HashString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Sql_Injection",
+								"Sql_Injection_Vulnerability",
+								"Access_Anomaly",
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						},
+					},
+
+					"email_account_admins": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+							string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
+						}, !features.ThreePointOhBeta()),
+					},
+
+					"email_addresses": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"retention_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"state": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Default:          string(sql.SecurityAlertPolicyStateDisabled),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(sql.SecurityAlertPolicyStateDisabled),
+							string(sql.SecurityAlertPolicyStateEnabled),
+							string(sql.SecurityAlertPolicyStateNew),
+						}, !features.ThreePointOhBeta()),
+					},
+
+					"storage_account_access_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"storage_endpoint": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"read_scale": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		s := schema["threat_detection_policy"].Elem.(*pluginsdk.Resource)
+		s.Schema["use_server_default"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+				string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
+			}, !features.ThreePointOhBeta()),
+			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
+		}
+	}
+
+	return schema
 }

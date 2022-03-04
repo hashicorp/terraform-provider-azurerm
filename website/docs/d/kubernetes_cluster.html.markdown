@@ -102,6 +102,8 @@ A `addon_profile` block exports the following:
 
 * `open_service_mesh` - An `open_service_mesh` block.
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -111,8 +113,6 @@ A `agent_pool_profile` block exports the following:
 * `count` - The number of Agents (VM's) in the Pool.
 
 * `max_pods` - The maximum number of pods that can run on each agent.
-
-* `availability_zones` - The availability zones used for the nodes.
 
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
@@ -139,6 +139,8 @@ A `agent_pool_profile` block exports the following:
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
 
 ---
 
@@ -295,6 +297,26 @@ The `ingress_application_gateway_identity` block exports the following:
 An `open_service_mesh` block supports the following:
 
 * `enabled` - Is Open Service Mesh enabled?
+
+---
+
+An `azure_keyvault_secrets_provider` block exports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Provider enabled?
+
+* `secret_rotation_enabled` - Is secret rotation enabled?
+
+* `secret_rotation_interval` - The interval to poll for secret rotation.
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
 
 ---
 

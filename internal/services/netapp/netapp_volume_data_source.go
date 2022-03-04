@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,12 +27,12 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.PoolName,
+				ValidateFunc: validate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -92,13 +95,14 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"remote_volume_location": azure.SchemaLocationForDataSource(),
+						"remote_volume_location": commonschema.LocationComputed(),
 
 						"remote_volume_resource_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"replication_schedule": {
 							Type:       pluginsdk.TypeString,
 							Computed:   true,
@@ -118,36 +122,27 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 
 func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("pool_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
+	id := parse.NewVolumeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: NetApp Volume %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving NetApp Volume %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(*resp.ID)
+	d.Set("name", id.Name)
+	d.Set("pool_name", id.CapacityPoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
-	d.Set("pool_name", poolName)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)

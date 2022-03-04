@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
@@ -173,7 +173,7 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", *existing.ID)
 		}
 	}
@@ -205,7 +205,11 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 
 	if v, ok := d.GetOk("delivery_identity"); ok {
 		deliveryIdentityRaw := v.([]interface{})
-		deliveryIdentity := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		deliveryIdentity, err := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `delivery_identity`: %+v", err)
+		}
+
 		eventSubscriptionProperties.DeliveryWithResourceIdentity = &eventgrid.DeliveryWithResourceIdentity{
 			Identity:    deliveryIdentity,
 			Destination: destination,
@@ -219,7 +223,11 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
 		}
 		deadLetterIdentityRaw := v.([]interface{})
-		deadLetterIdentity := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		deadLetterIdentity, err := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `dead_letter_identity`: %+v", err)
+		}
+
 		eventSubscriptionProperties.DeadLetterWithResourceIdentity = &eventgrid.DeadLetterWithResourceIdentity{
 			Identity:              deadLetterIdentity,
 			DeadLetterDestination: deadLetterDestination,

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type HybridConnectionId struct {
@@ -45,7 +45,7 @@ func (id HybridConnectionId) ID() string {
 
 // HybridConnectionID parses a HybridConnection ID into an HybridConnectionId struct
 func HybridConnectionID(input string) (*HybridConnectionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

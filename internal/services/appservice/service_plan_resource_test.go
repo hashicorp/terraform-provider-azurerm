@@ -30,6 +30,21 @@ func TestAccServicePlan_basic(t *testing.T) {
 	})
 }
 
+func TestAccServicePlan_linuxConsumption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxConsumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServicePlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
@@ -183,6 +198,32 @@ resource "azurerm_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (r ServicePlanResource) linuxConsumption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Y1"
+  os_type             = "Linux"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 // (@jackofallops) - `complete` deliberately omits ASE testing for the moment and will be tested separately later
 func (r ServicePlanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -202,7 +243,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                 = "S1"
   os_type                  = "Linux"
   per_site_scaling_enabled = true
-  number_of_workers        = 2
+  worker_count             = 2
 
   tags = {
     environment = "AccTest"
@@ -230,7 +271,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                 = "P1v2"
   os_type                  = "Linux"
   per_site_scaling_enabled = true
-  number_of_workers        = 3
+  worker_count             = 3
 
   tags = {
     Foo = "bar"
@@ -314,8 +355,9 @@ resource "azurerm_subnet" "gateway" {
 }
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%[1]d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.ase.id
 }
 
 resource "azurerm_service_plan" "test" {

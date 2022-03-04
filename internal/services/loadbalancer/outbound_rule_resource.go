@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,6 +94,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_tcp_reset": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

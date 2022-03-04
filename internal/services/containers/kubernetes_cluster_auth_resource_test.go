@@ -7,32 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges":          testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":               testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":                 testAccKubernetesCluster_userAssignedIdentity,
-	"updateWithUserAssignedIdentity":       testAccKubernetesCluster_updateWithUserAssignedIdentity,
-	"roleBasedAccessControl":               testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                                  testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":                   testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                           testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedLocalAccountDisabled":       testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled,
-	"AADManagedLocalAccountDisabledUpdate": testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated,
-	"AADManagedChange":                     testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"roleBasedAccessControlAzure":          testAccKubernetesCluster_roleBasedAccessControlAzure,
-	"servicePrincipal":                     testAccKubernetesCluster_servicePrincipal,
-	"servicePrincipalToSystemAssigned":     testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity,
-	"servicePrincipalToUserAssigned":       testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity,
-}
-
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_apiServerAuthorizedIPRanges(t)
-}
-
-func testAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -61,11 +39,6 @@ func testAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_managedClusterIdentity(t)
-}
-
-func testAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -86,11 +59,6 @@ func testAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_userAssignedIdentity(t)
-}
-
-func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -100,7 +68,6 @@ func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -108,11 +75,6 @@ func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_updateWithUserAssignedIdentity(t)
-}
-
-func testAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -135,11 +97,6 @@ func testAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_userAssignedKubeletIdentity(t)
-}
-
-func testAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -149,7 +106,6 @@ func testAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
@@ -158,11 +114,6 @@ func testAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControl(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControl(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -183,11 +134,6 @@ func testAccKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAAD(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -224,11 +170,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -273,11 +214,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -324,11 +260,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADManaged(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -365,11 +296,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -386,11 +312,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDi
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -421,11 +342,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDi
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -463,11 +379,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_roleBasedAccessControlAzure(t)
-}
-
-func testAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -523,11 +434,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_servicePrincipal(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_servicePrincipal(t)
-}
-
-func testAccKubernetesCluster_servicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -553,11 +459,6 @@ func testAccKubernetesCluster_servicePrincipal(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t)
-}
-
-func testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -587,11 +488,6 @@ func testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testin
 }
 
 func TestAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t)
-}
-
-func testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -610,19 +506,13 @@ func testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccKubernetesCluster_updateRoleBasedAccessControlAAD(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_updateRoleBaseAccessControlAAD(t)
-}
-
-func testAccKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T) {
+func TestAccKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -714,7 +604,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
   }
 
   api_server_authorized_ip_ranges = [
@@ -757,7 +647,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) userAssignedIdentityConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -792,10 +683,48 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) updateWithUserAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -833,10 +762,51 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    Env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) userAssignedKubeletIdentityConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -881,6 +851,62 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type                      = "UserAssigned"
     user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity_test.id
+  }
+
+  kubelet_identity {
+    user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity_test.id
+    client_id                 = azurerm_user_assigned_identity.kubelet_identity_test.client_id
+    object_id                 = azurerm_user_assigned_identity.kubelet_identity_test.principal_id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "aks_identity_test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_user_assigned_identity" "kubelet_identity_test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_kubelet_identity"
+}
+
+resource "azurerm_role_assignment" "manage_kubelet_identity" {
+  scope                            = azurerm_resource_group.test.id
+  role_definition_name             = "Managed Identity Operator"
+  principal_id                     = azurerm_user_assigned_identity.aks_identity_test.principal_id
+  skip_service_principal_aad_check = false
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  depends_on          = [azurerm_role_assignment.manage_kubelet_identity]
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks_identity_test.id]
   }
 
   kubelet_identity {

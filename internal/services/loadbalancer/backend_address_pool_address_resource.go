@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.Resource = BackendAddressPoolAddressResource{}
-var _ sdk.ResourceWithUpdate = BackendAddressPoolAddressResource{}
+var (
+	_ sdk.Resource           = BackendAddressPoolAddressResource{}
+	_ sdk.ResourceWithUpdate = BackendAddressPoolAddressResource{}
+)
 
 type BackendAddressPoolAddressResource struct{}
 

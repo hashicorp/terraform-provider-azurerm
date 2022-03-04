@@ -56,6 +56,10 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
+* `exclude_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be excluded for VM Protection.
+
+* `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be included for VM Protection.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

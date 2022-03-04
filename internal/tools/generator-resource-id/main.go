@@ -47,12 +47,12 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	}
 
 	parsersPath := path.Join(servicePackagePath, "/parse")
-	if err := os.Mkdir(parsersPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(parsersPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
 
 	validatorPath := path.Join(servicePackagePath, "/validate")
-	if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(validatorPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
 	}
 
@@ -340,7 +340,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 %s
@@ -470,7 +470,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 	return fmt.Sprintf(`
 // %[1]sID parses a %[1]s ID into an %[1]sId struct 
 func %[1]sID(input string) (*%[1]sId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +544,7 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func %[1]sIDInsensitively(input string) (*%[1]sId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -578,7 +578,7 @@ package parse%s
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	%s
 )
 
@@ -596,7 +596,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 	argumentsStr := strings.Join(arguments, ", ")
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-var _ resourceid.Formatter = %[1]sId{}
+var _ resourceids.Id = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
@@ -1038,7 +1038,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 		return err
 	}
 
-	if err := os.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(*fmt), 0o644); err != nil {
 		return err
 	}
 

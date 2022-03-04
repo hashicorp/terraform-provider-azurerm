@@ -22,10 +22,6 @@ tools:
 build: fmtcheck generate
 	go install
 
-build-docker:
-	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm -e GOOS golang:1.16 make build
-
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
@@ -60,6 +56,8 @@ lint:
 	./scripts/run-lint.sh
 
 depscheck:
+	@echo "==> Checking dependencies.."
+	@./scripts/track2-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
@@ -74,7 +72,7 @@ gencheck:
 	@make generate
 	@echo "==> Comparing generated code to committed code..."
 	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'go generate' to update the generated code and commit."; exit 1)
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh
@@ -82,9 +80,6 @@ tflint:
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
-
-test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
@@ -137,4 +132,6 @@ teamcity-test:
 validate-examples:
 	./scripts/validate-examples.sh
 
-.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples
+pr-check: generate build test lint tflint website-lint
+
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples

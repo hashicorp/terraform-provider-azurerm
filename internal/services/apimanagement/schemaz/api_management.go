@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -79,7 +82,7 @@ func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 }
 
 func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	out := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -91,10 +94,7 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 
 				"form_parameter": SchemaApiManagementOperationParameterContract(),
 
-				"sample": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
+				"example": SchemaApiManagementOperationParameterExampleContract(),
 
 				"schema_id": {
 					Type:     pluginsdk.TypeString,
@@ -108,6 +108,16 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.ThreePointOhBeta() {
+		s := out.Elem.(*pluginsdk.Resource)
+		s.Schema["sample"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `example`",
+		}
+	}
+	return out
 }
 
 func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
@@ -123,13 +133,24 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		contentType := vs["content_type"].(string)
 		formParametersRaw := vs["form_parameter"].([]interface{})
 		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.form_parameter", schemaPath, i), formParametersRaw)
-		sample := vs["sample"].(string)
 		schemaId := vs["schema_id"].(string)
 		typeName := vs["type_name"].(string)
 
+		examples := make(map[string]*apimanagement.ParameterExampleContract)
+		if vs["example"] != nil {
+			examplesRaw := vs["example"].([]interface{})
+			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
+		} else if !features.ThreePointOhBeta() && vs["sample"] != nil {
+			defaultExample := map[string]interface{}{
+				"name":  "default",
+				"value": vs["sample"],
+			}
+			examples = ExpandApiManagementOperationParameterExampleContract([]interface{}{defaultExample})
+		}
+
 		output := apimanagement.RepresentationContract{
 			ContentType: utils.String(contentType),
-			Sample:      utils.String(sample),
+			Examples:    examples,
 		}
 
 		contentTypeIsFormData := strings.EqualFold(contentType, "multipart/form-data") || strings.EqualFold(contentType, "application/x-www-form-urlencoded")
@@ -175,8 +196,12 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 
 		output["form_parameter"] = FlattenApiManagementOperationParameterContract(v.FormParameters)
 
-		if v.Sample != nil {
-			output["sample"] = *v.Sample
+		if v.Examples != nil {
+			output["example"] = FlattenApiManagementOperationParameterExampleContract(v.Examples)
+
+			if features.ThreePointOhBeta() && v.Examples["default"] != nil && v.Examples["default"].Value != nil {
+				output["sample"] = v.Examples["default"].Value.(string)
+			}
 		}
 
 		if v.SchemaID != nil {
@@ -300,6 +325,110 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 		}
 
 		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
+
+		outputs = append(outputs, output)
+	}
+
+	return outputs
+}
+
+func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: !features.ThreePointOhBeta(),
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+
+				"summary": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"description": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"value": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"external_value": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+			},
+		},
+	}
+}
+
+func ExpandApiManagementOperationParameterExampleContract(input []interface{}) map[string]*apimanagement.ParameterExampleContract {
+	if len(input) == 0 {
+		return map[string]*apimanagement.ParameterExampleContract{}
+	}
+
+	outputs := make(map[string]*apimanagement.ParameterExampleContract)
+
+	for _, v := range input {
+		vs := v.(map[string]interface{})
+
+		name := vs["name"].(string)
+
+		outputs[name] = &apimanagement.ParameterExampleContract{}
+
+		if vs["summary"] != nil {
+			outputs[name].Summary = utils.String(vs["summary"].(string))
+		}
+
+		if vs["description"] != nil {
+			outputs[name].Description = utils.String(vs["description"].(string))
+		}
+
+		if vs["value"] != nil {
+			outputs[name].Value = utils.String(vs["value"].(string))
+		}
+
+		if vs["external_value"] != nil {
+			outputs[name].ExternalValue = utils.String(vs["external_value"].(string))
+		}
+	}
+
+	return outputs
+}
+
+func FlattenApiManagementOperationParameterExampleContract(input map[string]*apimanagement.ParameterExampleContract) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outputs := make([]interface{}, 0)
+	for k, v := range input {
+		output := map[string]interface{}{}
+
+		output["name"] = k
+
+		if v.Summary != nil {
+			output["summary"] = *v.Summary
+		}
+
+		if v.Description != nil {
+			output["description"] = *v.Description
+		}
+
+		if v.Value != nil {
+			output["value"] = v.Value.(string)
+		}
+
+		if v.ExternalValue != nil {
+			output["external_value"] = *v.ExternalValue
+		}
 
 		outputs = append(outputs, output)
 	}

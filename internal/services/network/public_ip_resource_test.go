@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PublicIPResource struct {
-}
+type PublicIPResource struct{}
 
 func TestAccPublicIpStatic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
@@ -57,59 +58,148 @@ func TestAccPublicIpStatic_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_zones(t *testing.T) {
+func TestAccPublicIp_zonesSingle(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccPublicIp_zonesMultiple(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_legacyZones(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("1"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						check.That(data.ResourceName).ExistsInAzure(r),
+						check.That(data.ResourceName).Key("ip_address").Exists(),
+						check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+						check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+						check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+						check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						check.That(data.ResourceName).ExistsInAzure(r),
+						check.That(data.ResourceName).Key("ip_address").Exists(),
+						check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+						check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccPublicIpStatic_zonesNoZone(t *testing.T) {
+func TestAccPublicIpStatic_legacyZonesNoZone(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "No-Zone"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("zones.#").HasValue("0"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+						),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+						),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccPublicIpStatic_zonesZoneRedundant(t *testing.T) {
+func TestAccPublicIpStatic_legacyZonesZoneRedundant(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withZone(data, "Zone-Redundant"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated Note: Zero here due to legacy behaviour - TODO remove in 3.0
-				check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
-			),
+			Check: func() pluginsdk.TestCheckFunc {
+				if !features.ThreePointOhBeta() {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("zones.#").HasValue("0"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
+						),
+					)
+				} else {
+					return acceptance.ComposeTestCheckFunc(
+						acceptance.ComposeTestCheckFunc(
+							check.That(data.ResourceName).ExistsInAzure(r),
+							check.That(data.ResourceName).Key("ip_address").Exists(),
+							check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+							check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
+						),
+					)
+				}
+			}(),
 		},
 		data.ImportStep(),
 	})
@@ -918,4 +1008,48 @@ resource "azurerm_public_ip" "test" {
   sku_tier            = "Regional"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) zonesSingle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (PublicIPResource) zonesMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1", "2", "3"]
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

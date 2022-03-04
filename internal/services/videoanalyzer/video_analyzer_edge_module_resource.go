@@ -105,9 +105,9 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("video_analyzer_name", id.VideoAnalyzerName)
+	d.Set("name", id.EdgeModuleName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("video_analyzer_name", id.AccountName)
 
 	return nil
 }

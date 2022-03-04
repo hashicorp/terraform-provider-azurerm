@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type PrivateDnsZoneGroupId struct {
@@ -42,7 +42,7 @@ func (id PrivateDnsZoneGroupId) ID() string {
 
 // PrivateDnsZoneGroupID parses a PrivateDnsZoneGroup ID into an PrivateDnsZoneGroupId struct
 func PrivateDnsZoneGroupID(input string) (*PrivateDnsZoneGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

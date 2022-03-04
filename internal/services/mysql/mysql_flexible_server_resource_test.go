@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySqlFlexibleServerResource struct {
-}
+type MySqlFlexibleServerResource struct{}
 
 func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
@@ -462,7 +461,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
 }

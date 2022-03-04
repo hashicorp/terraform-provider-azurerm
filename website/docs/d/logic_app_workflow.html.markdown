@@ -59,6 +59,18 @@ The following attributes are exported:
 
 * `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
 
+* `identity` - An `identity` block as defined below.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The Type of Managed Identity assigned to this Logic App Workflow.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

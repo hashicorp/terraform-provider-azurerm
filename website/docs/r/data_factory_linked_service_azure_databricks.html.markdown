@@ -38,7 +38,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
   name                = "ADBLinkedServiceViaMSI"
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   resource_group_name = azurerm_resource_group.example.name
   description         = "ADB Linked Service via MSI"
   adb_domain          = "https://${azurerm_databricks_workspace.example.workspace_url}"
@@ -100,7 +100,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "at_linked" {
   name                = "ADBLinkedServiceViaAccessToken"
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   resource_group_name = azurerm_resource_group.example.name
   description         = "ADB Linked Service via Access Token"
   existing_cluster_id = "0308-201146-sly615"
@@ -116,7 +116,13 @@ The following arguments are supported:
 
 * `adb_domain` - (Required) The domain URL of the databricks instance.
 
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+
+* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+
+-> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
+
+-> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 

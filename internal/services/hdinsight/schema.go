@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,9 +42,8 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, true),
-		// TODO: file a bug about this
-		DiffSuppressFunc: location.DiffSuppressFunc,
+		}, !features.ThreePointOhBeta()),
+		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 	}
 }
 
@@ -372,6 +371,7 @@ func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} 
 			"oozie.service.JPAService.jdbc.username": username,
 			"oozie.service.JPAService.jdbc.password": password,
 			"oozie.db.pluginsdk.name":                "oozie",
+			"oozie.db.schema.name":                   "oozie",
 		},
 		"oozie-env": map[string]interface{}{
 			"oozie_database":                       "Existing MSSQL Server database with SQL authentication",
@@ -611,6 +611,12 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"storage_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
@@ -669,6 +675,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerID := v["storage_container_id"].(string)
+		storageResourceID := v["storage_resource_id"].(string)
 		isDefault := v["is_default"].(bool)
 
 		uri, err := url.Parse(storageContainerID)
@@ -677,10 +684,11 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		}
 
 		result := hdinsight.StorageAccount{
-			Name:      utils.String(uri.Host),
-			Container: utils.String(strings.TrimPrefix(uri.Path, "/")),
-			Key:       utils.String(storageAccountKey),
-			IsDefault: utils.Bool(isDefault),
+			Name:       utils.String(uri.Host),
+			ResourceID: utils.String(storageResourceID),
+			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
+			Key:        utils.String(storageAccountKey),
+			IsDefault:  utils.Bool(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -740,8 +748,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.NodeDefinitionVMSize(),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,

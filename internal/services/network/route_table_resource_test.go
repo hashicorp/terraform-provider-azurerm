@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RouteTableResource struct {
-}
+type RouteTableResource struct{}
 
 func TestAccRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")

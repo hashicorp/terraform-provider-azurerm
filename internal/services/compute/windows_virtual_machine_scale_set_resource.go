@@ -5,7 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -120,6 +128,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -157,7 +166,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"identity": VirtualMachineScaleSetIdentitySchema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -229,6 +238,12 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"secret": windowsSecretSchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -263,6 +278,18 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone_balance": {
@@ -285,7 +312,13 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			// Computed
 			"unique_id": {
@@ -298,16 +331,15 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	exists, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	exists, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
 		}
 	}
 
@@ -334,8 +366,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+	identity, err := expandVirtualMachineScaleSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -367,16 +398,16 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
 	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
+		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+		return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+		return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
@@ -384,9 +415,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
-
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
 
 	var computerNamePrefix string
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
@@ -396,7 +424,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
-		computerNamePrefix = name
+		computerNamePrefix = id.Name
 	}
 
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
@@ -475,18 +503,50 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		virtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
+	}
+
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if len(additionalUnattendContentRaw) > 0 {
@@ -503,6 +563,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("terminate_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("user_data"); ok {
+		virtualMachineProfile.UserData = utils.String(v.(string))
 	}
 
 	scaleInPolicy := d.Get("scale_in_policy").(string)
@@ -529,11 +593,24 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
 			VirtualMachineProfile:                  &virtualMachineProfile,
 			UpgradePolicy:                          &upgradePolicy,
+			// OrchestrationMode needs to be hardcoded to Uniform, for the
+			// standard VMSS resource, since virtualMachineProfile is now supported
+			// in both VMSS and Orchestrated VMSS...
+			OrchestrationMode: compute.OrchestrationModeUniform,
 			ScaleInPolicy: &compute.ScaleInPolicy{
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
 			},
 		},
-		Zones: zones,
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			props.Zones = &zones
+		}
+	} else {
+		zonesRaw := d.Get("zones").([]interface{})
+		props.Zones = azure.ExpandZones(zonesRaw)
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
@@ -547,35 +624,26 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-		if len(zonesRaw) == 0 {
+		if props.Zones == nil || len(*props.Zones) == 0 {
 			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
 		}
 
 		props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Windows Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+	log.Printf("[DEBUG] Creating Windows %s.", id)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Windows Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Windows %s to be created.", id)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+	log.Printf("[DEBUG] Windows %s was created", id)
 
-	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
@@ -593,7 +661,8 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	updateInstances := false
 
 	// retrieve
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -807,9 +876,10 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		if updateProps.VirtualMachineProfile.SecurityProfile == nil {
+			updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
 	}
 
 	if d.HasChange("license_type") {
@@ -831,7 +901,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
-		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+		identity, err := expandVirtualMachineScaleSetIdentity(identityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -873,6 +943,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
+	if d.HasChange("user_data") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data").(string))
+	}
+
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -906,7 +981,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Windows Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -919,9 +994,8 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -934,7 +1008,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	d.Set("instances", instances)
 	d.Set("sku", skuName)
 
-	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
@@ -1105,14 +1179,27 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
-		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
-		}
-		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-	}
+		vtpmEnabled := false
+		secureBootEnabled := false
 
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
+		if secprofile := profile.SecurityProfile; secprofile != nil {
+			if secprofile.EncryptionAtHost != nil {
+				encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+			}
+			if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+				if uefi.VTpmEnabled != nil {
+					vtpmEnabled = *uefi.VTpmEnabled
+				}
+				if uefi.SecureBootEnabled != nil {
+					secureBootEnabled = *uefi.SecureBootEnabled
+				}
+			}
+		}
+
+		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+		d.Set("vtpm_enabled", vtpmEnabled)
+		d.Set("secure_boot_enabled", secureBootEnabled)
+		d.Set("user_data", profile.UserData)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1128,7 +1215,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

@@ -13,13 +13,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -31,6 +34,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,
+		Update: resourceKeyVaultCertificateUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ParseNestedItemID(id)
@@ -41,6 +45,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -62,6 +67,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
+				AtLeastOneOf: []string{
+					"certificate_policy",
+					"certificate",
+				},
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -84,8 +93,13 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 
 			"certificate_policy": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
+				AtLeastOneOf: []string{
+					"certificate_policy",
+					"certificate",
+				},
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -150,7 +164,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											string(keyvault.RSA),
 											string(keyvault.RSAHSM),
 											string(keyvault.Oct),
-										}, true),
+										}, !features.ThreePointOhBeta()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 									"reuse_key": {
 										Type:     pluginsdk.TypeBool,
@@ -278,7 +293,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
@@ -291,7 +307,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
@@ -304,7 +321,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 														Type: pluginsdk.TypeString,
 													},
 													Set: pluginsdk.HashString,
-													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+													AtLeastOneOf: []string{
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
 													},
@@ -373,6 +391,16 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_secret_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"certificate_data": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -388,7 +416,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -446,7 +474,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 			Tags:              tags.Expand(t),
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
 				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
 				if err != nil {
 					return err
@@ -501,6 +529,26 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
+	return resourceKeyVaultCertificateRead(d, meta)
+}
+
+func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ParseNestedItemID(d.Id())
+	if err != nil {
+		return err
+	}
+	patch := keyvault.CertificateUpdateParameters{}
+	if t, ok := d.GetOk("tags"); ok {
+		patch.Tags = tags.Expand(t.(map[string]interface{}))
+	}
+
+	if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch); err != nil {
+		return err
+	}
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -588,6 +636,15 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
+	d.Set("versionless_id", id.VersionlessID())
+
+	if cert.Sid != nil {
+		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		if err != nil {
+			return err
+		}
+		d.Set("versionless_secret_id", secretId.VersionlessID())
+	}
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {
@@ -650,7 +707,7 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedCertsOnDestroy
 	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeCertificate{
 		client:      client,
@@ -693,6 +750,10 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 
 func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
+	if len(policies) == 0 || policies[0] == nil {
+		return nil, nil
+	}
+
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
 

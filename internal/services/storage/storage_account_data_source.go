@@ -8,8 +8,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,9 +34,9 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.StorageAccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
@@ -69,6 +71,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_https_traffic_only": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -255,6 +258,21 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"queue_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"table_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -262,22 +280,21 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.GetProperties(ctx, resourceGroup, name, "")
+	id := parse.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading the state of AzureRM Storage Account %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	// handle the user not having permissions to list the keys
 	d.Set("primary_connection_string", "")
@@ -287,7 +304,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, storage.ListKeyExpandKerb)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, storage.ListKeyExpandKerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -300,14 +317,11 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for Storage Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("listing Keys for %s: %+v", id, err)
 		}
 	}
 
-	accountKeys := keys.Keys
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
@@ -332,7 +346,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			storageAccessKeys := *accessKeys
 			if len(storageAccessKeys) > 0 {
 				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, endpointSuffix)
@@ -349,7 +363,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			var primaryBlobConnectStr string
 			if v := props.PrimaryEndpoints; v != nil {
 				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[0].Value)
@@ -361,16 +375,39 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			var secondaryBlobConnectStr string
 			if v := props.SecondaryEndpoints; v != nil {
 				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[1].Value)
 			}
 			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
+
+		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
+		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+		var (
+			queueEncryptionKeyType = string(storage.KeyTypeService)
+			tableEncryptionKeyType = string(storage.KeyTypeService)
+		)
+		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
+			if encryption.Services.Queue != nil {
+				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+			}
+			if encryption.Services.Table != nil {
+				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
+			}
+		}
+		d.Set("table_encryption_key_type", tableEncryptionKeyType)
+		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+
+		infrastructureEncryption := false
+		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
+			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
+		}
+		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
 	}
 
-	if accessKeys := accountKeys; accessKeys != nil {
+	if accessKeys := keys.Keys; accessKeys != nil {
 		storageAccountKeys := *accessKeys
 		d.Set("primary_access_key", storageAccountKeys[0].Value)
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)

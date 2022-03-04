@@ -6,19 +6,17 @@ import (
 	"strings"
 	"testing"
 
-	validateHelper "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ContainerRegistryResource struct {
-}
+type ContainerRegistryResource struct{}
 
 func TestAccContainerRegistryName_validation(t *testing.T) {
 	cases := []struct {
@@ -493,16 +491,14 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 func TestAccContainerRegistry_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
-	skuPremium := "Premium"
-	userAssigned := "userAssigned"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// creates an ACR with encryption
 		{
 			Config: r.identity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue(userAssigned),
+				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
 		data.ImportStep(),
@@ -512,18 +508,16 @@ func TestAccContainerRegistry_identity(t *testing.T) {
 func TestAccContainerRegistry_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
-	skuPremium := "Premium"
-	userAssigned := "systemAssigned"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// creates an ACR with encryption
 		{
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue(userAssigned),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validateHelper.UUIDRegExp),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validateHelper.UUIDRegExp),
+				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -567,6 +561,93 @@ func TestAccContainerRegistry_geoReplicationRegionEndpoint(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.regionEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_anonymousPull(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.anonymousPullStandard(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.anonymousPullStandard(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.anonymousPullStandard(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_dataEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataEndpointPremium(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dataEndpointPremium(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dataEndpointPremium(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_networkRuleBypassOption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkRuleBypassOptionsPremium(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkRuleBypassOptionsPremium(data, "AzureServices"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkRuleBypassOptionsPremium(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -816,6 +897,7 @@ resource "azurerm_container_registry" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1187,4 +1269,67 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ContainerRegistryResource) anonymousPullStandard(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                   = "testacccr%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku                    = "Standard"
+  anonymous_pull_enabled = "%t"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func (ContainerRegistryResource) dataEndpointPremium(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                  = "testacccr%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  sku                   = "Premium"
+  data_endpoint_enabled = "%t"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func (ContainerRegistryResource) networkRuleBypassOptionsPremium(data acceptance.TestData, opt string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                       = "testacccr%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "Premium"
+  network_rule_bypass_option = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, opt)
 }

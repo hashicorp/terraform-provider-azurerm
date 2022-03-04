@@ -18,6 +18,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -30,11 +31,15 @@ import (
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceKeyVaultKeyCreate,
-		Read:     resourceKeyVaultKeyRead,
-		Update:   resourceKeyVaultKeyUpdate,
-		Delete:   resourceKeyVaultKeyDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceKeyVaultKeyCreate,
+		Read:   resourceKeyVaultKeyRead,
+		Update: resourceKeyVaultKeyUpdate,
+		Delete: resourceKeyVaultKeyDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -105,15 +110,20 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == "SECP256K1" && new == string(keyvault.P256K)
+					return features.ThreePointOhBeta() && old == "SECP256K1" && new == string(keyvault.P256K)
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.P256),
-					string(keyvault.P256K),
-					string(keyvault.P384),
-					string(keyvault.P521),
-					"SECP256K1", // TODO: remove this in v3.0 as it was renamed to keyvault.P256K
-				}, false),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						string(keyvault.P256),
+						string(keyvault.P256K),
+						string(keyvault.P384),
+						string(keyvault.P521),
+					}
+					if !features.ThreePointOhBeta() {
+						out = append(out, "SECP256K1")
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 				// TODO: the curve name should probably be mandatory for EC in the future,
 				// but handle the diff so that we don't break existing configurations and
 				// imported EC keys
@@ -249,7 +259,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if resp, err := client.CreateKey(ctx, *keyVaultBaseUri, name, parameters); err != nil {
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeys && utils.ResponseWasConflict(resp.Response) {
 			recoveredKey, err := client.RecoverDeletedKey(ctx, *keyVaultBaseUri, name)
 			if err != nil {
 				return err
@@ -523,7 +533,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeKey{
 		client:      client,

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ScheduledQueryRulesId struct {
@@ -39,7 +39,7 @@ func (id ScheduledQueryRulesId) ID() string {
 
 // ScheduledQueryRulesID parses a ScheduledQueryRules ID into an ScheduledQueryRulesId struct
 func ScheduledQueryRulesID(input string) (*ScheduledQueryRulesId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,50 @@ func ScheduledQueryRulesID(input string) (*ScheduledQueryRulesId, error) {
 	}
 
 	if resourceId.ScheduledQueryRuleName, err = id.PopSegment("scheduledQueryRules"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ScheduledQueryRulesIDInsensitively parses an ScheduledQueryRules ID into an ScheduledQueryRulesId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ScheduledQueryRulesID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ScheduledQueryRulesIDInsensitively(input string) (*ScheduledQueryRulesId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ScheduledQueryRulesId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'scheduledQueryRules' segment
+	scheduledQueryRulesKey := "scheduledQueryRules"
+	for key := range id.Path {
+		if strings.EqualFold(key, scheduledQueryRulesKey) {
+			scheduledQueryRulesKey = key
+			break
+		}
+	}
+	if resourceId.ScheduledQueryRuleName, err = id.PopSegment(scheduledQueryRulesKey); err != nil {
 		return nil, err
 	}
 

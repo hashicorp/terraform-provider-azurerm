@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,8 +26,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 		Read:   resourceBlueprintAssignmentRead,
 		Delete: resourceBlueprintAssignmentDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -51,9 +53,9 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
-			"identity": ManagedIdentitySchema(),
+			"identity": commonschema.UserAssignedIdentityRequired(),
 
 			"version_id": {
 				Type:         pluginsdk.TypeString,
@@ -97,6 +99,15 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
+				},
+			},
+
+			"lock_exclude_actions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 200,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -161,13 +172,18 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 			if len(excludedPrincipalsRaw) != 0 {
 				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
 			}
+
+			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
+			if len(excludedActionsRaw) != 0 {
+				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+			}
 		}
 		assignment.AssignmentProperties.Locks = assignmentLockSettings
 	}
 
 	identity, err := expandArmBlueprintAssignmentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	assignment.Identity = identity
 
@@ -247,12 +263,12 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	if resp.Identity != nil {
-		identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
-		if err != nil {
-			return err
-		}
-		d.Set("identity", identity)
+	identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if resp.AssignmentProperties != nil {
@@ -281,6 +297,9 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("lock_mode", locks.Mode)
 			if locks.ExcludedPrincipals != nil {
 				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
+			}
+			if locks.ExcludedActions != nil {
+				d.Set("lock_exclude_actions", locks.ExcludedActions)
 			}
 		}
 	}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var _ RouteConfiguration = RedirectConfiguration{}
+
 type RedirectConfiguration struct {
 	CustomFragment    *string                    `json:"customFragment,omitempty"`
 	CustomHost        *string                    `json:"customHost,omitempty"`
@@ -12,6 +14,8 @@ type RedirectConfiguration struct {
 	CustomQueryString *string                    `json:"customQueryString,omitempty"`
 	RedirectProtocol  *FrontDoorRedirectProtocol `json:"redirectProtocol,omitempty"`
 	RedirectType      *FrontDoorRedirectType     `json:"redirectType,omitempty"`
+
+	// Fields inherited from RouteConfiguration
 }
 
 var _ json.Marshaler = RedirectConfiguration{}

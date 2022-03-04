@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,8 +39,10 @@ func TestAccFunctionApp_basic(t *testing.T) {
 	})
 }
 
-// TODO remove in 3.0
 func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -55,8 +57,10 @@ func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
 	})
 }
 
-// TODO remove in 3.0
 func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -68,8 +72,10 @@ func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
 	})
 }
 
-// TODO remove in 3.0
 func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("This test does not apply on v3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -140,6 +146,21 @@ func TestAccFunctionApp_tagsUpdate(t *testing.T) {
 }
 
 func TestAccFunctionApp_appSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_appSettingsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -490,8 +511,8 @@ func TestAccFunctionApp_createIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -515,8 +536,8 @@ func TestAccFunctionApp_updateIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -1478,7 +1499,10 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "hello" = "world"
+    "hello"                   = "world"
+    "WEBSITE_VNET_ROUTE_ALL"  = "true"
+    "WEBSITE_CONTENTOVERVNET" = "true"
+    "WEBSITE_DNS_SERVER"      = "1.1.1.1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1573,9 +1597,9 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
-    "AzureWebJobsDashboard"          = azurerm_storage_account.test.primary_connection_string
-    "AzureWebJobsStorage"            = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_VNET_ROUTE_ALL"  = "true"
+    "WEBSITE_CONTENTOVERVNET" = "true"
+    "WEBSITE_DNS_SERVER"      = "1.1.1.1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

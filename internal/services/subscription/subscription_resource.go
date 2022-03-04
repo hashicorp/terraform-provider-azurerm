@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -110,13 +111,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
-			"tags": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -191,7 +186,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
 		}
 		// Disabled and Warned are both "effectively" cancelled states,
-		if existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned {
+		if existingSub.State == subscriptions.StateDisabled || existingSub.State == subscriptions.StateWarned {
 			log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
 			if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
 				return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
@@ -226,7 +221,21 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	createDeadline := time.Until(deadline)
 
 	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Properties.SubscriptionID, "Active", createDeadline); err != nil {
-		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
+		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", *alias.Properties.SubscriptionID, id.Name, "Active", err)
+	}
+
+	if d.HasChange("tags") {
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*alias.Properties.SubscriptionID)
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := fmt.Sprintf("subscriptions/%s", *alias.Properties.SubscriptionID)
+		tagsResource := resources.TagsResource{
+			Properties: &resources.Tags{
+				Tags: t,
+			},
+		}
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+			return fmt.Errorf("setting tags on %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -269,6 +278,20 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	if d.HasChange("tags") {
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*subscriptionId)
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := fmt.Sprintf("subscriptions/%s", *subscriptionId)
+		tagsResource := resources.TagsResource{
+			Properties: &resources.Tags{
+				Tags: t,
+			},
+		}
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+			return fmt.Errorf("setting tags on %s: %+v", *id, err)
+		}
+	}
+
 	return nil
 }
 
@@ -302,7 +325,6 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
 		subscriptionId = *props.SubscriptionID
 		resp, err := client.Get(ctx, subscriptionId)
-
 		if err != nil {
 			return fmt.Errorf("failed to read Subscription %q (Alias %q) for Tenant Information: %+v", subscriptionId, id.Name, err)
 		}
@@ -418,20 +440,20 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	switch targetState {
 	case "Cancelled":
 		stateConf.Target = []string{
-			string(subscriptions.Disabled),
-			string(subscriptions.Warned),
+			string(subscriptions.StateDisabled),
+			string(subscriptions.StateWarned),
 		}
 		stateConf.Pending = []string{
-			string(subscriptions.Enabled),
+			string(subscriptions.StateEnabled),
 		}
 
 	case "Active":
 		stateConf.Target = []string{
-			string(subscriptions.Enabled),
+			string(subscriptions.StateEnabled),
 		}
 		stateConf.Pending = []string{
-			string(subscriptions.Disabled),
-			string(subscriptions.Warned),
+			string(subscriptions.StateDisabled),
+			string(subscriptions.StateWarned),
 		}
 	default:
 		return fmt.Errorf("unsupported target state %q for Subscription %q", targetState, subscriptionId)

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightHadoopClusterResource struct {
-}
+type HDInsightHadoopClusterResource struct{}
 
 func TestAccHDInsightHadoopCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
@@ -990,8 +989,13 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
+    storage_resource_id  = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+  }
+
+  network {
+    connection_direction = "Outbound"
   }
 
   roles {
@@ -1528,7 +1532,6 @@ resource "azurerm_network_security_group" "test" {
     },
   ]
 }
-
 `, data.RandomInteger)
 }
 
@@ -1600,7 +1603,6 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

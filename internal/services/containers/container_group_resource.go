@@ -8,15 +8,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -58,37 +62,33 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          "Public",
+				Default:          string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Public),
-					string(containerinstance.Private),
-				}, true),
+					string(containerinstance.ContainerGroupIPAddressTypePublic),
+					string(containerinstance.ContainerGroupIPAddressTypePrivate),
+					"None",
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"network_profile_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
-				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
-				 * You cannot use a managed identity in a container group deployed to a virtual network.
-				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
-				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations */
-				ConflictsWith: []string{"dns_name_label", "identity"},
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  networkValidate.NetworkProfileID,
+				ConflictsWith: []string{"dns_name_label"},
 			},
 
 			"os_type": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Windows),
-					string(containerinstance.Linux),
-				}, true),
+					string(containerinstance.OperatingSystemTypesWindows),
+					string(containerinstance.OperatingSystemTypesLinux),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"image_registry_credential": {
@@ -122,39 +122,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
-								"SystemAssigned, UserAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 
@@ -162,13 +130,13 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(containerinstance.Always),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Always),
-					string(containerinstance.Never),
-					string(containerinstance.OnFailure),
-				}, true),
+					string(containerinstance.ContainerGroupRestartPolicyAlways),
+					string(containerinstance.ContainerGroupRestartPolicyNever),
+					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"dns_name_label": {
@@ -197,10 +165,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(containerinstance.TCP),
+							Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.TCP),
-								string(containerinstance.UDP),
+								string(containerinstance.ContainerGroupNetworkProtocolTCP),
+								string(containerinstance.ContainerGroupNetworkProtocolUDP),
 							}, false),
 						},
 					},
@@ -290,10 +258,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ForceNew: true,
-										Default:  string(containerinstance.TCP),
+										Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.TCP),
-											string(containerinstance.UDP),
+											string(containerinstance.ContainerGroupNetworkProtocolTCP),
+											string(containerinstance.ContainerNetworkProtocolUDP),
 										}, false),
 									},
 								},
@@ -468,8 +436,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.ContainerInsights),
-											string(containerinstance.ContainerInstanceLogs),
+											string(containerinstance.LogAnalyticsLogTypeContainerInsights),
+											string(containerinstance.LogAnalyticsLogTypeContainerInstanceLogs),
 										}, false),
 									},
 
@@ -515,7 +483,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 						"search_domains": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -524,7 +492,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 						"options": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -540,22 +508,21 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
+	id := parse.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
 		}
 	}
 
@@ -571,19 +538,21 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	expandedIdentity, err := expandContainerGroupIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	containerGroup := containerinstance.ContainerGroup{
-		Name:     &name,
+		Name:     utils.String(id.Name),
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Identity: expandContainerGroupIdentity(d),
+		Identity: expandedIdentity,
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers:    containers,
-			Diagnostics:   diagnostics,
-			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
-			IPAddress: &containerinstance.IPAddress{
-				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
-				Ports: containerGroupPorts,
-			},
+			Containers:               containers,
+			Diagnostics:              diagnostics,
+			RestartPolicy:            containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
@@ -591,41 +560,45 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
-		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	if IPAddressType != "None" {
+		containerGroup.ContainerGroupProperties.IPAddress = &containerinstance.IPAddress{
+			Ports: containerGroupPorts,
+			Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
+		}
+
+		if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
+			containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+		}
 	}
 
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
 	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
+		id, _ := networkParse.NetworkProfileID(networkProfileID)
+		networkProfileIDNorm := id.ID()
+		// Avoid parallel provisioning if "network_profile_id" is given.
+		// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+		locks.ByID(networkProfileIDNorm)
+		defer locks.UnlockByID(networkProfileIDNorm)
+
 		if strings.ToLower(OSType) != "linux" {
 			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
 		}
 		containerGroup.ContainerGroupProperties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
-			ID: &networkProfileID,
+			ID: &networkProfileIDNorm,
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, containerGroup)
 	if err != nil {
-		return fmt.Errorf("creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read container group %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceContainerGroupRead(d, meta)
 }
 
@@ -646,7 +619,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceContainerGroupRead(d, meta)
@@ -665,7 +638,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
@@ -680,7 +653,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	identity, err := flattenContainerGroupIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -768,8 +741,16 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := existing.ContainerGroupProperties; props != nil {
 		if profile := props.NetworkProfile; profile != nil {
 			if profile.ID != nil {
-				networkProfileId = *profile.ID
+				id, err := networkParse.NetworkProfileID(*profile.ID)
+				if err != nil {
+					return err
+				}
+				networkProfileId = id.ID()
 			}
+			// Avoid parallel deletion if "network_profile_id" is given. (not sure whether this is necessary)
+			// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+			locks.ByID(networkProfileId)
+			defer locks.UnlockByID(networkProfileId)
 		}
 	}
 
@@ -782,22 +763,18 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if networkProfileId != "" {
-		// TODO update with NetworkProfile parser when this has been added
-		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
+		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
+		networkProfileId, err := networkParse.NetworkProfileID(networkProfileId)
 		if err != nil {
 			return err
 		}
-
-		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
-		networkProfileResourceGroup := parsedProfileId.ResourceGroup
-		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
 		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
 		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", id.Name, id.ResourceGroup)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Attached"},
 			Target:                    []string{"Detached"},
-			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, id.ResourceGroup, id.Name),
+			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileId.ResourceGroup, networkProfileId.Name, id.ResourceGroup, id.Name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
@@ -1048,29 +1025,25 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	return &output
 }
 
-func expandContainerGroupIdentity(d *pluginsdk.ResourceData) *containerinstance.ContainerGroupIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	if len(identities) == 0 {
-		return nil
-	}
-	identity := identities[0].(map[string]interface{})
-	identityType := containerinstance.ResourceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{}
+func expandContainerGroupIdentity(input []interface{}) (*containerinstance.ContainerGroupIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	cgIdentity := containerinstance.ContainerGroupIdentity{
-		Type: identityType,
+	out := containerinstance.ContainerGroupIdentity{
+		Type: containerinstance.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
 	}
 
-	if cgIdentity.Type == containerinstance.UserAssigned || cgIdentity.Type == containerinstance.SystemAssignedUserAssigned {
-		cgIdentity.UserAssignedIdentities = identityIds
-	}
-
-	return &cgIdentity
+	return &out, nil
 }
 
 func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]containerinstance.ImageRegistryCredential {
@@ -1262,38 +1235,29 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
+func flattenContainerGroupIdentity(input *containerinstance.ContainerGroupIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		/*
-			"userAssignedIdentities": {
-			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
-				"principalId": "00000000-0000-0000-0000-000000000000",
-				"clientId": "00000000-0000-0000-0000-000000000000"
-			  }
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-		*/
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -1696,14 +1660,14 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
-		searchDomains = strings.Split(*input.SearchDomains, " ")
+		searchDomains = strings.Fields(*input.SearchDomains)
 	}
 	output["search_domains"] = searchDomains
 
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
-		options = strings.Split(*input.Options, " ")
+		options = strings.Fields(*input.Options)
 	}
 	output["options"] = options
 

@@ -3,12 +3,12 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_synapse_spark"
 description: |-
-  Manages a Machine Learning Synapse Spark.
+  Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 ---
 
 # azurerm_machine_learning_synapse_spark
 
-Manages a Machine Learning Synapse Spark.
+Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 
 ## Example Usage
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Synapse Spark to be created.
 
@@ -119,7 +119,9 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Machine Learning Synapse Spark. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`. Changing this forces a new Machine Learning Synapse Spark to be created.
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Synapse Spark. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+
+~> **Note:** The older value `SystemAssigned,UserAssigned` (with no spaces) is deprecated and will be removed in version 3.0 of the Azure Provider.
 
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 

@@ -19,9 +19,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -36,27 +34,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadWrite"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -71,9 +63,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -89,9 +79,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// 60GB
 			Config: r.disksDataDiskResize(data, 60),
@@ -99,9 +87,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -116,9 +102,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -133,18 +117,14 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -160,9 +140,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// one disk
 			Config: r.disksDataDiskBasic(data),
@@ -170,9 +148,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// two disks
 			Config: r.disksDataDiskMultiple(data),
@@ -180,9 +156,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// no disks
 			Config: r.authPassword(data),
@@ -190,9 +164,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -207,9 +179,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -224,9 +194,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -241,9 +209,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -259,9 +225,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -277,9 +241,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -295,9 +257,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -313,9 +273,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -330,9 +288,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -501,7 +457,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
@@ -512,17 +467,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -579,9 +534,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -827,11 +782,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -879,11 +834,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -931,12 +886,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {

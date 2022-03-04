@@ -99,9 +99,11 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 			}
 		}
 
-		// if state is not disabled, we should import it.
-		if existing.ID != nil && *existing.ID != "" && existing.ExtendedServerBlobAuditingPolicyProperties != nil && existing.ExtendedServerBlobAuditingPolicyProperties.State != synapse.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", *existing.ID)
+		// if state is not disabled, we should flag it for import
+		if !utils.ResponseWasNotFound(existing.Response) {
+			if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
+			}
 		}
 	}
 
@@ -131,7 +133,6 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	}
 
 	d.SetId(id.ID())
-
 	return resourceSynapseWorkspaceExtendedAuditingPolicyRead(d, meta)
 }
 
@@ -152,11 +153,10 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyRead(d *pluginsdk.ResourceDat
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-
 	d.Set("synapse_workspace_id", workspaceId.ID())
 
 	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {

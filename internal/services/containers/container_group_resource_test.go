@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ContainerGroupResource struct {
-}
+type ContainerGroupResource struct{}
 
 func TestAccContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
@@ -28,10 +26,28 @@ func TestAccContainerGroup_SystemAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 		data.ImportStep("identity.0.principal_id"),
+	})
+}
+
+func TestAccContainerGroup_SystemAssignedIdentityNoNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentityNoNetwork(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+		data.ImportStep("identity.0.principal_id", "ip_address_type"),
 	})
 }
 
@@ -64,7 +80,7 @@ func TestAccContainerGroup_multipleAssignedIdentities(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -367,6 +383,49 @@ func TestAccContainerGroup_virtualNetwork(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_virtualNetworkParallel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.virtualNetworkParallel(data, 4),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName+".0").ExistsInAzure(r),
+				check.That(data.ResourceName+".1").ExistsInAzure(r),
+				check.That(data.ResourceName+".2").ExistsInAzure(r),
+				check.That(data.ResourceName+".3").ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccContainerGroup_SystemAssignedIdentityVirtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentityVirtualNetwork(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity"),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
+				check.That(data.ResourceName).Key("network_profile_id").Exists(),
+				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+		data.ImportStep("identity.0.principal_id", "network_profile_id"),
+	})
+}
+
 func TestAccContainerGroup_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -502,7 +561,7 @@ func TestAccContainerGroup_emptyDirVolumeShared(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("ip_address_type"),
 	})
 }
 
@@ -534,9 +593,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -548,6 +607,42 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) SystemAssignedIdentityNoNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
   }
 
   identity {
@@ -573,17 +668,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   name = "acctest%s"
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -599,7 +694,7 @@ resource "azurerm_container_group" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
@@ -621,17 +716,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   name = "acctest%s"
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -646,8 +741,10 @@ resource "azurerm_container_group" "test" {
   }
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 
   tags = {
@@ -670,9 +767,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -706,9 +803,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   exposed_port {
@@ -753,7 +850,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -780,10 +877,10 @@ func (r ContainerGroupResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_container_group" "import" {
-  name                = "${azurerm_container_group.test.name}"
-  location            = "${azurerm_container_group.test.location}"
-  resource_group_name = "${azurerm_container_group.test.resource_group_name}"
-  ip_address_type     = "public"
+  name                = azurerm_container_group.test.name
+  location            = azurerm_container_group.test.location
+  resource_group_name = azurerm_container_group.test.resource_group_name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -819,7 +916,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -874,7 +971,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -930,7 +1027,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -972,7 +1069,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1020,7 +1117,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   exposed_port {
@@ -1134,6 +1231,159 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (ContainerGroupResource) virtualNetworkParallel(data acceptance.TestData, count int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test" {
+  name                = "testnetprofile"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "testcnic"
+
+    ip_configuration {
+      name      = "testipconfig"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_container_group" "test" {
+  count               = %d
+  name                = "acctestcontainergroup-${count.index}-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.test.id
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port = 80
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, count, data.RandomInteger)
+}
+
+func (ContainerGroupResource) SystemAssignedIdentityVirtualNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test" {
+  name                = "testnetprofile"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "testcnic"
+
+    ip_configuration {
+      name      = "testipconfig"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.test.id
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port = 80
+    }
+  }
+
+  dns_config {
+    nameservers = ["reddog.microsoft.com", "somecompany.somedomain"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ContainerGroupResource) windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1149,7 +1399,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "windows"
 
   container {
@@ -1211,7 +1461,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "windows"
   restart_policy      = "Never"
@@ -1295,17 +1545,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -1315,8 +1565,8 @@ resource "azurerm_log_analytics_solution" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -1324,16 +1574,16 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name = "acctestss-%d"
 
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   quota = 50
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1358,10 +1608,10 @@ resource "azurerm_container_group" "test" {
       name       = "logs"
       mount_path = "/aci/logs"
       read_only  = false
-      share_name = "${azurerm_storage_share.test.name}"
+      share_name = azurerm_storage_share.test.name
 
-      storage_account_name = "${azurerm_storage_account.test.name}"
-      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+      storage_account_name = azurerm_storage_account.test.name
+      storage_account_key  = azurerm_storage_account.test.primary_access_key
     }
 
     environment_variables = {
@@ -1402,8 +1652,8 @@ resource "azurerm_container_group" "test" {
 
   diagnostics {
     log_analytics {
-      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
       log_type      = "ContainerInsights"
 
       metadata = {
@@ -1432,9 +1682,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1509,9 +1759,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1581,10 +1831,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroupemptyshared-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
-  dns_name_label      = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
   os_type             = "Linux"
   restart_policy      = "Never"
 
@@ -1594,12 +1843,6 @@ resource "azurerm_container_group" "test" {
     cpu      = "1"
     memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
-
-    # Dummy port not used, workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/1697
-    ports {
-      port     = 80
-      protocol = "TCP"
-    }
 
     volume {
       name       = "logs"
@@ -1625,7 +1868,7 @@ resource "azurerm_container_group" "test" {
     commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ContainerGroupResource) secretVolume(data acceptance.TestData) string {
@@ -1641,9 +1884,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1703,7 +1946,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "jerome-aci-label"
   os_type             = "Linux"
 

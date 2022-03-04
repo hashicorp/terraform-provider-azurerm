@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceDataLakeStorageGen2Resource struct {
-}
+type LinkedServiceDataLakeStorageGen2Resource struct{}
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
@@ -127,7 +126,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                  = "acctestDataLake%d"
   resource_group_name   = azurerm_resource_group.test.name
-  data_factory_name     = azurerm_data_factory.test.name
+  data_factory_id       = azurerm_data_factory.test.id
   service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"
@@ -166,7 +165,7 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                = "acctestDataLake%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   url                 = azurerm_storage_account.test.primary_dfs_endpoint
   storage_account_key = azurerm_storage_account.test.primary_access_key
 }
@@ -199,7 +198,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                 = "acctestDataLake%d"
   resource_group_name  = azurerm_resource_group.test.name
-  data_factory_name    = azurerm_data_factory.test.name
+  data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
   url                  = "https://test.azure.com"
 }
@@ -229,7 +228,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                  = "acctestlssql%d"
   resource_group_name   = azurerm_resource_group.test.name
-  data_factory_name     = azurerm_data_factory.test.name
+  data_factory_id       = azurerm_data_factory.test.id
   service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"

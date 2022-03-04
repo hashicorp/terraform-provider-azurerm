@@ -6,11 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -41,162 +45,216 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
 
-			"location": azure.SchemaLocation(),
+				"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+				"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": azure.SchemaSingleZone(),
+				"storage_account_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.StorageAccountTypesStandardLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
+						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumZRS),
+						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesUltraSSDLRS),
+					}, false),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
 
-			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.StorageAccountTypesStandardLRS),
-					string(compute.StorageAccountTypesStandardSSDZRS),
-					string(compute.StorageAccountTypesPremiumLRS),
-					string(compute.StorageAccountTypesPremiumZRS),
-					string(compute.StorageAccountTypesStandardSSDLRS),
-					string(compute.StorageAccountTypesUltraSSDLRS),
-				}, false),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
+				"create_option": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DiskCreateOptionCopy),
+						string(compute.DiskCreateOptionEmpty),
+						string(compute.DiskCreateOptionFromImage),
+						string(compute.DiskCreateOptionImport),
+						string(compute.DiskCreateOptionRestore),
+					}, false),
+				},
 
-			"create_option": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionCopy),
-					string(compute.DiskCreateOptionEmpty),
-					string(compute.DiskCreateOptionFromImage),
-					string(compute.DiskCreateOptionImport),
-					string(compute.DiskCreateOptionRestore),
-				}, false),
-			},
+				"logical_sector_size": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.IntInSlice([]int{
+						512,
+						4096,
+					}),
+					Computed: true,
+				},
 
-			"logical_sector_size": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.IntInSlice([]int{
-					512,
-					4096}),
-				Computed: true,
-			},
+				"source_uri": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ForceNew: true,
+				},
 
-			"source_uri": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
+				"source_resource_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
 
-			"source_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+				"storage_account_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true, // Not supported by disk update
+					ValidateFunc: azure.ValidateResourceID,
+				},
 
-			"storage_account_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: azure.ValidateResourceID,
-			},
+				"image_reference_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ConflictsWith: []string{"gallery_image_reference_id"},
+				},
 
-			"image_reference_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+				"gallery_image_reference_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.SharedImageVersionID,
+					ConflictsWith: []string{"image_reference_id"},
+				},
 
-			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.OperatingSystemTypesWindows),
-					string(compute.OperatingSystemTypesLinux),
-				}, true),
-			},
+				"os_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.OperatingSystemTypesWindows),
+						string(compute.OperatingSystemTypesLinux),
+					}, !features.ThreePointOhBeta()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				},
 
-			"disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.ManagedDiskSizeGB,
-			},
+				"disk_size_gb": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validate.ManagedDiskSizeGB,
+				},
 
-			"disk_iops_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
+				"disk_iops_read_write": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
 
-			"disk_mbps_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
+				"disk_mbps_read_write": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
 
-			"disk_encryption_set_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
-			},
+				"disk_iops_read_only": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
 
-			"encryption_settings": encryptionSettingsSchema(),
+				"disk_mbps_read_only": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
 
-			"network_access_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.NetworkAccessPolicyAllowAll),
-					string(compute.NetworkAccessPolicyAllowPrivate),
-					string(compute.NetworkAccessPolicyDenyAll),
-				}, false),
-			},
-			"disk_access_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
-			},
+				"disk_encryption_set_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+					//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     validate.DiskEncryptionSetID,
+				},
 
-			"tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+				"encryption_settings": encryptionSettingsSchema(),
 
-			"max_shares": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(2, 10),
-			},
+				"network_access_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.NetworkAccessPolicyAllowAll),
+						string(compute.NetworkAccessPolicyAllowPrivate),
+						string(compute.NetworkAccessPolicyDenyAll),
+					}, false),
+				},
+				"disk_access_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+					//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     azure.ValidateResourceID,
+				},
 
-			"trusted_launch_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
-			"tags": tags.Schema(),
-		},
+				"tier": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"max_shares": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+				},
+
+				"trusted_launch_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"hyper_v_generation": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true, // Not supported by disk update
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.HyperVGenerationV1),
+						string(compute.HyperVGenerationV2),
+					}, false),
+				},
+
+				"on_demand_bursting_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"tags": tags.Schema(),
+			}
+
+			if features.ThreePointOhBeta() {
+				s["zone"] = commonschema.ZoneSingleOptional()
+			} else {
+				s["zones"] = azure.SchemaSingleZone()
+			}
+
+			return s
+		}(),
 	}
 }
 
@@ -220,8 +278,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_disk", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_disk", id.ID())
 		}
 	}
 
@@ -229,9 +287,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
+	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
 
 	props := &compute.DiskProperties{
@@ -244,13 +302,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v := d.Get("disk_size_gb"); v != 0 {
-		diskSize := int32(v.(int))
-		props.DiskSizeGB = &diskSize
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	if diskSizeGB != 0 {
+		props.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
-	if v, ok := d.GetOk("max_shares"); ok {
-		props.MaxShares = utils.Int32(int32(v.(int)))
+	if maxShares != 0 {
+		props.MaxShares = utils.Int32(int32(maxShares))
 	}
 
 	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
@@ -266,11 +324,27 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			props.DiskMBpsReadWrite = &diskMBps
 		}
 
+		if v, ok := d.GetOk("disk_iops_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if v, ok := d.GetOk("disk_mbps_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+
 		if v, ok := d.GetOk("logical_sector_size"); ok {
 			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.DiskCreateOptionImport {
@@ -296,13 +370,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
 	if createOption == compute.DiskCreateOptionFromImage {
-		imageReferenceId := d.Get("image_reference_id").(string)
-		if imageReferenceId == "" {
-			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
-		}
-
-		props.CreationData.ImageReference = &compute.ImageDiskReference{
-			ID: utils.String(imageReferenceId),
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			props.CreationData.ImageReference = &compute.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else if galleryImageReferenceId := d.Get("gallery_image_reference_id").(string); galleryImageReferenceId != "" {
+			props.CreationData.GalleryImageReference = &compute.ImageDiskReference{
+				ID: utils.String(galleryImageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 	}
 
@@ -313,8 +390,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+		if err != nil {
+			return err
+		}
+
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+			Type:                *encryptionType,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -334,6 +416,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			props.DiskAccessID = nil
 		}
+	}
+
+	if d.Get("public_network_access_enabled").(bool) {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+	} else {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
@@ -356,6 +444,25 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.Get("on_demand_bursting_enabled").(bool) {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+
+		props.BurstingEnabled = utils.Bool(true)
+	}
+
+	if v, ok := d.GetOk("hyper_v_generation"); ok {
+		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
+	}
+
 	createDisk := compute.Disk{
 		Name:           &name,
 		Location:       &location,
@@ -363,8 +470,17 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
-		Tags:  tags.Expand(t),
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	if features.ThreePointOhBeta() {
+		if zone, ok := d.GetOk("zone"); ok {
+			createDisk.Zones = &[]string{
+				zone.(string),
+			}
+		}
+	} else {
+		createDisk.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -398,7 +514,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	maxShares := d.Get("max_shares").(int)
 	storageAccountType := d.Get("storage_account_type").(string)
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
@@ -415,9 +534,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("max_shares") {
-		v := d.Get("max_shares")
-		maxShares := int32(v.(int))
-		diskUpdate.MaxShares = &maxShares
+		diskUpdate.MaxShares = utils.Int32(int32(maxShares))
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -468,8 +585,26 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if d.HasChange("disk_iops_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_iops_read_only")
+			diskUpdate.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if d.HasChange("disk_mbps_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_mbps_read_only")
+			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
 
 	if d.HasChange("os_type") {
@@ -488,8 +623,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+				Type:                *encryptionType,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {
@@ -514,6 +654,32 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		} else {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		}
+	}
+
+	if onDemandBurstingEnabled {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+	}
+
+	if d.HasChange("on_demand_bursting_enabled") {
+		shouldShutDown = true
+		diskUpdate.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
+	}
+
 	// whilst we need to shut this down, if we're not attached to anything there's no point
 	if shouldShutDown && disk.ManagedBy == nil {
 		shouldShutDown = false
@@ -528,8 +694,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
 
-		locks.ByName(name, virtualMachineResourceName)
-		defer locks.UnlockByName(name, virtualMachineResourceName)
+		locks.ByName(name, VirtualMachineResourceName)
+		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {
@@ -585,7 +751,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// De-allocate
 		if shouldDeallocate {
 			log.Printf("[DEBUG] Deallocating Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
-			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+			// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
+			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, utils.Bool(false))
 			if err != nil {
 				return fmt.Errorf("Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
@@ -656,10 +823,17 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	if features.ThreePointOhBeta() {
+		zone := ""
+		if resp.Zones != nil && len(*resp.Zones) > 0 {
+			z := *resp.Zones
+			zone = z[0]
+		}
+		d.Set("zone", zone)
+	} else {
+		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -673,11 +847,16 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			galleryImageReferenceId := ""
+			imageReferenceId := ""
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
+				galleryImageReferenceId = *galleryImageReference.ID
+			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.ID != nil {
+				imageReferenceId = *imageReference.ID
 			}
-			d.Set("image_reference_id", imageReferenceID)
+			d.Set("gallery_image_reference_id", galleryImageReferenceId)
+			d.Set("image_reference_id", imageReferenceId)
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
@@ -687,14 +866,19 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
+		d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
+		d.Set("hyper_v_generation", props.HyperVGeneration)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
@@ -713,6 +897,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+
+		onDemandBurstingEnabled := false
+		if props.BurstingEnabled != nil {
+			onDemandBurstingEnabled = *props.BurstingEnabled
+		}
+		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

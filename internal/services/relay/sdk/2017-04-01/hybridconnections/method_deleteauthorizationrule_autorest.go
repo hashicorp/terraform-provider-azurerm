@@ -13,7 +13,7 @@ type DeleteAuthorizationRuleResponse struct {
 }
 
 // DeleteAuthorizationRule ...
-func (c HybridConnectionsClient) DeleteAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result DeleteAuthorizationRuleResponse, err error) {
+func (c HybridConnectionsClient) DeleteAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (result DeleteAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForDeleteAuthorizationRule(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "DeleteAuthorizationRule", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c HybridConnectionsClient) DeleteAuthorizationRule(ctx context.Context, id
 }
 
 // preparerForDeleteAuthorizationRule prepares the DeleteAuthorizationRule request.
-func (c HybridConnectionsClient) preparerForDeleteAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (*http.Request, error) {
+func (c HybridConnectionsClient) preparerForDeleteAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

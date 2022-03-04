@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,25 +92,23 @@ func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.Resou
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
+	id := parse.NewConnectionID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Connection %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", id.ID())
 		}
 	}
 
 	parameters := automation.ConnectionCreateOrUpdateParameters{
-		Name: &name,
+		Name: &id.Name,
 		ConnectionCreateOrUpdateProperties: &automation.ConnectionCreateOrUpdateProperties{
 			Description: utils.String(d.Get("description").(string)),
 			ConnectionType: &automation.ConnectionTypeAssociationProperty{
@@ -125,20 +123,11 @@ func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.Resou
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, accountName, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("empty or nil ID for Automation Connection '%s' (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationConnectionServicePrincipalRead(d, meta)
 }
@@ -198,7 +187,7 @@ func resourceAutomationConnectionServicePrincipalDelete(d *pluginsdk.ResourceDat
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

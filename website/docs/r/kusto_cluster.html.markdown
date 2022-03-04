@@ -48,13 +48,15 @@ The following arguments are supported:
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An identity block.
+* `identity` - (Optional) An `identity` block as defined below.
 
-* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
 
-* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+* `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
-* `enable_purge` - (Optional) Specifies if the purge operations are enabled.
+* `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
+
+* `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -64,7 +66,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `trusted_external_tenants` - (Optional) Specifies a list of tenant IDs that are trusted by the cluster.
+* `trusted_external_tenants` - (Optional) Specifies a list of tenant IDs that are trusted by the cluster. Default setting trusts all other tenants. Use `trusted_external_tenants = ["*"]` to explicitly allow all other tenants, `trusted_external_tenants = ["MyTentantOnly"]` for only your tenant or `trusted_external_tenants = ["<tenantId1>", "<tenantIdx>"]` to allow specific other tenants.
+
+~> **NOTE:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTentantOnly"]` to `trusted_external_tenants = []`.
 
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 

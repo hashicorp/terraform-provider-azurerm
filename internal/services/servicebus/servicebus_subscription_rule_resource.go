@@ -7,9 +7,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,27 +47,58 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 50),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
+			// TODO 3.0 - Make it required
+			"subscription_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SubscriptionID,
+				ConflictsWith: []string{"subscription_name", "topic_name", "namespace_name", "resource_group_name"},
 			},
 
-			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
-			},
-
+			// TODO 3.0 - Remove in favor of subscription_id
 			"subscription_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SubscriptionName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SubscriptionName(),
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"topic_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.TopicName(),
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"namespace_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.NamespaceName,
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
+			},
+
+			// TODO 3.0 - Remove in favor of subscription_id
+			"resource_group_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  resourcegroups.ValidateName,
+				Deprecated:    `Deprecated in favor of "subscription_id"`,
+				ConflictsWith: []string{"subscription_id"},
 			},
 
 			"filter_type": {
@@ -75,8 +107,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.FilterTypeSQLFilter),
 					string(servicebus.FilterTypeCorrelationFilter),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"action": {
@@ -100,7 +132,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"correlation_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -108,7 +141,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"message_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -116,7 +150,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"to": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -124,7 +159,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"reply_to": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -132,7 +168,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"label": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -140,7 +177,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"session_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -148,7 +186,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"reply_to_session_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -156,7 +195,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 						"content_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -167,7 +207,8 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
-							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+							AtLeastOneOf: []string{
+								"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
@@ -188,12 +229,25 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	filterType := d.Get("filter_type").(string)
 
-	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
-		d.Get("resource_group_name").(string),
-		d.Get("namespace_name").(string),
-		d.Get("topic_name").(string),
-		d.Get("subscription_name").(string),
-		d.Get("name").(string))
+	var resourceId parse.SubscriptionRuleId
+	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
+		subscriptionId, _ := parse.SubscriptionID(subscriptionIdLit)
+		resourceId = parse.NewSubscriptionRuleID(subscriptionId.SubscriptionId,
+			subscriptionId.ResourceGroup,
+			subscriptionId.NamespaceName,
+			subscriptionId.TopicName,
+			subscriptionId.Name,
+			d.Get("name").(string),
+		)
+	} else {
+		resourceId = parse.NewSubscriptionRuleID(subscriptionId,
+			d.Get("resource_group_name").(string),
+			d.Get("namespace_name").(string),
+			d.Get("topic_name").(string),
+			d.Get("subscription_name").(string),
+			d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
 		if err != nil {
@@ -267,6 +321,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("topic_name", id.TopicName)
 	d.Set("subscription_name", id.SubscriptionName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("subscription_id", parse.NewSubscriptionID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
 
 	if properties := resp.Ruleproperties; properties != nil {
 		d.Set("filter_type", properties.FilterType)

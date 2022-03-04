@@ -54,7 +54,7 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 
 			"eventhub_consumer_group_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -80,6 +80,12 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"partition_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -109,16 +115,18 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	consumerGroupName := d.Get("eventhub_consumer_group_name").(string)
-	eventHubName := d.Get("eventhub_name").(string)
-	serviceBusNamespace := d.Get("servicebus_namespace").(string)
-	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
-	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
-
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
+	}
+
+	eventHubDataSourceProps := &streamanalytics.EventHubStreamInputDataSourceProperties{
+		EventHubName:           utils.String(d.Get("eventhub_name").(string)),
+		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
+		SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
+		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
+		ConsumerGroupName:      utils.String(d.Get("eventhub_consumer_group_name").(string)),
 	}
 
 	props := streamanalytics.Input{
@@ -126,16 +134,11 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		Properties: &streamanalytics.StreamInputProperties{
 			Type: streamanalytics.TypeStream,
 			Datasource: &streamanalytics.EventHubStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
-				EventHubStreamInputDataSourceProperties: &streamanalytics.EventHubStreamInputDataSourceProperties{
-					ConsumerGroupName:      utils.String(consumerGroupName),
-					EventHubName:           utils.String(eventHubName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-				},
+				Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
+				EventHubStreamInputDataSourceProperties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
+			PartitionKey:  utils.String(d.Get("partition_key").(string)),
 		},
 	}
 
@@ -165,12 +168,12 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.InputName)
@@ -188,10 +191,23 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("converting Stream Input EventHub to an EventHub Stream Input: %+v", err)
 		}
 
-		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
 		d.Set("eventhub_name", eventHub.EventHubName)
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
+
+		consumerGroupName := ""
+		if eventHub.ConsumerGroupName != nil {
+			consumerGroupName = *eventHub.ConsumerGroupName
+		}
+
+		d.Set("eventhub_consumer_group_name", consumerGroupName)
+
+		partitionKey := ""
+		if v.PartitionKey != nil {
+			partitionKey = *v.PartitionKey
+		}
+
+		d.Set("partition_key", partitionKey)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
@@ -213,7 +229,7 @@ func resourceStreamAnalyticsStreamInputEventHubDelete(d *pluginsdk.ResourceData,
 
 	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

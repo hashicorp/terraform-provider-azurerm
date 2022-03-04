@@ -10,6 +10,8 @@ type Client struct {
 	AlertRuleTemplatesClient *securityinsight.AlertRuleTemplatesClient
 	AutomationRulesClient    *securityinsight.AutomationRulesClient
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
+	WatchlistsClient         *securityinsight.WatchlistsClient
+	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -25,10 +27,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	dataConnectorsClient := securityinsight.NewDataConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dataConnectorsClient.Client, o.ResourceManagerAuthorizer)
 
+	watchListsClient := securityinsight.NewWatchlistsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&watchListsClient.Client, o.ResourceManagerAuthorizer)
+
+	watchListItemsClient := securityinsight.NewWatchlistItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&watchListItemsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AlertRulesClient:         &alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
 		AutomationRulesClient:    &automationRulesClient,
 		DataConnectorsClient:     &dataConnectorsClient,
+		WatchlistsClient:         &watchListsClient,
+		WatchlistItemsClient:     &watchListItemsClient,
 	}
 }

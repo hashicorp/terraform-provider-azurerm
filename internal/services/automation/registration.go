@@ -1,10 +1,17 @@
 package automation
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/automation"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -49,5 +56,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_datetime":              resourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                   resourceAutomationVariableInt(),
 		"azurerm_automation_variable_string":                resourceAutomationVariableString(),
+		"azurerm_automation_webhook":                        resourceAutomationWebhook(),
 	}
 }
