@@ -26,6 +26,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_backup_protected_vm`: Make `source_vm_id` case insensitive [GH-15656]
 * `azurerm_batch_job` - fix issue where creation failed when multiple `common_environment_properties` were set [GH-15686]
 * `azurerm_container_group` - fix issue when parsing empty or omitted `dns_config.options` and `dns_config.search_domains` [GH-15618]
 * `azurerm_key_vault_key` - correctly set vault id on import [GH-15670]
