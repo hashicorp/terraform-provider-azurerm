@@ -77,7 +77,7 @@ func TestAccServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("queue_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),

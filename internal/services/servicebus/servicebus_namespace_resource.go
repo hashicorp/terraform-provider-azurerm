@@ -225,7 +225,7 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", strings.ToLower(string(sku.Name)))
+		d.Set("sku", string(sku.Name))
 		d.Set("capacity", sku.Capacity)
 	}
 

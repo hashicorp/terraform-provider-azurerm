@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -28,19 +29,33 @@ func dataSourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
+			"queue_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.QueueID,
+				AtLeastOneOf: []string{"queue_id", "resource_group_name", "namespace_name", "queue_name"},
+			},
+
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"queue_id", "resource_group_name", "namespace_name", "queue_name"},
 			},
 
 			"queue_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.QueueName(),
+				AtLeastOneOf: []string{"queue_id", "resource_group_name", "namespace_name", "queue_name"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"queue_id", "resource_group_name", "namespace_name", "queue_name"},
+			},
 
 			"listen": {
 				Type:     pluginsdk.TypeBool,
@@ -102,7 +117,24 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewQueueAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("queue_name").(string), d.Get("name").(string))
+	var rgName string
+	var nsName string
+	var queueName string
+	if v, ok := d.Get("queue_id").(string); ok && v != "" {
+		queueId, err := parse.QueueID(v)
+		if err != nil {
+			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+		}
+		rgName = queueId.ResourceGroup
+		nsName = queueId.NamespaceName
+		queueName = queueId.Name
+	} else {
+		rgName = d.Get("resource_group_name").(string)
+		nsName = d.Get("namespace_name").(string)
+		queueName = d.Get("topic_name").(string)
+	}
+
+	id := parse.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))
 	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
