@@ -95,23 +95,25 @@ func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) strin
 	if !features.ThreePointOhBeta() {
 		attrName = "proxy"
 	}
+	snippet := fmt.Sprintf(`  %s {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
+%s
 
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data), attrName)
+`, r.template(data), snippet)
 }
 
 func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) string {
@@ -119,19 +121,20 @@ func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) s
 	if !features.ThreePointOhBeta() {
 		attrName = "proxy"
 	}
-
+	snippet := fmt.Sprintf(`  %s {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
+%s
 }
-`, r.template(data), attrName)
+`, r.template(data), snippet)
 }
 
 func (r ApiManagementCustomDomainResource) developerPortalOnly(data acceptance.TestData) string {
@@ -154,23 +157,25 @@ func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestDa
 	if !features.ThreePointOhBeta() {
 		attrName = "proxy"
 	}
+	snippet := fmt.Sprintf(`  %s {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
+%s
 
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.basic(data), attrName)
+`, r.basic(data), snippet)
 }
 
 func (ApiManagementCustomDomainResource) template(data acceptance.TestData) string {
