@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -90,13 +91,17 @@ func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *cl
 }
 
 func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) string {
+	attrName := "gateway"
+	if !features.ThreePointOhBeta() {
+		attrName = "proxy"
+	}
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  %s {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -106,22 +111,27 @@ resource "azurerm_api_management_custom_domain" "test" {
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data))
+`, r.template(data), attrName)
 }
 
 func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) string {
+	attrName := "gateway"
+	if !features.ThreePointOhBeta() {
+		attrName = "proxy"
+	}
+
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  %s {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data))
+`, r.template(data), attrName)
 }
 
 func (r ApiManagementCustomDomainResource) developerPortalOnly(data acceptance.TestData) string {
@@ -140,13 +150,17 @@ resource "azurerm_api_management_custom_domain" "test" {
 }
 
 func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestData) string {
+	attrName := "gateway"
+	if !features.ThreePointOhBeta() {
+		attrName = "proxy"
+	}
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-  proxy {
+  %s {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -156,7 +170,7 @@ resource "azurerm_api_management_custom_domain" "import" {
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.basic(data))
+`, r.basic(data), attrName)
 }
 
 func (ApiManagementCustomDomainResource) template(data acceptance.TestData) string {
