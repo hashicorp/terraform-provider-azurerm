@@ -1066,6 +1066,10 @@ The field `public_ip_address_id` will become Required.
 
 The `azurerm_virtual_machine_configuration_policy_assignment` resource will be removed in favour of the `azurerm_policy_virtual_machine_configuration_assignment` resource.
 
+### Resource: `azurerm_virtual_machine_scale_set`
+
+The `azurerm_virtual_machine_scale_set` resource has been superseded by the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
 ### Resource: `azurerm_virtual_network`
 
 The deprecated field `vm_protection_enabled` will be removed in favour of the `ddos_protection_plan` property.
