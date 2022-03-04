@@ -76,13 +76,13 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"frontend_ip_configuration_name": {
