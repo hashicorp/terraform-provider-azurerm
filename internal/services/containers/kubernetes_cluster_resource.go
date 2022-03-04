@@ -517,17 +517,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(containerservice.LoadBalancerSkuStandard),
-							ForceNew: true,
-							// TODO: fix the casing in the Swagger
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          string(containerservice.LoadBalancerSkuStandard),
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, !features.ThreePointOh()),
-							//DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"outbound_type": {
@@ -2397,11 +2395,19 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		ngwProfiles = append(ngwProfiles, ng)
 	}
 
+	// TODO - Remove the workaround below once issue https://github.com/Azure/azure-rest-api-specs/issues/18056 is resolved
+	sku := profile.LoadBalancerSku
+	for _, v := range containerservice.PossibleLoadBalancerSkuValues() {
+		if strings.EqualFold(string(v), string(sku)) {
+			sku = v
+		}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
-			"load_balancer_sku":     string(profile.LoadBalancerSku),
+			"load_balancer_sku":     string(sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
 			"network_plugin":        string(profile.NetworkPlugin),

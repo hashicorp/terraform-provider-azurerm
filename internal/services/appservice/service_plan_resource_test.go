@@ -355,8 +355,9 @@ resource "azurerm_subnet" "gateway" {
 }
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%[1]d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.ase.id
 }
 
 resource "azurerm_service_plan" "test" {

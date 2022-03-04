@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,7 +36,7 @@ func TestAccLighthouseDefinition_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("lighthouse_definition_id").IsUUID(),
 				check.That(data.ResourceName).Key("authorization.0.principal_display_name").HasValue("Tier 1 Support"),
 			),
 		},
@@ -61,7 +60,7 @@ func TestAccLighthouseDefinition_requiresImport(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("lighthouse_definition_id").IsUUID(),
 			),
 		},
 		{
@@ -87,7 +86,7 @@ func TestAccLighthouseDefinition_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("lighthouse_definition_id").IsUUID(),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test Lighthouse Definition"),
 			),
 		},
@@ -112,7 +111,7 @@ func TestAccLighthouseDefinition_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("lighthouse_definition_id").IsUUID(),
 			),
 		},
 		{
@@ -120,7 +119,7 @@ func TestAccLighthouseDefinition_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("lighthouse_definition_id").IsUUID(),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test Lighthouse Definition"),
 			),
 		},

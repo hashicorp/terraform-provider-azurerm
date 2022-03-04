@@ -103,7 +103,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(recoveryservices.SkuNameRS0),
 					string(recoveryservices.SkuNameStandard),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"storage_mode_type": {

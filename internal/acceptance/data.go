@@ -25,6 +25,9 @@ func init() {
 }
 
 type TestData struct {
+	// Subscriptions is a set of AAD Subscriptions which should be used for this Test
+	Subscriptions Subscriptions
+
 	// Locations is a set of Azure Regions which should be used for this Test
 	Locations Regions
 
@@ -83,6 +86,11 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 			Secondary: os.Getenv("ARM_TEST_LOCATION_ALT"),
 			Ternary:   os.Getenv("ARM_TEST_LOCATION_ALT2"),
 		}
+	}
+
+	testData.Subscriptions = Subscriptions{
+		Primary:   os.Getenv("ARM_SUBSCRIPTION_ID"),
+		Secondary: os.Getenv("ARM_TEST_SUBSCRIPTION_ID_ALT"),
 	}
 
 	return testData

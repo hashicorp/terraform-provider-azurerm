@@ -1,11 +1,48 @@
-## 2.98.0 (Unreleased)
+## 2.99.0 (Unreleased)
+
+FEATURES:
+
+* New Beta Resource: `azurerm_function_app_function` [GH-15605]
 
 ENHANCEMENTS:
 
-* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support [GH-15553]
-* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support [GH-15553]
+* dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
+* `azurem_iothub` - deprecate `ip_filter_rule` in favour of `network_rule_set` [GH-15590]
+* `azurerm_machine_learning_compute_instance` - updating the validation on `name` [GH-14839]
+* `azurerm_mssql_database_extended_auditing_policy` - support for the `enabled` property [GH-15624]
+* `azurerm_mssql_server_extended_auditing_policy` - support for the `enabled` property [GH-15624]
+* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
+* `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment`, `azurerm_subscription_policy_assignment` - `parameters` can now be updated [GH-15623]
+
+BUG FIXES:
+
+* `azurerm_batch_job` - fix issue where creation failed when multiple `common_environment_properties` were set [GH-15686]
+* `azurerm_container_group` - fix issue when parsing empty or omitted `dns_config.options` and `dns_config.search_domains` [GH-15618]
+* `azurerm_key_vault_key` - correctly set vault id on import [GH-15670]
+* `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
+* `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
+* `azurerm_virtual_network_gateway` - fix panic regarding `bgp_settings.0.peering_address` [GH-15689]
+
+## 2.98.0 (February 25, 2022)
+
+FEATURES:
+
+* New Beta Resource: `azurerm_function_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
+* New Beta Resource: `azurerm_web_app_active_slot` ([#15246](https://github.com/hashicorp/terraform-provider-azurerm/issues/15246))
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v0.18.0` of `github.com/tombuildsstuff/giovanni` ([#15507](https://github.com/hashicorp/terraform-provider-azurerm/issues/15507))
+* `azurerm_linux_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_linux_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+* `azurerm_windows_function_app_slot` - adds `key_vault_reference_identity_id` support ([#15553](https://github.com/hashicorp/terraform-provider-azurerm/issues/15553))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_mongo_collection` - can now set the `autoscale_settings` property without setting a `shard_key` when creating a cosmos DB mongo collection ([#15529](https://github.com/hashicorp/terraform-provider-azurerm/issues/15529))
+* `azurerm_firewall_policy` - will not wait for resource to finish provisioning after creation ([#15561](https://github.com/hashicorp/terraform-provider-azurerm/issues/15561))
 
 ## 2.97.0 (February 18, 2022)
 

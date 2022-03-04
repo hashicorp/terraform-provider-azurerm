@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1157,7 +1159,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 	return []interface{}{
 		map[string]interface{}{
 			"endpoint_type":             strings.ToLower(string(input.Replication.EndpointType)),
-			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
+			"remote_volume_location":    location.NormalizeNilable(input.Replication.RemoteVolumeRegion),
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
 			"replication_frequency":     translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
 		},

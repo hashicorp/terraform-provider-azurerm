@@ -896,6 +896,22 @@ resource "azurerm_cdn_endpoint" "test" {
       redirect_type = "Found"
       protocol      = "Https"
     }
+    cache_expiration_action {
+      behavior = "Override"
+      duration = "5.04:44:23"
+    }
+    cache_key_query_string_action {
+      behavior   = "IncludeAll"
+      parameters = "test"
+    }
+    cookies_condition {
+      operator         = "Contains"
+      selector         = "abc"
+      negate_condition = false
+      match_values     = ["windows"]
+      transforms       = ["Lowercase"]
+
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

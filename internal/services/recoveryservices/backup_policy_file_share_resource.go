@@ -163,7 +163,7 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 									string(backup.WeekOfMonthThird),
 									string(backup.WeekOfMonthFourth),
 									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 							},
 						},
 
@@ -217,7 +217,7 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 									string(backup.WeekOfMonthThird),
 									string(backup.WeekOfMonthFourth),
 									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
+								}, !features.ThreePointOhBeta()),
 							},
 						},
 

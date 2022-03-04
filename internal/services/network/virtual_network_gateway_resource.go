@@ -39,364 +39,390 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayTypeExpressRoute),
-					string(network.VirtualNetworkGatewayTypeVpn),
-				}, !features.ThreePointOh()),
-			},
-
-			"vpn_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(network.VpnTypeRouteBased),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnTypeRouteBased),
-					string(network.VpnTypePolicyBased),
-				}, !features.ThreePointOh()),
-			},
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"private_ip_address_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"active_active": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"sku": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
-				// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
-				// validators validateVirtualNetworkGatewayPolicyBasedVpnSku, validateVirtualNetworkGatewayRouteBasedVpnSku
-				// and validateVirtualNetworkGatewayExpressRouteSku.
-				ValidateFunc: validation.Any(
-					validateVirtualNetworkGatewayPolicyBasedVpnSku(),
-					validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1(),
-					validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2(),
-					validateVirtualNetworkGatewayExpressRouteSku(),
-				),
-			},
-
-			"generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnGatewayGenerationGeneration1),
-					string(network.VpnGatewayGenerationGeneration2),
-					string(network.VpnGatewayGenerationNone),
-				}, false),
-			},
-
-			"ip_configuration": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 3,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							// Azure Management API requires a name but does not generate a name if the field is missing
-							// The name "vnetGatewayConfig" is used when creating a virtual network gateway via the
-							// Azure portal.
-							Default: "vnetGatewayConfig",
-						},
-
-						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPAllocationMethodStatic),
-								string(network.IPAllocationMethodDynamic),
-							}, false),
-							Default: string(network.IPAllocationMethodDynamic),
-						},
-
-						"subnet_id": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ValidateFunc:     validate.IsGatewaySubnet,
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"public_ip_address_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
-						},
-					},
-				},
-			},
-
-			"vpn_client_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"address_space": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"aad_tenant": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							RequiredWith: []string{
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-							},
-						},
-						"aad_audience": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							RequiredWith: []string{
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.aad_tenant",
-							},
-						},
-						"aad_issuer": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							RequiredWith: []string{
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_tenant",
-							},
-						},
-
-						"root_certificate": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-									"public_cert_data": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-							Set: hashVirtualNetworkGatewayRootCert,
-						},
-
-						"revoked_certificate": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-									"thumbprint": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-							Set: hashVirtualNetworkGatewayRevokedCert,
-						},
-
-						"radius_server_address": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsIPv4Address,
-							RequiredWith: []string{"vpn_client_configuration.0.radius_server_secret"},
-						},
-
-						"radius_server_secret": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
-						},
-
-						"vpn_auth_types": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Computed: true,
-							MaxItems: 3,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.VpnAuthenticationTypeCertificate),
-									string(network.VpnAuthenticationTypeAAD),
-									string(network.VpnAuthenticationTypeRadius),
-								}, false),
-							},
-						},
-
-						"vpn_client_protocols": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.VpnClientProtocolIkeV2),
-									string(network.VpnClientProtocolOpenVPN),
-									string(network.VpnClientProtocolSSTP),
-								}, !features.ThreePointOh()),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							},
-						},
-					},
-				},
-			},
-
-			"bgp_settings": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"asn": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							AtLeastOneOf: []string{
-								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							},
-						},
-
-						// TODO 3.0 - Remove this property
-						"peering_address": {
-							Type:       pluginsdk.TypeString,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
-							AtLeastOneOf: []string{
-								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							},
-						},
-
-						"peer_weight": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							AtLeastOneOf: []string{
-								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							},
-						},
-
-						//lintignore:XS003
-						"peering_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Optional: true,
-							MinItems: 1,
-							MaxItems: 2,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"ip_configuration_name": {
-										Type: pluginsdk.TypeString,
-										// In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
-										Optional:     true,
-										Computed:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"apipa_addresses": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MinItems: 1,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.IPAddressInAzureReservedAPIPARange,
-										},
-									},
-									"default_addresses": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"tunnel_ip_addresses": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-								},
-							},
-							AtLeastOneOf: []string{
-								"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							},
-						},
-					},
-				},
-			},
-
-			//lintignore:XS003
-			"custom_route": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
-
-			"default_local_network_gateway_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceVirtualNetworkGatewaySchema(),
 	}
+}
+
+func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"type": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.VirtualNetworkGatewayTypeExpressRoute),
+				string(network.VirtualNetworkGatewayTypeVpn),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		"vpn_type": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			Default:          string(network.VpnTypeRouteBased),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.VpnTypeRouteBased),
+				string(network.VpnTypePolicyBased),
+			}, !features.ThreePointOhBeta()),
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_bgp": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"private_ip_address_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"active_active": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"sku": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
+			// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
+			// validators validateVirtualNetworkGatewayPolicyBasedVpnSku, validateVirtualNetworkGatewayRouteBasedVpnSku
+			// and validateVirtualNetworkGatewayExpressRouteSku.
+			ValidateFunc: validation.Any(
+				validateVirtualNetworkGatewayPolicyBasedVpnSku(),
+				validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1(),
+				validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2(),
+				validateVirtualNetworkGatewayExpressRouteSku(),
+			),
+		},
+
+		"generation": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.VpnGatewayGenerationGeneration1),
+				string(network.VpnGatewayGenerationGeneration2),
+				string(network.VpnGatewayGenerationNone),
+			}, false),
+		},
+
+		"ip_configuration": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 3,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// Azure Management API requires a name but does not generate a name if the field is missing
+						// The name "vnetGatewayConfig" is used when creating a virtual network gateway via the
+						// Azure portal.
+						Default: "vnetGatewayConfig",
+					},
+
+					"private_ip_address_allocation": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.IPAllocationMethodStatic),
+							string(network.IPAllocationMethodDynamic),
+						}, false),
+						Default: string(network.IPAllocationMethodDynamic),
+					},
+
+					"subnet_id": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ValidateFunc:     validate.IsGatewaySubnet,
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+
+					"public_ip_address_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					},
+				},
+			},
+		},
+
+		"vpn_client_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"address_space": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"aad_tenant": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						RequiredWith: []string{
+							"vpn_client_configuration.0.aad_audience",
+							"vpn_client_configuration.0.aad_issuer",
+						},
+					},
+					"aad_audience": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						RequiredWith: []string{
+							"vpn_client_configuration.0.aad_issuer",
+							"vpn_client_configuration.0.aad_tenant",
+						},
+					},
+					"aad_issuer": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						RequiredWith: []string{
+							"vpn_client_configuration.0.aad_audience",
+							"vpn_client_configuration.0.aad_tenant",
+						},
+					},
+
+					"root_certificate": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"public_cert_data": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+						Set: hashVirtualNetworkGatewayRootCert,
+					},
+
+					"revoked_certificate": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"thumbprint": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+						Set: hashVirtualNetworkGatewayRevokedCert,
+					},
+
+					"radius_server_address": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsIPv4Address,
+						RequiredWith: []string{"vpn_client_configuration.0.radius_server_secret"},
+					},
+
+					"radius_server_secret": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
+					},
+
+					"vpn_auth_types": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: true,
+						MaxItems: 3,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.VpnAuthenticationTypeCertificate),
+								string(network.VpnAuthenticationTypeAAD),
+								string(network.VpnAuthenticationTypeRadius),
+							}, false),
+						},
+					},
+
+					"vpn_client_protocols": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.VpnClientProtocolIkeV2),
+								string(network.VpnClientProtocolOpenVPN),
+								string(network.VpnClientProtocolSSTP),
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						},
+					},
+				},
+			},
+		},
+
+		"bgp_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"asn": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						AtLeastOneOf: func() []string {
+							out := []string{
+								"bgp_settings.0.asn",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							}
+							if !features.ThreePointOhBeta() {
+								out = append(out, "bgp_settings.0.peering_address")
+							}
+							return out
+						}(),
+					},
+
+					"peer_weight": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						AtLeastOneOf: func() []string {
+							out := []string{
+								"bgp_settings.0.asn",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							}
+							if !features.ThreePointOhBeta() {
+								out = append(out, "bgp_settings.0.peering_address")
+							}
+							return out
+						}(),
+					},
+
+					//lintignore:XS003
+					"peering_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Optional: true,
+						MinItems: 1,
+						MaxItems: 2,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"ip_configuration_name": {
+									Type: pluginsdk.TypeString,
+									// In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
+									Optional:     true,
+									Computed:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"apipa_addresses": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validate.IPAddressInAzureReservedAPIPARange,
+									},
+								},
+								"default_addresses": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"tunnel_ip_addresses": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+						AtLeastOneOf: func() []string {
+							out := []string{
+								"bgp_settings.0.asn",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+							}
+							if !features.ThreePointOhBeta() {
+								out = append(out, "bgp_settings.0.peering_address")
+							}
+							return out
+						}(),
+					},
+				},
+			},
+		},
+
+		//lintignore:XS003
+		"custom_route": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"address_prefixes": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"default_local_network_gateway_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		s := out["bgp_settings"].Elem.(*pluginsdk.Resource)
+		s.Schema["peering_address"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
+			AtLeastOneOf: []string{
+				"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+				"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+			},
+		}
+	}
+
+	return out
 }
 
 func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -620,7 +646,10 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
-	peeringAddress := bgp["peering_address"].(string)
+	var peeringAddress string
+	if !features.ThreePointOhBeta() {
+		peeringAddress = bgp["peering_address"].(string)
+	}
 	peerWeight := int32(bgp["peer_weight"].(int))
 
 	ipConfiguration := d.Get("ip_configuration").([]interface{})
@@ -823,7 +852,7 @@ func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]i
 		if asn := settings.Asn; asn != nil {
 			flat["asn"] = int(*asn)
 		}
-		if address := settings.BgpPeeringAddress; address != nil {
+		if address := settings.BgpPeeringAddress; !features.ThreePointOhBeta() && address != nil {
 			flat["peering_address"] = *address
 		}
 		if weight := settings.PeerWeight; weight != nil {
@@ -1000,7 +1029,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 func validateVirtualNetworkGatewayPolicyBasedVpnSku() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.SchemaValidateFunc {
@@ -1014,7 +1043,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.SchemaValidateFunc {
@@ -1027,7 +1056,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw4AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw5AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc {
@@ -1038,7 +1067,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
-	}, !features.ThreePointOh())
+	}, !features.ThreePointOhBeta())
 }
 
 func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {

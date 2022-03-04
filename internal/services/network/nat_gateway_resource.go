@@ -44,74 +44,75 @@ func resourceNatGateway() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NatGatewayName,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"idle_timeout_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      4,
-				ValidateFunc: validation.IntBetween(4, 120),
-			},
-
-			"public_ip_address_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
-			},
-
-			"public_ip_prefix_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
-			},
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.NatGatewaySkuNameStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.NatGatewaySkuNameStandard),
-				}, false),
-			},
-
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
-
-			"resource_guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceNatGatewaySchema(),
 	}
+}
+
+func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.NatGatewayName,
+		},
+
+		"location": azure.SchemaLocation(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"idle_timeout_in_minutes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      4,
+			ValidateFunc: validation.IntBetween(4, 120),
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(network.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.NatGatewaySkuNameStandard),
+			}, false),
+		},
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"resource_guid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["zones"] = azure.SchemaZones()
+		out["public_ip_address_ids"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
+		}
+
+		out["public_ip_prefix_ids"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
+		}
+	}
+
+	return out
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -137,8 +138,6 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	idleTimeoutInMinutes := d.Get("idle_timeout_in_minutes").(int)
-	publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -146,8 +145,6 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Location: utils.String(location),
 		NatGatewayPropertiesFormat: &network.NatGatewayPropertiesFormat{
 			IdleTimeoutInMinutes: utils.Int32(int32(idleTimeoutInMinutes)),
-			PublicIPAddresses:    expandNetworkSubResourceID(publicIpAddressIds),
-			PublicIPPrefixes:     expandNetworkSubResourceID(publicIpPrefixIds),
 		},
 		Sku: &network.NatGatewaySku{
 			Name: network.NatGatewaySkuName(skuName),
@@ -161,6 +158,13 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	} else {
 		parameters.Zones = utils.ExpandStringSlice(d.Get("zones").([]interface{}))
+	}
+
+	if !features.ThreePointOhBeta() {
+		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
+		publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
+		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
+		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
@@ -227,14 +231,15 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("public_ip_address_ids") {
-		publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
-	}
-
-	if d.HasChange("public_ip_prefix_ids") {
-		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
+	if !features.ThreePointOhBeta() {
+		if d.HasChange("public_ip_address_ids") {
+			publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
+			parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
+		}
+		if d.HasChange("public_ip_prefix_ids") {
+			publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
+			parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -288,12 +293,13 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
 
-		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
-		}
-
-		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
+		if !features.ThreePointOhBeta() {
+			if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
+				return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
+			}
+			if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
+				return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
+			}
 		}
 	}
 

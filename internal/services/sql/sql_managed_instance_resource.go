@@ -108,7 +108,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"LicenseIncluded",
 					"BasePrice",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

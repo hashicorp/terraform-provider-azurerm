@@ -12,11 +12,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -189,7 +189,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -245,7 +245,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"backup_retention_days": {
@@ -267,7 +267,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"storage_mb": {
@@ -393,7 +393,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 					string(mysql.FiveFullStopSix), // todo remove in 3.0? We can't create it but maybe we can still manage it
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ForceNew:         true,
 			},

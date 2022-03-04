@@ -650,7 +650,7 @@ resource "azurerm_public_ip" "first" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  availability_zone   = "Zone-Redundant"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_public_ip" "second" {
@@ -660,7 +660,7 @@ resource "azurerm_public_ip" "second" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  availability_zone   = "Zone-Redundant"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_public_ip" "thirth" {
@@ -670,7 +670,7 @@ resource "azurerm_public_ip" "thirth" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  availability_zone   = "Zone-Redundant"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1192,6 +1192,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1247,6 +1248,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1302,6 +1304,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1357,6 +1360,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {

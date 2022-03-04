@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -29,8 +30,8 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			"location":            azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			"location":            commonschema.LocationComputed(),
 			"storage_account_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -94,11 +95,9 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_endpoint", resp.AccountEndpoint)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("account_endpoint", resp.AccountEndpoint)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AccountProperties; props != nil {
 		if autoStorage := props.AutoStorage; autoStorage != nil {

@@ -45,6 +45,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
 		Schema: resourceFunctionAppSchema(),
 	}
 }

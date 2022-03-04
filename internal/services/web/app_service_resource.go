@@ -122,7 +122,7 @@ func resourceAppService() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -602,7 +602,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		siteEnvelope.Identity = appServiceIdentity
+		site.Identity = appServiceIdentity
 		site.SiteConfig = siteConfig
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)

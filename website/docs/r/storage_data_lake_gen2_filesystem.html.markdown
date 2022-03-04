@@ -52,6 +52,10 @@ The following arguments are supported:
 
 * `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
+* `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user of the root path (i.e. `/`).
+
+* `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group of the root path (i.e. `/`).
+
 ~> **NOTE:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
 ---
