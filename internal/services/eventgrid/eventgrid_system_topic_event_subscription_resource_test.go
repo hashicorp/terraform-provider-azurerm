@@ -1769,6 +1769,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
+  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+
   delivery_property {
     header_name = "test-static-1"
     type        = "Static"
