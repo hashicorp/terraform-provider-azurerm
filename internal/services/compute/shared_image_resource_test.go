@@ -332,11 +332,11 @@ resource "azurerm_shared_image_gallery" "test" {
 }
 
 resource "azurerm_shared_image" "test" {
-  name                        = "acctestimg%d"
-  gallery_name                = azurerm_shared_image_gallery.test.name
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  os_type                     = "Linux"
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
 
   accelerated_network_support_enabled = true
 
