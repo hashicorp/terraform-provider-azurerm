@@ -339,7 +339,7 @@ func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesMixed(t *tes
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryPropertiesUpdate(t *testing.T) {
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
@@ -381,7 +381,7 @@ func TestAccEventGridEventSubscription_deliveryPropertiesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryPropertiesForEventHubs(t *testing.T) {
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesForEventHubs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
@@ -401,7 +401,7 @@ func TestAccEventGridEventSubscription_deliveryPropertiesForEventHubs(t *testing
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryPropertiesHybridRelay(t *testing.T) {
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesHybridRelay(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
@@ -1611,7 +1611,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryPropertiesUpdate(data acceptance.TestData) string {
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1680,7 +1680,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryPropertiesForEventHubs(data acceptance.TestData) string {
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForEventHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1730,7 +1730,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (EventGridEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
