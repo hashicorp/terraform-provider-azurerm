@@ -384,8 +384,20 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err = securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d)); err != nil {
-		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
+	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		result, err := securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d))
+
+		if result.Response.StatusCode == 404 {
+			return resource.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("setting database threat detection policy for %s: %+v", id, err))
+		}
+
+		return nil
+	}); err != nil {
+		return nil
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
