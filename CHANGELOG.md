@@ -1,5 +1,9 @@
 ## 2.99.0 (Unreleased)
 
+FEATURES:
+
+* New Beta Resource: `azurerm_function_app_function` [GH-15605]
+
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
