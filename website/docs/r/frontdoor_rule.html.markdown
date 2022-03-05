@@ -29,22 +29,30 @@ resource "azurerm_frontdoor_rule_set" "test" {
 }
 
 resource "azurerm_frontdoor_rule" "test" {
-  name                      = "example-rule"
+  name                      = "examplerule"
   frontdoor_rule_set_id     = azurerm_frontdoor_rule_set.test.id
   order                     = 1
   match_processing_behavior = "Continue"
 
   actions {
-    url_redirect_action {
-      redirect_type        = "PermanentRedirect"
-      destination_protocol = "MatchRequest"
-      destination_path     = "/exampleredirection"
-      destination_hostname = "contoso.com"
-      query_string         = "clientIp={client_ip}"
-      destination_fragment = "UrlRedirect"
+    route_configuration_override_action {
+      origin_group_id               = azurerm_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing" 
+      cache_duration                = "365.23:59:59"
     }
 
-
+    url_redirect_action {
+      redirect_type        = "PermanentRedirect"
+      redirect_protocol    = "MatchRequest"
+      query_string         = "clientIp={client_ip}"
+      destination_path     = "/exampleredirection"
+      destination_hostname = "contoso.com"
+      destination_fragment = "UrlRedirect"
+    }
   }
 
   conditions {
@@ -78,7 +86,7 @@ resource "azurerm_frontdoor_rule" "test" {
       operator         = "Equal"
       negate_condition = false
       match_values     = ["media.mp4"]
-      transforms       = ["Lowercase"]
+      transforms       = ["Lowercase", "RemoveNulls", "Trim"]
     }
   }
 }
@@ -144,7 +152,7 @@ A `route_configuration_override_action` block supports the following:
 
 * `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
-* `query_string_caching_behavior` - (Optional)  `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` guery strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
+* `query_string_caching_behavior` - (Optional)  `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
 
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
@@ -176,7 +184,9 @@ A `request_header_action` block supports the following:
 
 * `header_name` - (Required) The name of the header to modify.
 
-* `value` - (Required) The value to append or overwrite.
+* `value` - (Optional) The value to append or overwrite.
+
+~>**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
@@ -186,7 +196,9 @@ A `request_header_action` block supports the following:
 
 * `header_name` - (Required) The name of the header to modify.
 
-* `value` - (Required) The value to append or overwrite.
+* `value` - (Optional) The value to append or overwrite.
+
+~>**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 

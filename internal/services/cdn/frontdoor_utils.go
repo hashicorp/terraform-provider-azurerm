@@ -185,7 +185,7 @@ func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors
 	}
 
 	if m, regexErrs := validate.RegExHelper(i, k, `^([0-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, v, "365.23:59:59", k))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v))
 	}
 
 	return nil, nil
@@ -199,6 +199,19 @@ func ValidateFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []s
 
 	if strings.HasPrefix(v, "/") {
 		return nil, append(errors, fmt.Errorf(`%q must not start with the URLs paths leading slash(e.g. /), got %q`, k, v))
+	}
+
+	return nil, nil
+}
+
+func ValidateFrontdoorRuleName(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if m, regexErrs := validate.RegExHelper(i, k, `^[a-zA-Z][a-zA-Z0-9]{0,259}$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must start with a letter and contain only numbers and letters with a maximum length of 260 characters, got %q`, k, v))
 	}
 
 	return nil, nil
