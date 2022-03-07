@@ -824,6 +824,26 @@ The field `zones` has been renamed `zone` (as this only accepts a single value) 
 
 The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
 
+### Resource `azurerm_machine_learning_compute_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_compute_instance`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_inference_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_synapse_spark`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_workspace`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 ### Resource: `azurerm_management_group`
 
 The deprecated field `group_id` will be removed in favour of `name`.
