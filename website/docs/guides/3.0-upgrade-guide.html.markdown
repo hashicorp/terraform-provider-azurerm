@@ -99,6 +99,8 @@ The following new **Resources** will be available:
     * New Resource to apply Source Control configuration to Web and Function App Slots (for use with Linux and Windows based versions)
 * [azurerm_function_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_active_slot)
     * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Function Apps.
+* [azurerm_function_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection)
+  * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
 * [azurerm_linux_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app)
     * Supersedes `azurerm_function_app` for Linux based Function Apps
 * [azurerm_linux_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot)
@@ -113,6 +115,8 @@ The following new **Resources** will be available:
     * Supersedes `azurerm_app_service_source_control_token`
 * [azurerm_web_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot)
     * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Web Apps.
+* [azurerm_web_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection)
+  * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
 * [azurerm_windows_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app)
     * Supersedes `azurerm_function_app` for Windows based Function Apps.
 * [azurerm_windows_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot)
@@ -121,11 +125,6 @@ The following new **Resources** will be available:
     * Supersedes `azurerm_app_service` for Windows based Web Apps.
 * [azurerm_windows_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app_slot)
     * Supersedes `azurerm_app_service_slot` for Deployment Slots on Windows based Web Apps
-* [azurerm_web_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection)
-    * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
-* [azurerm_function_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection)
-    * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
-
 
 ## Soft Delete for Key Vault
 
