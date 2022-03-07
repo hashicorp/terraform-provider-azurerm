@@ -80,6 +80,13 @@ func TestAccMsSqlServerExtendedAuditingPolicy_update(t *testing.T) {
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
+			Config: r.disabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -186,8 +193,39 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   storage_account_access_key              = azurerm_storage_account.test.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
+  log_monitoring_enabled                  = false
+  enabled                                 = true
 }
 `, r.template(data))
+}
+
+func (r MsSqlServerExtendedAuditingPolicyResource) disabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "AdminPassword123!"
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+  server_id = azurerm_mssql_server.test.id
+  enabled   = false
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MsSqlServerExtendedAuditingPolicyResource) update(data acceptance.TestData) string {

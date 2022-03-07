@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `not_scopes` - (Optional) Specifies a list of Resource Scopes (for example a Subscription, or a Resource Group) within this Management Group which are excluded from this Policy.
 
-* `parameters` - (Optional) A JSON mapping of any Parameters for this Policy. Changing this forces a new Management Group Policy Assignment to be created.
+* `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
 ---
 

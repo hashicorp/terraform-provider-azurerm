@@ -74,7 +74,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(automation.RunbookTypeEnumPowerShell),
 					string(automation.RunbookTypeEnumPowerShellWorkflow),
 					string(automation.RunbookTypeEnumScript),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"log_progress": {
@@ -228,8 +228,10 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				if err != nil {
 					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
 				}
-				if _, err := jsClient.Delete(ctx, id.ResourceGroup, id.Name, jsId); err != nil {
-					return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
+				if resp, err := jsClient.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jsId); err != nil {
+					if !utils.ResponseWasNotFound(resp) {
+						return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
+					}
 				}
 			}
 		}

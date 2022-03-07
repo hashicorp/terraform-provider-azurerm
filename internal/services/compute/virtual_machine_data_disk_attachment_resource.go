@@ -67,7 +67,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 					string(compute.CachingTypesNone),
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -79,7 +79,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -102,8 +102,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", parsedVirtualMachineId.ID(), err)
 	}
 
-	locks.ByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
+	locks.ByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, "")
 	if err != nil {
@@ -256,8 +256,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, virtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, virtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {

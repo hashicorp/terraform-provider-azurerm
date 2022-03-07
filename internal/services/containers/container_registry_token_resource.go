@@ -18,11 +18,15 @@ import (
 
 func resourceContainerRegistryToken() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryTokenCreate,
-		Read:     resourceContainerRegistryTokenRead,
-		Update:   resourceContainerRegistryTokenUpdate,
-		Delete:   resourceContainerRegistryTokenDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceContainerRegistryTokenCreate,
+		Read:   resourceContainerRegistryTokenRead,
+		Update: resourceContainerRegistryTokenUpdate,
+		Delete: resourceContainerRegistryTokenDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerRegistryTokenID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

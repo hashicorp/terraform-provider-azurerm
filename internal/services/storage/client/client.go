@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/sdk/2021-04-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
@@ -35,7 +36,7 @@ type Client struct {
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
 	FileServicesClient          *storage.FileServicesClient
-	ObjectReplicationClient     *storage.ObjectReplicationPoliciesClient
+	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
 	SubscriptionId              string
@@ -72,7 +73,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	objectReplicationPolicyClient := storage.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	objectReplicationPolicyClient := objectreplicationpolicies.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint)
 	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
 
 	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)

@@ -3,6 +3,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
@@ -48,8 +49,11 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 		Read:   resourceHDInsightInteractiveQueryClusterRead,
 		Update: hdinsightClusterUpdate("Interactive Query", resourceHDInsightInteractiveQueryClusterRead),
 		Delete: hdinsightClusterDelete("Interactive Query"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -315,8 +319,15 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
+		tier := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range hdinsight.PossibleTierValues() {
+			if strings.EqualFold(string(v), string(props.Tier)) {
+				tier = string(v)
+			}
+		}
+		d.Set("tier", tier)
 		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tier", string(props.Tier))
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {

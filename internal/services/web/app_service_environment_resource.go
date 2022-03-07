@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -277,7 +279,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		if !features.ThreePointOhBeta() {
+			d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		}
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
@@ -504,9 +508,9 @@ func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": func() *pluginsdk.Schema {
 			if !features.ThreePointOhBeta() {
-				return azure.SchemaResourceGroupNameOptionalComputed()
+				return commonschema.ResourceGroupNameOptionalComputed()
 			}
-			return azure.SchemaResourceGroupName()
+			return commonschema.ResourceGroupName()
 		}(),
 
 		"tags": tags.ForceNewSchema(),

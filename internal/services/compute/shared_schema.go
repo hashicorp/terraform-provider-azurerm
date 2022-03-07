@@ -406,7 +406,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 	}
 
 	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("Either a `source_image_id` or a `source_image_reference` block must be specified!")
+		return nil, fmt.Errorf("either a `source_image_id` or a `source_image_reference` block must be specified")
 	}
 
 	raw := referenceInput[0].(map[string]interface{})

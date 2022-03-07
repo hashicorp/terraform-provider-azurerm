@@ -73,26 +73,39 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sku := d.Get("sku").([]interface{})
-	featureFlags := d.Get("features").(*pluginsdk.Set).List()
-	connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(bool)
-	messagingLogsEnabled := d.Get("messaging_logs_enabled").(bool)
-	liveTraceEnabled := d.Get("live_trace_enabled").(bool)
-	serviceMode := d.Get("service_mode").(string)
+	connectivityLogsEnabled := false
+	if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+		connectivityLogsEnabled = v.(bool)
+	}
+	messagingLogsEnabled := false
+	if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+		messagingLogsEnabled = v.(bool)
+	}
+	liveTraceEnabled := false
+	if v, ok := d.GetOk("live_trace_enabled"); ok {
+		liveTraceEnabled = v.(bool)
+	}
+	serviceMode := "Default"
+	if v, ok := d.GetOk("service_mode"); ok {
+		serviceMode = v.(string)
+	}
 
 	cors := d.Get("cors").([]interface{})
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := make([]signalr.SignalRFeature, 0)
-	if len(featureFlags) > 0 {
-		expandedFeatures = *expandSignalRFeatures(featureFlags)
+	if !features.ThreePointOhBeta() {
+		var featureFlags []interface{}
+		if v, ok := d.GetOk("features"); ok {
+			featureFlags = v.(*pluginsdk.Set).List()
+		}
+		if len(featureFlags) > 0 {
+			expandedFeatures = *expandSignalRFeatures(featureFlags)
+		}
 	} else {
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
 		expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
-
-		if serviceMode == "" {
-			serviceMode = "Default"
-		}
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 	}
 
@@ -162,8 +175,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_port", props.PublicPort)
 			d.Set("server_port", props.ServerPort)
 
-			if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
-				return fmt.Errorf("setting `features`: %+v", err)
+			if !features.ThreePointOhBeta() {
+				if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
+					return fmt.Errorf("setting `features`: %+v", err)
+				}
 			}
 
 			connectivityLogsEnabled := false
@@ -233,30 +248,45 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
-		if d.HasChange("features") {
-			featuresRaw := d.Get("features").(*pluginsdk.Set).List()
+		if !features.ThreePointOhBeta() && d.HasChange("features") {
+			var featuresRaw []interface{}
+			if v, ok := d.GetOk("features"); ok {
+				featuresRaw = v.(*pluginsdk.Set).List()
+			}
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChange("connectivity_logs_enabled") {
-				connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(bool)
+				connectivityLogsEnabled := false
+				if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+					connectivityLogsEnabled = v.(bool)
+				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
 			}
 
 			if d.HasChange("messaging_logs_enabled") {
-				messagingLogsEnabled := d.Get("messaging_logs_enabled").(bool)
+				messagingLogsEnabled := false
+				if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+					messagingLogsEnabled = v.(bool)
+				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
 			}
 
 			if d.HasChange("live_trace_enabled") {
-				liveTraceEnabled := d.Get("live_trace_enabled").(bool)
+				liveTraceEnabled := false
+				if v, ok := d.GetOk("live_trace_enabled"); ok {
+					liveTraceEnabled = v.(bool)
+				}
 				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
 			}
 
 			if d.HasChange("service_mode") {
-				serviceMode := d.Get("service_mode").(string)
+				serviceMode := "Default"
+				if v, ok := d.GetOk("service_mode"); ok {
+					serviceMode = v.(string)
+				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 			}
 			resourceType.Properties.Features = &features
@@ -517,6 +547,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -529,6 +565,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -541,6 +583,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return false
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
@@ -553,6 +601,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: !features.ThreePointOhBeta(),
+			Default: func() interface{} {
+				if features.ThreePointOhBeta() {
+					return "Default"
+				}
+				return nil
+			}(),
 			ConflictsWith: func() []string {
 				if features.ThreePointOhBeta() {
 					return nil
