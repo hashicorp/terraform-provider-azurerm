@@ -282,6 +282,18 @@ The deprecated field `management_group_id` will be removed in favour of the `man
 
 The deprecated field `cmk_enabled` will be removed since it no longer exists in the Azure API.
 
+### Data Source: `azurerm_sql_database`
+
+The data source `azurerm_sql_database` is deprecated in favour of the `azurerm_mssql_database` data source.
+
+### Data Source: `azurerm_sql_managed_instance`
+
+The data source `azurerm_sql_managed_instance` is deprecated in favour of the `azurerm_mssql_managed_instance` data source.
+
+### Data Source: `azurerm_sql_server`
+
+The data source `azurerm_sql_server` is deprecated in favour of the `azurerm_mssql_server` data source.
+
 ---
 
 -> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
@@ -949,6 +961,50 @@ The deprecated field `version` will be removed since it is not returned by the A
 ### Resource: `azurerm_redis_linked_server`
 
 The field `server_role` will become case-sensitive.
+
+### Resource: `azurerm_sql_active_directory_administrator`
+
+The resource `azurerm_sql_active_directory_administrator` will be deprecated in favour of the `azuread_administrator` block in the `azurerm_mssql_server` resource.
+
+### Resource: `azurerm_sql_database`
+
+The resource `azurerm_sql_database` will be deprecated in favour of the `azurerm_mssql_database` resource.
+
+### Resource: `azurerm_sql_elasticpool`
+
+The resource `azurerm_sql_elasticpool` will be deprecated in favour of the `azurerm_mssql_elasticpool` resource.
+
+### Resource: `azurerm_sql_failover_group`
+
+The resource `azurerm_sql_failover_group` will be deprecated in favour of the `azurerm_mssql_failover_group` resource.
+
+### Resource: `azurerm_sql_firewall_rule`
+
+The resource `azurerm_sql_firewall_rule` will be deprecated in favour of the `azurerm_mssql_firewall_rule` resource.
+
+### Resource: `azurerm_sql_managed_database`
+
+The resource `azurerm_sql_managed_database` will be deprecated in favour of the `azurerm_mssql_managed_database` resource.
+
+### Resource: `azurerm_sql_managed_instance`
+
+The resource `azurerm_sql_managed_instance` will be deprecated in favour of the `azurerm_mssql_managed_instance` resource.
+
+### Resource: `azurerm_sql_managed_instance_active_directory_administrator`
+
+The resource `azurerm_sql_managed_instance_active_directory_administrator` will be deprecated in favour of the `azurerm_mssql_managed_instance_active_directory_administrator` resource.
+
+### Resource: `azurerm_sql_managed_instance_failover_group`
+
+The resource `azurerm_sql_managed_instance_failover_group` will be deprecated in favour of the `azurerm_mssql_managed_instance_failover_group` resource.
+
+### Resource: `azurerm_sql_server`
+
+The resource `azurerm_sql_server` will be deprecated in favour of the `azurerm_mssql_server` resource.
+
+### Resource: `azurerm_sql_virtual_network_rule`
+
+The resource `azurerm_sql_virtual_network_rule` will be deprecated in favour of the `azurerm_mssql_virtual_network_rule` resource.
 
 ### Resource: `azurerm_template_deployment`
 

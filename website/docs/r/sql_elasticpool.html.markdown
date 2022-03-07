@@ -10,7 +10,7 @@ description: |-
 
 Allows you to manage an Azure SQL Elastic Pool.
 
--> **Note:** The `azurerm_sql_elasticpool_resource` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_elasticpool`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_elasticpool) resource instead.
+-> **Note:** The `azurerm_sql_elasticpool` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_elasticpool`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_elasticpool) resource instead.
 
 ## Example Usage
 
