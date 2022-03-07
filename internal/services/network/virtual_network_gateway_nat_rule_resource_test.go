@@ -82,6 +82,28 @@ func TestAccVirtualNetworkGatewayNatRule_update(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGatewayNatRule_updatePortRange(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_nat_rule", "test")
+	r := VirtualNetworkGatewayNatRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updatePortRange(data, "100", "200"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updatePortRange(data, "300", "400"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r VirtualNetworkGatewayNatRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkGatewayNatRuleID(state.ID)
 	if err != nil {
@@ -130,22 +152,18 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 
   external_mapping {
     address_space = "10.1.0.0/26"
-    port_range    = "100"
   }
 
   external_mapping {
     address_space = "10.2.0.0/26"
-    port_range    = "200"
   }
 
   internal_mapping {
     address_space = "10.3.0.0/26"
-    port_range    = "300"
   }
 
   internal_mapping {
     address_space = "10.4.0.0/26"
-    port_range    = "400"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -165,15 +183,37 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 
   external_mapping {
     address_space = "10.2.0.0/26"
-    port_range    = "200"
   }
 
   internal_mapping {
     address_space = "10.4.0.0/26"
-    port_range    = "400"
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualNetworkGatewayNatRuleResource) updatePortRange(data acceptance.TestData, externalPortRange, internalPortRange string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network_gateway_nat_rule" "test" {
+  name                       = "acctest-vnetgwnatrule-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
+  mode                       = "EgressSnat"
+  type                       = "Static"
+
+  external_mapping {
+    address_space = "10.2.0.0/26"
+    port_range    = "%s"
+  }
+
+  internal_mapping {
+    address_space = "10.4.0.0/26"
+    port_range    = "%s"
+  }
+}
+`, r.template(data), data.RandomInteger, externalPortRange, internalPortRange)
 }
 
 func (r VirtualNetworkGatewayNatRuleResource) requiresImport(data acceptance.TestData) string {
@@ -184,8 +224,14 @@ resource "azurerm_virtual_network_gateway_nat_rule" "import" {
   name                       = azurerm_virtual_network_gateway_nat_rule.test.name
   resource_group_name        = azurerm_virtual_network_gateway_nat_rule.test.resource_group_name
   virtual_network_gateway_id = azurerm_virtual_network_gateway_nat_rule.test.virtual_network_gateway_id
-  external_mapping           = azurerm_virtual_network_gateway_nat_rule.test.external_mapping
-  internal_mapping           = azurerm_virtual_network_gateway_nat_rule.test.internal_mapping
+
+  external_mapping {
+    address_space = "10.1.0.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.3.0.0/26"
+  }
 }
 `, r.basic(data))
 }
