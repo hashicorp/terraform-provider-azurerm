@@ -191,8 +191,7 @@ resource "azurerm_servicebus_namespace" "updated" {
 
 resource "azurerm_servicebus_queue" "updated" {
   name                = "acctest2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.updated.name
+  namespace_id        = azurerm_servicebus_namespace.updated.id
   enable_partitioning = true
 }
 
