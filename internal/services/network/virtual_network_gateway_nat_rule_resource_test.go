@@ -88,14 +88,14 @@ func TestAccVirtualNetworkGatewayNatRule_updatePortRange(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updatePortRange(data, "100", "200"),
+			Config: r.updatePortRange(data, "10.1.0.0/26", "100", "10.2.0.0/26", "200"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updatePortRange(data, "300", "400"),
+			Config: r.updatePortRange(data, "10.3.0.0/26", "300", "10.4.0.0/26", "400"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -192,7 +192,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualNetworkGatewayNatRuleResource) updatePortRange(data acceptance.TestData, externalPortRange, internalPortRange string) string {
+func (r VirtualNetworkGatewayNatRuleResource) updatePortRange(data acceptance.TestData, externalAddressSpace, externalPortRange, internalAddressSpace, internalPortRange string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,16 +204,16 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   type                       = "Static"
 
   external_mapping {
-    address_space = "10.2.0.0/26"
+    address_space = "%s"
     port_range    = "%s"
   }
 
   internal_mapping {
-    address_space = "10.4.0.0/26"
+    address_space = "%s"
     port_range    = "%s"
   }
 }
-`, r.template(data), data.RandomInteger, externalPortRange, internalPortRange)
+`, r.template(data), data.RandomInteger, externalAddressSpace, externalPortRange, internalAddressSpace, internalPortRange)
 }
 
 func (r VirtualNetworkGatewayNatRuleResource) requiresImport(data acceptance.TestData) string {
