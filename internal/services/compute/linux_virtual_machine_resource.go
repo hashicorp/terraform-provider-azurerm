@@ -28,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: confirm locking as appropriate
-
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
