@@ -188,7 +188,7 @@ func ExpandFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[]tr
 			}
 		} else {
 			if queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorIgnoreQueryString {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not defined if the %q is set to %q or %q", "route_configuration_override_action", "query_string_parameters", "query_string_caching_behavior", "UseQueryStrings", "IgnoreQueryStrings")
+				return nil, fmt.Errorf("the %q block is not valid, %q must not be set if the %q is set to %q or %q", "route_configuration_override_action", "query_string_parameters", "query_string_caching_behavior", "UseQueryStrings", "IgnoreQueryStrings")
 			}
 		}
 

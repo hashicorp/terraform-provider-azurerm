@@ -338,7 +338,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"remote_addr_condition": {
+						"remote_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -526,7 +526,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"url_extension_condition": {
+						"url_file_extension_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -625,7 +625,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						},
 
 						// DeliveryRuleSocketAddrCondition
-						"socket_addr_condition": {
+						"socket_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,

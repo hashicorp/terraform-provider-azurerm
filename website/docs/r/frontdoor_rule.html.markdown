@@ -214,7 +214,7 @@ A `conditions` block supports the following:
 
 ~>**NOTE:** You may include upto 10 separate conditions in the `conditions` block.
 
-* `remote_addr_condition` - (Optional) A `remote_addr_condition` block as defined below.
+* `remote_address_condition` - (Optional) A `remote_address_condition` block as defined below.
 
 * `request_method_condition` - (Optional) A `request_method_condition` block as defined below.
 
@@ -232,7 +232,7 @@ A `conditions` block supports the following:
 
 * `url_path_condition` - (Optional) A `url_path_condition` block as defined below.
 
-* `url_extension_condition` - (Optional) A `url_extension_condition` block as defined below.
+* `url_file_extension_condition` - (Optional) A `url_file_extension_condition` block as defined below.
 
 * `url_filename_condition` - (Optional) A `url_filename_condition` block as defined below.
 
@@ -242,7 +242,7 @@ A `conditions` block supports the following:
 
 * `is_device_condition` - (Optional) A `is_device_condition` block as defined below.
 
-* `socket_addr_condition` - (Optional) A `socket_addr_condition` block as defined below.
+* `socket_address_condition` - (Optional) A `socket_address_condition` block as defined below.
 
 * `client_port_condition` - (Optional) A `client_port_condition` block as defined below.
 
@@ -270,13 +270,13 @@ A `client_port_condition` block supports the following:
 
 ---
 
-A `socket_addr_condition` block supports the following:
+A `socket_address_condition` block supports the following:
 
 ---
 
-A `remote_addr_condition` block supports the following:
+A `remote_address_condition` block supports the following:
 
-The `remote_addr_condition` identifies requests based on the requester's location or IP address.
+The `remote_address_condition` identifies requests based on the requester's location or IP address.
 
 Use `CIDR` notation when specifying IP address blocks. This means that the syntax for an IP address block is the base IP address followed by a forward slash and the prefix size For example:
 
@@ -412,9 +412,9 @@ The `url_path_condition` identifies requests that include the specified path in 
 
 ---
 
-A `url_extension_condition` block supports the following:
+A `url_file_extension_condition` block supports the following:
 
-The `url_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
+The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
