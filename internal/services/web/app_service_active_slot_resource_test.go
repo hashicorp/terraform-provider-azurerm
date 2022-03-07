@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceActiveSlotResource struct {
-}
+type AppServiceActiveSlotResource struct{}
 
 func TestAccAppServiceActiveSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")

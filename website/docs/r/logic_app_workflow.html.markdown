@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `access_control` - (Optional) A `access_control` block as defined below.
 
-* `identitiy` - (Optional) An `identitiy` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs.  Changing this forces a new Logic App Workflow to be created.
 

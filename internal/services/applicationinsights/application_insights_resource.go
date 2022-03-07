@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -156,6 +158,11 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			"force_customer_storage_for_profiler": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -190,7 +197,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	disableIpMasking := d.Get("disable_ip_masking").(bool)
 	localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	internetIngestionEnabled := insights.PublicNetworkAccessTypeDisabled
@@ -203,6 +210,8 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		internetQueryEnabled = insights.PublicNetworkAccessTypeEnabled
 	}
 
+	forceCustomerStorageForProfiler := d.Get("force_customer_storage_for_profiler").(bool)
+
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:                   &name,
 		ApplicationType:                 insights.ApplicationType(applicationType),
@@ -211,6 +220,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		DisableLocalAuth:                utils.Bool(localAuthenticationDisabled),
 		PublicNetworkAccessForIngestion: internetIngestionEnabled,
 		PublicNetworkAccessForQuery:     internetQueryEnabled,
+		ForceCustomerStorageForProfiler: utils.Bool(forceCustomerStorageForProfiler),
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
@@ -298,9 +308,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
 		// Accommodate application_type that only differs by case and so shouldn't cause a recreation
@@ -322,6 +330,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == insights.PublicNetworkAccessTypeEnabled)
 		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
+		d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 
 		if v := props.WorkspaceResourceID; v != nil {
 			d.Set("workspace_id", v)

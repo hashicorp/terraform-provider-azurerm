@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopScalingPlanResource struct {
-}
+type VirtualDesktopScalingPlanResource struct{}
 
 func TestAccVirtualDesktopScalingPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")

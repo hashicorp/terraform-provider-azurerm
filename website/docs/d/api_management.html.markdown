@@ -37,6 +37,8 @@ output "api_management_id" {
 
 * `location` - The Azure location where the API Management Service exists.
 
+* `zones` - List of the availability zones where the API Management Service exists.
+
 * `gateway_url` - The URL for the API Management Service's Gateway.
 
 * `gateway_regional_url` - The URL for the Gateway in the Default Region.
@@ -54,6 +56,8 @@ output "api_management_id" {
 * `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
+
+* `public_ip_address_id` - ID of the standard SKU IPv4 Public IP. Available only for Premium and Developer SKU deployed in a virtual network.
 
 * `private_ip_addresses` - The Private IP addresses of the API Management Service.
 
@@ -73,17 +77,21 @@ A `additional_location` block exports the following:
 
 * `location` - The location name of the additional region among Azure Data center regions.
 
+* `capacity` - The number of compute units in this region.
+
+* `zones` - List of the availability zones where API Management is deployed in the additional region exists.
+
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+* `public_ip_address_id` - ID of the standard SKU IPv4 Public IP. Available only for Premium SKU deployed in a virtual network.
 
 * `private_ip_addresses` - Private IP addresses of the API Management service in the additional location, for instances using virtual network mode.
 
 ---
 
 A `identity` block exports the following:
-
-~> **Note:** User Assigned Managed Identities are in Preview
 
 * `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
 

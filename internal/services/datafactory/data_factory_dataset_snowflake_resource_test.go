@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetSnowflakeResource struct {
-}
+type DatasetSnowflakeResource struct{}
 
 func TestAccDataFactoryDatasetSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")

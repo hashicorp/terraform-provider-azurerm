@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type LogAnalyticsWorkspaceDataSource struct {
-}
+type LogAnalyticsWorkspaceDataSource struct{}
 
 func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")

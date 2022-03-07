@@ -217,7 +217,7 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for your instance. It should be a multiple of 32GB.
 
-* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
+* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `LicenseIncluded` or `BasePrice`.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 

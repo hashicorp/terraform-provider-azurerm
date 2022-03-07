@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubIPResource struct {
-}
+type VirtualHubIPResource struct{}
 
 func TestAccVirtualHubIP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")

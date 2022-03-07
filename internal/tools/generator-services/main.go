@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 // Packages in this list are deprecated and cannot be run due to breaking API changes
@@ -34,6 +35,7 @@ func main() {
 	}
 
 	generators := []generator{
+		githubLabelsGenerator{},
 		teamCityServicesListGenerator{},
 		websiteCategoriesGenerator{},
 	}
@@ -48,6 +50,90 @@ func main() {
 type generator interface {
 	outputPath(rootDirectory string) string
 	run(outputFileName string, packagesToSkip map[string]struct{}) error
+}
+
+const githubLabelsTemplate = `# NOTE: this file is generated via 'make generate'
+dependencies:
+  - go.mod
+  - go.sum
+  - vendor/**/*
+documentation:
+  - website/**/*
+tooling:
+  - internal/tools/**/*
+`
+
+type githubLabelsGenerator struct{}
+
+func (githubLabelsGenerator) outputPath(rootDirectory string) string {
+	return fmt.Sprintf("%s/.github/labeler-pull-request-triage.yml", rootDirectory)
+}
+
+func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) error {
+	packagesToLabel := make(map[string]string)
+	// combine and unique these
+	for _, service := range provider.SupportedTypedServices() {
+		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		info := reflect.TypeOf(service)
+		packageSegments := strings.Split(info.PkgPath(), "/")
+		packageName := packageSegments[len(packageSegments)-1]
+		packagesToLabel[packageName] = v.AssociatedGitHubLabel()
+	}
+	for _, service := range provider.SupportedUntypedServices() {
+		v, ok := service.(sdk.UntypedServiceRegistrationWithAGitHubLabel)
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		info := reflect.TypeOf(service)
+		packageSegments := strings.Split(info.PkgPath(), "/")
+		packageName := packageSegments[len(packageSegments)-1]
+		packagesToLabel[packageName] = v.AssociatedGitHubLabel()
+	}
+
+	// labels can be present in more than one package, so we need to group them
+	labelsToPackages := make(map[string][]string)
+	for pkg, label := range packagesToLabel {
+		existing, ok := labelsToPackages[label]
+		if !ok {
+			existing = []string{}
+		}
+
+		existing = append(existing, pkg)
+		labelsToPackages[label] = existing
+	}
+
+	sortedLabels := make([]string, 0)
+	for k := range labelsToPackages {
+		sortedLabels = append(sortedLabels, k)
+	}
+	sort.Strings(sortedLabels)
+
+	output := strings.TrimSpace(githubLabelsTemplate)
+	for _, labelName := range sortedLabels {
+		pkgs := labelsToPackages[labelName]
+
+		// for consistent generation
+		sort.Strings(pkgs)
+
+		out := []string{
+			fmt.Sprintf("%[1]s:", labelName),
+		}
+		for _, pkg := range pkgs {
+			out = append(out, fmt.Sprintf("  - internal/services/%[1]s/**/*", pkg))
+		}
+
+		out = append(out, "")
+		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
+	}
+
+	return writeToFile(outputFileName, output)
 }
 
 type teamCityServicesListGenerator struct{}

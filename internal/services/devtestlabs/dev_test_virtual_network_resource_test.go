@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestVirtualNetworkResource struct {
-}
+type DevTestVirtualNetworkResource struct{}
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 	validNames := []string{

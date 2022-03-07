@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkPacketCaptureResource struct {
-}
+type NetworkPacketCaptureResource struct{}
 
 func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")

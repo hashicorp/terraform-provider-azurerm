@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -29,11 +30,11 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"zones": azure.SchemaZonesComputed(),
+			"zones": commonschema.ZonesMultipleComputed(),
 
 			"capacity": {
 				Type:     pluginsdk.TypeInt,
@@ -60,6 +61,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_non_ssl_port": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -147,6 +149,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
+						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_authentication": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -233,17 +236,15 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, id.ResourceGroup, id.RediName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Redis Cache %q (Resource Group %q) was not found", id.RediName, id.ResourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if zones := resp.Zones; zones != nil {
-		d.Set("zones", zones)
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)

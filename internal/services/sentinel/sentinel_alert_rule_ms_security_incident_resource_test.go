@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SentinelAlertRuleMsSecurityIncidentResource struct {
-}
+type SentinelAlertRuleMsSecurityIncidentResource struct{}
 
 func TestAccSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")

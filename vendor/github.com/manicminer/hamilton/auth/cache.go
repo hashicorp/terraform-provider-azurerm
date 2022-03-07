@@ -64,6 +64,7 @@ func (c *CachedAuthorizer) AuxiliaryTokens() ([]*oauth2.Token, error) {
 	return c.auxTokens, nil
 }
 
+// WithAuthorization implements the autorest.Authorizer interface
 func (c *CachedAuthorizer) WithAuthorization() autorest.PrepareDecorator {
 	return func(p autorest.Preparer) autorest.Preparer {
 		return autorest.PreparerFunc(func(req *http.Request) (*http.Request, error) {
@@ -98,6 +99,21 @@ func (c *CachedAuthorizer) WithAuthorization() autorest.PrepareDecorator {
 			return req, err
 		})
 	}
+}
+
+// BearerAuthorizerCallback is a helper that returns an *autorest.BearerAuthorizerCallback for use in data plane API clients in the Azure SDK
+func (c *CachedAuthorizer) BearerAuthorizerCallback() *autorest.BearerAuthorizerCallback {
+	return autorest.NewBearerAuthorizerCallback(nil, func(_, resource string) (*autorest.BearerAuthorizer, error) {
+		token, err := c.Token()
+		if err != nil {
+			return nil, fmt.Errorf("obtaining token: %v", err)
+		}
+
+		return autorest.NewBearerAuthorizer(&servicePrincipalTokenWrapper{
+			tokenType:  "Bearer",
+			tokenValue: token.AccessToken,
+		}), nil
+	})
 }
 
 // NewCachedAuthorizer returns an Authorizer that caches an access token for the duration of its validity.

@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApplicationGatewayResource struct {
-}
+type ApplicationGatewayResource struct{}
 
 func TestAccApplicationGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
@@ -587,7 +587,7 @@ func TestAccApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	})
 }
 
-func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testing.T) {
+func TestAccApplicationGateway_sslCertificateManualChangeIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
@@ -1378,6 +1378,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -1446,6 +1447,7 @@ resource "azurerm_public_ip" "test_standard" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   allocation_method   = "Static"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1952,7 +1954,11 @@ resource "azurerm_application_gateway" "test" {
 
 // nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -1989,20 +1995,20 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
   sku_name            = "standard"
-  soft_delete_enabled = true
+  %[3]s
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${data.azurerm_client_config.test.object_id}"
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${azurerm_user_assigned_identity.test.principal_id}"
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -2050,6 +2056,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -2095,11 +2102,16 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2135,20 +2147,20 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
-  soft_delete_enabled = true
+  %[3]s
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -2223,6 +2235,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -2268,7 +2281,8 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {
@@ -3542,7 +3556,8 @@ resource "azurerm_application_gateway" "test" {
     interval            = 300
     unhealthy_threshold = 8
     match {
-      body = ""
+      body        = ""
+      status_code = ["404-500"]
     }
   }
 
@@ -3962,7 +3977,11 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versionless(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4004,18 +4023,18 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 
-  soft_delete_enabled = true
+  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4062,6 +4081,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4108,11 +4128,16 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versioned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4154,18 +4179,18 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 
-  soft_delete_enabled = true
+  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4212,6 +4237,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   identity {
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -4258,7 +4284,8 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) sslCertificate(data acceptance.TestData) string {

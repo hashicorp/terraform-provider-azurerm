@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BackupProtectionPolicyVMDataSource struct {
-}
+type BackupProtectionPolicyVMDataSource struct{}
 
 func TestAccDataSourceBackupPolicyVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_backup_policy_vm", "test")

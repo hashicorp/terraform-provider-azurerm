@@ -116,6 +116,18 @@ func TestAccStorageDataLakeGen2FileSystem_handlesStorageAccountDeletion(t *testi
 	})
 }
 
+func TestAccStorageDataLakeGen2FileSystem_withOwnerGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+	r := StorageDataLakeGen2FileSystemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.withOwnerGroup,
+			TestResource: r,
+		}),
+	})
+}
+
 func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := filesystems.ParseResourceID(state.ID)
 	if err != nil {
@@ -293,6 +305,38 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
     azurerm_role_assignment.storageAccountRoleAssignment,
     azuread_service_principal.test
   ]
+}
+`, template, data.RandomInteger)
+}
+
+func (r StorageDataLakeGen2FileSystemResource) withOwnerGroup(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "storage_blob_owner" {
+  role_definition_name = "Storage Blob Data Owner"
+  scope                = azurerm_resource_group.test.id
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  owner              = azuread_service_principal.test.object_id
+  group              = azuread_service_principal.test.object_id
 }
 `, template, data.RandomInteger)
 }

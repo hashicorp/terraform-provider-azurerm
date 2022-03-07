@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -15,8 +16,10 @@ import (
 
 type VirtualMachineConfigurationPolicyAssignmentResource struct{}
 
-// TODO: Remove in 3.0
 func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("Skipping because this test does not apply on 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
 	r := VirtualMachineConfigurationPolicyAssignmentResource{}
 
@@ -32,6 +35,9 @@ func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
 }
 
 func TestAccVirtualMachineConfigurationPolicyAssignment_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("Skipping because this test does not apply on 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
 	r := VirtualMachineConfigurationPolicyAssignmentResource{}
 

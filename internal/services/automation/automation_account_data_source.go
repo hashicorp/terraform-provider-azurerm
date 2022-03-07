@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +26,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_key": {
 				Type:     pluginsdk.TypeString,
@@ -68,8 +68,10 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("retreiving Automation Account Registration Information %s: %+v", id, err)
 	}
-	d.Set("primary_key", iresp.Keys.Primary)
-	d.Set("secondary_key", iresp.Keys.Secondary)
+	if iresp.Keys != nil {
+		d.Set("primary_key", iresp.Keys.Primary)
+		d.Set("secondary_key", iresp.Keys.Secondary)
+	}
 	d.Set("endpoint", iresp.Endpoint)
 	return nil
 }

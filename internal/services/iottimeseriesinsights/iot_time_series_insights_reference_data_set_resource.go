@@ -122,8 +122,8 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.Reso
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_reference_data_set", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_reference_data_set", id.ID())
 		}
 	}
 

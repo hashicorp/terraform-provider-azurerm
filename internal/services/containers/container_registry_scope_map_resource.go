@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,11 +19,15 @@ import (
 
 func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryScopeMapCreate,
-		Read:     resourceContainerRegistryScopeMapRead,
-		Update:   resourceContainerRegistryScopeMapUpdate,
-		Delete:   resourceContainerRegistryScopeMapDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceContainerRegistryScopeMapCreate,
+		Read:   resourceContainerRegistryScopeMapRead,
+		Update: resourceContainerRegistryScopeMapUpdate,
+		Delete: resourceContainerRegistryScopeMapDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerRegistryScopeMapID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -84,8 +88,8 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry_scope_map", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_registry_scope_map", id.ID())
 		}
 	}
 
@@ -158,7 +162,6 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Scope Map %q was not found in Container Registry %q in Resource Group %q", id.ScopeMapName, id.RegistryName, id.ResourceGroup)

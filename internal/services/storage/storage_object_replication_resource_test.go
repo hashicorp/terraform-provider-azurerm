@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,22 +117,41 @@ func TestAccStorageObjectReplication_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageObjectReplication_crossSubscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
+	if data.Subscriptions.Secondary == "" {
+		t.Skipf("The secondary subscription is not specified")
+	}
+	r := StorageObjectReplicationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossSubscription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_object_replication_id").Exists(),
+				check.That(data.ResourceName).Key("destination_object_replication_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ObjectReplicationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	dstResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.DstResourceGroup, id.DstStorageAccountName, id.DstName)
+	dstResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.Dst)
 	if err != nil {
-		if utils.ResponseWasNotFound(dstResp.Response) {
+		if response.WasNotFound(dstResp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	srcResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.SrcResourceGroup, id.SrcStorageAccountName, id.SrcName)
+	srcResp, err := client.Storage.ObjectReplicationClient.Get(ctx, id.Src)
 	if err != nil {
-		if utils.ResponseWasNotFound(srcResp.Response) {
+		if response.WasNotFound(srcResp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
@@ -176,7 +196,7 @@ resource "azurerm_storage_container" "src_second" {
 }
 
 resource "azurerm_resource_group" "dst" {
-  name     = "acctest-storage-dst-%[1]d"
+  name     = "acctest-storage-alt-%[1]d"
   location = "%[4]s"
 }
 
@@ -290,4 +310,88 @@ resource "azurerm_storage_object_replication" "test" {
   }
 }
 `, r.template(data), copyTime)
+}
+
+func (r StorageObjectReplicationResource) crossSubscription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  subscription_id = "%[1]s"
+  features {}
+}
+
+resource "azurerm_resource_group" "src" {
+  name     = "acctest-storage-src-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_storage_account" "src" {
+  name                     = "stracctsrc%[4]s"
+  resource_group_name      = azurerm_resource_group.src.name
+  location                 = azurerm_resource_group.src.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "src" {
+  name                  = "strcsrc%[4]s"
+  storage_account_name  = azurerm_storage_account.src.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "src_second" {
+  name                  = "strcsrcsecond%[4]s"
+  storage_account_name  = azurerm_storage_account.src.name
+  container_access_type = "private"
+}
+
+resource "azurerm_resource_group" "dst" {
+  provider = azurerm-alt
+  name     = "acctest-storage-dst-%[2]d"
+  location = "%[5]s"
+}
+
+resource "azurerm_storage_account" "dst" {
+  provider                 = azurerm-alt
+  name                     = "stracctdst%[4]s"
+  resource_group_name      = azurerm_resource_group.dst.name
+  location                 = azurerm_resource_group.dst.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "dst" {
+  provider              = azurerm-alt
+  name                  = "strcdst%[4]s"
+  storage_account_name  = azurerm_storage_account.dst.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "dst_second" {
+  provider              = azurerm-alt
+  name                  = "strcdstsecond%[4]s"
+  storage_account_name  = azurerm_storage_account.dst.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_object_replication" "test" {
+  source_storage_account_id      = azurerm_storage_account.src.id
+  destination_storage_account_id = azurerm_storage_account.dst.id
+  rules {
+    source_container_name      = azurerm_storage_container.src.name
+    destination_container_name = azurerm_storage_container.dst.name
+  }
+}
+`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }

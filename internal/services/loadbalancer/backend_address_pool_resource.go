@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -25,7 +25,7 @@ var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate, // TODO: remove in 3.0 since all fields are ForceNew
+		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
@@ -54,9 +54,6 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-
-				// TODO 3.0: remove this as it can be inferred from "loadbalancer_id"
-				"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 
 				"loadbalancer_id": {
 					Type:         pluginsdk.TypeString,
@@ -133,7 +130,8 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 				},
 			}
 
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
+				s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
 				s["backend_address"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeSet,
 					Optional:   true,
@@ -225,7 +223,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	}
 
 	// Sanity checks
-	if len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
+	if !features.ThreePointOhBeta() && len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
 		return fmt.Errorf("only the Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
 			"whilst %q is of sku %s", id, sku.Name)
 	}
@@ -313,12 +311,14 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.BackendAddressPoolName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("loadbalancer_id", lbId.ID())
 
+	if !features.ThreePointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
+
 	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		// TODO: remove in 3.0
-		if !features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
 			// @tombuildsstuff: this is a Set so won't be referenced, let's just nil this out for now
 			if err := d.Set("backend_address", []interface{}{}); err != nil {
 				return fmt.Errorf("setting `backend_address`: %v", err)

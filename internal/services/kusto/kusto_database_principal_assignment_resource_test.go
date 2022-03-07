@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoDatabasePrincipalAssignmentResource struct {
-}
+type KustoDatabasePrincipalAssignmentResource struct{}
 
 func TestAccKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")

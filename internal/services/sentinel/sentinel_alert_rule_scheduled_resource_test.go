@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SentinelAlertRuleScheduledResource struct {
-}
+type SentinelAlertRuleScheduledResource struct{}
 
 func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")

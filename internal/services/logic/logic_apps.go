@@ -102,13 +102,14 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
-			Parameters: read.WorkflowProperties.Parameters,
+			Definition:         definition,
+			Parameters:         read.WorkflowProperties.Parameters,
+			AccessControl:      read.WorkflowProperties.AccessControl,
+			IntegrationAccount: read.WorkflowProperties.IntegrationAccount,
 		},
 		Identity: read.Identity,
 		Tags:     read.Tags,
 	}
-
 	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s for %s %q: %+v", workflowId, kind, name, err)
 	}

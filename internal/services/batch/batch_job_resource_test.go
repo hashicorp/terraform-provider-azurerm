@@ -133,7 +133,8 @@ resource "azurerm_batch_job" "test" {
   batch_pool_id = azurerm_batch_pool.test.id
   display_name  = "testaccbj-display-%[2]d"
   common_environment_properties = {
-    env = "Test"
+    env       = "Test"
+    terraform = "true"
   }
   priority           = 1
   task_retry_maximum = 1

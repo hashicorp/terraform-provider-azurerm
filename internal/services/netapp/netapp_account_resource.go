@@ -1,9 +1,11 @@
 package netapp
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,9 +25,9 @@ import (
 
 func resourceNetAppAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppAccountCreateUpdate,
+		Create: resourceNetAppAccountCreate,
 		Read:   resourceNetAppAccountRead,
-		Update: resourceNetAppAccountCreateUpdate,
+		Update: resourceNetAppAccountUpdate,
 		Delete: resourceNetAppAccountDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -105,7 +107,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +145,58 @@ func resourceNetAppAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
+	// Wait for account to complete create
+	if err := waitForAccountCreateOrUpdate(ctx, client, id); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
+	return resourceNetAppAccountRead(d, meta)
+}
+
+func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).NetApp.AccountClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.AccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	shouldUpdate := false
+	update := netapp.AccountPatch{
+		AccountProperties: &netapp.AccountProperties{},
+	}
+
+	if d.HasChange("active_directory") {
+		shouldUpdate = true
+		activeDirectoriesRaw := d.Get("active_directory").([]interface{})
+		activeDirectories := expandNetAppActiveDirectories(activeDirectoriesRaw)
+		update.AccountProperties.ActiveDirectories = activeDirectories
+	}
+
+	if d.HasChange("tags") {
+		shouldUpdate = true
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if shouldUpdate {
+		future, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName)
+		if err != nil {
+			return fmt.Errorf("updating Account %q: %+v", id.NetAppAccountName, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		}
+
+		// Wait for account to complete update
+		if err := waitForAccountCreateOrUpdate(ctx, client, *id); err != nil {
+			return err
+		}
+	}
+
 	return resourceNetAppAccountRead(d, meta)
 }
 
@@ -216,4 +269,39 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirector
 		results = append(results, result)
 	}
 	return &results
+}
+
+func waitForAccountCreateOrUpdate(ctx context.Context, client *netapp.AccountsClient, id parse.AccountId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netappAccountStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappAccountStateRefreshFunc(ctx context.Context, client *netapp.AccountsClient, id parse.AccountId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("retrieving NetApp Account %q (Resource Group %q): %s", id.NetAppAccountName, id.ResourceGroup, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
