@@ -9,6 +9,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v62.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-15716]
+* dependencies: updating `kubernetescluster` to `2022-01-02-preview` [GH-15648]
 * Data Source `azurerm_kubernetes_cluster` - deprecated `addon_profile` block in favour of `aci_connector_linux`, `azure_policy_enabled`, `http_application_routing_enabled`, `ingress_application_gateway`, `key_vault_secrets_provider`, `oms_agent` and `open_service_mesh_enabled` [GH-15584]
 * Data Source `azurerm_kubernetes_cluster` - deprecated `role_based_access_control` block in favour of `azure_active_directory_role_based_access_control` and `role_based_access_control_enabled` [GH-15584]
 * Data Source `azurerm_servicebus_namespace_authorization_rule` - added `namespace_id` property [GH-15671]
