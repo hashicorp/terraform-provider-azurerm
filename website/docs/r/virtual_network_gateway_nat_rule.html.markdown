@@ -104,17 +104,17 @@ The following arguments are supported:
 
 A `external_mapping` block exports the following:
 
-* `address_space` - The string CIDR representing the address space for the Virtual Network Gateway Nat Rule external mapping.
+* `address_space` - (Required) The string CIDR representing the address space for the Virtual Network Gateway Nat Rule external mapping.
 
-* `port_range` - The single port range for the Virtual Network Gateway Nat Rule external mapping.
+* `port_range` - (Optional) The single port range for the Virtual Network Gateway Nat Rule external mapping.
 
 ---
 
 A `internal_mapping` block exports the following:
 
-* `address_space` - The string CIDR representing the address space for the Virtual Network Gateway Nat Rule internal mapping.
+* `address_space` - (Required) The string CIDR representing the address space for the Virtual Network Gateway Nat Rule internal mapping.
 
-* `port_range` - The single port range for the Virtual Network Gateway Nat Rule internal mapping.
+* `port_range` - (Optional) The single port range for the Virtual Network Gateway Nat Rule internal mapping.
 
 ---
 
