@@ -42,6 +42,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			0: migration.LegacyVMSSV0ToV1{},
 		}),
 
+		// NOTE: @tombuildsstuff - don't remove with 3.0
+		DeprecationMessage: `The 'azurerm_virtual_machine_scale_set' resource has been superseded by the 'azurerm_linux_virtual_machine_scale_set' and 'azurerm_windows_virtual_machine_scale_set' resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.`,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
