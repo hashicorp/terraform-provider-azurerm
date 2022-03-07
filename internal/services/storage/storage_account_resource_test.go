@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -439,26 +438,6 @@ func TestAccStorageAccount_storageV1ToV2Update(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	r := StorageAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-	})
-}
-
 func TestAccStorageAccount_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -469,8 +448,8 @@ func TestAccStorageAccount_systemAssignedIdentity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -499,8 +478,8 @@ func TestAccStorageAccount_systemAssignedUserAssignedIdentity(t *testing.T) {
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -521,8 +500,8 @@ func TestAccStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		{
@@ -535,8 +514,8 @@ func TestAccStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -1878,31 +1857,6 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageAccountResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "standard"
-  account_replication_type = "lrs"
 
   tags = {
     environment = "production"
@@ -3368,7 +3322,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3377,8 +3330,8 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -3386,8 +3339,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -3441,8 +3394,8 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -3450,8 +3403,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -3520,16 +3473,16 @@ resource "azurerm_key_vault_access_policy" "storageupdate" {
   key_vault_id       = azurerm_key_vault.update.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = azurerm_user_assigned_identity.test.principal_id
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "clientupdate" {
   key_vault_id       = azurerm_key_vault.update.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "update" {
@@ -3644,7 +3597,6 @@ resource "azurerm_key_vault" "remotetest" {
   resource_group_name      = azurerm_resource_group.remotetest.name
   tenant_id                = "%s"
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3653,8 +3605,8 @@ resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id       = azurerm_key_vault.remotetest.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = azurerm_user_assigned_identity.test.principal_id
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -3662,8 +3614,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id       = azurerm_key_vault.remotetest.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "remote" {
@@ -3754,8 +3706,8 @@ resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id       = azurerm_key_vault.remotetest.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = azurerm_user_assigned_identity.test.principal_id
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -3763,8 +3715,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id       = azurerm_key_vault.remotetest.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "remote" {

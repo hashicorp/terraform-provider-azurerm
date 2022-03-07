@@ -115,13 +115,13 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 }
 
 func SSHKeyDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	oldNormalized, err := utils.NormalizeSSHKey(old)
+	oldNormalized, err := NormalizeSSHKey(old)
 	if err != nil {
 		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
 		return false
 	}
 
-	newNormalized, err := utils.NormalizeSSHKey(new)
+	newNormalized, err := NormalizeSSHKey(new)
 	if err != nil {
 		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
 		return false
@@ -138,7 +138,7 @@ func SSHKeySchemaHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		normalisedKey, err := utils.NormalizeSSHKey(m["public_key"].(string))
+		normalisedKey, err := NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}

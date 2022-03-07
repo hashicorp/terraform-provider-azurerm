@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -55,11 +56,12 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// TODO 3.0: Make this required and remove computed.
+			//lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				Optional:     true,
+				Required:     features.ThreePointOhBeta(),
+				Computed:     !features.ThreePointOhBeta(),
+				Optional:     !features.ThreePointOhBeta(),
 				ForceNew:     true,
 				ValidateFunc: validate.NetworkWatcherFlowLogName,
 			},
@@ -151,10 +153,9 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"location": {
-				// TODO: `computed` should be removed in 3.0
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         !features.ThreePointOhBeta(),
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -218,29 +217,6 @@ func TestAccMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_customDiff(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithMinimumTLSVersion(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-			ExpectError: regexp.MustCompile("`minimum_tls_version` cannot be removed once set, please set a valid value for this property"),
-		},
-		data.ImportStep("administrator_login_password"),
-	})
-}
-
 func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -301,7 +277,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "1.2"
+  minimum_tls_version          = "1.1"
   extended_auditing_policy     = []
 
   identity {

@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,9 +29,9 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource(),
 
@@ -63,6 +62,8 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("reading %s: ID is empty or nil", id)
 	}
 	d.SetId(id.ID())
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if profile := resp.VirtualMachineProfile; profile != nil {
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {

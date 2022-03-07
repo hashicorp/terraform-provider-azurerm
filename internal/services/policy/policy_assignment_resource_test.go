@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +17,9 @@ import (
 type PolicyAssignmentResource struct{}
 
 func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -30,6 +35,9 @@ func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -45,6 +53,9 @@ func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -60,6 +71,9 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -75,6 +89,9 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -90,6 +107,9 @@ func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -105,6 +125,9 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_notScopes(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -120,6 +143,9 @@ func TestAccAzureRMPolicyAssignment_notScopes(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_enforcementMode(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource does not exist in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 

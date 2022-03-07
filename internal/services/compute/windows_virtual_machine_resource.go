@@ -161,6 +161,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -384,8 +385,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
@@ -914,8 +915,8 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
@@ -1392,8 +1393,8 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")

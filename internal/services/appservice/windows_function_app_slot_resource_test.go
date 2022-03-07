@@ -710,6 +710,21 @@ func TestAccWindowsFunctionAppSlot_identity(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionAppSlot_updateServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
@@ -1725,6 +1740,39 @@ resource "azurerm_windows_function_app_slot" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+}
+`, r.identityTemplate(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) identityUserAssignedKeyVaultIdentity(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_user_assigned_identity" "kv" {
+  name                = "acctest-kv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%[2]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.kv.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
 }
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }

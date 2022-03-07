@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -33,9 +33,9 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validate.LogicAppStandardName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -220,9 +220,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("kind", resp.Kind)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)

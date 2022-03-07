@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -61,14 +62,14 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          "Public",
+				Default:          string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"network_profile_id": {
@@ -83,11 +84,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.OperatingSystemTypesWindows),
 					string(containerinstance.OperatingSystemTypesLinux),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"image_registry_credential": {
@@ -130,12 +131,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupRestartPolicyAlways),
 					string(containerinstance.ContainerGroupRestartPolicyNever),
 					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"dns_name_label": {
@@ -1659,14 +1660,14 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
-		searchDomains = strings.Split(*input.SearchDomains, " ")
+		searchDomains = strings.Fields(*input.SearchDomains)
 	}
 	output["search_domains"] = searchDomains
 
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
-		options = strings.Split(*input.Options, " ")
+		options = strings.Fields(*input.Options)
 	}
 	output["options"] = options
 

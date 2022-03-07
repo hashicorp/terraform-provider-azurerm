@@ -111,18 +111,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
 		{
 			Config: r.otherCustomData(data, "/bin/zsh"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
 		{
 			// removed
 			Config: r.authPassword(data),
@@ -130,9 +126,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
 	})
 }
 
@@ -1364,23 +1358,23 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
 
     storage_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -1637,9 +1631,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1666,7 +1659,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -1748,9 +1741,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1777,7 +1769,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -1948,9 +1940,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1977,7 +1968,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -2249,9 +2240,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -2266,7 +2256,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
@@ -2351,9 +2341,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -2376,7 +2365,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
@@ -2454,9 +2443,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -2479,7 +2467,7 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test2.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"

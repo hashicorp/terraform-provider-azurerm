@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
@@ -22,6 +22,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -110,8 +111,12 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.Name, azureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -675,7 +680,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"base_policy_id": {
 			Type:         pluginsdk.TypeString,
@@ -804,7 +809,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, true),
+									}, !features.ThreePointOhBeta()),
+									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,
@@ -890,7 +896,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 			return commonschema.UserAssignedIdentityOptional()
 		}(),
-
 		"tls_certificate": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -940,7 +945,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
 								},
-								"firewall_location": location.SchemaWithoutForceNew(),
+								"firewall_location": commonschema.LocationWithoutForceNew(),
 							},
 						},
 					},

@@ -24,8 +24,11 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 		Read:   resourceLighthouseDefinitionRead,
 		Update: resourceLighthouseDefinitionCreateUpdate,
 		Delete: resourceLighthouseDefinitionDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LighthouseDefinitionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

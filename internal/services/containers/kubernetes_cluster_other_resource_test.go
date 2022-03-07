@@ -1572,7 +1572,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
@@ -1582,10 +1581,10 @@ resource "azurerm_key_vault_access_policy" "acctest" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "create",
-    "delete",
-    "purge",
+    "Get",
+    "Create",
+    "Delete",
+    "Purge",
   ]
 }
 
@@ -1625,9 +1624,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption-perm" {
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 }
 

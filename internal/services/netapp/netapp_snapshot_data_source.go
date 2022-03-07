@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,9 +29,9 @@ func dataSourceNetAppSnapshot() *pluginsdk.Resource {
 				ValidateFunc: validate.SnapshotName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -75,6 +75,7 @@ func dataSourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("account_name", id.NetAppAccountName)
 	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("volume_name", id.VolumeName)
+
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	return nil

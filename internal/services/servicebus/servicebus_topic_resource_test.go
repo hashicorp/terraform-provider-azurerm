@@ -283,10 +283,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  support_ordering    = true
+  name             = "acctestservicebustopic-%[1]d"
+  namespace_id     = azurerm_servicebus_namespace.test.id
+  support_ordering = true
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -323,7 +322,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name         = "acctestservicebustopic-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
-  status       = "disabled"
+  status       = "Disabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -426,7 +425,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "premium"
+  sku                 = "Premium"
   capacity            = 1
 }
 

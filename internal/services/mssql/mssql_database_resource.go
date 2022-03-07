@@ -384,8 +384,20 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err = securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d)); err != nil {
-		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
+	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		result, err := securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d))
+
+		if result.Response.StatusCode == 404 {
+			return resource.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("setting database threat detection policy for %s: %+v", id, err))
+		}
+
+		return nil
+	}); err != nil {
+		return nil
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
@@ -397,13 +409,13 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	// hyper-scale SKU's do not support LRP currently
 	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
 
+			// hyper-scale SKU's do not support LRP currently
 			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
 				longTermRetentionPolicy.BaseLongTermRetentionPolicyProperties = longTermRetentionProps
 			}
@@ -863,7 +875,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			Computed:         true,
 			ValidateFunc:     validate.DatabaseSkuName(),
-			DiffSuppressFunc: suppress.CaseDifference,
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 
 		"creation_source_database_id": {
@@ -923,19 +935,20 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, true),
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
 
 					"email_account_admins": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						Default:          "Disabled",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Enabled",
-						}, true),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"email_addresses": {
@@ -956,13 +969,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"state": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						Default:          string(sql.SecurityAlertPolicyStateDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, true),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"storage_account_access_key": {

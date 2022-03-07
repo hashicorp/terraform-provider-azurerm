@@ -52,6 +52,28 @@ func TestAccIotHub_ipFilterRules(t *testing.T) {
 	})
 }
 
+func TestAccIotHub_networkRulesSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkRuleSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkRuleSetUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccIotHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
@@ -607,6 +629,98 @@ resource "azurerm_iothub" "test" {
     name    = "test5"
     ip_mask = "10.0.5.0/31"
     action  = "Accept"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubResource) networkRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  network_rule_set {
+    default_action                     = "Allow"
+    apply_to_builtin_eventhub_endpoint = true
+
+    ip_rule {
+      name    = "test"
+      ip_mask = "10.0.1.0/31"
+      action  = "Allow"
+    }
+
+    ip_rule {
+      name    = "test2"
+      ip_mask = "10.0.3.0/31"
+      action  = "Allow"
+    }
+
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubResource) networkRuleSetUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  network_rule_set {
+    default_action                     = "Allow"
+    apply_to_builtin_eventhub_endpoint = true
+
+    ip_rule {
+      name    = "test"
+      ip_mask = "10.0.0.0/31"
+      action  = "Allow"
+    }
+
+    ip_rule {
+      name    = "test2"
+      ip_mask = "10.0.2.0/31"
+      action  = "Allow"
+    }
+
   }
 
   tags = {

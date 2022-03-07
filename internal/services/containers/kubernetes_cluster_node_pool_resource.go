@@ -126,6 +126,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(containerservice.KubeletDiskTypeOS),
+						string(containerservice.KubeletDiskTypeTemporary),
 					}, false),
 				},
 

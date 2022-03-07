@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -29,9 +30,9 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"network_interface": {
 				Type:     pluginsdk.TypeList,
@@ -101,9 +102,8 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateEndpointProperties; props != nil {
 		networkInterfaceId := ""
