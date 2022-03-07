@@ -45,6 +45,7 @@ type Client struct {
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
 	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
 	VnetGatewayConnectionsClient           *network.VirtualNetworkGatewayConnectionsClient
+	VnetGatewayNatRuleClient               *network.VirtualNetworkGatewayNatRulesClient
 	VnetGatewayClient                      *network.VirtualNetworkGatewaysClient
 	VnetClient                             *network.VirtualNetworksClient
 	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
@@ -198,6 +199,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
+	VnetGatewayNatRuleClient := network.NewVirtualNetworkGatewayNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetGatewayNatRuleClient.Client, o.ResourceManagerAuthorizer)
+
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
@@ -265,6 +269,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
 		VirtualHubIPClient:                     &VirtualHubIPClient,
 		VnetGatewayConnectionsClient:           &VnetGatewayConnectionsClient,
+		VnetGatewayNatRuleClient:               &VnetGatewayNatRuleClient,
 		VnetGatewayClient:                      &VnetGatewayClient,
 		VnetClient:                             &VnetClient,
 		VnetPeeringsClient:                     &VnetPeeringsClient,

@@ -76,6 +76,11 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -305,6 +310,10 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 		for _, cfg := range *ipConfigs {
 			props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
 			v := make(map[string]interface{})
+
+			if id := cfg.ID; id != nil {
+				v["id"] = *id
+			}
 
 			if name := cfg.Name; name != nil {
 				v["name"] = *name

@@ -62,6 +62,8 @@ output "virtual_network_gateway_id" {
 
 The `ip_configuration` block supports:
 
+* `id` - The resource ID of the IP configuration.
+
 * `name` - A user-defined name of the IP configuration.
 
 * `private_ip_address_allocation` - Defines how the private IP address
