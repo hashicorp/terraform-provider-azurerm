@@ -205,7 +205,7 @@ A `delivery_property` supports the following:
 
 * `header_name` - (Required) The name of the header to send on to the destination.
 
-* `type` - (Required) Either `Static` or `Dynamic`
+* `type` - (Required) Either `Static` or `Dynamic`.
 
 * `value` - (Optional) If the `type` is `Static`, then provide the value to use
 
