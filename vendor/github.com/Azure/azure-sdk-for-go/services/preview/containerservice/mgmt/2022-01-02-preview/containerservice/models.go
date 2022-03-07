@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -1307,6 +1307,8 @@ type ManagedClusterAgentPoolProfile struct {
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
 	// WorkloadRuntime - Possible values include: 'WorkloadRuntimeOCIContainer', 'WorkloadRuntimeWasmWasi'
 	WorkloadRuntime WorkloadRuntime `json:"workloadRuntime,omitempty"`
+	// MessageOfTheDay - A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It must not be specified for Windows nodes. It must be a static string (i.e., will be printed raw and not be executed as a script).
+	MessageOfTheDay *string `json:"messageOfTheDay,omitempty"`
 	// VnetSubnetID - If this is not specified, a VNET and subnet will be generated and used. If no podSubnetID is specified, this applies to nodes and pods, otherwise it applies to just nodes. This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// PodSubnetID - If omitted, pod IPs are statically assigned on the node subnet (see vnetSubnetID for more details). This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
@@ -1337,7 +1339,7 @@ type ManagedClusterAgentPoolProfile struct {
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
+	// PowerState - When an Agent Pool is first created it is initially Running. The Agent Pool can be stopped by setting this field to Stopped. A stopped Agent Pool stops all of its VMs and does not accrue billing charges. An Agent Pool can only be stopped if it is Running and provisioning state is Succeeded
 	PowerState *PowerState `json:"powerState,omitempty"`
 	// AvailabilityZones - The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
@@ -1373,6 +1375,10 @@ type ManagedClusterAgentPoolProfile struct {
 	GpuInstanceProfile GPUInstanceProfile `json:"gpuInstanceProfile,omitempty"`
 	// CreationData - CreationData to be used to specify the source Snapshot ID if the node pool will be created/upgraded using a snapshot.
 	CreationData *CreationData `json:"creationData,omitempty"`
+	// CapacityReservationGroupID - AKS will associate the specified agent pool with the Capacity Reservation Group.
+	CapacityReservationGroupID *string `json:"capacityReservationGroupID,omitempty"`
+	// HostGroupID - This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/hostGroups/{hostGroupName}. For more information see [Azure dedicated hosts](https://docs.microsoft.com/azure/virtual-machines/dedicated-hosts).
+	HostGroupID *string `json:"hostGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
@@ -1398,6 +1404,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.WorkloadRuntime != "" {
 		objectMap["workloadRuntime"] = mcapp.WorkloadRuntime
+	}
+	if mcapp.MessageOfTheDay != nil {
+		objectMap["messageOfTheDay"] = mcapp.MessageOfTheDay
 	}
 	if mcapp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
@@ -1437,6 +1446,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcapp.UpgradeSettings
+	}
+	if mcapp.PowerState != nil {
+		objectMap["powerState"] = mcapp.PowerState
 	}
 	if mcapp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcapp.AvailabilityZones
@@ -1489,6 +1501,12 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.CreationData != nil {
 		objectMap["creationData"] = mcapp.CreationData
 	}
+	if mcapp.CapacityReservationGroupID != nil {
+		objectMap["capacityReservationGroupID"] = mcapp.CapacityReservationGroupID
+	}
+	if mcapp.HostGroupID != nil {
+		objectMap["hostGroupID"] = mcapp.HostGroupID
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1505,6 +1523,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
 	// WorkloadRuntime - Possible values include: 'WorkloadRuntimeOCIContainer', 'WorkloadRuntimeWasmWasi'
 	WorkloadRuntime WorkloadRuntime `json:"workloadRuntime,omitempty"`
+	// MessageOfTheDay - A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It must not be specified for Windows nodes. It must be a static string (i.e., will be printed raw and not be executed as a script).
+	MessageOfTheDay *string `json:"messageOfTheDay,omitempty"`
 	// VnetSubnetID - If this is not specified, a VNET and subnet will be generated and used. If no podSubnetID is specified, this applies to nodes and pods, otherwise it applies to just nodes. This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// PodSubnetID - If omitted, pod IPs are statically assigned on the node subnet (see vnetSubnetID for more details). This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
@@ -1535,7 +1555,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
+	// PowerState - When an Agent Pool is first created it is initially Running. The Agent Pool can be stopped by setting this field to Stopped. A stopped Agent Pool stops all of its VMs and does not accrue billing charges. An Agent Pool can only be stopped if it is Running and provisioning state is Succeeded
 	PowerState *PowerState `json:"powerState,omitempty"`
 	// AvailabilityZones - The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
@@ -1571,6 +1591,10 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	GpuInstanceProfile GPUInstanceProfile `json:"gpuInstanceProfile,omitempty"`
 	// CreationData - CreationData to be used to specify the source Snapshot ID if the node pool will be created/upgraded using a snapshot.
 	CreationData *CreationData `json:"creationData,omitempty"`
+	// CapacityReservationGroupID - AKS will associate the specified agent pool with the Capacity Reservation Group.
+	CapacityReservationGroupID *string `json:"capacityReservationGroupID,omitempty"`
+	// HostGroupID - This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/hostGroups/{hostGroupName}. For more information see [Azure dedicated hosts](https://docs.microsoft.com/azure/virtual-machines/dedicated-hosts).
+	HostGroupID *string `json:"hostGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
@@ -1593,6 +1617,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.WorkloadRuntime != "" {
 		objectMap["workloadRuntime"] = mcappp.WorkloadRuntime
+	}
+	if mcappp.MessageOfTheDay != nil {
+		objectMap["messageOfTheDay"] = mcappp.MessageOfTheDay
 	}
 	if mcappp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
@@ -1632,6 +1659,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcappp.UpgradeSettings
+	}
+	if mcappp.PowerState != nil {
+		objectMap["powerState"] = mcappp.PowerState
 	}
 	if mcappp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcappp.AvailabilityZones
@@ -1683,6 +1713,12 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.CreationData != nil {
 		objectMap["creationData"] = mcappp.CreationData
+	}
+	if mcappp.CapacityReservationGroupID != nil {
+		objectMap["capacityReservationGroupID"] = mcappp.CapacityReservationGroupID
+	}
+	if mcappp.HostGroupID != nil {
+		objectMap["hostGroupID"] = mcappp.HostGroupID
 	}
 	return json.Marshal(objectMap)
 }
@@ -1946,8 +1982,10 @@ type ManagedClusterLoadBalancerProfile struct {
 // ManagedClusterLoadBalancerProfileManagedOutboundIPs desired managed outbound IPs for the cluster load
 // balancer.
 type ManagedClusterLoadBalancerProfileManagedOutboundIPs struct {
-	// Count - The desired number of outbound IPs created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
+	// Count - The desired number of IPv4 outbound IPs created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
+	// CountIPv6 - The desired number of IPv6 outbound IPs created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 0 for single-stack and 1 for dual-stack.
+	CountIPv6 *int32 `json:"countIPv6,omitempty"`
 }
 
 // ManagedClusterLoadBalancerProfileOutboundIPPrefixes desired outbound IP Prefix resources for the cluster
@@ -1979,6 +2017,23 @@ type ManagedClusterNATGatewayProfile struct {
 	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
 	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values are in the range of 4 to 120 (inclusive). The default value is 4 minutes.
 	IdleTimeoutInMinutes *int32 `json:"idleTimeoutInMinutes,omitempty"`
+}
+
+// ManagedClusterOIDCIssuerProfile the OIDC issuer profile of the Managed Cluster.
+type ManagedClusterOIDCIssuerProfile struct {
+	// IssuerURL - READ-ONLY; The OIDC issuer url of the Managed Cluster.
+	IssuerURL *string `json:"issuerURL,omitempty"`
+	// Enabled - Whether the OIDC issuer is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterOIDCIssuerProfile.
+func (mcoip ManagedClusterOIDCIssuerProfile) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcoip.Enabled != nil {
+		objectMap["enabled"] = mcoip.Enabled
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedClusterPodIdentity details about the pod identity assigned to the Managed Cluster.
@@ -2110,6 +2165,8 @@ type ManagedClusterProperties struct {
 	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
 	// KubernetesVersion - When you upgrade a supported AKS cluster, Kubernetes minor versions cannot be skipped. All upgrades must be performed sequentially by major version number. For example, upgrades between 1.14.x -> 1.15.x or 1.15.x -> 1.16.x are allowed, however 1.14.x -> 1.16.x is not allowed. See [upgrading an AKS cluster](https://docs.microsoft.com/azure/aks/upgrade-cluster) for more details.
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// CurrentKubernetesVersion - READ-ONLY; The version of Kubernetes the Managed Cluster is running.
+	CurrentKubernetesVersion *string `json:"currentKubernetesVersion,omitempty"`
 	// DNSPrefix - This cannot be updated once the Managed Cluster has been created.
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
 	// FqdnSubdomain - This cannot be updated once the Managed Cluster has been created.
@@ -2132,12 +2189,16 @@ type ManagedClusterProperties struct {
 	AddonProfiles map[string]*ManagedClusterAddonProfile `json:"addonProfiles"`
 	// PodIdentityProfile - See [use AAD pod identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity) for more details on AAD pod identity integration.
 	PodIdentityProfile *ManagedClusterPodIdentityProfile `json:"podIdentityProfile,omitempty"`
+	// OidcIssuerProfile - The OIDC issuer profile of the Managed Cluster.
+	OidcIssuerProfile *ManagedClusterOIDCIssuerProfile `json:"oidcIssuerProfile,omitempty"`
 	// NodeResourceGroup - The name of the resource group containing agent pool nodes.
 	NodeResourceGroup *string `json:"nodeResourceGroup,omitempty"`
 	// EnableRBAC - Whether to enable Kubernetes Role-Based Access Control.
 	EnableRBAC *bool `json:"enableRBAC,omitempty"`
 	// EnablePodSecurityPolicy - (DEPRECATING) Whether to enable Kubernetes pod security policy (preview). This feature is set for removal on October 15th, 2020. Learn more at aka.ms/aks/azpodpolicy.
 	EnablePodSecurityPolicy *bool `json:"enablePodSecurityPolicy,omitempty"`
+	// EnableNamespaceResources - The default value is false. It can be enabled/disabled on creation and updation of the managed cluster. See [https://aka.ms/NamespaceARMResource](https://aka.ms/NamespaceARMResource) for more details on Namespace as a ARM Resource.
+	EnableNamespaceResources *bool `json:"enableNamespaceResources,omitempty"`
 	// NetworkProfile - The network configuration profile.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
 	// AadProfile - The Azure Active Directory configuration.
@@ -2160,7 +2221,7 @@ type ManagedClusterProperties struct {
 	HTTPProxyConfig *ManagedClusterHTTPProxyConfig `json:"httpProxyConfig,omitempty"`
 	// SecurityProfile - Security profile for the managed cluster.
 	SecurityProfile *ManagedClusterSecurityProfile `json:"securityProfile,omitempty"`
-	// PublicNetworkAccess - Default value is 'Enabled' (case insensitive). Could be set to 'Disabled' to enable private cluster. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	// PublicNetworkAccess - Allow or deny public network access for AKS. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
@@ -2194,6 +2255,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.PodIdentityProfile != nil {
 		objectMap["podIdentityProfile"] = mcp.PodIdentityProfile
 	}
+	if mcp.OidcIssuerProfile != nil {
+		objectMap["oidcIssuerProfile"] = mcp.OidcIssuerProfile
+	}
 	if mcp.NodeResourceGroup != nil {
 		objectMap["nodeResourceGroup"] = mcp.NodeResourceGroup
 	}
@@ -2202,6 +2266,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	}
 	if mcp.EnablePodSecurityPolicy != nil {
 		objectMap["enablePodSecurityPolicy"] = mcp.EnablePodSecurityPolicy
+	}
+	if mcp.EnableNamespaceResources != nil {
+		objectMap["enableNamespaceResources"] = mcp.EnableNamespaceResources
 	}
 	if mcp.NetworkProfile != nil {
 		objectMap["networkProfile"] = mcp.NetworkProfile
@@ -2754,6 +2821,8 @@ type ManagedClusterWindowsProfile struct {
 	LicenseType LicenseType `json:"licenseType,omitempty"`
 	// EnableCSIProxy - For more details on CSI proxy, see the [CSI proxy GitHub repo](https://github.com/kubernetes-csi/csi-proxy).
 	EnableCSIProxy *bool `json:"enableCSIProxy,omitempty"`
+	// GmsaProfile - The Windows gMSA Profile in the Managed Cluster.
+	GmsaProfile *WindowsGmsaProfile `json:"gmsaProfile,omitempty"`
 }
 
 // MasterProfile profile for the container service master.
@@ -2805,7 +2874,7 @@ func (mp MasterProfile) MarshalJSON() ([]byte, error) {
 
 // NetworkProfile profile of network configuration.
 type NetworkProfile struct {
-	// NetworkPlugin - Network plugin used for building the Kubernetes network. Possible values include: 'NetworkPluginAzure', 'NetworkPluginKubenet'
+	// NetworkPlugin - Network plugin used for building the Kubernetes network. Possible values include: 'NetworkPluginAzure', 'NetworkPluginKubenet', 'NetworkPluginNone'
 	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
 	// NetworkPolicy - Network policy used for building the Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
 	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
@@ -2827,6 +2896,12 @@ type NetworkProfile struct {
 	LoadBalancerProfile *ManagedClusterLoadBalancerProfile `json:"loadBalancerProfile,omitempty"`
 	// NatGatewayProfile - Profile of the cluster NAT gateway.
 	NatGatewayProfile *ManagedClusterNATGatewayProfile `json:"natGatewayProfile,omitempty"`
+	// PodCidrs - One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking.
+	PodCidrs *[]string `json:"podCidrs,omitempty"`
+	// ServiceCidrs - One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking. They must not overlap with any Subnet IP ranges.
+	ServiceCidrs *[]string `json:"serviceCidrs,omitempty"`
+	// IPFamilies - IP families are used to determine single-stack or dual-stack clusters. For single-stack, the expected value is IPv4. For dual-stack, the expected values are IPv4 and IPv6.
+	IPFamilies *[]IPFamily `json:"ipFamilies,omitempty"`
 }
 
 // OperationListResult the List Operation response.
@@ -3768,6 +3843,30 @@ type SnapshotProperties struct {
 	CreationData *CreationData `json:"creationData,omitempty"`
 	// SnapshotType - Possible values include: 'SnapshotTypeNodePool'
 	SnapshotType SnapshotType `json:"snapshotType,omitempty"`
+	// KubernetesVersion - READ-ONLY; The version of Kubernetes.
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// NodeImageVersion - READ-ONLY; The version of node image.
+	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
+	// OsType - READ-ONLY; Possible values include: 'OSTypeLinux', 'OSTypeWindows'
+	OsType OSType `json:"osType,omitempty"`
+	// OsSku - READ-ONLY; Possible values include: 'OSSKUUbuntu', 'OSSKUCBLMariner'
+	OsSku OSSKU `json:"osSku,omitempty"`
+	// VMSize - READ-ONLY; The size of the VM.
+	VMSize *string `json:"vmSize,omitempty"`
+	// EnableFIPS - READ-ONLY; Whether to use a FIPS-enabled OS.
+	EnableFIPS *bool `json:"enableFIPS,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SnapshotProperties.
+func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.CreationData != nil {
+		objectMap["creationData"] = sp.CreationData
+	}
+	if sp.SnapshotType != "" {
+		objectMap["snapshotType"] = sp.SnapshotType
+	}
+	return json.Marshal(objectMap)
 }
 
 // SSHConfiguration SSH configuration for Linux-based VMs running on Azure.
@@ -3930,4 +4029,14 @@ func (vd VMDiagnostics) MarshalJSON() ([]byte, error) {
 		objectMap["enabled"] = vd.Enabled
 	}
 	return json.Marshal(objectMap)
+}
+
+// WindowsGmsaProfile windows gMSA Profile in the managed cluster.
+type WindowsGmsaProfile struct {
+	// Enabled - Specifies whether to enable Windows gMSA in the managed cluster.
+	Enabled *bool `json:"enabled,omitempty"`
+	// DNSServer - Specifies the DNS server for Windows gMSA. <br><br> Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+	DNSServer *string `json:"dnsServer,omitempty"`
+	// RootDomainName - Specifies the root domain name for Windows gMSA. <br><br> Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+	RootDomainName *string `json:"rootDomainName,omitempty"`
 }

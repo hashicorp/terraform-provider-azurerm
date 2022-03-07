@@ -131,6 +131,22 @@ func PossibleExtendedLocationTypesValues() []ExtendedLocationTypes {
 	return []ExtendedLocationTypes{ExtendedLocationTypesEdgeZone}
 }
 
+// Format enumerates the values for format.
+type Format string
+
+const (
+	// FormatAzure Return azure auth-provider kubeconfig. This format is deprecated in 1.22 and will be fully
+	// removed in 1.25.
+	FormatAzure Format = "azure"
+	// FormatExec Return exec format kubeconfig. This format requires kubelogin binary in the path.
+	FormatExec Format = "exec"
+)
+
+// PossibleFormatValues returns an array of possible values for the Format const type.
+func PossibleFormatValues() []Format {
+	return []Format{FormatAzure, FormatExec}
+}
+
 // GPUInstanceProfile enumerates the values for gpu instance profile.
 type GPUInstanceProfile string
 
@@ -150,6 +166,21 @@ const (
 // PossibleGPUInstanceProfileValues returns an array of possible values for the GPUInstanceProfile const type.
 func PossibleGPUInstanceProfileValues() []GPUInstanceProfile {
 	return []GPUInstanceProfile{GPUInstanceProfileMIG1g, GPUInstanceProfileMIG2g, GPUInstanceProfileMIG3g, GPUInstanceProfileMIG4g, GPUInstanceProfileMIG7g}
+}
+
+// IPFamily enumerates the values for ip family.
+type IPFamily string
+
+const (
+	// IPFamilyIPv4 ...
+	IPFamilyIPv4 IPFamily = "IPv4"
+	// IPFamilyIPv6 ...
+	IPFamilyIPv6 IPFamily = "IPv6"
+)
+
+// PossibleIPFamilyValues returns an array of possible values for the IPFamily const type.
+func PossibleIPFamilyValues() []IPFamily {
+	return []IPFamily{IPFamilyIPv4, IPFamilyIPv6}
 }
 
 // KubeletDiskType enumerates the values for kubelet disk type.
@@ -279,11 +310,14 @@ const (
 	// networking](https://docs.microsoft.com/azure/aks/concepts-network#kubenet-basic-networking) for more
 	// information.
 	NetworkPluginKubenet NetworkPlugin = "kubenet"
+	// NetworkPluginNone Do not use a network plugin. A custom CNI will need to be installed after cluster
+	// creation for networking functionality.
+	NetworkPluginNone NetworkPlugin = "none"
 )
 
 // PossibleNetworkPluginValues returns an array of possible values for the NetworkPlugin const type.
 func PossibleNetworkPluginValues() []NetworkPlugin {
-	return []NetworkPlugin{NetworkPluginAzure, NetworkPluginKubenet}
+	return []NetworkPlugin{NetworkPluginAzure, NetworkPluginKubenet, NetworkPluginNone}
 }
 
 // NetworkPolicy enumerates the values for network policy.

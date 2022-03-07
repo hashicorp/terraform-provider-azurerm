@@ -81,6 +81,10 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 										Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
 											{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 										}},
+										{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.CountIPv6", Name: validation.Null, Rule: false,
+											Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.CountIPv6", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
+												{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.CountIPv6", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
+											}},
 									}},
 									{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.AllocatedOutboundPorts", Name: validation.Null, Rule: false,
 										Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.AllocatedOutboundPorts", Name: validation.InclusiveMaximum, Rule: int64(64000), Chain: nil},
@@ -131,7 +135,7 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -222,7 +226,7 @@ func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -317,7 +321,7 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -407,7 +411,7 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -495,7 +499,7 @@ func (client ManagedClustersClient) GetCommandResultPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -570,7 +574,7 @@ func (client ManagedClustersClient) GetOSOptionsPreparer(ctx context.Context, lo
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -659,7 +663,7 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -735,7 +739,7 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -857,7 +861,7 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -930,7 +934,10 @@ func (client ManagedClustersClient) ListByResourceGroupComplete(ctx context.Cont
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 // serverFqdn - server fqdn type for credentials to be returned
-func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (result CredentialResults, err error) {
+// formatParameter - only apply to AAD clusters, specifies the format of returned kubeconfig. Format 'azure'
+// will return azure auth-provider kubeconfig; format 'exec' will return exec format kubeconfig, which requires
+// kubelogin binary in the path.
+func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (result CredentialResults, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterAdminCredentials")
 		defer func() {
@@ -951,7 +958,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterAdminCredentials", err.Error())
 	}
 
-	req, err := client.ListClusterAdminCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn)
+	req, err := client.ListClusterAdminCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn, formatParameter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterAdminCredentials", nil, "Failure preparing request")
 		return
@@ -974,19 +981,22 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 }
 
 // ListClusterAdminCredentialsPreparer prepares the ListClusterAdminCredentials request.
-func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (*http.Request, error) {
+func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(serverFqdn) > 0 {
 		queryParameters["server-fqdn"] = autorest.Encode("query", serverFqdn)
+	}
+	if len(string(formatParameter)) > 0 {
+		queryParameters["format"] = autorest.Encode("query", formatParameter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1071,7 +1081,7 @@ func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1161,7 +1171,7 @@ func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1256,7 +1266,7 @@ func (client ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsPrep
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1373,7 +1383,7 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1466,7 +1476,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1557,7 +1567,7 @@ func (client ManagedClustersClient) RotateClusterCertificatesPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1649,7 +1659,7 @@ func (client ManagedClustersClient) RunCommandPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1741,7 +1751,7 @@ func (client ManagedClustersClient) StartPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1832,7 +1842,7 @@ func (client ManagedClustersClient) StopPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1921,7 +1931,7 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

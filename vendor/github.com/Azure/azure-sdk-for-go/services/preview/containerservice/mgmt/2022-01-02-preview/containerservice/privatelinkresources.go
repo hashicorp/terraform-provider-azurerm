@@ -87,7 +87,7 @@ func (client PrivateLinkResourcesClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

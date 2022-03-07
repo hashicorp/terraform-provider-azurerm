@@ -90,7 +90,7 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdatePreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +181,7 @@ func (client MaintenanceConfigurationsClient) DeletePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -268,7 +268,7 @@ func (client MaintenanceConfigurationsClient) GetPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -359,7 +359,7 @@ func (client MaintenanceConfigurationsClient) ListByManagedClusterPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

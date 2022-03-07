@@ -88,7 +88,7 @@ func (client ResolvePrivateLinkServiceIDClient) POSTPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-01"
+	const APIVersion = "2022-01-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
