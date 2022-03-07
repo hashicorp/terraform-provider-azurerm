@@ -407,7 +407,7 @@ func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 			Config: r.standardLoadBalancerCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
