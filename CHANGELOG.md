@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * Data Source `azurerm_servicebus_subscription` - added `topic_id` property [GH-15671]
 * Data Source `azurerm_servicebus_topic` - added `namespace_id` property [GH-15671]
 * Data Source `azurerm_servicebus_topic_authorization_rule` - added `topic_id` property [GH-15671]
+* `azurerm_kubernetes_cluster` - deprecate `role_based_access_control` in favour of `role_based_access_control_enabled` and `azure_active_directory_role_based_access_control` [GH-15546]
 * `azurem_iothub` - deprecate `ip_filter_rule` in favour of `network_rule_set` [GH-15590]
 * `azurerm_machine_learning_compute_instance` - updating the validation on `name` [GH-14839]
 * `azurerm_mssql_database_extended_auditing_policy` - support for the `enabled` property [GH-15624]
