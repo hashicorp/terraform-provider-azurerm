@@ -211,7 +211,7 @@ A `delivery_property` supports the following:
 
 * `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
 
-* `secret` - (Optional) True if the `value` is a secret and should be protected, otherwise false. If True, then this value won't be returned from Azure API calls 
+* `secret` - (Optional) Set to `true` if the `value` is a secret and should be protected, otherwise `false`. If `true` then this value won't be returned from Azure API calls.
 
 ---
 
