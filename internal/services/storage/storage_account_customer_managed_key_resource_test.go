@@ -280,8 +280,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
-// (@jackofallops) - This test spans 2 subscriptions to check that it's possible to use a CMK stored in a vault in a non-local subscription. This is temporarily making use of an extra providerfactory which will need to be removed after the move to plugin-sdk-go
-// TODO - review this config when plugin-sdk-go is implemented in the provider / test framework.
 func (r StorageAccountCustomerManagedKeyResource) remoteKeyVault(data acceptance.TestData) string {
 	clientData := data.Client()
 	if !features.ThreePointOhBeta() {
