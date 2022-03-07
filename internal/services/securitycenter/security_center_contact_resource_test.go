@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityCenterContactResource struct {
-}
+type SecurityCenterContactResource struct{}
 
 func TestAccSecurityCenterContact(t *testing.T) {
 	// there is only *one* read contact, if tests will conflict if run at the same time

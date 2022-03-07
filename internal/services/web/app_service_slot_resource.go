@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -47,7 +50,13 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 				ValidateFunc: webValidate.AppServiceName,
 			},
 
-			"identity": schemaAppServiceIdentity(),
+			"identity": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return schemaAppServiceIdentity()
+				}
+
+				return commonschema.SystemAssignedUserAssignedIdentityOptional()
+			}(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -67,6 +76,8 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 			},
 
 			"site_config": schemaAppServiceSiteConfig(),
+
+			"storage_account": schemaAppServiceStorageAccounts(),
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
@@ -136,8 +147,8 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
 				},
@@ -187,8 +198,8 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_slot", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
 		}
 	}
 
@@ -220,8 +231,10 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -346,6 +359,18 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("storage_account") {
+		storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
+		storageAccounts := expandAppServiceStorageAccounts(storageAccountsRaw)
+		properties := web.AzureStoragePropertyDictionaryResource{
+			Properties: storageAccounts,
+		}
+
+		if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, properties, id.SlotName); err != nil {
+			return fmt.Errorf("updating Storage Accounts for App Service Slot %q/%q: %+v", id.SiteName, id.SlotName, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandAppServiceConnectionStrings(d)
@@ -359,14 +384,15 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		sitePatchResource := web.SitePatchResource{
 			ID:       utils.String(d.Id()),
 			Identity: appServiceIdentity,
 		}
-		_, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatchResource, id.SlotName)
-		if err != nil {
+		if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatchResource, id.SlotName); err != nil {
 			return fmt.Errorf("updating Managed Service Identity for App Service Slot %q/%q: %+v", id.SiteName, id.SlotName, err)
 		}
 	}
@@ -427,6 +453,11 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("reading App Settings for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
+	storageAccountsResp, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	if err != nil {
+		return fmt.Errorf("listing Storage Accounts for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+	}
+
 	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("listing Connection Strings for Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
@@ -476,6 +507,10 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `app_settings`: %s", err)
 	}
 
+	if err := d.Set("storage_account", flattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
+		return fmt.Errorf("setting `storage_account`: %s", err)
+	}
+
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return fmt.Errorf("setting `connection_string`: %s", err)
 	}
@@ -492,7 +527,7 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)

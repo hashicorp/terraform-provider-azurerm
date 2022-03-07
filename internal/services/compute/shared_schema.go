@@ -96,7 +96,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *pluginsdk.Schema {
-	// lintignore:XS003
+	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -377,6 +377,27 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
+func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId string) bool {
+	if imageId != "" {
+		return false
+	}
+
+	if len(referenceInput) == 0 {
+		return false
+	}
+
+	raw := referenceInput[0].(map[string]interface{})
+	pub := raw["publisher"].(string)
+	offer := raw["offer"].(string)
+	sku := raw["sku"].(string)
+
+	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && (sku == "2022-datacenter-azure-edition-core" || sku == "2022-datacenter-azure-edition-core-smalldisk") {
+		return true
+	}
+
+	return false
+}
+
 func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
 	if imageId != "" {
 		return &compute.ImageReference{
@@ -385,7 +406,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 	}
 
 	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("Either a `source_image_id` or a `source_image_reference` block must be specified!")
+		return nil, fmt.Errorf("either a `source_image_id` or a `source_image_reference` block must be specified")
 	}
 
 	raw := referenceInput[0].(map[string]interface{})

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -49,7 +49,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"definition": {
 				Type:     pluginsdk.TypeList,

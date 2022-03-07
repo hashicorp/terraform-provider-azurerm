@@ -33,7 +33,6 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
@@ -87,7 +86,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
-	d.SetId(id.ID())
+	d.SetId(appServiceId.ID())
 	return resourceAppServiceActiveSlotRead(d, meta)
 }
 

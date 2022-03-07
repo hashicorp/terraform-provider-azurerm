@@ -184,8 +184,8 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", id.ID())
 		}
 	}
 

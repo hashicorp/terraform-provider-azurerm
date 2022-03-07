@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -27,7 +27,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.PoolName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -216,7 +216,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							//Computed: true,
+							// Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -225,7 +225,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						"common_environment_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							//Computed: true,
+							// Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},

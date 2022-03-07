@@ -85,8 +85,8 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_shared_image_gallery", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_shared_image_gallery", id.ID())
 		}
 	}
 

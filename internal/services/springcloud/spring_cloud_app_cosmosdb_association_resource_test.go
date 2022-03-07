@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudAppCosmosDbAssociationResource struct {
-}
+type SpringCloudAppCosmosDbAssociationResource struct{}
 
 func TestAccSpringCloudAppCosmosDbAssociation_cassandra_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_cosmosdb_association", "test")

@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DatabricksWorkspaceDataSource struct {
-}
+type DatabricksWorkspaceDataSource struct{}
 
 func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")

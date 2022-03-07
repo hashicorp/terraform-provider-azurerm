@@ -1,12 +1,19 @@
 package msi
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 // TODO: we should probably rename this Identity, or move into Authorization
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/authorization"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

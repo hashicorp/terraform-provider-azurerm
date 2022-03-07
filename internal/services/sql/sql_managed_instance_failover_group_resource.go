@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,7 +68,7 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"role": {
 							Type:     pluginsdk.TypeString,
@@ -297,6 +299,7 @@ func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sq
 		FailoverPolicy: mode,
 	}
 }
+
 func expandSqlInstanceFailoverGroupManagedInstanceId(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
 	instanceId := d.Get("partner_managed_instance_id").(string)
 	partners := make([]sql.ManagedInstancePairInfo, 0)
@@ -341,14 +344,10 @@ func flattenSqlInstanceFailoverGroupPartnerRegions(input *[]sql.PartnerRegionInf
 
 	if input != nil {
 		for _, region := range *input {
-			info := make(map[string]interface{})
-
-			if v := region.Location; v != nil {
-				info["location"] = *v
-			}
-			info["role"] = string(region.ReplicationRole)
-
-			result = append(result, info)
+			result = append(result, map[string]interface{}{
+				"location": location.NormalizeNilable(region.Location),
+				"role":     string(region.ReplicationRole),
+			})
 		}
 	}
 	return result

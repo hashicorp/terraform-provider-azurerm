@@ -7,11 +7,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -65,15 +66,15 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.Graph),
-					string(automation.GraphPowerShell),
-					string(automation.GraphPowerShellWorkflow),
-					string(automation.PowerShell),
-					string(automation.PowerShellWorkflow),
-					string(automation.Script),
-				}, true),
+					string(automation.RunbookTypeEnumGraph),
+					string(automation.RunbookTypeEnumGraphPowerShell),
+					string(automation.RunbookTypeEnumGraphPowerShellWorkflow),
+					string(automation.RunbookTypeEnumPowerShell),
+					string(automation.RunbookTypeEnumPowerShellWorkflow),
+					string(automation.RunbookTypeEnumScript),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"log_progress": {
@@ -227,8 +228,10 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				if err != nil {
 					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
 				}
-				if _, err := jsClient.Delete(ctx, id.ResourceGroup, id.Name, jsId); err != nil {
-					return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
+				if resp, err := jsClient.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jsId); err != nil {
+					if !utils.ResponseWasNotFound(resp) {
+						return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
+					}
 				}
 			}
 		}

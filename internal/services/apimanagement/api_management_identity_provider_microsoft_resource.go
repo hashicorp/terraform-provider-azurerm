@@ -23,8 +23,8 @@ func resourceApiManagementIdentityProviderMicrosoft() *pluginsdk.Resource {
 		Read:   resourceApiManagementIdentityProviderMicrosoftRead,
 		Update: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderMicrosoftDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeMicrosoft),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -72,8 +72,8 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", id.ID())
 		}
 	}
 

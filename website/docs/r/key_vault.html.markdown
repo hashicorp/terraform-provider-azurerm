@@ -70,7 +70,7 @@ resource "azurerm_key_vault" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Key Vault. Changing this forces a new resource to be created. The name must be globally unqiue. If the vault is in a recoverable state then the vault will need to be purged before reusing the name.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

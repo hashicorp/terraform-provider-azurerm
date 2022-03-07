@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -30,7 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	vaultConfigsClient := backup.NewResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	storageConfigsClient := backup.NewResourceStorageConfigsClient(o.SubscriptionId)
+	storageConfigsClient := backup.NewResourceStorageConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -54,7 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	backupOperationStatusesClient := backup.NewOperationStatusesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupOperationStatusesClient.Client, o.ResourceManagerAuthorizer)
 
-	backupProtectionContainerOperationResultsClient := backup.NewProtectionContainerOperationResultsClient(o.SubscriptionId)
+	backupProtectionContainerOperationResultsClient := backup.NewProtectionContainerOperationResultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupProtectionContainerOperationResultsClient.Client, o.ResourceManagerAuthorizer)
 
 	fabricClient := func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient {

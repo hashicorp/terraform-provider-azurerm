@@ -123,8 +123,8 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
 		}
 	}
 

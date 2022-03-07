@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbDatabaseResource struct {
-}
+type MariaDbDatabaseResource struct{}
 
 func TestAccMariaDbDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")

@@ -281,8 +281,8 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_parquet", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_parquet", id.ID())
 		}
 	}
 

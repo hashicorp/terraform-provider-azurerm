@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,8 +19,6 @@ import (
 func dataSourceVPNGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceVPNGatewayRead,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,9 +30,9 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": location.SchemaComputed(),
+			"location": commonschema.LocationComputed(),
 
 			"virtual_hub_id": {
 				Type:     pluginsdk.TypeString,

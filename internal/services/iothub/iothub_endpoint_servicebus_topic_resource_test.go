@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubEndpointServiceBusTopicResource struct {
-}
+type IotHubEndpointServiceBusTopicResource struct{}
 
 func TestAccIotHubEndpointServiceBusTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
@@ -183,7 +182,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
@@ -197,7 +196,7 @@ func (r IotHubEndpointServiceBusTopicResource) requiresImport(data acceptance.Te
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
@@ -300,7 +299,7 @@ func (r IotHubEndpointServiceBusTopicResource) authenticationTypeDefault(data ac
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
@@ -314,7 +313,7 @@ func (r IotHubEndpointServiceBusTopicResource) authenticationTypeSystemAssignedI
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"
@@ -334,7 +333,7 @@ func (r IotHubEndpointServiceBusTopicResource) authenticationTypeUserAssignedIde
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
 

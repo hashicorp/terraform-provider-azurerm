@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelSlackResource struct {
-}
+type BotChannelSlackResource struct{}
 
 func testAccBotChannelSlack_basic(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
