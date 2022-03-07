@@ -580,6 +580,12 @@ The default value for the field `threat_intel_mode` will change from "Alert" to 
 
 The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
 
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The computed field `principal_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
+The computed field `tenant_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
 ### Resource: `azurerm_frontdoor`
 
 The deprecated field `backend_pools_send_receive_timeout_seconds` will be removed in favour of the `backend_pool_settings.backend_pools_send_receive_timeout_seconds` property.
