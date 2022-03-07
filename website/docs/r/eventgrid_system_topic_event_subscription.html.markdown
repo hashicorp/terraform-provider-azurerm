@@ -207,7 +207,7 @@ A `delivery_property` supports the following:
 
 * `type` - (Required) Either `Static` or `Dynamic`.
 
-* `value` - (Optional) If the `type` is `Static`, then provide the value to use
+* `value` - (Optional) If the `type` is `Static`, then provide the value to use.
 
 * `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
 
