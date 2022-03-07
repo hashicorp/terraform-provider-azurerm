@@ -20,7 +20,9 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_managed_api": dataSourceManagedApi(),
+	}
 }
 
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
