@@ -1481,7 +1481,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     value       = "string"
     secret      = false
   }
-  
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1531,7 +1531,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   subject_filter {
     subject_begins_with = "test/test"
   }
-  
+
   delivery_property {
     header_name = "test-secret-1"
     type        = "Static"
@@ -1600,7 +1600,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     type         = "Dynamic"
     source_field = "data.system"
   }
-  
+
   delivery_property {
     header_name = "test-secret-1"
     type        = "Static"
