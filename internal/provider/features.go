@@ -317,16 +317,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
-	if raw, ok := val["network"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 {
-			networkRaw := items[0].(map[string]interface{})
-			if v, ok := networkRaw["relaxed_locking"]; ok {
-				featuresMap.Network.RelaxedLocking = v.(bool)
-			}
-		}
-	}
-
 	if raw, ok := val["template_deployment"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
