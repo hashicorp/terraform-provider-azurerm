@@ -255,8 +255,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			instanceId := parse.NewManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
 			model := MsSqlManagedInstanceActiveDirectoryAdministratorModel{
-				ManagedInstanceId:         id.ID(),
+				ManagedInstanceId:         instanceId.ID(),
 				AzureADAuthenticationOnly: false,
 			}
 
@@ -265,10 +267,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 					model.LoginUsername = *props.Login
 				}
 				if props.Sid != nil {
-					model.ObjectId = string((*props.Sid)[:])
+					model.ObjectId = props.Sid.String()
 				}
 				if props.TenantID != nil {
-					model.TenantId = string((*props.TenantID)[:])
+					model.TenantId = props.TenantID.String()
 				}
 			}
 
