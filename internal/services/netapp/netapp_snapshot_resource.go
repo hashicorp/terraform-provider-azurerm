@@ -112,7 +112,7 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	if tags.Expand(d.Get("tags").(map[string]interface{})) != nil {
+	if !features.ThreePointOhBeta() && tags.Expand(d.Get("tags").(map[string]interface{})) != nil {
 		log.Printf("[WARN] Tags are not supported on snaphots anymore, ignoring values.")
 	}
 
