@@ -358,7 +358,6 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 		s["environment"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			// Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
