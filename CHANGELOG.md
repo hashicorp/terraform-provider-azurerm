@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * `azurerm_resource_group_policy_assignment` - the `parameters` property can now be updated [GH-15623]
 * `azurerm_subscription_policy_assignment` - the `parameters` property can now be updated [GH-15623]
 * `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
+* `azurerm_batch_account` - support for customer managed keys [GH-14749]
 
 BUG FIXES:
 
