@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Resource: `azurerm_cosmosdb_sql_role_definition` [GH-15035]
 * New Beta Resource: `azurerm_function_app_function` [GH-15605]
 * New Beta Resource: `azurerm_function_app_hybrid_connection` [GH-15702]
 * New Beta Resource: `azurerm_web_app_hybrid_connection` [GH-15702]
