@@ -51,9 +51,8 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 				"management": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					// TODO 3.0 - Remove 3.0 flag for this and all other properties in the schema
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -102,8 +101,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					},
 				},
 			}
-			// TODO 3.0 - Remove anonymous func for Schema and remove `proxy` block
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				rSchema["gateway"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -318,8 +316,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		if gatewayRawVal, ok := input.GetOk("gateway"); ok {
 			vs := gatewayRawVal.([]interface{})
 			for _, rawVal := range vs {
@@ -395,8 +392,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			gatewayResults = append(gatewayResults, output)
-			// TODO 3.0 - Remove `proxy`
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				configType = "gateway"
 			} else {
 				configType = "proxy"
@@ -434,8 +430,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		"scm":              scmResults,
 	}
 
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		res["gateway"] = gatewayResults
 	} else {
 		res["proxy"] = gatewayResults
