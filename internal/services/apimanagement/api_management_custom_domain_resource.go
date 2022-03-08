@@ -65,7 +65,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -78,7 +78,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -91,7 +91,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
