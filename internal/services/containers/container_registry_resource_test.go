@@ -791,7 +791,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
-  # premiuim SKU will automatically populate network_rule_set.default_action to allow
+  # premium SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
