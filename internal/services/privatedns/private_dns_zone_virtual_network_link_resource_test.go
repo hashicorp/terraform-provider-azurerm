@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDnsZoneVirtualNetworkLinkResource struct {
-}
+type PrivateDnsZoneVirtualNetworkLinkResource struct{}
 
 func TestAccPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")

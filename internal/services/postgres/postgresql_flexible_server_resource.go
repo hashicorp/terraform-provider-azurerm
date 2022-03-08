@@ -8,10 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -102,15 +103,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
-			},
+			"zone": commonschema.ZoneSingleOptional(),
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -212,15 +205,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"1",
-								"2",
-								"3",
-							}, false),
-						},
+						"standby_availability_zone": commonschema.ZoneSingleOptional(),
 					},
 				},
 			},

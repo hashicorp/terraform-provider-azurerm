@@ -35,7 +35,6 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
@@ -94,8 +93,8 @@ func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -66,8 +67,8 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					string(network.SecurityRuleProtocolIcmp),
 					string(network.SecurityRuleProtocolAh),
 					string(network.SecurityRuleProtocolEsp),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"source_port_range": {
@@ -126,7 +127,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -135,7 +136,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// lintignore:S018
+			//lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -150,8 +151,8 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleAccessAllow),
 					string(network.SecurityRuleAccessDeny),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"priority": {
@@ -166,8 +167,8 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleDirectionInbound),
 					string(network.SecurityRuleDirectionOutbound),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 		},
 	}
@@ -189,8 +190,8 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_security_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
 		}
 	}
 

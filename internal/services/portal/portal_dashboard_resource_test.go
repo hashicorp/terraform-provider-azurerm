@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PortalDashboardResource struct {
-}
+type PortalDashboardResource struct{}
 
 func TestAccPortalDashboard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")

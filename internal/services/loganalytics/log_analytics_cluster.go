@@ -11,14 +11,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func logAnalyticsClusterWaitForState(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, clusterName string) *pluginsdk.StateChangeConf {
+func logAnalyticsClusterWaitForState(ctx context.Context, meta interface{}, resourceGroup string, clusterName string) (*pluginsdk.StateChangeConf, error) {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("context had no deadline")
+	}
 	return &pluginsdk.StateChangeConf{
 		Pending:    []string{string(operationalinsights.Updating)},
 		Target:     []string{string(operationalinsights.Succeeded)},
 		MinTimeout: 1 * time.Minute,
-		Timeout:    timeout,
+		Timeout:    time.Until(deadline),
 		Refresh:    logAnalyticsClusterRefresh(ctx, meta, resourceGroup, clusterName),
-	}
+	}, nil
 }
 
 func logAnalyticsClusterRefresh(ctx context.Context, meta interface{}, resourceGroup string, clusterName string) pluginsdk.StateRefreshFunc {

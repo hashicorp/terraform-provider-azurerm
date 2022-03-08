@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosGremlinGraphResource struct {
-}
+type CosmosGremlinGraphResource struct{}
 
 func TestAccCosmosDbGremlinGraph_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
@@ -164,7 +163,6 @@ func TestAccCosmosDbGremlinGraph_partition_key_version(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.partition_key_version(data, 2),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

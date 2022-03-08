@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,9 +31,9 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"type": {
 				Type:     pluginsdk.TypeString,
@@ -55,6 +55,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_bgp": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -210,9 +211,8 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if resp.VirtualNetworkGatewayConnectionPropertiesFormat != nil {
 		gwc := *resp.VirtualNetworkGatewayConnectionPropertiesFormat

@@ -70,9 +70,9 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"role_definition_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				// Add validation to validate the resource id of sql role definition
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.SqlRoleDefinitionID,
 			},
 		},
 	}

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Customer Managed Key for a Storage Account.
 
+~> **NOTE:** It's possible to define a Customer Managed Key both within [the `azurerm_storage_account` resource](storage_account.html) via the `customer_managed_key` block and by using [the `azurerm_storage_account_customer_managed_key` resource](storage_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since there'll be conflicts.
+
 ## Example Usage
 
 ```hcl

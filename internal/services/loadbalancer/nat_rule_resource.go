@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -65,25 +65,24 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"protocol": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        state.IgnoreCase,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
 					string(network.TransportProtocolTCP),
 					string(network.TransportProtocolUDP),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"frontend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -92,12 +91,14 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_floating_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_tcp_reset": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

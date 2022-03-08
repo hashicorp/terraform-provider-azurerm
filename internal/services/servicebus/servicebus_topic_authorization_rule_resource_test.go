@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusTopicAuthorizationRuleResource struct {
-}
+type ServiceBusTopicAuthorizationRuleResource struct{}
 
 func TestAccServiceBusTopicAuthorizationRule_listen(t *testing.T) {
 	testAccServiceBusTopicAuthorizationRule(t, true, false, false)

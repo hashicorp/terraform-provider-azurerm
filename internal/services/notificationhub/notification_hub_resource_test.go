@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NotificationHubResource struct {
-}
+type NotificationHubResource struct{}
 
 func TestAccNotificationHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")

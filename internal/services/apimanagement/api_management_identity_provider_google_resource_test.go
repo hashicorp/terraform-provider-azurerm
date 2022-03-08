@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementIdentityProviderGoogleResource struct {
-}
+type ApiManagementIdentityProviderGoogleResource struct{}
 
 func TestAccApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")

@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
-* `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant` and `LocallyRedundant`. Defaults to `GeoRedundant`.
+* `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 

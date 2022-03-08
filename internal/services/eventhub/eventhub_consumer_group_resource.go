@@ -24,12 +24,13 @@ type ConsumerGroupObject struct {
 	UserMetadata      string `tfschema:"user_metadata"`
 }
 
-var _ sdk.Resource = ConsumerGroupResource{}
-var _ sdk.ResourceWithUpdate = ConsumerGroupResource{}
-var _ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
+var (
+	_ sdk.Resource                   = ConsumerGroupResource{}
+	_ sdk.ResourceWithUpdate         = ConsumerGroupResource{}
+	_ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
+)
 
-type ConsumerGroupResource struct {
-}
+type ConsumerGroupResource struct{}
 
 func (r ConsumerGroupResource) ResourceType() string {
 	return "azurerm_eventhub_consumer_group"

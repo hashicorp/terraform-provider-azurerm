@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
@@ -198,7 +200,7 @@ A `connection_string` block supports the following:
 
 * `name` - (Required) The name which should be used for this Connection.
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -358,8 +360,6 @@ A `site_config` block supports the following:
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
-
-* `auto_swap_slot_name` - (Optional) The Windows Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
 * `cors` - (Optional) A `cors` block as defined above.
 

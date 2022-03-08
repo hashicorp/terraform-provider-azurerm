@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -77,6 +77,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_sql_firewall_rule
 
-Allows you to manage an Azure SQL Firewall Rule
+Allows you to manage an Azure SQL Firewall Rule.
+
+-> **Note:** The `azurerm_sql_firewall_rule` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_firewall_rule`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_firewall_rule) resource instead.
 
 ## Example Usage
 

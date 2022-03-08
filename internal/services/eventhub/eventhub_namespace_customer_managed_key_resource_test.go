@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceCustomerManagedKeyResource struct {
-}
+type EventHubNamespaceCustomerManagedKeyResource struct{}
 
 func TestAccEventHubNamespaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
@@ -217,7 +216,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -226,7 +224,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = azurerm_eventhub_namespace.test.identity.0.tenant_id
   object_id    = azurerm_eventhub_namespace.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "Unwrapkey", "Wrapkey"]
 }
 
 resource "azurerm_key_vault_access_policy" "test2" {
@@ -235,12 +233,12 @@ resource "azurerm_key_vault_access_policy" "test2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 

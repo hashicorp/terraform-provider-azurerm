@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -74,23 +75,29 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					"Apache Spark Administrator",
-					"Synapse Administrator",
-					"Synapse Artifact Publisher",
-					"Synapse Artifact User",
-					"Synapse Compute Operator",
-					"Synapse Contributor",
-					"Synapse Credential User",
-					"Synapse Linked Data Manager",
-					"Synapse SQL Administrator",
-					"Synapse User",
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						"Apache Spark Administrator",
+						"Synapse Administrator",
+						"Synapse Artifact Publisher",
+						"Synapse Artifact User",
+						"Synapse Compute Operator",
+						"Synapse Contributor",
+						"Synapse Credential User",
+						"Synapse Linked Data Manager",
+						"Synapse SQL Administrator",
+						"Synapse User",
+					}
 
-					// TODO: to be removed in 3.0
-					"Workspace Admin",
-					"Apache Spark Admin",
-					"Sql Admin",
-				}, false),
+					if !features.ThreePointOh() {
+						out = append(out, []string{
+							"Workspace Admin",
+							"Apache Spark Admin",
+							"Sql Admin",
+						}...)
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 			},
 		},
 	}
@@ -140,7 +147,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	// TODO: unpick this/refactor to use ID Formatters
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
 			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 		}

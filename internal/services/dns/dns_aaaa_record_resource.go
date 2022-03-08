@@ -205,7 +205,7 @@ func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
 	records := make([]dns.AaaaRecord, len(input))
 
 	for i, v := range input {
-		ipv6 := utils.NormalizeIPv6Address(v)
+		ipv6 := NormalizeIPv6Address(v)
 		records[i] = dns.AaaaRecord{
 			Ipv6Address: &ipv6,
 		}
@@ -225,7 +225,7 @@ func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
 			continue
 		}
 
-		results = append(results, utils.NormalizeIPv6Address(*record.Ipv6Address))
+		results = append(results, NormalizeIPv6Address(*record.Ipv6Address))
 	}
 	return results
 }

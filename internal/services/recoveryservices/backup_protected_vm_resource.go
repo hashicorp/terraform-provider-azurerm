@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -41,7 +42,6 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
@@ -56,6 +56,8 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"backup_policy_id": {
@@ -305,7 +307,7 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	if v, ok := d.GetOk("include_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{
@@ -316,7 +318,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
 	}
 
 	if v, ok := d.GetOk("exclude_disk_luns"); ok {
-		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
 
 		return &backup.ExtendedProperties{
 			DiskExclusionProperties: &backup.DiskExclusionProperties{

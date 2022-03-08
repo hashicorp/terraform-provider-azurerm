@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -53,62 +52,52 @@ func flattenAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, 
 }
 
 func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
-	authSchema := map[string]*pluginsdk.Schema{
-		"listen": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"send": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"manage": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
 	}
-	return azure.MergeSchema(s, authSchema)
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["primary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_connection_string_alias"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string_alias"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	return s
 }
 
 func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
