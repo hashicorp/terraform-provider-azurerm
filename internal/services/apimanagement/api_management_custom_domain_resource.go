@@ -65,7 +65,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -78,7 +78,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -91,7 +91,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -103,28 +103,18 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 			}
 			if features.ThreePointOhBeta() {
 				rSchema["gateway"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
 					Elem: &pluginsdk.Resource{
 						Schema: apiManagementResourceHostnameProxySchema(),
 					},
 				}
 			} else {
 				rSchema["proxy"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
 					Elem: &pluginsdk.Resource{
 						Schema: apiManagementResourceHostnameProxySchema(),
 					},
