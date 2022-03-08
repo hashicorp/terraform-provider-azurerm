@@ -38,10 +38,9 @@ resource "azurerm_cosmosdb_account" "example" {
 }
 
 resource "azurerm_cosmosdb_sql_role_definition" "example" {
-  name                = "4121adb2-fb92-47bb-83e4-593284e66734"
+  name                = "examplesqlroledef"
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_cosmosdb_account.example.name
-  role_name           = "examplesqlrole"
   type                = "CustomRole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}"]
 

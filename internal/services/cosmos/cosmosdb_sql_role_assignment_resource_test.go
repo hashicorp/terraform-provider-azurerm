@@ -123,7 +123,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
-  name                = "%s"
+  name                = "acctestsqlrole%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
   type                = "CustomRole"
@@ -133,7 +133,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, uuid.New().String())
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) basic(data acceptance.TestData) string {
@@ -181,15 +181,13 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test" {
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) update(data acceptance.TestData, roleAssignmentId string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_sql_role_definition" "test2" {
-  name                = "%s"
+  name                = "acctestsqlrole2%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_name           = "acctestsqlrole%s"
   type                = "CustomRole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"]
 
@@ -206,5 +204,5 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test" {
   principal_id        = data.azurerm_client_config.current.object_id
   scope               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"
 }
-`, template, uuid.New().String(), data.RandomString, roleAssignmentId)
+`, r.template(data), data.RandomString, roleAssignmentId)
 }
