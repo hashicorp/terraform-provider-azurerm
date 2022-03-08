@@ -99,11 +99,11 @@ func (r RedisenterpriseGeoDatabaseResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_redis_enterprise_geo_database" "test" {
-  cluster_id = azurerm_redis_enterprise_cluster.test.id
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "NoEviction"
+  client_protocol            = "Encrypted"
+  clustering_policy          = "EnterpriseCluster"
+  eviction_policy            = "NoEviction"
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
@@ -164,14 +164,15 @@ resource "azurerm_redis_enterprise_geo_database" "test" {
 }
 
 func (r RedisenterpriseGeoDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
-	//linkedDatabase := r.template(data)
+	template := r.template(data)
 	return fmt.Sprintf(`
+%s
 resource "azurerm_redis_enterprise_geo_database" "test" {
   cluster_id = azurerm_redis_enterprise_cluster.test.id
 
-  client_protocol            = "Encrypted"
-  clustering_policy          = "EnterpriseCluster"
-  eviction_policy            = "NoEviction"
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
@@ -179,10 +180,11 @@ resource "azurerm_redis_enterprise_geo_database" "test" {
   ]
 
   force_unlink_database_id = [
-    "${azurerm_redis_enterprise_cluster.test2.id}/databases/default"
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default"
   ]
+  linked_database_group_nickname = "tftestGeoGroup"
 }
-`)
+`, template)
 }
 
 func (r RedisenterpriseGeoDatabaseResource) template(data acceptance.TestData) string {
@@ -197,26 +199,26 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_enterprise_cluster" "test" {
-  name                = "acctest-geo-%d"
+  name                = "acctest-geo-1"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-2"
+  sku_name            = "Enterprise_E20-2"
 }
 
 resource "azurerm_redis_enterprise_cluster" "test1" {
-  name                = "acctest-geo-%d"
+  name                = "acctest-geo-2"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Enterprise_E20-2"
 }
 
 resource "azurerm_redis_enterprise_cluster" "test2" {
-  name                = "acctest-geo-%d"
+  name                = "acctest-geo-3"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Enterprise_E20-2"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+`, data.RandomInteger, data.Locations.Primary)
 }

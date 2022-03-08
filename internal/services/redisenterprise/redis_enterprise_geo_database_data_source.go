@@ -2,14 +2,14 @@ package redisenterprise
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
@@ -44,7 +44,6 @@ func dataSourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
 			"linked_database_group_nickname": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  "geoGroup",
 			},
 
@@ -87,7 +86,7 @@ func dataSourceRedisEnterpriseGepDatabaseRead(d *pluginsdk.ResourceData, meta in
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.GeoReplication != nil {
 			if props.GeoReplication.GroupNickname != nil {
-				d.Set("linked_database_group_nickname", *props.GeoReplication.GroupNickname)
+				d.Set("linked_database_group_nickname", props.GeoReplication.GroupNickname)
 			}
 			if props.GeoReplication.LinkedDatabases != nil {
 				d.Set("linked_database_id", flattenArmGeoLinkedDatabase(props.GeoReplication.LinkedDatabases))

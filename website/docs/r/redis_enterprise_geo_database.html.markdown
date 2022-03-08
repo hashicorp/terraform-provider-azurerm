@@ -35,9 +35,9 @@ resource "azurerm_redis_enterprise_cluster" "example1" {
 }
 
 resource "azurerm_redis_enterprise_geo_database" "example" {
-  name                = "default"
-  
-  cluster_id = azurerm_redis_enterprise_cluster.example.id
+  name = "default"
+
+  cluster_id                 = azurerm_redis_enterprise_cluster.example.id
   client_protocol            = "Encrypted"
   clustering_policy          = "EnterpriseCluster"
   eviction_policy            = "NoEviction"
