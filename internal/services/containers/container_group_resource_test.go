@@ -686,7 +686,7 @@ resource "azurerm_container_group" "test" {
     image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }

@@ -1263,8 +1263,8 @@ resource "azurerm_application_gateway" "test" {
   location            = azurerm_resource_group.test.location
 
   sku {
-    name     = "Standard_V2"
-    tier     = "Standard_V2"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 

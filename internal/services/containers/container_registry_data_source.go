@@ -60,7 +60,6 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sku", string(sku.Tier))
 	}
 
-
 	if !features.ThreePointOhBeta() {
 		// Deprecated as it is not returned by the API now.
 		d.Set("storage_account_id", "")

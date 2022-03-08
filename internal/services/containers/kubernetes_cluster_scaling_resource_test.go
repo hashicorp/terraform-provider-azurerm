@@ -433,7 +433,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     max_count           = 2
     enable_auto_scaling = true
     vm_size             = "Standard_DS2_v2"
-    zones  = ["1", "2"]
+    zones               = ["1", "2"]
   }
 
   identity {
