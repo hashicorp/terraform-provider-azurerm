@@ -231,8 +231,13 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
@@ -259,9 +264,16 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				val := input1[0].(map[string]interface{})
 				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp); err != nil {
+
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+			}
+
 			if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 				return err
 			}
@@ -316,9 +328,15 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
+
 	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
