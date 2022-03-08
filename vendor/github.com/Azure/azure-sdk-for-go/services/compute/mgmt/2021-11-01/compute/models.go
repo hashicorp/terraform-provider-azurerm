@@ -2890,6 +2890,40 @@ type CommunityGalleryImageVersionProperties struct {
 	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
 }
 
+// CommunityGalleryInfo information of community gallery if current gallery is shared to community
+type CommunityGalleryInfo struct {
+	// PublisherURI - Community gallery publisher uri
+	PublisherURI *string `json:"publisherUri,omitempty"`
+	// PublisherContact - Community gallery publisher contact email
+	PublisherContact *string `json:"publisherContact,omitempty"`
+	// Eula - Community gallery publisher eula
+	Eula *string `json:"eula,omitempty"`
+	// PublicNamePrefix - Community gallery public name prefix
+	PublicNamePrefix *string `json:"publicNamePrefix,omitempty"`
+	// CommunityGalleryEnabled - READ-ONLY; Contains info about whether community gallery sharing is enabled.
+	CommunityGalleryEnabled *bool `json:"communityGalleryEnabled,omitempty"`
+	// PublicNames - READ-ONLY; Community gallery public name list.
+	PublicNames *[]string `json:"publicNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CommunityGalleryInfo.
+func (cgiVar CommunityGalleryInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cgiVar.PublisherURI != nil {
+		objectMap["publisherUri"] = cgiVar.PublisherURI
+	}
+	if cgiVar.PublisherContact != nil {
+		objectMap["publisherContact"] = cgiVar.PublisherContact
+	}
+	if cgiVar.Eula != nil {
+		objectMap["eula"] = cgiVar.Eula
+	}
+	if cgiVar.PublicNamePrefix != nil {
+		objectMap["publicNamePrefix"] = cgiVar.PublicNamePrefix
+	}
+	return json.Marshal(objectMap)
+}
+
 // CreationData data used when creating a disk.
 type CreationData struct {
 	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'DiskCreateOptionEmpty', 'DiskCreateOptionAttach', 'DiskCreateOptionFromImage', 'DiskCreateOptionImport', 'DiskCreateOptionCopy', 'DiskCreateOptionRestore', 'DiskCreateOptionUpload', 'DiskCreateOptionCopyStart', 'DiskCreateOptionImportSecure', 'DiskCreateOptionUploadPreparedSecure'
@@ -7379,6 +7413,8 @@ type GalleryApplicationVersionPublishingProfile struct {
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 	// ReplicationMode - Optional parameter which specifies the mode to be used for replication. This property is not updatable. Possible values include: 'ReplicationModeFull', 'ReplicationModeShallow'
 	ReplicationMode ReplicationMode `json:"replicationMode,omitempty"`
+	// TargetExtendedLocations - The target extended locations where the Image Version is going to be replicated to. This property is updatable.
+	TargetExtendedLocations *[]GalleryTargetExtendedLocation `json:"targetExtendedLocations,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GalleryApplicationVersionPublishingProfile.
@@ -7410,6 +7446,9 @@ func (gavpp GalleryApplicationVersionPublishingProfile) MarshalJSON() ([]byte, e
 	}
 	if gavpp.ReplicationMode != "" {
 		objectMap["replicationMode"] = gavpp.ReplicationMode
+	}
+	if gavpp.TargetExtendedLocations != nil {
+		objectMap["targetExtendedLocations"] = gavpp.TargetExtendedLocations
 	}
 	return json.Marshal(objectMap)
 }
@@ -7639,6 +7678,8 @@ type GalleryArtifactPublishingProfileBase struct {
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 	// ReplicationMode - Optional parameter which specifies the mode to be used for replication. This property is not updatable. Possible values include: 'ReplicationModeFull', 'ReplicationModeShallow'
 	ReplicationMode ReplicationMode `json:"replicationMode,omitempty"`
+	// TargetExtendedLocations - The target extended locations where the Image Version is going to be replicated to. This property is updatable.
+	TargetExtendedLocations *[]GalleryTargetExtendedLocation `json:"targetExtendedLocations,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GalleryArtifactPublishingProfileBase.
@@ -7661,6 +7702,9 @@ func (gappb GalleryArtifactPublishingProfileBase) MarshalJSON() ([]byte, error) 
 	}
 	if gappb.ReplicationMode != "" {
 		objectMap["replicationMode"] = gappb.ReplicationMode
+	}
+	if gappb.TargetExtendedLocations != nil {
+		objectMap["targetExtendedLocations"] = gappb.TargetExtendedLocations
 	}
 	return json.Marshal(objectMap)
 }
@@ -7723,6 +7767,13 @@ func (gdi GalleryDiskImage) MarshalJSON() ([]byte, error) {
 		objectMap["source"] = gdi.Source
 	}
 	return json.Marshal(objectMap)
+}
+
+// GalleryExtendedLocation the name of the extended location.
+type GalleryExtendedLocation struct {
+	Name *string `json:"name,omitempty"`
+	// Type - Possible values include: 'GalleryExtendedLocationTypeEdgeZone', 'GalleryExtendedLocationTypeUnknown'
+	Type GalleryExtendedLocationType `json:"type,omitempty"`
 }
 
 // GalleryIdentifier describes the gallery unique name.
@@ -8040,6 +8091,8 @@ type GalleryImageProperties struct {
 	ProvisioningState ProvisioningState2 `json:"provisioningState,omitempty"`
 	// Features - A list of gallery image features.
 	Features *[]GalleryImageFeature `json:"features,omitempty"`
+	// Architecture - The architecture of the image. Applicable to OS disks only. Possible values include: 'ArchitectureX64', 'ArchitectureArm64'
+	Architecture Architecture `json:"architecture,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GalleryImageProperties.
@@ -8083,6 +8136,9 @@ func (gip GalleryImageProperties) MarshalJSON() ([]byte, error) {
 	}
 	if gip.Features != nil {
 		objectMap["features"] = gip.Features
+	}
+	if gip.Architecture != "" {
+		objectMap["architecture"] = gip.Architecture
 	}
 	return json.Marshal(objectMap)
 }
@@ -8593,6 +8649,8 @@ type GalleryImageVersionPublishingProfile struct {
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 	// ReplicationMode - Optional parameter which specifies the mode to be used for replication. This property is not updatable. Possible values include: 'ReplicationModeFull', 'ReplicationModeShallow'
 	ReplicationMode ReplicationMode `json:"replicationMode,omitempty"`
+	// TargetExtendedLocations - The target extended locations where the Image Version is going to be replicated to. This property is updatable.
+	TargetExtendedLocations *[]GalleryTargetExtendedLocation `json:"targetExtendedLocations,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GalleryImageVersionPublishingProfile.
@@ -8615,6 +8673,9 @@ func (givpp GalleryImageVersionPublishingProfile) MarshalJSON() ([]byte, error) 
 	}
 	if givpp.ReplicationMode != "" {
 		objectMap["replicationMode"] = givpp.ReplicationMode
+	}
+	if givpp.TargetExtendedLocations != nil {
+		objectMap["targetExtendedLocations"] = givpp.TargetExtendedLocations
 	}
 	return json.Marshal(objectMap)
 }
@@ -9024,6 +9085,8 @@ type GalleryProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	SharingProfile    *SharingProfile   `json:"sharingProfile,omitempty"`
 	SoftDeletePolicy  *SoftDeletePolicy `json:"softDeletePolicy,omitempty"`
+	// SharingStatus - READ-ONLY
+	SharingStatus *SharingStatus `json:"sharingStatus,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GalleryProperties.
@@ -9085,6 +9148,18 @@ func (future *GallerySharingProfileUpdateFuture) result(client GallerySharingPro
 		}
 	}
 	return
+}
+
+// GalleryTargetExtendedLocation ...
+type GalleryTargetExtendedLocation struct {
+	// Name - The name of the region.
+	Name             *string                  `json:"name,omitempty"`
+	ExtendedLocation *GalleryExtendedLocation `json:"extendedLocation,omitempty"`
+	// ExtendedLocationReplicaCount - The number of replicas of the Image Version to be created per extended location. This property is updatable.
+	ExtendedLocationReplicaCount *int32 `json:"extendedLocationReplicaCount,omitempty"`
+	// StorageAccountType - Specifies the storage account type to be used to store the image. This property is not updatable. Possible values include: 'StorageAccountTypeStandardLRS', 'StorageAccountTypeStandardZRS', 'StorageAccountTypePremiumLRS'
+	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
+	Encryption         *EncryptionImages  `json:"encryption,omitempty"`
 }
 
 // GalleryUpdate specifies information about the Shared Image Gallery that you want to update.
@@ -9582,7 +9657,7 @@ type ImageReference struct {
 	Offer *string `json:"offer,omitempty"`
 	// Sku - The image SKU.
 	Sku *string `json:"sku,omitempty"`
-	// Version - Specifies the version of the platform image or marketplace image used to create the virtual machine. The allowed formats are Major.Minor.Build or 'latest'. Major, Minor, and Build are decimal numbers. Specify 'latest' to use the latest version of an image available at deploy time. Even if you use 'latest', the VM image will not automatically update after deploy time even if a new version becomes available.
+	// Version - Specifies the version of the platform image or marketplace image used to create the virtual machine. The allowed formats are Major.Minor.Build or 'latest'. Major, Minor, and Build are decimal numbers. Specify 'latest' to use the latest version of an image available at deploy time. Even if you use 'latest', the VM image will not automatically update after deploy time even if a new version becomes available. Please do not use field 'version' for gallery image deployment, gallery image should always use 'id' field for deployment, to use 'latest' version of gallery image, just set '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/galleries/{galleryName}/images/{imageName}' in the 'id' field without version input.
 	Version *string `json:"version,omitempty"`
 	// ExactVersion - READ-ONLY; Specifies in decimal numbers, the version of platform image or marketplace image used to create the virtual machine. This readonly field differs from 'version', only if the value specified in 'version' field is 'latest'.
 	ExactVersion *string `json:"exactVersion,omitempty"`
@@ -10553,8 +10628,18 @@ type OSDiskImage struct {
 
 // OSDiskImageEncryption contains encryption settings for an OS disk image.
 type OSDiskImageEncryption struct {
+	// SecurityProfile - This property specifies the security profile of an OS disk image.
+	SecurityProfile *OSDiskImageSecurityProfile `json:"securityProfile,omitempty"`
 	// DiskEncryptionSetID - A relative URI containing the resource ID of the disk encryption set.
 	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
+}
+
+// OSDiskImageSecurityProfile contains security profile for an OS disk image.
+type OSDiskImageSecurityProfile struct {
+	// ConfidentialVMEncryptionType - confidential VM encryption types. Possible values include: 'ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk', 'ConfidentialVMEncryptionTypeEncryptedWithPmk', 'ConfidentialVMEncryptionTypeEncryptedWithCmk'
+	ConfidentialVMEncryptionType ConfidentialVMEncryptionType `json:"confidentialVMEncryptionType,omitempty"`
+	// SecureVMDiskEncryptionSetID - secure VM disk encryption set id
+	SecureVMDiskEncryptionSetID *string `json:"secureVMDiskEncryptionSetId,omitempty"`
 }
 
 // OSFamily describes a cloud service OS family.
@@ -11971,6 +12056,16 @@ type RegionalReplicationStatus struct {
 func (rrs RegionalReplicationStatus) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// RegionalSharingStatus gallery regional sharing status
+type RegionalSharingStatus struct {
+	// Region - Region name
+	Region *string `json:"region,omitempty"`
+	// State - Gallery sharing state in current region. Possible values include: 'SharingStateSucceeded', 'SharingStateInProgress', 'SharingStateFailed', 'SharingStateUnknown'
+	State SharingState `json:"state,omitempty"`
+	// Details - Details of gallery regional sharing failure.
+	Details *string `json:"details,omitempty"`
 }
 
 // ReplicationStatus this is the replication status of the gallery image version.
@@ -14602,6 +14697,8 @@ type SharingProfile struct {
 	Permissions GallerySharingPermissionTypes `json:"permissions,omitempty"`
 	// Groups - READ-ONLY; A list of sharing profile groups.
 	Groups *[]SharingProfileGroup `json:"groups,omitempty"`
+	// CommunityGalleryInfo - Information of community gallery if current gallery is shared to community.
+	CommunityGalleryInfo interface{} `json:"communityGalleryInfo,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SharingProfile.
@@ -14610,21 +14707,32 @@ func (sp SharingProfile) MarshalJSON() ([]byte, error) {
 	if sp.Permissions != "" {
 		objectMap["permissions"] = sp.Permissions
 	}
+	if sp.CommunityGalleryInfo != nil {
+		objectMap["communityGalleryInfo"] = sp.CommunityGalleryInfo
+	}
 	return json.Marshal(objectMap)
 }
 
 // SharingProfileGroup group of the gallery sharing profile
 type SharingProfileGroup struct {
-	// Type - This property allows you to specify the type of sharing group. <br><br> Possible values are: <br><br> **Subscriptions** <br><br> **AADTenants**. Possible values include: 'SharingProfileGroupTypesSubscriptions', 'SharingProfileGroupTypesAADTenants'
+	// Type - This property allows you to specify the type of sharing group. <br><br> Possible values are: <br><br> **Subscriptions** <br><br> **AADTenants** <br><br> **Community**. Possible values include: 'SharingProfileGroupTypesSubscriptions', 'SharingProfileGroupTypesAADTenants', 'SharingProfileGroupTypesCommunity'
 	Type SharingProfileGroupTypes `json:"type,omitempty"`
 	// Ids - A list of subscription/tenant ids the gallery is aimed to be shared to.
 	Ids *[]string `json:"ids,omitempty"`
 }
 
+// SharingStatus sharing status of current gallery.
+type SharingStatus struct {
+	// AggregatedState - Aggregated sharing state of current gallery. Possible values include: 'SharingStateSucceeded', 'SharingStateInProgress', 'SharingStateFailed', 'SharingStateUnknown'
+	AggregatedState SharingState `json:"aggregatedState,omitempty"`
+	// Summary - Summary of all regional sharing status.
+	Summary *[]RegionalSharingStatus `json:"summary,omitempty"`
+}
+
 // SharingUpdate specifies information about the gallery sharing profile update.
 type SharingUpdate struct {
 	autorest.Response `json:"-"`
-	// OperationType - This property allows you to specify the operation type of gallery sharing update. <br><br> Possible values are: <br><br> **Add** <br><br> **Remove** <br><br> **Reset**. Possible values include: 'SharingUpdateOperationTypesAdd', 'SharingUpdateOperationTypesRemove', 'SharingUpdateOperationTypesReset'
+	// OperationType - This property allows you to specify the operation type of gallery sharing update. <br><br> Possible values are: <br><br> **Add** <br><br> **Remove** <br><br> **Reset**. Possible values include: 'SharingUpdateOperationTypesAdd', 'SharingUpdateOperationTypesRemove', 'SharingUpdateOperationTypesReset', 'SharingUpdateOperationTypesEnableCommunity'
 	OperationType SharingUpdateOperationTypes `json:"operationType,omitempty"`
 	// Groups - A list of sharing profile groups.
 	Groups *[]SharingProfileGroup `json:"groups,omitempty"`
@@ -17081,6 +17189,8 @@ type VirtualMachineImageProperties struct {
 	// Disallowed - Specifies disallowed configuration for the VirtualMachine created from the image
 	Disallowed *DisallowedConfiguration      `json:"disallowed,omitempty"`
 	Features   *[]VirtualMachineImageFeature `json:"features,omitempty"`
+	// Architecture - Possible values include: 'ArchitectureTypesX64', 'ArchitectureTypesArm64'
+	Architecture ArchitectureTypes `json:"architecture,omitempty"`
 }
 
 // VirtualMachineImageResource virtual machine image resource information.

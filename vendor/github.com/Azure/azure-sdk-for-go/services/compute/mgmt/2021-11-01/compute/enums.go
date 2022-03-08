@@ -42,6 +42,36 @@ func PossibleAggregatedReplicationStateValues() []AggregatedReplicationState {
 	return []AggregatedReplicationState{AggregatedReplicationStateCompleted, AggregatedReplicationStateFailed, AggregatedReplicationStateInProgress, AggregatedReplicationStateUnknown}
 }
 
+// Architecture enumerates the values for architecture.
+type Architecture string
+
+const (
+	// ArchitectureArm64 ...
+	ArchitectureArm64 Architecture = "Arm64"
+	// ArchitectureX64 ...
+	ArchitectureX64 Architecture = "x64"
+)
+
+// PossibleArchitectureValues returns an array of possible values for the Architecture const type.
+func PossibleArchitectureValues() []Architecture {
+	return []Architecture{ArchitectureArm64, ArchitectureX64}
+}
+
+// ArchitectureTypes enumerates the values for architecture types.
+type ArchitectureTypes string
+
+const (
+	// ArchitectureTypesArm64 ...
+	ArchitectureTypesArm64 ArchitectureTypes = "Arm64"
+	// ArchitectureTypesX64 ...
+	ArchitectureTypesX64 ArchitectureTypes = "x64"
+)
+
+// PossibleArchitectureTypesValues returns an array of possible values for the ArchitectureTypes const type.
+func PossibleArchitectureTypesValues() []ArchitectureTypes {
+	return []ArchitectureTypes{ArchitectureTypesArm64, ArchitectureTypesX64}
+}
+
 // AvailabilitySetSkuTypes enumerates the values for availability set sku types.
 type AvailabilitySetSkuTypes string
 
@@ -129,6 +159,23 @@ const (
 // PossibleComponentNamesValues returns an array of possible values for the ComponentNames const type.
 func PossibleComponentNamesValues() []ComponentNames {
 	return []ComponentNames{ComponentNamesMicrosoftWindowsShellSetup}
+}
+
+// ConfidentialVMEncryptionType enumerates the values for confidential vm encryption type.
+type ConfidentialVMEncryptionType string
+
+const (
+	// ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk ...
+	ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk ConfidentialVMEncryptionType = "EncryptedVMGuestStateOnlyWithPmk"
+	// ConfidentialVMEncryptionTypeEncryptedWithCmk ...
+	ConfidentialVMEncryptionTypeEncryptedWithCmk ConfidentialVMEncryptionType = "EncryptedWithCmk"
+	// ConfidentialVMEncryptionTypeEncryptedWithPmk ...
+	ConfidentialVMEncryptionTypeEncryptedWithPmk ConfidentialVMEncryptionType = "EncryptedWithPmk"
+)
+
+// PossibleConfidentialVMEncryptionTypeValues returns an array of possible values for the ConfidentialVMEncryptionType const type.
+func PossibleConfidentialVMEncryptionTypeValues() []ConfidentialVMEncryptionType {
+	return []ConfidentialVMEncryptionType{ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk, ConfidentialVMEncryptionTypeEncryptedWithCmk, ConfidentialVMEncryptionTypeEncryptedWithPmk}
 }
 
 // ConsistencyModeTypes enumerates the values for consistency mode types.
@@ -507,6 +554,34 @@ const (
 // PossibleExtendedLocationTypesValues returns an array of possible values for the ExtendedLocationTypes const type.
 func PossibleExtendedLocationTypesValues() []ExtendedLocationTypes {
 	return []ExtendedLocationTypes{ExtendedLocationTypesEdgeZone}
+}
+
+// GalleryExpandParams enumerates the values for gallery expand params.
+type GalleryExpandParams string
+
+const (
+	// GalleryExpandParamsSharingProfileGroups ...
+	GalleryExpandParamsSharingProfileGroups GalleryExpandParams = "SharingProfile/Groups"
+)
+
+// PossibleGalleryExpandParamsValues returns an array of possible values for the GalleryExpandParams const type.
+func PossibleGalleryExpandParamsValues() []GalleryExpandParams {
+	return []GalleryExpandParams{GalleryExpandParamsSharingProfileGroups}
+}
+
+// GalleryExtendedLocationType enumerates the values for gallery extended location type.
+type GalleryExtendedLocationType string
+
+const (
+	// GalleryExtendedLocationTypeEdgeZone ...
+	GalleryExtendedLocationTypeEdgeZone GalleryExtendedLocationType = "EdgeZone"
+	// GalleryExtendedLocationTypeUnknown ...
+	GalleryExtendedLocationTypeUnknown GalleryExtendedLocationType = "Unknown"
+)
+
+// PossibleGalleryExtendedLocationTypeValues returns an array of possible values for the GalleryExtendedLocationType const type.
+func PossibleGalleryExtendedLocationTypeValues() []GalleryExtendedLocationType {
+	return []GalleryExtendedLocationType{GalleryExtendedLocationTypeEdgeZone, GalleryExtendedLocationTypeUnknown}
 }
 
 // GallerySharingPermissionTypes enumerates the values for gallery sharing permission types.
@@ -1397,13 +1472,34 @@ type SharingProfileGroupTypes string
 const (
 	// SharingProfileGroupTypesAADTenants ...
 	SharingProfileGroupTypesAADTenants SharingProfileGroupTypes = "AADTenants"
+	// SharingProfileGroupTypesCommunity ...
+	SharingProfileGroupTypesCommunity SharingProfileGroupTypes = "Community"
 	// SharingProfileGroupTypesSubscriptions ...
 	SharingProfileGroupTypesSubscriptions SharingProfileGroupTypes = "Subscriptions"
 )
 
 // PossibleSharingProfileGroupTypesValues returns an array of possible values for the SharingProfileGroupTypes const type.
 func PossibleSharingProfileGroupTypesValues() []SharingProfileGroupTypes {
-	return []SharingProfileGroupTypes{SharingProfileGroupTypesAADTenants, SharingProfileGroupTypesSubscriptions}
+	return []SharingProfileGroupTypes{SharingProfileGroupTypesAADTenants, SharingProfileGroupTypesCommunity, SharingProfileGroupTypesSubscriptions}
+}
+
+// SharingState enumerates the values for sharing state.
+type SharingState string
+
+const (
+	// SharingStateFailed ...
+	SharingStateFailed SharingState = "Failed"
+	// SharingStateInProgress ...
+	SharingStateInProgress SharingState = "InProgress"
+	// SharingStateSucceeded ...
+	SharingStateSucceeded SharingState = "Succeeded"
+	// SharingStateUnknown ...
+	SharingStateUnknown SharingState = "Unknown"
+)
+
+// PossibleSharingStateValues returns an array of possible values for the SharingState const type.
+func PossibleSharingStateValues() []SharingState {
+	return []SharingState{SharingStateFailed, SharingStateInProgress, SharingStateSucceeded, SharingStateUnknown}
 }
 
 // SharingUpdateOperationTypes enumerates the values for sharing update operation types.
@@ -1412,6 +1508,8 @@ type SharingUpdateOperationTypes string
 const (
 	// SharingUpdateOperationTypesAdd ...
 	SharingUpdateOperationTypesAdd SharingUpdateOperationTypes = "Add"
+	// SharingUpdateOperationTypesEnableCommunity ...
+	SharingUpdateOperationTypesEnableCommunity SharingUpdateOperationTypes = "EnableCommunity"
 	// SharingUpdateOperationTypesRemove ...
 	SharingUpdateOperationTypesRemove SharingUpdateOperationTypes = "Remove"
 	// SharingUpdateOperationTypesReset ...
@@ -1420,7 +1518,7 @@ const (
 
 // PossibleSharingUpdateOperationTypesValues returns an array of possible values for the SharingUpdateOperationTypes const type.
 func PossibleSharingUpdateOperationTypesValues() []SharingUpdateOperationTypes {
-	return []SharingUpdateOperationTypes{SharingUpdateOperationTypesAdd, SharingUpdateOperationTypesRemove, SharingUpdateOperationTypesReset}
+	return []SharingUpdateOperationTypes{SharingUpdateOperationTypesAdd, SharingUpdateOperationTypesEnableCommunity, SharingUpdateOperationTypesRemove, SharingUpdateOperationTypesReset}
 }
 
 // SnapshotStorageAccountTypes enumerates the values for snapshot storage account types.

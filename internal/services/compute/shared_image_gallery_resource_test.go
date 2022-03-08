@@ -75,8 +75,7 @@ func (t SharedImageGalleryResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new selectParameterin the GET method
-	resp, err := clients.Compute.GalleriesClient.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+	resp, err := clients.Compute.GalleriesClient.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id.String())
 	}
