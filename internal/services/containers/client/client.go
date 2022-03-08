@@ -22,6 +22,7 @@ type Client struct {
 	TokensClient                    *containerregistry.TokensClient
 	ScopeMapsClient                 *containerregistry.ScopeMapsClient
 	TasksClient                     *legacyacr.TasksClient
+	ConnectedRegistriesClient       *containerregistry.ConnectedRegistriesClient
 
 	Environment azure.Environment
 }
@@ -61,6 +62,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
+	connectedRegistriesClient := containerregistry.NewConnectedRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&connectedRegistriesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AgentPoolsClient:                &agentPoolsClient,
 		KubernetesClustersClient:        &kubernetesClustersClient,
@@ -74,5 +78,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		TokensClient:                    &tokensClient,
 		ScopeMapsClient:                 &scopeMapsClient,
 		TasksClient:                     &tasksClient,
+		ConnectedRegistriesClient:       &connectedRegistriesClient,
 	}
 }
