@@ -185,7 +185,7 @@ func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, resourc
 
 func retrieveLogicAppHttpTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, *string, error) {
 	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
-	if err != nil {
+	if err != nil || t == nil {
 		return nil, nil, nil, err
 	}
 	url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, resourceGroup, logicAppName, name)
