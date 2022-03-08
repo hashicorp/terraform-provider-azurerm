@@ -686,7 +686,7 @@ resource "azurerm_container_group" "test" {
     image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
-    ports {
+    ports { 
       port     = 80
       protocol = "TCP"
     }
@@ -1400,7 +1400,7 @@ resource "azurerm_container_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Public"
-  os_type             = "windows"
+  os_type             = "Windows"
 
   container {
     name   = "windowsservercore"
@@ -1463,7 +1463,7 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
-  os_type             = "windows"
+  os_type             = "Windows"
   restart_policy      = "Never"
 
   container {

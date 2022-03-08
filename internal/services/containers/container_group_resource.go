@@ -539,16 +539,10 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	expandedIdentity, err := expandContainerGroupIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     utils.String(id.Name),
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Identity: expandedIdentity,
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -558,6 +552,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
+	}
+
+	// Container Groups with OS Type Windows do not support managed identities but the API also does not accept Identity Type: None
+	// https://github.com/Azure/azure-rest-api-specs/issues/18122
+	if OSType != string(containerinstance.OperatingSystemTypesWindows) {
+		expandedIdentity, err := expandContainerGroupIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		containerGroup.Identity = expandedIdentity
 	}
 
 	if IPAddressType != "None" {
