@@ -808,10 +808,9 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
 
 		case "AzureWebJobsStorage__accountName":
-			if useMSI, ok := metadata.ResourceData.GetOk("storage_uses_managed_identity"); ok {
-				m.StorageUsesMSI = useMSI.(bool)
-				m.StorageAccountName = utils.NormalizeNilableString(v)
-			}
+			m.StorageUsesMSI = true
+			m.StorageAccountName = utils.NormalizeNilableString(v)
+
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
