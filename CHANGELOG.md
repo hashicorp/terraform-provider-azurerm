@@ -41,6 +41,7 @@ BUG FIXES:
 * `azurerm_container_group` - fix issue when parsing empty or omitted `dns_config.options` and `dns_config.search_domains` [GH-15618]
 * `azurerm_key_vault_key` - correctly set vault id on import [GH-15670]
 * `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_mssql_managed_instance_active_directory_administrator` - fix a perpetual diff that caused the resource to be replaced [GH-15725]
 * `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
 * `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
 * `azurerm_virtual_network_gateway` - fix panic regarding `bgp_settings.0.peering_address` [GH-15689]
