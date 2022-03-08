@@ -87,6 +87,12 @@ func resourceDataFactoryDatasetAzureBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"dynamic_container_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"dynamic_path_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
