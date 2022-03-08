@@ -391,7 +391,7 @@ func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 			Config: r.standardLoadBalancerConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -407,7 +407,7 @@ func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 			Config: r.standardLoadBalancerCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -423,7 +423,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 			Config: r.standardLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("3"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("3"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes").HasValue("30"),
@@ -443,7 +443,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 			Config: r.standardLoadBalancerProfileCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 			PreventPostDestroyRefresh: true,
@@ -492,7 +492,7 @@ func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 			Config: r.prefixedLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -517,7 +517,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -527,7 +527,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigManagedIPs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -537,7 +537,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigIPIds(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
