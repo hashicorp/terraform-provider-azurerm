@@ -99,11 +99,11 @@ func (r RedisenterpriseGeoDatabaseResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_redis_enterprise_geo_database" "test" {
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
-  client_protocol            = "Encrypted"
-  clustering_policy          = "EnterpriseCluster"
-  eviction_policy            = "NoEviction"
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
