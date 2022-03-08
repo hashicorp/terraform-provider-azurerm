@@ -78,7 +78,7 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -122,8 +122,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Shared Image Gallery %q (Resource Group %q) was not found - removing from state", id.GalleryName, id.ResourceGroup)
