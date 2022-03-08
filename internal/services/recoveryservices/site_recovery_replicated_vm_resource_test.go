@@ -812,7 +812,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"  
+    name              = "disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -863,8 +863,8 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = "snet-%[1]d"
+    source_network_interface_id = azurerm_network_interface.test.id
+    target_subnet_name          = "snet-%[1]d"
   }
 
   depends_on = [
