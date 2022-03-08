@@ -9,8 +9,8 @@ type RepositoryNotificationAction string
 
 const (
 	RepositoryNotificationActionPush   RepositoryNotificationAction = "push"
-	RepositoryNotificationActionDelete                              = "delete"
-	RepositoryNotificationActionAny                                 = "*"
+	RepositoryNotificationActionDelete RepositoryNotificationAction = "delete"
+	RepositoryNotificationActionAny    RepositoryNotificationAction = "*"
 )
 
 var allowedRepositoryNotificationActions = []RepositoryNotificationAction{
