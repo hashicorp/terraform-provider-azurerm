@@ -157,7 +157,7 @@ func resourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 		},
-		//CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		// CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 		//	oldLinkedDbRaw, newLinkedDbRaw := d.GetChange("linked_database_id")
 		//	linkedListHasChange := d.HasChange("linked_database_id")
 		//	oldLinkedDb := oldLinkedDbRaw.(*pluginsdk.Set).List()
@@ -196,7 +196,7 @@ func resourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
 		//	}
 		//
 		//	return nil
-		//}),
+		// }),
 	}
 }
 
