@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -63,8 +64,12 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			return err
 		}),
 
-		// TODO: won't be needed in v3.0
-		CustomizeDiff: resourceHDInsightKafkaClusterCustomizeDiff,
+		CustomizeDiff: func() pluginsdk.CustomizeDiffFunc {
+			if !features.ThreePointOhBeta() {
+				return resourceHDInsightKafkaClusterCustomizeDiff
+			}
+			return nil
+		}(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -147,10 +152,12 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 
+						//lintignore: S013
 						"security_group_name": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true, // TODO: make this Required in v3.0
-							Computed:     true, // TODO: remove Computed in v3.0
+							Required:     features.ThreePointOhBeta(),
+							Optional:     !features.ThreePointOhBeta(),
+							Computed:     !features.ThreePointOhBeta(),
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -182,7 +189,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 }
 
 func resourceHDInsightKafkaClusterCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
-	// TODO: this conditional validation no longer needed in v3.0, `security_group_name` will be Required
+	// CLEANUP: this conditional validation no longer needed in v3.0, `security_group_name` will be Required
 	if meta.(*clients.Client).Account.UseMSAL {
 		if v, ok := diff.GetOk("rest_proxy"); ok && len(v.([]interface{})) > 0 {
 			restProxy := v.([]interface{})[0].(map[string]interface{})
@@ -199,7 +206,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 
-	// TODO: remove graph client in v3.0
+	// CLEANUP: remove graph client in v3.0
 	groupsClient := meta.(*clients.Client).HDInsight.GroupsClient
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -257,11 +264,10 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
 	}
 
-	// TODO: in v3.0, reduce this entire block to the following expandKafkaRestProxyProperty() function call
 	var kafkaRestProperty *hdinsight.KafkaRestProperties
 	if meta.(*clients.Client).Account.UseMSAL {
 		kafkaRestProperty = expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
-	} else {
+	} else if !features.ThreePointOhBeta() {
 		kafkaRestProperty, err = expandKafkaRestProxyPropertyDeprecated(d.Get("rest_proxy").([]interface{}), func(groupId string) (*string, error) {
 			res, err := groupsClient.Get(ctx, groupId)
 			if err != nil {
@@ -499,7 +505,7 @@ func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestPrope
 	}
 }
 
-// TODO: remove expandKafkaRestProxyPropertyDeprecated in v3.0
+// CLEANUP: remove expandKafkaRestProxyPropertyDeprecated in v3.0
 // nolint gocritic
 func expandKafkaRestProxyPropertyDeprecated(input []interface{}, getGroupName func(string) (*string, error)) (*hdinsight.KafkaRestProperties, error) {
 	if len(input) == 0 || input[0] == nil {
