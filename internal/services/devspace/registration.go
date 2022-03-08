@@ -5,8 +5,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// TODO: this can be moved into Container
-
 type Registration struct{}
 
 // Name is the name of this Service

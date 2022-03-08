@@ -227,7 +227,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				Computed:      true, // TODO: remove in 2.0 and default to false
+				Computed:      true, // TODO: remove in 3.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 

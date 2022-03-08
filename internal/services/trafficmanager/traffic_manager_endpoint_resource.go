@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: split and deprecate this resource prior to 3.0
-
 func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,

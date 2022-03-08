@@ -530,6 +530,22 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+### Resource `azurerm_data_lake_store_file`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store_virtual_network_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
 ### Resource: `azurerm_devspace_controller`
 
 The `azurerm_devspace_controller` resource will be removed since DevSpace Controllers are deprecated and new Controllers cannot be provisioned. 
@@ -563,6 +579,12 @@ The default value for the field `threat_intel_mode` will change from "Alert" to 
 ### Resource: `azurerm_firewall_policy`
 
 The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The computed field `principal_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
+The computed field `tenant_id` within the `identity` block will be removed as this isn't applicable for this resource.
 
 ### Resource: `azurerm_frontdoor`
 
@@ -801,6 +823,26 @@ The field `zones` has been renamed `zone` (as this only accepts a single value) 
 ### Resource: `azurerm_machine_learning`
 
 The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
+
+### Resource `azurerm_machine_learning_compute_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_compute_instance`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_inference_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_synapse_spark`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_workspace`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 ### Resource: `azurerm_management_group`
 

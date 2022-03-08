@@ -144,14 +144,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
 			},
 
-			"metadata_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: remove in 3.0
-				Deprecated:  "use `metadata_host` instead",
-				Description: "Deprecated - replaced by `metadata_host`.",
-			},
-
 			// Client Certificate specific fields
 			"client_certificate_path": {
 				Type:        schema.TypeString,
@@ -228,14 +220,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
 			},
-
-			// TODO: v3.0 will only support MSAL; remove the `use_msal` property in v3.0
-			"use_msal": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
-			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -243,11 +227,25 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	if !features.ThreePointOhBeta() {
+		p.Schema["metadata_url"] = &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Deprecated:  "use `metadata_host` instead",
+			Description: "Deprecated - replaced by `metadata_host`.",
+		}
+
 		p.Schema["skip_credentials_validation"] = &schema.Schema{
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
 			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
+		}
+
+		p.Schema["use_msal"] = &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
+			DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
 		}
 	}
 
@@ -270,17 +268,18 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
-		// TODO: remove in 3.0
-		// note: this is inline to avoid calling out deprecations for users not setting this
-		if v := d.Get("metadata_url").(string); v != "" {
-			metadataHost = v
-		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
-			metadataHost = v
+		if !features.ThreePointOhBeta() {
+			// note: this is inline to avoid calling out deprecations for users not setting this
+			if v := d.Get("metadata_url").(string); v != "" {
+				metadataHost = v
+			} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+				metadataHost = v
+			}
 		}
 
-		useMsal := d.Get("use_msal").(bool)
-		if features.ThreePointOhBeta() {
-			useMsal = true
+		useMsal := !features.ThreePointOhBeta()
+		if !features.ThreePointOhBeta() {
+			useMsal = d.Get("use_msal").(bool)
 		}
 
 		builder := &authentication.Builder{
