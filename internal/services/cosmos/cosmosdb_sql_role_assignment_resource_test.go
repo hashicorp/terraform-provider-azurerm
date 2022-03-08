@@ -126,7 +126,6 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
   name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_name           = "acctestsqlrole%s"
   type                = "CustomRole"
   assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"]
 
@@ -134,7 +133,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, uuid.New().String(), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, uuid.New().String())
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) basic(data acceptance.TestData) string {

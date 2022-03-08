@@ -77,7 +77,6 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
 		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
