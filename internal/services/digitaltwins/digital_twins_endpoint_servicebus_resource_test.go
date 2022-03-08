@@ -133,8 +133,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[2]d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
@@ -188,8 +188,8 @@ resource "azurerm_servicebus_namespace" "test_alt" {
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
@@ -224,8 +224,8 @@ resource "azurerm_servicebus_namespace" "test_alt" {
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
