@@ -263,6 +263,42 @@ func validContentTypes() []string {
 	}
 }
 
+func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
+	routeConfigurationOverride := false
+	responseHeader := false
+	requestHeader := false
+	urlRewrite := false
+	urlRedirect := false
+
+	for _, rule := range actions {
+		if !routeConfigurationOverride {
+			_, routeConfigurationOverride = rule.AsDeliveryRuleRouteConfigurationOverrideAction()
+		}
+
+		if !responseHeader {
+			_, responseHeader = rule.AsDeliveryRuleResponseHeaderAction()
+		}
+
+		if !requestHeader {
+			_, requestHeader = rule.AsDeliveryRuleRequestHeaderAction()
+		}
+
+		if !urlRewrite {
+			_, urlRewrite = rule.AsURLRewriteAction()
+		}
+
+		if !urlRedirect {
+			_, urlRedirect = rule.AsURLRedirectAction()
+		}
+	}
+
+	if urlRedirect && urlRewrite {
+		return fmt.Errorf("the %q and the %q are both present in the %q block", "url_redirect_action", "url_rewrite_action", "actions")
+	}
+
+	return nil
+}
+
 func SchemaFrontdoorOperator() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,

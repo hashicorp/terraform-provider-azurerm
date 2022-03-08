@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -790,13 +791,18 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("error expanding %q: %+v", "actions", err)
+		return fmt.Errorf("expanding %q: %+v", "actions", err)
+	}
+
+	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding %q: %+v", "conditions", err)
 	}
 
 	props := track1.Rule{
 		RuleProperties: &track1.RuleProperties{
 			Actions:                 &actions,
-			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
+			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
 			RuleSetName:             &ruleSetId.RuleSetName,
 			Order:                   utils.Int32(int32(d.Get("order").(int))),
@@ -854,10 +860,11 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		d.Set("actions", actions)
 
-		// TODO: Fix this
-		// if err := d.Set("conditions", flattenRuleDeliveryRuleConditionArray(props.Conditions)); err != nil {
-		// 	return fmt.Errorf("setting `conditions`: %+v", err)
-		// }
+		conditions, err := flattenFrontdoorDeliveryRuleConditions(props.Conditions)
+		if err != nil {
+			return fmt.Errorf("setting %q: %+v", "conditions", err)
+		}
+		d.Set("conditions", conditions)
 	}
 
 	return nil
@@ -875,14 +882,19 @@ func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("error expanding %q: %+v", "actions", err)
+		return fmt.Errorf("expanding %q: %+v", "actions", err)
+	}
+
+	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding %q: %+v", "conditions", err)
 	}
 
 	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	props := track1.RuleUpdateParameters{
 		RuleUpdatePropertiesParameters: &track1.RuleUpdatePropertiesParameters{
 			Actions:                 &actions,
-			Conditions:              expandRuleDeliveryRuleConditionArray(d.Get("conditions").([]interface{})),
+			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
 			Order:                   utils.Int32(int32(d.Get("order").(int))),
 		},
@@ -921,15 +933,6 @@ func resourceFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandRuleDeliveryRuleConditionArray(input []interface{}) *[]track1.BasicDeliveryRuleCondition {
-	results := make([]track1.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 {
-		return &results
-	}
-
-	return &results
-}
-
 func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeliveryRuleAction, error) {
 	results := make([]track1.BasicDeliveryRuleAction, 0)
 
@@ -954,6 +957,387 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 
 		results = append(results, *expanded...)
 	}
+
+	// validate action block
+	if err := validateActionsBlock(results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicDeliveryRuleCondition, error) {
+	results := make([]track1.BasicDeliveryRuleCondition, 0)
+
+	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error)
+	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
+
+	// TODO: Add validation for this error once I figure out what that validation should be
+	// Error: creating Frontdoor Rule: (Rule Name "jclinerule" / Rule Set Name "jclineruleset" / Profile Name "jcline-profile" / Resource Group "jcline-afdx-profile"): cdn.RulesClient#Create: Failure sending request: StatusCode=400 -- Original Error: Code="BadRequest" Message="Parameters specified for RequestMethod condition are invalid.; \nProperty 'Rule.Conditions[2].Parameters.Selector' is required but it was not set"
+
+	conditions := map[string]expandfunc{
+		m.ClientPort.ConfigName:       frontdoorruleconditions.ExpandFrontdoorClientPortCondition,
+		m.Cookies.ConfigName:          frontdoorruleconditions.ExpandFrontdoorCookiesCondition,
+		m.HostName.ConfigName:         frontdoorruleconditions.ExpandFrontdoorHostNameCondition,
+		m.HttpVersion.ConfigName:      frontdoorruleconditions.ExpandFrontdoorHttpVersionCondition,
+		m.IsDevice.ConfigName:         frontdoorruleconditions.ExpandFrontdoorIsDeviceCondition,
+		m.PostArgs.ConfigName:         frontdoorruleconditions.ExpandFrontdoorPostArgsCondition,
+		m.QueryString.ConfigName:      frontdoorruleconditions.ExpandFrontdoorQueryStringCondition,
+		m.RemoteAddress.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRemoteAddressCondition,
+		m.RequestBody.ConfigName:      frontdoorruleconditions.ExpandFrontdoorRequestBodyCondition,
+		m.RequestHeader.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestHeaderCondition,
+		m.RequestMethod.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestMethodCondition,
+		m.RequestScheme.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestSchemeCondition,
+		m.RequestUri.ConfigName:       frontdoorruleconditions.ExpandFrontdoorRequestUriCondition,
+		m.ServerPort.ConfigName:       frontdoorruleconditions.ExpandFrontdoorServerPortCondition,
+		m.SocketAddress.ConfigName:    frontdoorruleconditions.ExpandFrontdoorSocketAddressCondition,
+		m.SslProtocol.ConfigName:      frontdoorruleconditions.ExpandFrontdoorSslProtocolCondition,
+		m.UrlFileExtension.ConfigName: frontdoorruleconditions.ExpandFrontdoorUrlFileExtensionCondition,
+		m.UrlFilename.ConfigName:      frontdoorruleconditions.ExpandFrontdoorUrlFileNameCondition,
+		m.UrlPath.ConfigName:          frontdoorruleconditions.ExpandFrontdoorUrlPathCondition,
+	}
+
+	// conditions := map[string]expandfunc{
+	// 	"client_port_condition":        frontdoorruleconditions.ExpandFrontdoorClientPortCondition,
+	// 	"cookies_condition":            frontdoorruleconditions.ExpandFrontdoorCookiesCondition,
+	// 	"host_name_condition":          frontdoorruleconditions.ExpandFrontdoorHostNameCondition,
+	// 	"http_version_condition":       frontdoorruleconditions.ExpandFrontdoorHttpVersionCondition,
+	// 	"is_device_condition":          frontdoorruleconditions.ExpandFrontdoorIsDeviceCondition,
+	// 	"postargs_condition":           frontdoorruleconditions.ExpandFrontdoorPostArgsCondition,
+	// 	"query_string_condition":       frontdoorruleconditions.ExpandFrontdoorQueryStringCondition,
+	// 	"remote_address_condition":     frontdoorruleconditions.ExpandFrontdoorRemoteAddressCondition,
+	// 	"request_body_condition":       frontdoorruleconditions.ExpandFrontdoorRequestBodyCondition,
+	// 	"request_header_condition":     frontdoorruleconditions.ExpandFrontdoorRequestHeaderCondition,
+	// 	"request_method_condition":     frontdoorruleconditions.ExpandFrontdoorRequestMethodCondition,
+	// 	"request_scheme_condition":     frontdoorruleconditions.ExpandFrontdoorRequestSchemeCondition,
+	// 	"request_uri_condition":        frontdoorruleconditions.ExpandFrontdoorRequestUriCondition,
+	// 	"server_port_condition":        frontdoorruleconditions.ExpandFrontdoorServerPortCondition,
+	// 	"socket_address_condition":     frontdoorruleconditions.ExpandFrontdoorSocketAddressCondition,
+	// 	"ssl_protocol_condition":       frontdoorruleconditions.ExpandFrontdoorSslProtocolCondition,
+	// 	"url_file_extension_condition": frontdoorruleconditions.ExpandFrontdoorUrlFileExtensionCondition,
+	// 	"url_filename_condition":       frontdoorruleconditions.ExpandFrontdoorUrlFileNameCondition,
+	// 	"url_path_condition":           frontdoorruleconditions.ExpandFrontdoorUrlPathCondition,
+	// }
+
+	basicDeliveryRuleCondition := input[0].(map[string]interface{})
+
+	for conditionName, expand := range conditions {
+		raw := basicDeliveryRuleCondition[conditionName].([]interface{})
+		expanded, err := expand(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, *expanded...)
+	}
+
+	return results, nil
+}
+
+func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCondition) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
+
+	for _, BasicDeliveryRuleCondition := range *input {
+		result := make(map[string]interface{})
+		foundRule := false
+
+		// Client Port
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleClientPortCondition(); ok {
+			foundRule = true
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorClientPortCondition(condition, m.ClientPort)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.ClientPort.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Cookies
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorCookiesCondition(condition, m.Cookies)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.Cookies.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Host Name
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHostNameCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorHostNameCondition(condition, m.HostName)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.HostName.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// HTTP Version
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorHttpVersionCondition(condition, m.HttpVersion)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.HttpVersion.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Is Device
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorIsDeviceCondition(condition, m.IsDevice)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.IsDevice.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Post Args
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorPostArgsCondition(condition, m.PostArgs)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.PostArgs.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Query String
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorQueryStringCondition(condition, m.QueryString)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.QueryString.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Remote Address
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRemoteAddressCondition(condition, m.RemoteAddress)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RemoteAddress.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Request Body
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestBodyCondition(condition, m.RequestBody)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RequestBody.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Request Header
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestHeaderCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestHeaderCondition(condition, m.RequestHeader)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RequestHeader.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Request Method
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestMethodCondition(condition, m.RequestMethod)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RequestMethod.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Request Scheme
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestSchemeCondition(condition, m.RequestScheme)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RequestScheme.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Request URI
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestUriCondition(condition, m.RequestUri)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.RequestUri.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Server Port
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleServerPortCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorServerPortCondition(condition, m.ServerPort)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.ServerPort.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Socket Address
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSocketAddrCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorSocketAddressCondition(condition, m.SocketAddress)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.SocketAddress.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// Ssl Protocol
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSslProtocolCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorSslProtocolCondition(condition, m.SslProtocol)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.SslProtocol.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// URL File Extension
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileExtensionCondition(condition, m.UrlFileExtension)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.UrlFileExtension.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// URL Filename
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileNameCondition(condition, m.UrlFilename)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.UrlFilename.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		// URL Path
+		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); ok {
+			foundRule = true
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlPathCondition(condition, m.UrlPath)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(flattened) > 0 {
+				result[m.UrlPath.ConfigName] = flattened
+				results = append(results, result)
+			}
+		}
+
+		if !foundRule {
+			return nil, fmt.Errorf("unknown BasicDeliveryRuleAction encountered")
+		}
+	}
+
+	log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm:***************************************************")
+	log.Printf("  results == %+v", results)
+	log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n")
 
 	return results, nil
 }
@@ -1052,15 +1436,4 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 	log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n")
 
 	return results, nil
-}
-
-func expandRequiredRuleDeliveryRuleActionArray(input []interface{}) *[]track1.BasicDeliveryRuleAction {
-	results := make([]track1.BasicDeliveryRuleAction, 0)
-	if len(input) == 0 {
-		return nil
-	}
-
-	// results := expandRuleDeliveryRuleActions(input)
-
-	return &results
 }
