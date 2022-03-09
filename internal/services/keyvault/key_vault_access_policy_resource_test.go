@@ -208,7 +208,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 
   secret_permissions = [
     "Get",
-    "set",
+    "Set",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id
