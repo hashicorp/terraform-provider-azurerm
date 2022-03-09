@@ -87,11 +87,9 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.MinimumTLSVersionNone),
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
 							}, false),
-							Default: string(cdn.MinimumTLSVersionTLS12),
 						},
 					},
 				},
@@ -114,11 +112,9 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.MinimumTLSVersionNone),
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
 							}, false),
-							Default: string(cdn.MinimumTLSVersionTLS12),
 						},
 					},
 				},
@@ -404,7 +400,11 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
-		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
+		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
+	}
+
+	if v := raw["tls_version"].(string); v != "" {
+		output.MinimumTLSVersion = cdn.MinimumTLSVersion(v)
 	}
 
 	return output
@@ -447,7 +447,11 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
 		ProtocolType:      cdn.ProtocolTypeServerNameIndication,
-		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
+		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
+	}
+
+	if v := raw["tls_version"].(string); v != "" {
+		output.MinimumTLSVersion = cdn.MinimumTLSVersion(v)
 	}
 
 	return output, nil
@@ -459,11 +463,16 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 		certificateType = string(params.CertificateType)
 	}
 
+	tlsVersion := ""
+	if input.MinimumTLSVersion != cdn.MinimumTLSVersionNone {
+		tlsVersion = string(input.MinimumTLSVersion)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"certificate_type": certificateType,
 			"protocol_type":    string(input.ProtocolType),
-			"tls_version":      string(input.MinimumTLSVersion),
+			"tls_version":      tlsVersion,
 		},
 	}
 }
@@ -521,10 +530,15 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 		certIdLiteral = certId.VersionlessID()
 	}
 
+	tlsVersion := ""
+	if input.MinimumTLSVersion != cdn.MinimumTLSVersionNone {
+		tlsVersion = string(input.MinimumTLSVersion)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"key_vault_certificate_id": certIdLiteral,
-			"tls_version":              string(input.MinimumTLSVersion),
+			"tls_version":              tlsVersion,
 		},
 	}, nil
 }

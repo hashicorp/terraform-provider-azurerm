@@ -236,6 +236,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   cdn_managed_https {
     certificate_type = "Dedicated"
     protocol_type    = "ServerNameIndication"
+    tls_version      = "TLS12"
   }
 }
 `, template, data.RandomIntOfLength(8))
@@ -318,6 +319,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   user_managed_https {
     key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+    tls_version              = "TLS12"
   }
 }
 `, template, data.RandomIntOfLength(8), r.CertificateP12)
