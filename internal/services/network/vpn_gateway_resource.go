@@ -330,7 +330,7 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
-	
+
 	return resourceVPNGatewayRead(d, meta)
 }
 
