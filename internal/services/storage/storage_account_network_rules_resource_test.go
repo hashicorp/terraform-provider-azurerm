@@ -151,6 +151,34 @@ func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccountNetworkRules_redeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.remove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.deploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	storageAccountName := state.Attributes["storage_account_name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -461,4 +489,54 @@ resource "azurerm_storage_account_network_rules" "test" {
   }
 }
 `, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString, data.RandomInteger)
+}
+
+func (r StorageAccountNetworkRulesResource) deploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_action = "Deny"
+  ip_rules       = ["198.1.1.0"]
+  bypass         = ["Metrics"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) remove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
