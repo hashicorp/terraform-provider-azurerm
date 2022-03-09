@@ -43,6 +43,6 @@ resource "azurerm_healthcareapis_workspace" "test" {
 data "azurerm_healthcareapis_workspace" "test" {
   name                = azurerm_healthcareapis_workspace.test.name
   resource_group_name = azurerm_healthcareapis_workspace.test.resource_group_name
-location = azurerm_healthcareapis_workspace.test.location
+  location            = azurerm_healthcareapis_workspace.test.location
 }`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
