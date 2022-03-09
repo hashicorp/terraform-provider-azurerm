@@ -398,11 +398,11 @@ func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (boo
 	}
 
 	for _, oldItem := range oldItemList {
-		if newItems[oldItem.(string)] == false {
+		if !newItems[oldItem.(string)] {
 			forceUnlinkList = append(forceUnlinkList, oldItem.(string))
 		}
 	}
-	if len(forceUnlinkList) != 0 {
+	if len(forceUnlinkList) > 0 {
 		return true, &forceUnlinkList
 	}
 	return false, nil

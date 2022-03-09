@@ -47,7 +47,7 @@ resource "azurerm_redis_enterprise_geo_database" "example" {
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.example.id}/databases/default",
-    "${azurerm_redis_enterprise_cluster.example1.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.example1.id}/databases/default"
   ]
 
   linked_database_group_nickname = "tftestGeoGroup"
@@ -76,13 +76,9 @@ The following arguments are supported:
 
 * `linked_database_id` - (Required) A list of database resources to link with this database with a maximum of 5.
 
--> **NOTE:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group.
+-> **NOTE:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
-
-* `force_unlink_database_id`  - (Optional) A list of linked database resources to be removed from an existing geo-replication group. 
-
--> **NOTE:** Only the linked databases which exists in the `linked_database_id` list can be added to this list. The corresponding database must be removed from the `linked_database_id` list when adding to the unlinked list. The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
 
 ---
 
