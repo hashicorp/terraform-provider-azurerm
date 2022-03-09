@@ -7,17 +7,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,7 +68,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.0",
 					"12.0",
-				}, true),
+				}, false),
 			},
 
 			"administrator_login": {
@@ -186,7 +182,13 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 				RequiredWith: []string{
-					"identity.0.user_assigned_identity_ids",
+					func() string {
+						if !features.ThreePointOhBeta() {
+							return "identity.0.user_assigned_identity_ids"
+						}
+
+						return "identity.0.identity_ids"
+					}(),
 				},
 			},
 
@@ -210,6 +212,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"outbound_network_restriction_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
@@ -270,9 +278,10 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:             utils.String(version),
-			AdministratorLogin:  utils.String(adminUsername),
-			PublicNetworkAccess: sql.ServerNetworkAccessFlagEnabled,
+			Version:                       utils.String(version),
+			AdministratorLogin:            utils.String(adminUsername),
+			PublicNetworkAccess:           sql.ServerNetworkAccessFlagEnabled,
+			RestrictOutboundNetworkAccess: sql.ServerNetworkAccessFlagDisabled,
 		},
 	}
 
@@ -290,6 +299,10 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
 		props.ServerProperties.PublicNetworkAccess = sql.ServerNetworkAccessFlagDisabled
+	}
+
+	if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
+		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
 	if d.HasChange("administrator_login_password") {
@@ -372,13 +385,14 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:             utils.String(version),
-			AdministratorLogin:  utils.String(adminUsername),
-			PublicNetworkAccess: sql.ServerNetworkAccessFlagEnabled,
+			Version:                       utils.String(version),
+			AdministratorLogin:            utils.String(adminUsername),
+			PublicNetworkAccess:           sql.ServerNetworkAccessFlagEnabled,
+			RestrictOutboundNetworkAccess: sql.ServerNetworkAccessFlagDisabled,
 		},
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
+	if ok := d.HasChange("identity"); ok {
 		expandedIdentity, err := expandSqlServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
@@ -392,6 +406,10 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
 		props.ServerProperties.PublicNetworkAccess = sql.ServerNetworkAccessFlagDisabled
+	}
+
+	if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
+		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
 	if d.HasChange("administrator_login_password") {
@@ -539,6 +557,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
+		d.Set("outbound_network_restriction_enabled", props.RestrictOutboundNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		primaryUserAssignedIdentityID := ""
 		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
 			parsedPrimaryUserAssignedIdentityID, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.PrimaryUserAssignedIdentityID)

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// NOTE: we intentionally don't have an Optional & Computed here for behavioural consistency.
+
 // NOTE: there's two different types of SystemAssignedUserAssignedIdentity supported by Azure:
 // The first (List) represents the IdentityIDs as a List of Strings
 // The other (Map) represents the IdentityIDs as a Map of String : Object (containing Client/PrincipalID)

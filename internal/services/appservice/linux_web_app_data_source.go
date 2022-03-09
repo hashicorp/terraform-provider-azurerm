@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -32,7 +32,6 @@ type LinuxWebAppDataSourceModel struct {
 	ClientCertMode                string                     `tfschema:"client_certificate_mode"`
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
-	Identity                      []helpers.Identity         `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	MetaData                      map[string]string          `tfschema:"app_metadata"`
@@ -68,13 +67,13 @@ func (r LinuxWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"app_metadata": {
 			Type:     pluginsdk.TypeMap,
@@ -134,7 +133,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": helpers.IdentitySchemaComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"key_vault_reference_identity_id": {
 			Type:     pluginsdk.TypeString,
@@ -293,8 +292,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
-			webApp.Identity = helpers.FlattenIdentity(existing.Identity)
-
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
@@ -307,7 +304,19 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&webApp)
+			if err := metadata.Encode(&webApp); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(existing.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }

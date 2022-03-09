@@ -21,7 +21,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
 	// Set the expiration times
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	expirationTime := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -39,7 +39,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
 	// Set the expiration times
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	expirationTimeBasic := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
 	expirationTimeComplete := timeNow.AddDate(0, 0, 2).Format(time.RFC3339)
 

@@ -44,6 +44,36 @@ func TestAccCosmosDbCassandraTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbCassandraTable_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
+	r := CosmosDBCassandraTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbCassandraTable_autoScaleSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
+	r := CosmosDBCassandraTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoScaleSetting(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbCassandraTable_analyticalStorageTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
 	r := CosmosDBCassandraTableResource{}
@@ -66,6 +96,65 @@ func (CosmosDBCassandraTableResource) basic(data acceptance.TestData) string {
 resource "azurerm_cosmosdb_cassandra_table" "test" {
   name                  = "acctest-CCASST-%[2]d"
   cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
+
+  schema {
+    column {
+      name = "test1"
+      type = "ascii"
+    }
+
+    column {
+      name = "test2"
+      type = "int"
+    }
+
+    partition_key {
+      name = "test1"
+    }
+  }
+}
+`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosDBCassandraTableResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_cassandra_table" "test" {
+  name                  = "acctest-CCASST-%[2]d"
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
+  default_ttl           = 100
+  throughput            = 400
+
+  schema {
+    column {
+      name = "test1"
+      type = "ascii"
+    }
+
+    column {
+      name = "test2"
+      type = "int"
+    }
+
+    partition_key {
+      name = "test1"
+    }
+  }
+}
+`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosDBCassandraTableResource) autoScaleSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_cassandra_table" "test" {
+  name                  = "acctest-CCASST-%[2]d"
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
+  autoscale_settings {
+    max_throughput = 4000
+  }
 
   schema {
     column {

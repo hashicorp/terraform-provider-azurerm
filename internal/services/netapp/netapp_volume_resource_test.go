@@ -142,7 +142,6 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("100"),
 			),
 		},
 		data.ImportStep(),
@@ -155,33 +154,26 @@ func TestAccNetAppVolume_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.completePoolQosManual(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.completePoolQosManualNewThroughput(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
 			),
 		},
 		data.ImportStep(),
@@ -296,6 +288,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv4.1"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -340,6 +333,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   data_protection_snapshot_policy {
     snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
@@ -364,6 +358,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -386,6 +381,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  throughput_in_mibps        = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -421,6 +417,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -452,6 +449,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
+  throughput_in_mibps              = 3.2
 
   export_policy_rule {
     rule_index        = 1
@@ -480,6 +478,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  throughput_in_mibps        = 1.6
 
   export_policy_rule {
     rule_index        = 1
@@ -506,6 +505,7 @@ resource "azurerm_netapp_volume" "import" {
   service_level       = azurerm_netapp_volume.test.service_level
   subnet_id           = azurerm_netapp_volume.test.subnet_id
   storage_quota_in_gb = azurerm_netapp_volume.test.storage_quota_in_gb
+  throughput_in_mibps = azurerm_netapp_volume.test.throughput_in_mibps
 }
 `, r.basic(data))
 }
@@ -525,7 +525,6 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 100
 
   export_policy_rule {
     rule_index        = 1
@@ -556,6 +555,95 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) completePoolQosManual(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  service_level       = "Standard"
+  volume_path         = "my-unique-file-path-%d"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
+  }
+
+  export_policy_rule {
+    rule_index        = 2
+    allowed_clients   = ["1.2.5.0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = true
+    unix_read_write   = false
+  }
+
+  export_policy_rule {
+    rule_index        = 3
+    allowed_clients   = ["1.2.6.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = true
+    unix_read_write   = false
+  }
+
+  tags = {
+    "FoO" = "BaR"
+  }
+}
+`, r.templatePoolQosManual(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) completePoolQosManualNewThroughput(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  service_level       = "Standard"
+  volume_path         = "my-unique-file-path-%d"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  storage_quota_in_gb = 101
+  throughput_in_mibps = 65
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
+  }
+
+  export_policy_rule {
+    rule_index        = 2
+    allowed_clients   = ["1.2.5.0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = true
+    unix_read_write   = false
+  }
+
+  tags = {
+    "FoO" = "BaR",
+    "bAr" = "fOo"
+  }
+}
+`, r.templatePoolQosManual(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) updateSubnet(data acceptance.TestData) string {
@@ -596,6 +684,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.updated.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.6
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -672,6 +761,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   account_name        = azurerm_netapp_account.test_secondary.name
   service_level       = "Standard"
   size_in_tb          = 4
+  qos_type            = "Manual"
 }
 `, r.template(data), data.RandomInteger, "germanywestcentral")
 }
@@ -723,6 +813,58 @@ resource "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
   size_in_tb          = 4
+}
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.6.2.0/24"
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
 }
 `, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

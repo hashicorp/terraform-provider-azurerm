@@ -11,16 +11,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,567 +68,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(3 * time.Hour),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementName(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"publisher_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
-			},
-
-			"publisher_email": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
-			},
-
-			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApimSkuName(),
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(apimanagement.ApimIdentityTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.ApimIdentityTypeNone),
-								string(apimanagement.ApimIdentityTypeSystemAssigned),
-								string(apimanagement.ApimIdentityTypeUserAssigned),
-								string(apimanagement.ApimIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
-
-			"virtual_network_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(apimanagement.VirtualNetworkTypeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.VirtualNetworkTypeNone),
-					string(apimanagement.VirtualNetworkTypeExternal),
-					string(apimanagement.VirtualNetworkTypeInternal),
-				}, false),
-			},
-
-			"virtual_network_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"subnet_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"client_certificate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"gateway_disabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"min_api_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"notification_sender_email": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"additional_location": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"location": location.SchemaWithoutForceNew(),
-
-						"virtual_network_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"subnet_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-							},
-						},
-
-						"capacity": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IntBetween(0, 12),
-						},
-
-						"zones": azure.SchemaZones(),
-
-						"gateway_regional_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"public_ip_addresses": {
-							Type: pluginsdk.TypeList,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Computed: true,
-						},
-
-						"public_ip_address_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						"private_ip_addresses": {
-							Type: pluginsdk.TypeList,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"encoded_certificate": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"certificate_password": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-
-						"store_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.StoreNameCertificateAuthority),
-								string(apimanagement.StoreNameRoot),
-							}, false),
-						},
-
-						"expiry": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"subject": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"thumbprint": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"protocols": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enable_http2": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"security": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enable_backend_ssl30": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"enable_backend_tls10": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"enable_backend_tls11": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_ssl30": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_tls10": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_tls11": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						// TODO: Remove in v3.0
-						"enable_triple_des_ciphers": {
-							Type:          pluginsdk.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
-							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
-						},
-
-						"triple_des_ciphers_enabled": {
-							Type:          pluginsdk.TypeBool,
-							Optional:      true,
-							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
-							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
-						},
-
-						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"hostname_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"management": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"portal": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"developer_portal": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"proxy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameProxySchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"scm": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-					},
-				},
-			},
-
-			//lintignore:XS003
-			"policy": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"xml_content": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ConflictsWith:    []string{"policy.0.xml_link"},
-							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
-						},
-
-						"xml_link": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"policy.0.xml_content"},
-						},
-					},
-				},
-			},
-
-			"sign_in": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"sign_up": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-
-						"terms_of_service": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"consent_required": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"text": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"zones": azure.SchemaZones(),
-
-			"gateway_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"management_api_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"gateway_regional_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"public_ip_address_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"developer_portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"scm_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tenant_access": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"primary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"secondary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceApiManagementSchema(),
 
 		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
@@ -643,6 +85,560 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			}),
 		),
 	}
+}
+
+func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": schemaz.SchemaApiManagementName(),
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"publisher_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApiManagementServicePublisherName,
+		},
+
+		"publisher_email": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
+		},
+
+		"sku_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApimSkuName(),
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"virtual_network_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(apimanagement.VirtualNetworkTypeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(apimanagement.VirtualNetworkTypeNone),
+				string(apimanagement.VirtualNetworkTypeExternal),
+				string(apimanagement.VirtualNetworkTypeInternal),
+			}, false),
+		},
+
+		"virtual_network_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+				},
+			},
+		},
+
+		"client_certificate_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"gateway_disabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"min_api_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"notification_sender_email": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"additional_location": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"location": commonschema.LocationWithoutForceNew(),
+
+					"virtual_network_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
+
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 12),
+					},
+
+					"zones": func() *schema.Schema {
+						if !features.ThreePointOhBeta() {
+							return azure.SchemaZones()
+						}
+
+						return commonschema.ZonesMultipleOptionalForceNew()
+					}(),
+
+					"gateway_regional_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"public_ip_addresses": {
+						Type: pluginsdk.TypeList,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Computed: true,
+					},
+
+					"public_ip_address_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"private_ip_addresses": {
+						Type: pluginsdk.TypeList,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"certificate": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 10,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"encoded_certificate": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+
+					"certificate_password": {
+						Type:      pluginsdk.TypeString,
+						Optional:  true,
+						Sensitive: true,
+					},
+
+					"store_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(apimanagement.StoreNameCertificateAuthority),
+							string(apimanagement.StoreNameRoot),
+						}, false),
+					},
+
+					"expiry": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"subject": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"thumbprint": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"protocols": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enable_http2": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+						// TODO 4.0: change this from enable_* to *_enabled
+					},
+				},
+			},
+		},
+
+		"security": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_ssl30": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_tls10": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_tls11": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_ssl30": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_tls10": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_tls11": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"triple_des_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Computed: !features.ThreePointOhBeta(),
+						ConflictsWith: func() []string {
+							if !features.ThreePointOhBeta() {
+								return []string{"security.0.enable_triple_des_ciphers"}
+							}
+							return []string{}
+						}(),
+					},
+
+					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"hostname_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"management": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"portal": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"developer_portal": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"proxy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameProxySchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"scm": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+				},
+			},
+		},
+
+		//lintignore:XS003
+		"policy": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"xml_content": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         true,
+						ConflictsWith:    []string{"policy.0.xml_link"},
+						DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
+					},
+
+					"xml_link": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ConflictsWith: []string{"policy.0.xml_content"},
+					},
+				},
+			},
+		},
+
+		"sign_in": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"sign_up": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"terms_of_service": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"consent_required": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"text": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"zones": func() *schema.Schema {
+			if !features.ThreePointOhBeta() {
+				return azure.SchemaZones()
+			}
+
+			return commonschema.ZonesMultipleOptionalForceNew()
+		}(),
+		"gateway_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"management_api_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"gateway_regional_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"public_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"public_ip_address_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"private_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"portal_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"developer_portal_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"scm_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tenant_access": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"primary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"secondary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		s := out["security"].Elem.(*pluginsdk.Resource)
+		s.Schema["enable_triple_des_ciphers"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
+			Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
+		}
+	}
+	return out
 }
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -709,7 +705,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
+	identity, err := expandIdentity(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -768,15 +764,29 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if v := d.Get("zones").([]interface{}); len(v) > 0 {
-		if sku.Name != apimanagement.SkuTypePremium {
-			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-		}
+	if features.ThreePointOhBeta() {
+		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
+			if sku.Name != apimanagement.SkuTypePremium {
+				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			}
 
-		if publicIpAddressId == "" {
-			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			if publicIpAddressId == "" {
+				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			}
+			zones := zones.Expand(v)
+			properties.Zones = &zones
 		}
-		properties.Zones = azure.ExpandZones(v)
+	} else {
+		if v := d.Get("zones").([]interface{}); len(v) > 0 {
+			if sku.Name != apimanagement.SkuTypePremium {
+				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			}
+
+			if publicIpAddressId == "" {
+				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			}
+			properties.Zones = azure.ExpandZones(v)
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
@@ -953,9 +963,9 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -1021,7 +1031,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", azure.FlattenZones(resp.Zones))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -1392,6 +1402,15 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
+		if features.ThreePointOhBeta() {
+			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			if len(zones) > 0 {
+				additionalLocation.Zones = &zones
+			}
+		} else {
+			additionalLocation.Zones = azure.ExpandZones(config["zones"].([]interface{}))
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
@@ -1405,110 +1424,89 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
-		if prop.Location != nil {
-			output["location"] = azure.NormalizeLocation(*prop.Location)
-		}
-
+		var publicIPAddresses []string
 		if prop.PublicIPAddresses != nil {
-			output["public_ip_addresses"] = *prop.PublicIPAddresses
+			publicIPAddresses = *prop.PublicIPAddresses
 		}
 
+		publicIpAddressId := ""
 		if prop.PublicIPAddressID != nil {
-			output["public_ip_address_id"] = *prop.PublicIPAddressID
+			publicIpAddressId = *prop.PublicIPAddressID
 		}
 
+		var privateIPAddresses []string
 		if prop.PrivateIPAddresses != nil {
-			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+			privateIPAddresses = *prop.PrivateIPAddresses
 		}
 
+		var capacity *int32
 		if prop.Sku.Capacity != nil {
-			output["capacity"] = *prop.Sku.Capacity
+			capacity = prop.Sku.Capacity
 		}
 
-		if prop.Zones != nil {
-			output["zones"] = azure.FlattenZones(prop.Zones)
-		}
-
+		gatewayRegionalUrl := ""
 		if prop.GatewayRegionalURL != nil {
-			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
-		output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"capacity":                      capacity,
+			"gateway_regional_url":          gatewayRegionalUrl,
+			"location":                      location.NormalizeNilable(prop.Location),
+			"private_ip_addresses":          privateIPAddresses,
+			"public_ip_address_id":          publicIpAddressId,
+			"public_ip_addresses":           publicIPAddresses,
+			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
+			"zones":                         zones.Flatten(prop.Zones),
+		})
 	}
 
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.ServiceIdentity, error) {
-	if len(vs) == 0 {
-		return &apimanagement.ServiceIdentity{
-			Type: apimanagement.ApimIdentityTypeNone,
-		}, nil
+func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-	managedServiceIdentity := apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(v["type"].(string)),
+	out := apimanagement.ServiceIdentity{
+		Type: apimanagement.ApimIdentityType(string(expanded.Type)),
 	}
-
-	var identityIdSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if managedServiceIdentity.Type == apimanagement.ApimIdentityTypeUserAssigned || managedServiceIdentity.Type == apimanagement.ApimIdentityTypeSystemAssignedUserAssigned {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*apimanagement.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &apimanagement.UserIdentityProperties{
+				// intentionally empty
+			}
 		}
-
-		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
-		}
-
-		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
-
-	return &managedServiceIdentity, nil
+	return &out, nil
 }
 
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
+func flattenIdentity(input *apimanagement.ServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
@@ -1564,10 +1562,12 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
-		// TODO: Remove and simplify after deprecation
-		if v, exists := v["enable_triple_des_ciphers"]; exists {
-			tripleDesCiphers = v.(bool)
+		if !features.ThreePointOhBeta() {
+			if v, exists := v["enable_triple_des_ciphers"]; exists {
+				tripleDesCiphers = v.(bool)
+			}
 		}
+
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
@@ -1684,7 +1684,6 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 	if !skuIsConsumption {
 		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
-		output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
 		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
@@ -1694,6 +1693,9 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
 		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
+		if !features.ThreePointOhBeta() {
+			output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"]
+		}
 	}
 
 	return []interface{}{output}

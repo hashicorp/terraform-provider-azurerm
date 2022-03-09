@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var _ json.Marshaler = &UserAssignedList{}
 
 type UserAssignedList struct {
-	Type        Type     `json:"type"`
-	IdentityIds []string `json:"userAssignedIdentities"`
+	Type        Type     `json:"type" tfschema:"type"`
+	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
 func (s *UserAssignedList) MarshalJSON() ([]byte, error) {

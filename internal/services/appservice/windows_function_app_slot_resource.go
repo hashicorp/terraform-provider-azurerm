@@ -9,10 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,7 +42,7 @@ type WindowsFunctionAppSlotModel struct {
 	FunctionExtensionsVersion     string                                     `tfschema:"functions_extension_version"`
 	ForceDisableContentShare      bool                                       `tfschema:"content_share_force_disabled"`
 	HttpsOnly                     bool                                       `tfschema:"https_only"`
-	Identity                      []helpers.Identity                         `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                                     `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
@@ -192,7 +194,15 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description: "Can the Function App Slot only be accessed via HTTPS?",
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
@@ -383,18 +393,27 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+				}
+				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: functionApp.Location,
 				Tags:     tags.FromTypedObject(functionAppSlot.Tags),
 				Kind:     utils.String("functionapp"),
-				Identity: helpers.ExpandIdentity(functionAppSlot.Identity),
+				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:         utils.String(servicePlanId.ID()),
 					Enabled:              utils.Bool(functionAppSlot.Enabled),
@@ -404,6 +423,10 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)),
 				},
+			}
+
+			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -520,17 +543,14 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := WindowsFunctionAppSlotModel{
-				Name:                 id.SlotName,
-				FunctionAppID:        parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:              utils.NormaliseNilableBool(functionAppSlot.Enabled),
-				ClientCertMode:       string(functionAppSlot.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                 tags.ToTypedObject(functionAppSlot.Tags),
-				Kind:                 utils.NormalizeNilableString(functionAppSlot.Kind),
-			}
-
-			if identity := helpers.FlattenIdentity(functionAppSlot.Identity); identity != nil {
-				state.Identity = identity
+				Name:                        id.SlotName,
+				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+				Enabled:                     utils.NormaliseNilableBool(functionAppSlot.Enabled),
+				ClientCertMode:              string(functionAppSlot.ClientCertMode),
+				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
+				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -544,7 +564,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
 
-			state.unpackWindowsFunctionAppSettings(appSettingsResp)
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -559,7 +579,19 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -625,7 +657,15 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -713,7 +753,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
+func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
 	if input.Properties == nil {
 		return
 	}
@@ -729,7 +769,15 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_CONTENTSHARE":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if m.SiteConfig[0].ApplicationStack != nil {

@@ -218,7 +218,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -227,7 +226,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -236,12 +235,12 @@ resource "azurerm_key_vault_access_policy" "client" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 
@@ -291,7 +290,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -300,7 +298,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = azurerm_kusto_cluster.test.identity.0.tenant_id
   object_id    = azurerm_kusto_cluster.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -309,12 +307,12 @@ resource "azurerm_key_vault_access_policy" "client" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 

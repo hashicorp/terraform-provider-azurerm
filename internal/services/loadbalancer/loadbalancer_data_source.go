@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -31,9 +32,9 @@ func dataSourceArmLoadBalancer() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -75,7 +76,7 @@ func dataSourceArmLoadBalancer() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"zones": azure.SchemaZonesComputed(),
+						"zones": commonschema.ZonesMultipleComputed(),
 
 						"id": {
 							Type:     pluginsdk.TypeString,
@@ -98,7 +99,7 @@ func dataSourceArmLoadBalancer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -127,11 +128,11 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	privateIpAddress := ""
 	privateIpAddresses := make([]string, 0)
+	frontendIpConfigurations := make([]interface{}, 0)
+
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
-			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)); err != nil {
-				return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
-			}
+			frontendIpConfigurations = flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)
 
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
@@ -146,6 +147,10 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 	}
+
+	if err := d.Set("frontend_ip_configuration", frontendIpConfigurations); err != nil {
+		return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
+	}
 	d.Set("private_ip_address", privateIpAddress)
 	d.Set("private_ip_addresses", privateIpAddresses)
 
@@ -159,42 +164,51 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 	}
 
 	for _, config := range *ipConfigs {
-		ipConfig := make(map[string]interface{})
+		name := ""
 		if config.Name != nil {
-			ipConfig["name"] = *config.Name
+			name = *config.Name
 		}
 
+		id := ""
 		if config.ID != nil {
-			ipConfig["id"] = *config.ID
+			id = *config.ID
 		}
 
-		zones := make([]string, 0)
-		if zs := config.Zones; zs != nil {
-			zones = *zs
-		}
-		ipConfig["zones"] = zones
-
+		privateIpAddress := ""
+		privateIpAddressAllocation := ""
+		privateIpAddressVersion := ""
+		publicIpAddressId := ""
+		subnetId := ""
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
-			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
+			privateIpAddressAllocation = string(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil && subnet.ID != nil {
-				ipConfig["subnet_id"] = *subnet.ID
+				subnetId = *subnet.ID
 			}
 
 			if pip := props.PrivateIPAddress; pip != nil {
-				ipConfig["private_ip_address"] = *pip
+				privateIpAddress = *pip
 			}
 
 			if props.PrivateIPAddressVersion != "" {
-				ipConfig["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
+				privateIpAddressVersion = string(props.PrivateIPAddressVersion)
 			}
 
 			if pip := props.PublicIPAddress; pip != nil && pip.ID != nil {
-				ipConfig["public_ip_address_id"] = *pip.ID
+				publicIpAddressId = *pip.ID
 			}
 		}
 
-		result = append(result, ipConfig)
+		result = append(result, map[string]interface{}{
+			"id":                            id,
+			"name":                          name,
+			"private_ip_address":            privateIpAddress,
+			"private_ip_address_allocation": privateIpAddressAllocation,
+			"private_ip_address_version":    privateIpAddressVersion,
+			"public_ip_address_id":          publicIpAddressId,
+			"subnet_id":                     subnetId,
+			"zones":                         zones.Flatten(config.Zones),
+		})
 	}
 	return result
 }

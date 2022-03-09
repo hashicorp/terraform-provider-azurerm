@@ -7,10 +7,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -59,6 +59,7 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_calling": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

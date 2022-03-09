@@ -330,7 +330,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "acctestRoute"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   disable_bgp_route_propagation = true
@@ -357,7 +357,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -422,13 +422,13 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   route {
     name           = "route2"
     address_prefix = "10.2.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -453,7 +453,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   tags = {
@@ -483,7 +483,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   tags = {

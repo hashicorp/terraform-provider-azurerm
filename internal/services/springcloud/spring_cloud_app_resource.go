@@ -8,12 +8,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -57,6 +59,48 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 
 			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
 			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"custom_persistent_disk": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"mount_path": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"share_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"mount_options": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"read_only_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
 
 			"is_public": {
 				Type:     pluginsdk.TypeBool,
@@ -119,25 +163,21 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("service_name").(string)
-
-	serviceResp, err := servicesClient.Get(ctx, resourceGroup, serviceName)
+	id := parse.NewSpringCloudAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
+	serviceResp, err := servicesClient.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("unable to retrieve %q: %+v", id, err)
 	}
 
-	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID()
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_app", resourceId)
+			return tf.ImportAsExistsError("azurerm_spring_cloud_app", id.ID())
 		}
 	}
 
@@ -150,30 +190,31 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: serviceResp.Location,
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:            utils.Bool(d.Get("is_public").(bool)),
+			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:                utils.Bool(d.Get("is_public").(bool)),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
-		return fmt.Errorf("creating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	// HTTPSOnly and PersistentDisk could only be set by update
 	app.Properties.HTTPSOnly = utils.Bool(d.Get("https_only").(bool))
 	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
-	future, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
+	future, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
-		return fmt.Errorf("update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("update %q: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 	return resourceSpringCloudAppRead(d, meta)
 }
 
@@ -195,10 +236,11 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	app := appplatform.AppResource{
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:            utils.Bool(d.Get("is_public").(bool)),
-			HTTPSOnly:         utils.Bool(d.Get("https_only").(bool)),
-			PersistentDisk:    expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:                utils.Bool(d.Get("is_public").(bool)),
+			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
+			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -250,6 +292,9 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
+		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
+		}
 	}
 
 	return nil
@@ -300,6 +345,24 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 	}
 }
 
+func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.SpringCloudAppId) *[]appplatform.CustomPersistentDiskResource {
+	results := make([]appplatform.CustomPersistentDiskResource, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, appplatform.CustomPersistentDiskResource{
+			StorageID: utils.String(parse.NewSpringCloudStorageID(id.SubscriptionId, id.ResourceGroup, id.SpringName, v["storage_name"].(string)).ID()),
+			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
+				ShareName:    utils.String(v["share_name"].(string)),
+				MountPath:    utils.String(v["mount_path"].(string)),
+				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
+				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
+				Type:         appplatform.TypeAzureFileVolume,
+			},
+		})
+	}
+	return &results
+}
+
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
 	var systemAssigned *identity.SystemAssigned
 	if input != nil {
@@ -337,4 +400,47 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 			"mount_path": mountPath,
 		},
 	}
+}
+
+func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var storageName string
+		if item.StorageID != nil {
+			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+				storageName = id.StorageName
+			}
+		}
+		var mountPath string
+		var shareName string
+		var readOnly bool
+		var mountOptions *[]string
+		if item.CustomPersistentDiskProperties != nil {
+			if prop, ok := item.CustomPersistentDiskProperties.AsAzureFileVolume(); ok && prop != nil {
+				if prop.MountPath != nil {
+					mountPath = *prop.MountPath
+				}
+				if prop.ShareName != nil {
+					shareName = *prop.ShareName
+				}
+				if prop.ReadOnly != nil {
+					readOnly = *prop.ReadOnly
+				}
+				mountOptions = prop.MountOptions
+			}
+		}
+
+		results = append(results, map[string]interface{}{
+			"storage_name":      storageName,
+			"mount_path":        mountPath,
+			"share_name":        shareName,
+			"mount_options":     set.FromStringSliceNilable(mountOptions),
+			"read_only_enabled": readOnly,
+		})
+	}
+	return results
 }

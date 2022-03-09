@@ -4,17 +4,14 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type virtualMachineIdentity = identity.SystemAssignedUserAssigned
 
 func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -69,56 +66,48 @@ func flattenVirtualMachineAdditionalCapabilities(input *compute.AdditionalCapabi
 }
 
 func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineIdentity, error) {
-	config, err := virtualMachineIdentity{}.Expand(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	var identityIds map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue
-	if len(config.UserAssignedIdentityIds) != 0 {
-		identityIds = map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
-		for _, id := range config.UserAssignedIdentityIds {
-			identityIds[id] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
+	out := compute.VirtualMachineIdentity{
+		Type: compute.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
 		}
 	}
-
-	return &compute.VirtualMachineIdentity{
-		Type:                   compute.ResourceIdentityType(config.Type),
-		UserAssignedIdentities: identityIds,
-	}, nil
+	return &out, nil
 }
 
-func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]interface{}, error) {
-	var config *identity.ExpandedConfig
+func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		var identityIds []string
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 
-		principalId := ""
 		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
+			transform.PrincipalId = *input.PrincipalID
 		}
-
-		tenantId := ""
 		if input.TenantID != nil {
-			tenantId = *input.TenantID
+			transform.TenantId = *input.TenantID
 		}
-
-		config = &identity.ExpandedConfig{
-			Type:                    identity.Type(string(input.Type)),
-			PrincipalId:             principalId,
-			TenantId:                tenantId,
-			UserAssignedIdentityIds: identityIds,
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
 		}
 	}
-	return virtualMachineIdentity{}.Flatten(config), nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.NetworkInterfaceReference {
@@ -181,6 +170,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 					}, false),
 				},
 

@@ -60,6 +60,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
+					string(sqlvirtualmachine.DR),
 				}, false),
 			},
 

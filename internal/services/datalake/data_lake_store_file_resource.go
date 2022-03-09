@@ -2,6 +2,7 @@ package datalake
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -27,8 +28,18 @@ func resourceDataLakeStoreFile() *pluginsdk.Resource {
 		Read:   resourceDataLakeStoreFileRead,
 		Delete: resourceDataLakeStoreFileDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			// this is intentionally a noop since we need the DNS Syntax to parse it
+			return nil
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Datalake.StoreFilesClient
+			_, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
