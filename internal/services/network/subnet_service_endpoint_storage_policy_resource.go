@@ -177,7 +177,7 @@ func resourceSubnetServiceEndpointStoragePolicyDelete(d *pluginsdk.ResourceData,
 	if err != nil {
 		return err
 	}
-	
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName)
 	if err != nil {
 		return fmt.Errorf("deleting Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
