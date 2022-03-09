@@ -182,7 +182,7 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
@@ -216,7 +216,7 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
