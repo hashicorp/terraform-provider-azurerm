@@ -115,19 +115,6 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for MSSQL %s to become ready", id.String())
-	timeout, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
-		Target:                    []string{"Ready"},
-		Refresh:                   mssqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for MSSQL %s to be created or updated: %+v", id.String(), err)
-	}
 
 	d.SetId(id.ID())
 
