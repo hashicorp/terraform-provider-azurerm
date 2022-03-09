@@ -40,7 +40,7 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecated()
+		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
 	}
 
 	return &pluginsdk.Resource{

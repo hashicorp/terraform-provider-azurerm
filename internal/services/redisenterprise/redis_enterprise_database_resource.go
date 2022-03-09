@@ -2,7 +2,7 @@ package redisenterprise
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"log"
 	"strings"
 	"time"
@@ -194,13 +194,7 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-			ForceNew:     true,
-			Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
-		}
+		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
 	}
 
 	return s
