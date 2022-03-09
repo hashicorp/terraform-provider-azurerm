@@ -1,7 +1,6 @@
 package network
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -419,30 +418,6 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func waitForCompletion(d *pluginsdk.ResourceData, ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) error {
-	log.Printf("[DEBUG] Waiting for Virtual Hub %q (Resource Group %q) to become available", name, resourceGroup)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"pending"},
-		Target:                    []string{"available"},
-		Refresh:                   vpnGatewayWaitForCreatedRefreshFunc(ctx, client, resourceGroup, name),
-		Delay:                     30 * time.Second,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 3,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	return nil
-}
-
 func expandVPNGatewayBGPSettings(input []interface{}) *network.BgpSettings {
 	if len(input) == 0 {
 		return nil
@@ -507,34 +482,5 @@ func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input network.IPConfigura
 			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
 			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
 		},
-	}
-}
-
-func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if VPN Gateway %q (Resource Group %q) has finished provisioning..", name, resourceGroup)
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			log.Printf("[DEBUG] Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-			return nil, "error", fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		if resp.VpnGatewayProperties == nil {
-			log.Printf("[DEBUG] Error retrieving VPN Gateway %q (Resource Group %q): `properties` was nil", name, resourceGroup)
-			return nil, "error", fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): `properties` was nil", name, resourceGroup)
-		}
-
-		log.Printf("[DEBUG] VPN Gateway %q (Resource Group %q) is %q..", name, resourceGroup, string(resp.VpnGatewayProperties.ProvisioningState))
-		switch resp.VpnGatewayProperties.ProvisioningState {
-		case network.ProvisioningStateSucceeded:
-			return "available", "available", nil
-
-		case network.ProvisioningStateFailed:
-			return "error", "error", fmt.Errorf("VPN Gateway %q (Resource Group %q) is in provisioningState `Failed`", name, resourceGroup)
-
-		default:
-			return "pending", "pending", nil
-		}
 	}
 }
