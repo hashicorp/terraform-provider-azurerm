@@ -179,9 +179,6 @@ resource "azurerm_redis_enterprise_geo_database" "test" {
     "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
   ]
 
-  force_unlink_database_id = [
-    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default"
-  ]
   linked_database_group_nickname = "tftestGeoGroup"
 }
 `, template)
@@ -199,26 +196,26 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_enterprise_cluster" "test" {
-  name                = "acctest-geo-1"
+  name                = "acctest-geo-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Enterprise_E20-2"
 }
 
 resource "azurerm_redis_enterprise_cluster" "test1" {
-  name                = "acctest-geo-2"
+  name                = "acctest-geo-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Enterprise_E20-2"
 }
 
 resource "azurerm_redis_enterprise_cluster" "test2" {
-  name                = "acctest-geo-3"
+  name                = "acctest-geo-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Enterprise_E20-2"
 }
 
 
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

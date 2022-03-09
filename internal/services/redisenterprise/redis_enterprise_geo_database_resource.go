@@ -109,15 +109,6 @@ func resourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
 				Default:  "geoGroup",
 			},
 
-			"force_unlink_database_id": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: databases.ValidateDatabaseID,
-				},
-			},
-
 			"redi_search_module_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -157,46 +148,6 @@ func resourceRedisEnterpriseGeoDatabase() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 		},
-		// CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-		//	oldLinkedDbRaw, newLinkedDbRaw := d.GetChange("linked_database_id")
-		//	linkedListHasChange := d.HasChange("linked_database_id")
-		//	oldLinkedDb := oldLinkedDbRaw.(*pluginsdk.Set).List()
-		//	newLinkedDb := newLinkedDbRaw.(*pluginsdk.Set).List()
-		//	unlinkList := d.Get("force_unlink_database_id").([]interface{})
-		//
-		//	js, _ := json.Marshal(linkedListHasChange)
-		//	log.Printf("DDDDDhas changes%s", js)
-		//	js1, _ := json.Marshal(oldLinkedDb)
-		//	log.Printf("DDDDDold list%s", js1)
-		//	js2, _ := json.Marshal(newLinkedDb)
-		//	log.Printf("DDDDDnew list%s", js2)
-		//	js3, _ := json.Marshal(unlinkList)
-		//	log.Printf("DDDDDunlink list%s", js3)
-		//
-		//	oldItemList := make(map[string]bool)
-		//	for _, oldItem := range oldLinkedDb {
-		//		oldItemList[oldItem.(string)] = true
-		//	}
-		//
-		//	for _, newItem := range newLinkedDb {
-		//		oldItemList[newItem.(string)] = false
-		//	}
-		//
-		//	for _, unlinkItem := range unlinkList {
-		//		//if !oldItemList[unlinkItem.(string)] && linkedListHasChange {
-		//		//	return fmt.Errorf("The unlinked database must be a linked database and be removed from the linked database list")
-		//		//}
-		//		oldItemList[unlinkItem.(string)] = false
-		//	}
-		//
-		//	for _, oldItem := range oldLinkedDb {
-		//		if oldItemList[oldItem.(string)] {
-		//			return fmt.Errorf("Please use forceUnlink action to remove a linked database from the list")
-		//		}
-		//	}
-		//
-		//	return nil
-		// }),
 	}
 }
 
@@ -228,12 +179,10 @@ func resourceRedisEnterpriseGeoDatabaseCreateUpdate(d *pluginsdk.ResourceData, m
 	evictionPolicy := databases.EvictionPolicy(d.Get("eviction_policy").(string))
 	protocol := databases.Protocol(d.Get("client_protocol").(string))
 
-	// linkedDbHasChange := d.HasChange("linked_database_id")
-	unlinkedDbList, hasUnlinkedDb := d.GetOk("force_unlink_database_id")
-	if hasUnlinkedDb {
-		oldLinkedDbRaw, _ := d.GetChange("linked_database_id")
-		oldLinkedDb := oldLinkedDbRaw.(*pluginsdk.Set).List()
-		if err := forceUnlinkDatabase(d, meta, oldLinkedDb, unlinkedDbList.([]interface{})); err != nil {
+	oldItems, newItems := d.GetChange("linked_database_id")
+	isForceUnlink, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
+	if isForceUnlink {
+		if err := forceUnlinkDatabase(d, meta, *data); err != nil {
 			return fmt.Errorf("unlinking database error: %+v", err)
 		}
 	}
@@ -384,8 +333,6 @@ func resourceRedisEnterpriseGeoDatabaseRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("secondary_access_key", model.SecondaryKey)
 	}
 
-	d.Set("force_unlink_database_id", d.Get("force_unlink_database_id").([]interface{}))
-
 	return nil
 }
 
@@ -443,7 +390,25 @@ func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
 	return results
 }
 
-func forceUnlinkDatabase(d *pluginsdk.ResourceData, meta interface{}, linkedDatabaseList []interface{}, unlinkedDbRaw []interface{}) error {
+func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, *[]string) {
+	newItems := make(map[string]bool)
+	forceUnlinkList := make([]string, 0)
+	for _, newItem := range newItemList {
+		newItems[newItem.(string)] = true
+	}
+
+	for _, oldItem := range oldItemList {
+		if newItems[oldItem.(string)] == false {
+			forceUnlinkList = append(forceUnlinkList, oldItem.(string))
+		}
+	}
+	if len(forceUnlinkList) != 0 {
+		return true, &forceUnlinkList
+	}
+	return false, nil
+}
+
+func forceUnlinkDatabase(d *pluginsdk.ResourceData, meta interface{}, unlinkedDbRaw []string) error {
 	client := meta.(*clients.Client).RedisEnterprise.GeoDatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -454,19 +419,8 @@ func forceUnlinkDatabase(d *pluginsdk.ResourceData, meta interface{}, linkedData
 		return err
 	}
 
-	linkedDb := make(map[string]bool)
-	for _, linkedItem := range linkedDatabaseList {
-		linkedDb[linkedItem.(string)] = true
-	}
-
-	for _, unlinkedItem := range unlinkedDbRaw {
-		if !linkedDb[unlinkedItem.(string)] {
-			return fmt.Errorf("%s is not a linked database", unlinkedItem)
-		}
-	}
-	unlinkedDbList := utils.ExpandStringSlice(unlinkedDbRaw)
 	parameters := databases.ForceUnlinkParameters{
-		Ids: *unlinkedDbList,
+		Ids: unlinkedDbRaw,
 	}
 
 	if err := client.ForceUnlinkThenPoll(ctx, *id, parameters); err != nil {
