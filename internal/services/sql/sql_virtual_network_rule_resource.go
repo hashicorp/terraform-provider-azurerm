@@ -97,28 +97,12 @@ func resourceSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	// TODO: this is a Future, can we use that instead?
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
-	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for %s to become ready", id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
-		Target:                    []string{"Ready"},
-		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
