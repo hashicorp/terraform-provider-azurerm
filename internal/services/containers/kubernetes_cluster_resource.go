@@ -1006,7 +1006,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	// TODO: post-3.0 we should inline these?
+	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
 	}

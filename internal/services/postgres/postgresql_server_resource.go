@@ -224,10 +224,16 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to false
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if !features.ThreePointOhBeta() {
+						return nil
+					}
+					return false
+				}(),
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
