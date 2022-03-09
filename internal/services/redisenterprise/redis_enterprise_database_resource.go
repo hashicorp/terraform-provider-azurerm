@@ -2,12 +2,12 @@ package redisenterprise
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -194,7 +194,13 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecated()
+		s["resource_group_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: resourcegroups.ValidateName,
+			ForceNew:     true,
+			Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
+		}
 	}
 
 	return s
