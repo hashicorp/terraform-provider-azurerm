@@ -16,7 +16,7 @@ import (
 
 const (
 	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
-	StorageStringFmtKV = "@Microsoft.KeyVault(%s)"
+	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
 )
 
 type SiteConfigLinuxFunctionApp struct {
