@@ -265,7 +265,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 500
   throughput  = 600
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -281,22 +281,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Descending"
+        order = "descending"
       }
       index {
         path  = "/path2"
-        order = "Ascending"
+        order = "ascending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -341,7 +341,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 1000
   throughput  = 400
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -358,22 +358,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -409,7 +409,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path  = "/definition/id"
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -426,22 +426,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -461,7 +461,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path  = "/definition/id"
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -478,22 +478,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
 

@@ -312,8 +312,6 @@ func resourceIotHub() *pluginsdk.Resource {
 								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							},
 
-							// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
-							// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 							"encoding": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
