@@ -117,7 +117,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"cross_region_restore": {
+			"cross_region_restore_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -143,7 +143,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	storageMode := d.Get("storage_mode_type").(string)
-	crossRegionRestore := d.Get("cross_region_restore").(bool)
+	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
 
 	if crossRegionRestore && storageMode != string(backup.StorageTypeGeoRedundant) {
 		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backup.StorageTypeGeoRedundant), id.String())
@@ -240,7 +240,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	storageCfg := backup.ResourceConfigResource{
 		Properties: &backup.ResourceConfig{
 			StorageModelType:       backup.StorageType(d.Get("storage_mode_type").(string)),
-			CrossRegionRestoreFlag: utils.Bool(d.Get("cross_region_restore").(bool)),
+			CrossRegionRestoreFlag: utils.Bool(d.Get("cross_region_restore_enabled").(bool)),
 		},
 	}
 
@@ -352,7 +352,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if props := storageCfg.Properties; props != nil {
 		d.Set("storage_mode_type", string(props.StorageModelType))
-		d.Set("cross_region_restore", *props.CrossRegionRestoreFlag)
+		d.Set("cross_region_restore_enabled", *props.CrossRegionRestoreFlag)
 	}
 
 	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {

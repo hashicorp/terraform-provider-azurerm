@@ -25,7 +25,7 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cross_region_restore").HasValue("false"),
+				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -41,7 +41,7 @@ func TestAccRecoveryServicesVault_basicWithCrossRegionRestore(t *testing.T) {
 			Config: r.basicWithCrossRegionRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cross_region_restore").HasValue("true"),
+				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -301,7 +301,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  cross_region_restore = true
+  cross_region_restore_enabled = true
 
   soft_delete_enabled = false
 }
@@ -327,7 +327,7 @@ resource "azurerm_recovery_services_vault" "test" {
 
   storage_mode_type = "ZoneRedundant"
 
-  cross_region_restore = true
+  cross_region_restore_enabled = true
 
   soft_delete_enabled = false
 }
