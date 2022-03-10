@@ -190,7 +190,7 @@ resource "azurerm_storage_table_entity" "test" {
   row_key       = "test_row%d"
   entity = {
     Foo = 123
-	"Foo@odata.type" = "Edm.Int32"
+    "Foo@odata.type" = "Edm.Int32"
     Test = "Updated"
   }
 }
