@@ -69,7 +69,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
-			"vnet_peerings_address_lists": {
+			"vnet_peerings_addresses": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -124,8 +124,8 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("vnet_peerings", flattenVnetPeerings(props.VirtualNetworkPeerings)); err != nil {
 			return fmt.Errorf("setting `vnet_peerings`: %v", err)
 		}
-		if err := d.Set("vnet_peerings_address_lists", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
-			return fmt.Errorf("setting `vnet_peerings_address_lists`: %v", err)
+		if err := d.Set("vnet_peerings_addresses", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
+			return fmt.Errorf("setting `vnet_peerings_addresses`: %v", err)
 		}
 	}
 	return nil
