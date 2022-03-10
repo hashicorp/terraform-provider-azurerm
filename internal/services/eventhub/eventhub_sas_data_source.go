@@ -67,7 +67,7 @@ func dataSourceEventHubSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
 		return err
 	}
 
-	sasToken, err := eventhub.ComputeEventHubSASToken(sharedAccessKeyName, sharedAccessKey, expiry, *endpointUrl)
+	sasToken, err := eventhub.ComputeEventHubSASToken(sharedAccessKeyName, sharedAccessKey, *endpointUrl, expiry)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func dataSourceEventHubSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
 	sasConnectionString := eventhub.ComputeEventHubSASConnectionString(sasToken)
 
 	d.Set("sas", sasConnectionString)
-	tokenHash := sha256.Sum256([]byte(sasToken))
+	tokenHash := sha256.Sum256([]byte(sasConnectionString))
 	d.SetId(hex.EncodeToString(tokenHash[:]))
 
 	return nil
