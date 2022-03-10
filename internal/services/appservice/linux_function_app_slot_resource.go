@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,6 +42,7 @@ type LinuxFunctionAppSlotModel struct {
 	FunctionExtensionsVersion     string                                   `tfschema:"functions_extension_version"`
 	ForceDisableContentShare      bool                                     `tfschema:"content_share_force_disabled"`
 	HttpsOnly                     bool                                     `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID   string                                   `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                    []helpers.SiteConfigLinuxFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                        `tfschema:"tags"`
 	CustomDomainVerificationId    string                                   `tfschema:"custom_domain_verification_id"`
@@ -193,6 +195,14 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
@@ -409,6 +419,10 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
+			}
+
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -523,13 +537,14 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppSlotModel{
-				Name:                 id.SlotName,
-				FunctionAppID:        parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:       string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                 tags.ToTypedObject(functionApp.Tags),
-				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				Name:                        id.SlotName,
+				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -640,6 +655,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

@@ -19,11 +19,15 @@ import (
 
 func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryScopeMapCreate,
-		Read:     resourceContainerRegistryScopeMapRead,
-		Update:   resourceContainerRegistryScopeMapUpdate,
-		Delete:   resourceContainerRegistryScopeMapDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceContainerRegistryScopeMapCreate,
+		Read:   resourceContainerRegistryScopeMapRead,
+		Update: resourceContainerRegistryScopeMapUpdate,
+		Delete: resourceContainerRegistryScopeMapDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerRegistryScopeMapID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

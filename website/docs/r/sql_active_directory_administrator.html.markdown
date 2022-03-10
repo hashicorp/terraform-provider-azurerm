@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_sql_active_directory_administrator
 
-Allows you to set a user or group as the AD administrator for an Azure SQL server
+Allows you to set a user or group as the AD administrator for an Azure SQL server.
+
+-> **Note:** The `azurerm_sql_active_directory_administrator` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the `azuread_administrator` block of the [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource instead.
 
 ## Example Usage
 

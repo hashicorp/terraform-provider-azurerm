@@ -31,6 +31,21 @@ func TestAccDataFactory_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactory_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}
@@ -362,6 +377,37 @@ resource "azurerm_data_factory" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (DataFactoryResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  vsts_configuration {
+    account_name    = "test account name"
+    branch_name     = "test branch name"
+    project_name    = "test project name"
+    repository_name = "test repository name"
+    root_folder     = "/"
+    tenant_id       = "00000000-0000-0000-0000-000000000000"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (DataFactoryResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -616,10 +662,10 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 
@@ -628,9 +674,9 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_user_assigned_identity.test.principal_id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey"
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
     ]
   }
 }

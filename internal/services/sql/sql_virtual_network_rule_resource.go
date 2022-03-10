@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,8 +25,12 @@ func resourceSqlVirtualNetworkRule() *pluginsdk.Resource {
 		Update: resourceSqlVirtualNetworkRuleCreateUpdate,
 		Delete: resourceSqlVirtualNetworkRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_virtual_network_rule` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_virtual_network_rule` resource instead."),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

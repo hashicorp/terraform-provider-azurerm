@@ -71,11 +71,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 					Optional:         true,
 					Default:          string(network.IPVersionIPv4),
 					ForceNew:         true,
-					DiffSuppressFunc: suppress.CaseDifference,
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, true),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku": {
@@ -83,11 +83,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 					Optional:         true,
 					ForceNew:         true,
 					Default:          string(network.PublicIPAddressSkuNameBasic),
-					DiffSuppressFunc: suppress.CaseDifference,
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.PublicIPAddressSkuNameBasic),
 						string(network.PublicIPAddressSkuNameStandard),
-					}, true),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku_tier": {

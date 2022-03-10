@@ -63,6 +63,57 @@ func TestAccSpringCloudApp_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudApp_customPersistentDisks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customPersistentDisksWith(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudApp_customPersistentDisksUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noneCustomPersistentDisks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customPersistentDisksWith(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customPersistentDisksWith(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noneCustomPersistentDisks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 	r := SpringCloudAppResource{}
@@ -92,7 +143,7 @@ func TestAccSpringCloudApp_update(t *testing.T) {
 	})
 }
 
-func (t SpringCloudAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SpringCloudAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudAppID(state.ID)
 	if err != nil {
 		return nil, err
@@ -153,6 +204,74 @@ resource "azurerm_spring_cloud_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SpringCloudAppResource) customPersistentDisksWith(data acceptance.TestData, storageLabel string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%[2]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  custom_persistent_disk {
+    storage_name      = azurerm_spring_cloud_storage.%[3]s.name
+    mount_path        = "/temp"
+    share_name        = "testname"
+    mount_options     = ["uid=1000", "gid=1000", "file_mode=0755", "dir_mode=0755"]
+    read_only_enabled = true
+  }
+}
+`, r.customPersistentDisksTemplate(data), data.RandomInteger, storageLabel)
+}
+
+func (r SpringCloudAppResource) noneCustomPersistentDisks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%[2]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+}
+`, r.customPersistentDisksTemplate(data), data.RandomInteger)
+}
+
+func (r SpringCloudAppResource) customPersistentDisksTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test1" {
+  name                     = "acctest1%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_spring_cloud_storage" "test1" {
+  name                    = "acctest-test1-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  storage_account_name    = azurerm_storage_account.test1.name
+  storage_account_key     = azurerm_storage_account.test1.primary_access_key
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_spring_cloud_storage" "test2" {
+  name                    = "acctest-test2-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  storage_account_name    = azurerm_storage_account.test2.name
+  storage_account_key     = azurerm_storage_account.test2.primary_access_key
+}
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(10))
 }
 
 func (SpringCloudAppResource) template(data acceptance.TestData) string {

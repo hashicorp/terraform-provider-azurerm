@@ -38,6 +38,8 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -139,12 +141,11 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// todo remove this for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
+				Deprecated: "This property is no longer configurable in the service and has been deprecated.",
 			},
 
 			"connection_string": {

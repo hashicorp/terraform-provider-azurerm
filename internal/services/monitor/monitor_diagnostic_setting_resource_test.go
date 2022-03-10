@@ -26,7 +26,7 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -62,7 +62,7 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -95,7 +95,7 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -195,6 +195,16 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
+  log {
+    category = "AzurePolicyEvaluationDetails"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
   metric {
     category = "AllMetrics"
 
@@ -276,6 +286,16 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AzurePolicyEvaluationDetails"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -414,6 +434,56 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
+  log {
+    category = "AirflowDagProcessingLogs"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AirflowSchedulerLogs"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AirflowTaskLogs"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AirflowWebLogs"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AirflowWorkerLogs"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
   metric {
     category = "AllMetrics"
     retention_policy {
@@ -464,6 +534,16 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AzurePolicyEvaluationDetails"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
       enabled = false
     }
   }

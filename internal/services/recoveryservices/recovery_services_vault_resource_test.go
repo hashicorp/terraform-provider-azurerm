@@ -384,11 +384,8 @@ resource "azurerm_key_vault" "test" {
       "Verify",
     ]
     secret_permissions = [
-      "set",
+      "Set",
     ]
-  }
-  lifecycle {
-    ignore_changes = [soft_delete_enabled]
   }
 }
 

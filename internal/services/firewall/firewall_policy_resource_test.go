@@ -478,36 +478,36 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id      = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
-    "backup",
-    "create",
-    "delete",
-    "get",
-    "import",
-    "list",
-    "purge",
-    "recover",
-    "restore",
-    "update"
+    "Backup",
+    "Create",
+    "Delete",
+    "Get",
+    "Import",
+    "List",
+    "Purge",
+    "Recover",
+    "Restore",
+    "Update"
   ]
 
   certificate_permissions = [
-    "backup",
-    "create",
-    "get",
-    "list",
-    "import",
-    "purge",
-    "delete",
-    "recover",
+    "Backup",
+    "Create",
+    "Get",
+    "List",
+    "Import",
+    "Purge",
+    "Delete",
+    "Recover",
   ]
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "purge",
-    "delete",
-    "recover"
+    "Get",
+    "List",
+    "Set",
+    "Purge",
+    "Delete",
+    "Recover"
   ]
 }
 
@@ -517,36 +517,36 @@ resource "azurerm_key_vault_access_policy" "test2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "backup",
-    "create",
-    "delete",
-    "get",
-    "import",
-    "list",
-    "purge",
-    "recover",
-    "restore",
-    "update"
+    "Backup",
+    "Create",
+    "Delete",
+    "Get",
+    "Import",
+    "List",
+    "Purge",
+    "Recover",
+    "Restore",
+    "Update"
   ]
 
   certificate_permissions = [
-    "backup",
-    "create",
-    "get",
-    "list",
-    "import",
-    "purge",
-    "delete",
-    "recover",
+    "Backup",
+    "Create",
+    "Get",
+    "List",
+    "Import",
+    "Purge",
+    "Delete",
+    "Recover",
   ]
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "purge",
-    "delete",
-    "recover"
+    "Get",
+    "List",
+    "Set",
+    "Purge",
+    "Delete",
+    "Recover"
   ]
 }
 

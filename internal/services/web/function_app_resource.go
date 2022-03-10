@@ -39,6 +39,8 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -113,7 +115,6 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				},
 			},
 
-			// todo remove for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
@@ -184,26 +185,23 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
-				Type: pluginsdk.TypeString,
-				// Required: true, // Uncomment this in 3.0
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Computed:      true, // Remove this in 3.0
+				Computed:      true,
 				ForceNew:      true,
 				ValidateFunc:  storageValidate.StorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
 			"storage_account_access_key": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // Remove this in 3.0
-				// Required: true, // Uncomment this in 3.0
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.NoZeroValues,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
-			// TODO remove this in 3.0
 			"storage_connection_string": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,

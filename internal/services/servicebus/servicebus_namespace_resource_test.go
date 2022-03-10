@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,26 +80,6 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.NonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:             r.NonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
@@ -161,7 +140,7 @@ func TestAccAzureRMServiceBusNamespace_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -177,7 +156,7 @@ func TestAccAzureRMServiceBusNamespace_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -221,7 +200,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -241,7 +220,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
   tags = {
     ENV = "Test"
   }
@@ -260,26 +239,6 @@ resource "azurerm_servicebus_namespace" "import" {
   sku                 = azurerm_servicebus_namespace.test.sku
 }
 `, r.basic(data))
-}
-
-func (ServiceBusNamespaceResource) NonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ServiceBusNamespaceResource) premium(data acceptance.TestData) string {
@@ -382,7 +341,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "SystemAssigned"
@@ -412,7 +371,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "UserAssigned"
@@ -445,7 +404,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "SystemAssigned, UserAssigned"

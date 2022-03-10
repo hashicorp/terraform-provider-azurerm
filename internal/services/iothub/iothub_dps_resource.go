@@ -224,24 +224,22 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	publicNetworkAccess := iothub.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = iothub.PublicNetworkAccessDisabled
+	}
+
 	iotdps := iothub.ProvisioningServiceDescription{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
-			AllocationPolicy: iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
-			IPFilterRules:    expandDpsIPFilterRules(d),
+			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			AllocationPolicy:    iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			IPFilterRules:       expandDpsIPFilterRules(d),
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		publicNetworkAccess := iothub.PublicNetworkAccessEnabled
-		if !v.(bool) {
-			publicNetworkAccess = iothub.PublicNetworkAccessDisabled
-		}
-		iotdps.Properties.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iotdps)

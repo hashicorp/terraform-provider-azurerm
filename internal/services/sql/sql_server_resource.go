@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -32,8 +33,12 @@ func resourceSqlServer() *pluginsdk.Resource {
 		Update: resourceSqlServerCreateUpdate,
 		Delete: resourceSqlServerDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_server` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_server` resource instead."),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -61,7 +66,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.0",
 					"12.0",
-				}, true),
+				}, false),
 			},
 
 			"administrator_login": {
@@ -115,7 +120,8 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, true),
+								}, !features.ThreePointOhBeta()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
 
@@ -144,13 +150,13 @@ func resourceSqlServer() *pluginsdk.Resource {
 						"state": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"storage_account_access_key": {

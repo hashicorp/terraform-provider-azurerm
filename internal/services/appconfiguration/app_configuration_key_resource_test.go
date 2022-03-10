@@ -294,16 +294,16 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.test.object_id
 
     key_permissions = [
-      "create",
-      "get",
+      "Create",
+      "Get",
     ]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 }

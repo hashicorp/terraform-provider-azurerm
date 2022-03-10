@@ -457,7 +457,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
@@ -468,17 +467,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -535,9 +534,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -783,11 +782,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -835,11 +834,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -887,12 +886,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -2016,6 +2017,11 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	var softDelete string
+	if !features.ThreePointOhBeta() {
+		softDelete = "soft_delete_enabled        = true"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -2045,8 +2051,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  purge_protection_enabled   = true
-  soft_delete_enabled        = true
+  purge_protection_enabled = true
+  %s
   soft_delete_retention_days = 7
 
   access_policy {
@@ -2054,18 +2060,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 
@@ -2074,19 +2080,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
-      "unwrapKey",
-      "wrapKey",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
+      "UnwrapKey",
+      "WrapKey",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 }
@@ -2128,7 +2134,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {

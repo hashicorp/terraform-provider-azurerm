@@ -213,8 +213,9 @@ func (r AppServiceEnvironmentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%d"
+  subnet_id           = azurerm_subnet.ase.id
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template, data.RandomInteger)
 }
@@ -225,8 +226,9 @@ func (r AppServiceEnvironmentResource) clusterSettings(data acceptance.TestData)
 %s
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%d"
+  subnet_id           = azurerm_subnet.ase.id
+  resource_group_name = azurerm_resource_group.test.name
 
   cluster_setting {
     name  = "InternalEncryption"
@@ -247,8 +249,9 @@ func (r AppServiceEnvironmentResource) clusterSettingsUpdate(data acceptance.Tes
 %s
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%d"
+  subnet_id           = azurerm_subnet.ase.id
+  resource_group_name = azurerm_resource_group.test.name
 
   cluster_setting {
     name  = "InternalEncryption"
@@ -274,8 +277,9 @@ func (r AppServiceEnvironmentResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_app_service_environment" "import" {
-  name      = azurerm_app_service_environment.test.name
-  subnet_id = azurerm_app_service_environment.test.subnet_id
+  name                = azurerm_app_service_environment.test.name
+  subnet_id           = azurerm_app_service_environment.test.subnet_id
+  resource_group_name = azurerm_app_service_environment.test.resource_group_name
 }
 `, template)
 }
@@ -288,6 +292,7 @@ func (r AppServiceEnvironmentResource) tierAndScaleFactor(data acceptance.TestDa
 resource "azurerm_app_service_environment" "test" {
   name                   = "acctest-ase-%d"
   subnet_id              = azurerm_subnet.ase.id
+  resource_group_name    = azurerm_resource_group.test.name
   pricing_tier           = "I2"
   front_end_scale_factor = 10
 }
@@ -390,6 +395,7 @@ func (r AppServiceEnvironmentResource) internalLoadBalancerAndWhitelistedIpRange
 resource "azurerm_app_service_environment" "test" {
   name                         = "acctest-ase-%d"
   subnet_id                    = azurerm_subnet.ase.id
+  resource_group_name          = azurerm_resource_group.test.name
   pricing_tier                 = "I1"
   front_end_scale_factor       = 5
   internal_load_balancing_mode = "Web, Publishing"

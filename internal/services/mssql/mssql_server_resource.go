@@ -7,17 +7,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,7 +68,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.0",
 					"12.0",
-				}, true),
+				}, false),
 			},
 
 			"administrator_login": {
@@ -396,7 +392,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
+	if ok := d.HasChange("identity"); ok {
 		expandedIdentity, err := expandSqlServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)

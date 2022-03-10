@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -55,18 +55,20 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					// Optional
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_auto_scaling": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_node_public_ip": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
 					},
 
+					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_host_encryption": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -89,6 +91,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(containerservice.KubeletDiskTypeOS),
+							string(containerservice.KubeletDiskTypeTemporary),
 						}, false),
 					},
 

@@ -13,13 +13,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -90,8 +90,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameBasic),
 					string(redis.SkuNameStandard),
 					string(redis.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"minimum_tls_version": {
@@ -115,6 +115,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_non_ssl_port": {
 				Type:     pluginsdk.TypeBool,
 				Default:  false,
@@ -215,6 +216,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
+						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_authentication": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,

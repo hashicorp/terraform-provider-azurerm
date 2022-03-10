@@ -108,8 +108,9 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindBlockBlobStorage),
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
-				}, true),
-				Default: string(storage.KindStorageV2),
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Default:          string(storage.KindStorageV2),
 			},
 
 			"account_tier": {
@@ -119,8 +120,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"account_replication_type": {
@@ -133,8 +134,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					"RAGRS",
 					"GZRS",
 					"RAGZRS",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -145,7 +146,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.AccessTierCool),
 					string(storage.AccessTierHot),
-				}, true),
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"azure_files_authentication": {
@@ -257,6 +259,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_https_traffic_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -324,7 +327,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									string(storage.BypassLogging),
 									string(storage.BypassMetrics),
 									string(storage.BypassNone),
-								}, true),
+								}, !features.ThreePointOhBeta()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 							Set: pluginsdk.HashString,
 						},
