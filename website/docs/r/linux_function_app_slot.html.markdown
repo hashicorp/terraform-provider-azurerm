@@ -70,8 +70,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App Slot.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -104,9 +102,15 @@ The following arguments are supported:
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified. 
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name` and the value of the specified Secret must be a Key Vault reference as described [here](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#reference-syntax)
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 

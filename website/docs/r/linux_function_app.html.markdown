@@ -66,8 +66,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -98,11 +96,17 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
+
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name` and the value of the specified Secret must be a Key Vault reference as described [here](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#reference-syntax)
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
