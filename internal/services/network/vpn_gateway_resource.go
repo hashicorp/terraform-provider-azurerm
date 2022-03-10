@@ -206,8 +206,8 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})

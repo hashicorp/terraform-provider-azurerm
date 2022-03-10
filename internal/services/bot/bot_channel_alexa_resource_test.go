@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelAlexaResource struct {
-}
+type BotChannelAlexaResource struct{}
 
 func testAccBotChannelAlexa_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")

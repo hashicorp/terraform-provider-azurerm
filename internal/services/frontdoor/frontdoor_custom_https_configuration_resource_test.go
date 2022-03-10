@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorCustomHttpsConfigurationResource struct {
-}
+type FrontDoorCustomHttpsConfigurationResource struct{}
 
 func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
@@ -262,9 +261,12 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   routing_rule {
     name               = "routing-rule"

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PublicIPDataSource struct {
-}
+type PublicIPDataSource struct{}
 
 func TestAccDataSourcePublicIP_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")
@@ -46,7 +45,7 @@ func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.dynamic(data, "Ipv4"),
+			Config: r.dynamic(data, "IPv4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
@@ -80,6 +79,7 @@ resource "azurerm_public_ip" "test" {
   domain_name_label       = "acctest-%d"
   idle_timeout_in_minutes = 30
   sku                     = "Standard"
+  zones                   = ["1", "2"]
 
   ip_tags = {
     RoutingPreference = "Internet"

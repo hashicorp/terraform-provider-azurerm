@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceSQLServerResource struct {
-}
+type LinkedServiceSQLServerResource struct{}
 
 func TestAccDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")

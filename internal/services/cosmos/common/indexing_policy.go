@@ -151,7 +151,7 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 		block := make(map[string]interface{})
 		block["path"] = path
-		block["order"] = strings.Title(string(v.Order))
+		block["order"] = string(v.Order)
 		indexPairs = append(indexPairs, block)
 	}
 
@@ -232,7 +232,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	}
 
 	result := make(map[string]interface{})
-	result["indexing_mode"] = strings.Title(string(indexingPolicy.IndexingMode))
+	result["indexing_mode"] = string(indexingPolicy.IndexingMode)
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)

@@ -118,8 +118,8 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_solution", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
 		}
 	}
 

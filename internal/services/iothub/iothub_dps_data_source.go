@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -29,9 +30,9 @@ func dataSourceIotHubDPS() *pluginsdk.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"allocation_policy": {
 				Type:     pluginsdk.TypeString,
@@ -79,9 +80,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.SetId(id.ID())
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)

@@ -57,6 +57,7 @@ import (
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
+	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	loadtest "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/client"
@@ -107,7 +108,6 @@ import (
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
-	webPubsub "github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/client"
 )
 
 type Client struct {
@@ -168,6 +168,7 @@ type Client struct {
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
+	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
 	LoadTest              *loadtest.Client
@@ -217,7 +218,6 @@ type Client struct {
 	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
 	Web                   *web.Client
-	Webpubsub             *webPubsub.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -281,6 +281,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
@@ -330,7 +331,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
-	client.Webpubsub = webPubsub.NewClient(o)
 
 	return nil
 }

@@ -5,12 +5,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -19,16 +22,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: split and deprecate this resource prior to 3.0
-
 func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+
+		DeprecationMessage: "The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favour of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint' and will be removed in version 3.0 of the Azure Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -62,8 +67,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 					string(endpoints.EndpointTypeAzureEndpoints),
 					string(endpoints.EndpointTypeNestedEndpoints),
 					string(endpoints.EndpointTypeExternalEndpoints),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"target": {
@@ -85,8 +90,8 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(endpoints.EndpointStatusDisabled),
 					string(endpoints.EndpointStatusEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"weight": {
@@ -255,7 +260,6 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("type", id.EndpointType)
 	d.Set("profile_name", id.ProfileName)
 	if model := resp.Model; model != nil {
-
 		if props := model.Properties; props != nil {
 			endpointStatus := ""
 			if props.EndpointStatus != nil {
@@ -277,10 +281,10 @@ func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
 			d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
 			d.Set("geo_mappings", props.GeoMapping)
-			if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			if err := d.Set("subnet", flattenEndpointSubnetConfig(props.Subnets)); err != nil {
 				return fmt.Errorf("setting `subnet`: %s", err)
 			}
-			if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+			if err := d.Set("custom_header", flattenEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
 				return fmt.Errorf("setting `custom_header`: %s", err)
 			}
 		}
@@ -396,7 +400,7 @@ func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *endpoint
 	return &endpointProps
 }
 
-func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
+func flattenEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -417,7 +421,7 @@ func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]endpoints.Endpoin
 	return result
 }
 
-func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
+func flattenEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result

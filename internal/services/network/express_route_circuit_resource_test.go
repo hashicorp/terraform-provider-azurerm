@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteCircuitResource struct {
-}
+type ExpressRouteCircuitResource struct{}
 
 func TestAccExpressRouteCircuit(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to

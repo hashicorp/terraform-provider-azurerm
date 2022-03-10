@@ -48,7 +48,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					strings.ToLower(string(operationalinsights.Query)),
 					strings.ToLower(string(operationalinsights.Alerts)),
 					// Value removed from enum in 2020-08-01, but effectively still works
-					"Ingestion",
+					"ingestion",
 				}, false),
 			},
 
@@ -92,8 +92,8 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_linked_storage_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_linked_storage_account", id.ID())
 		}
 	}
 

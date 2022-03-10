@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeManagedSsisResource struct {
-}
+type IntegrationRuntimeManagedSsisResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")

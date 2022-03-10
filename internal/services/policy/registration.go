@@ -6,8 +6,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.UntypedServiceRegistration               = Registration{}
+)
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/policy"
+}
 
 type Registration struct{}
 
@@ -52,12 +58,11 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_policy_set_definition":                           resourceArmPolicySetDefinition(),
 		"azurerm_policy_remediation":                              resourceArmPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
-		// TODO: Remove in 3.0
-		"azurerm_virtual_machine_configuration_policy_assignment": resourceVirtualMachineConfigurationPolicyAssignment(),
 	}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		resources["azurerm_policy_assignment"] = resourceArmPolicyAssignment()
+		resources["azurerm_virtual_machine_configuration_policy_assignment"] = resourceVirtualMachineConfigurationPolicyAssignment()
 	}
 
 	return resources

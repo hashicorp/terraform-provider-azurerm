@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetAzureBlobResource struct {
-}
+type DatasetAzureBlobResource struct{}
 
 func TestAccDataFactoryDatasetAzureBlob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")

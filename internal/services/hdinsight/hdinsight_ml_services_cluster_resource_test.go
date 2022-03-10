@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightMLServicesClusterResource struct {
-}
+type HDInsightMLServicesClusterResource struct{}
 
 func TestAccHDInsightMLServicesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
@@ -232,7 +231,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -286,7 +284,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_ml_services_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -373,7 +370,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -427,7 +423,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -499,7 +494,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -575,7 +569,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -669,7 +662,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   tls_min_version     = "1.2"
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }

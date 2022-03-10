@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetBinaryResource struct {
-}
+type DatasetBinaryResource struct{}
 
 func TestAccDataFactoryDatasetBinary_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")

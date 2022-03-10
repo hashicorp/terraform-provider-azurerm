@@ -50,6 +50,7 @@ var services = mapOf(
         "iothub" to "IoT Hub",
         "keyvault" to "KeyVault",
         "kusto" to "Kusto",
+        "legacy" to "Legacy",
         "lighthouse" to "Lighthouse",
         "loadbalancer" to "Load Balancer",
         "loadtest" to "Load Test",
@@ -99,6 +100,5 @@ var services = mapOf(
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
-        "web" to "Web",
-        "webpubsub" to "Web Publishing Subscription"
+        "web" to "Web"
 )

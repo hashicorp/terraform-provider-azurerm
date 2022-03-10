@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLDatabaseResource struct {
-}
+type MySQLDatabaseResource struct{}
 
 func TestAccMySQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabaseMigrationServiceResource struct {
-}
+type DatabaseMigrationServiceResource struct{}
 
 func TestAccDatabaseMigrationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")

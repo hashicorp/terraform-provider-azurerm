@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AutomationVariableBoolResource struct {
-}
+type AutomationVariableBoolResource struct{}
 
 func TestAccAutomationVariableBool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
@@ -76,6 +75,7 @@ func TestAccAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAutomationVariableBool_encrypted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 	r := AutomationVariableBoolResource{}
@@ -149,6 +149,7 @@ resource "azurerm_automation_variable_bool" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func (AutomationVariableBoolResource) encrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

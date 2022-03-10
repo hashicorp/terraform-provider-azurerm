@@ -135,8 +135,8 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", id.ID())
 		}
 	}
 

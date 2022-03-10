@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -29,9 +30,9 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"description": {
 				Type:     pluginsdk.TypeString,
@@ -56,8 +57,7 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 
 	id := parse.NewSharedImageGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -69,9 +69,8 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 	d.SetId(id.ID())
 	d.Set("name", id.GalleryName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.GalleryProperties; props != nil {
 		d.Set("description", props.Description)

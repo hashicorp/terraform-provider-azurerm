@@ -24,6 +24,7 @@ website/node_modules
 .idea
 *.iml
 *.test
+.python-version
 .terraform.tfstate.lock.info
 .terraform.lock.hcl
 

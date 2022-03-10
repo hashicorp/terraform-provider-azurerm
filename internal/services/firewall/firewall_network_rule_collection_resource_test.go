@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallNetworkRuleCollectionResource struct {
-}
+type FirewallNetworkRuleCollectionResource struct{}
 
 func TestAccFirewallNetworkRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
@@ -332,7 +331,7 @@ func TestAccFirewallNetworkRuleCollection_noDestination(t *testing.T) {
 }
 
 func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallNetworkRuleCollectionID(state.ID)
+	id, err := parse.FirewallNetworkRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}

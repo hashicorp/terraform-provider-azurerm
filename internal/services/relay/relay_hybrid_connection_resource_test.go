@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RelayHybridConnectionResource struct {
-}
+type RelayHybridConnectionResource struct{}
 
 func TestAccRelayHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")

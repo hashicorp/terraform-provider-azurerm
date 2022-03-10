@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,7 +20,6 @@ import (
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
@@ -32,7 +33,7 @@ type DiskPoolResourceModel struct {
 	Sku               string                 `tfschema:"sku_name"`
 	SubnetId          string                 `tfschema:"subnet_id"`
 	Tags              map[string]interface{} `tfschema:"tags"`
-	Zones             []string               `tfschema:"zones"`
+	Zones             zones.Schema           `tfschema:"zones"`
 }
 
 func (DiskPoolResource) Arguments() map[string]*schema.Schema {
@@ -64,16 +65,7 @@ func (DiskPoolResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": { // TODO: create commonschema.ZonesForceNew
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
@@ -126,7 +118,7 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 			}
 			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
-				if err := r.retryError(future.Poller.PollUntilDone()); err != nil {
+				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
 				}
 				metadata.SetID(id)
@@ -193,7 +185,7 @@ func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 
 			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
-				return r.retryError(future.Poller.PollUntilDone())
+				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
 	}
@@ -236,13 +228,13 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 			}
 			//lintignore:R006
 			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
-				return r.retryError(future.Poller.PollUntilDone())
+				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
 	}
 }
 
-func (DiskPoolResource) retryError(err error) *resource.RetryError {
+func (DiskPoolResource) retryError(action string, id string, err error) *resource.RetryError {
 	if err == nil {
 		return nil
 	}
@@ -254,10 +246,10 @@ func (DiskPoolResource) retryError(err error) *resource.RetryError {
 	}
 	for _, retryableError := range retryableErrors {
 		if strings.Contains(err.Error(), retryableError) {
-			return pluginsdk.RetryableError(err)
+			return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 		}
 	}
-	return pluginsdk.NonRetryableError(err)
+	return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 }
 
 func expandDisksPoolSku(sku string) diskpools.Sku {

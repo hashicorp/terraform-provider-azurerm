@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,49 +37,60 @@ func resourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 		},
 
 		// function takes a schema map and adds the authorization rule properties to it
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AuthorizationRuleName(),
-			},
-
-			// TODO 3.0 - Make it required
-			"namespace_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceID,
-				ConflictsWith: []string{"namespace_name", "resource_group_name"},
-			},
-
-			// TODO 3.0 - Remove in favor of namespace_id
-			"namespace_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
-
-			// TODO 3.0 - Remove in favor of namespace_id
-			"resource_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
-		}),
+		Schema: resourceServiceBusNamespaceAuthorizationRuleSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
 	}
+}
+
+func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+		//lintignore: S013
+		"namespace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			Computed:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.NamespaceID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"namespace_name", "resource_group_name"}
+				}
+				return []string{}
+			}(),
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		s["namespace_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validate.NamespaceName,
+			Deprecated:    `Deprecated in favor of "namespace_id"`,
+			ConflictsWith: []string{"namespace_id"},
+		}
+
+		s["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			Deprecated:    `Deprecated in favor of "namespace_id"`,
+			ConflictsWith: []string{"namespace_id"},
+		}
+	}
+
+	return authorizationRuleSchemaFrom(s)
 }
 
 func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -93,7 +105,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
 		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
 		resourceId = parse.NewNamespaceAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
-	} else {
+	} else if !features.ThreePointOhBeta() {
 		resourceId = parse.NewNamespaceAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	}
 
@@ -155,8 +167,10 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	if !features.ThreePointOhBeta() {
+		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
 	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {

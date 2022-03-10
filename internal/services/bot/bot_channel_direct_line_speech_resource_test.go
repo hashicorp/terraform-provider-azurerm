@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelDirectLineSpeechResource struct {
-}
+type BotChannelDirectLineSpeechResource struct{}
 
 func testAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")

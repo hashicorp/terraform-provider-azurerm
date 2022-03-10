@@ -10,14 +10,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -59,21 +62,21 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          "Public",
+				Default:          string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"network_profile_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  validation.StringIsNotEmpty,
+				ValidateFunc:  networkValidate.NetworkProfileID,
 				ConflictsWith: []string{"dns_name_label"},
 			},
 
@@ -81,11 +84,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.OperatingSystemTypesWindows),
 					string(containerinstance.OperatingSystemTypesLinux),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"image_registry_credential": {
@@ -119,39 +122,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
-								"SystemAssigned, UserAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 
@@ -160,12 +131,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupRestartPolicyAlways),
 					string(containerinstance.ContainerGroupRestartPolicyNever),
 					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"dns_name_label": {
@@ -567,11 +538,11 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     utils.String(id.Name),
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Identity: expandContainerGroupIdentity(d),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -581,6 +552,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
+	}
+
+	// Container Groups with OS Type Windows do not support managed identities but the API also does not accept Identity Type: None
+	// https://github.com/Azure/azure-rest-api-specs/issues/18122
+	if OSType != string(containerinstance.OperatingSystemTypesWindows) {
+		expandedIdentity, err := expandContainerGroupIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		containerGroup.Identity = expandedIdentity
 	}
 
 	if IPAddressType != "None" {
@@ -597,11 +578,18 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
 	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
+		id, _ := networkParse.NetworkProfileID(networkProfileID)
+		networkProfileIDNorm := id.ID()
+		// Avoid parallel provisioning if "network_profile_id" is given.
+		// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+		locks.ByID(networkProfileIDNorm)
+		defer locks.UnlockByID(networkProfileIDNorm)
+
 		if strings.ToLower(OSType) != "linux" {
 			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
 		}
 		containerGroup.ContainerGroupProperties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
-			ID: &networkProfileID,
+			ID: &networkProfileIDNorm,
 		}
 	}
 
@@ -669,7 +657,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	identity, err := flattenContainerGroupIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -757,8 +745,16 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := existing.ContainerGroupProperties; props != nil {
 		if profile := props.NetworkProfile; profile != nil {
 			if profile.ID != nil {
-				networkProfileId = *profile.ID
+				id, err := networkParse.NetworkProfileID(*profile.ID)
+				if err != nil {
+					return err
+				}
+				networkProfileId = id.ID()
 			}
+			// Avoid parallel deletion if "network_profile_id" is given. (not sure whether this is necessary)
+			// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
+			locks.ByID(networkProfileId)
+			defer locks.UnlockByID(networkProfileId)
 		}
 	}
 
@@ -1033,29 +1029,25 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	return &output
 }
 
-func expandContainerGroupIdentity(d *pluginsdk.ResourceData) *containerinstance.ContainerGroupIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	if len(identities) == 0 {
-		return nil
-	}
-	identity := identities[0].(map[string]interface{})
-	identityType := containerinstance.ResourceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{}
+func expandContainerGroupIdentity(input []interface{}) (*containerinstance.ContainerGroupIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	cgIdentity := containerinstance.ContainerGroupIdentity{
-		Type: identityType,
+	out := containerinstance.ContainerGroupIdentity{
+		Type: containerinstance.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
 	}
 
-	if cgIdentity.Type == containerinstance.ResourceIdentityTypeUserAssigned || cgIdentity.Type == containerinstance.ResourceIdentityTypeSystemAssignedUserAssigned {
-		cgIdentity.UserAssignedIdentities = identityIds
-	}
-
-	return &cgIdentity
+	return &out, nil
 }
 
 func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]containerinstance.ImageRegistryCredential {
@@ -1247,38 +1239,29 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
+func flattenContainerGroupIdentity(input *containerinstance.ContainerGroupIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		/*
-			"userAssignedIdentities": {
-			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
-				"principalId": "00000000-0000-0000-0000-000000000000",
-				"clientId": "00000000-0000-0000-0000-000000000000"
-			  }
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-		*/
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -1681,14 +1664,14 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
-		searchDomains = strings.Split(*input.SearchDomains, " ")
+		searchDomains = strings.Fields(*input.SearchDomains)
 	}
 	output["search_domains"] = searchDomains
 
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
-		options = strings.Split(*input.Options, " ")
+		options = strings.Fields(*input.Options)
 	}
 	output["options"] = options
 
