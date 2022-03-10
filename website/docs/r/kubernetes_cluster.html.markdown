@@ -94,6 +94,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
+* `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
+
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
@@ -154,7 +156,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
-`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
+`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
@@ -198,7 +200,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+* `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified. 
 
@@ -275,7 +277,7 @@ An `auto_scaler_profile` block supports the following:
 
 ---
 
-A `azure_active_directory` block supports the following:
+An `azure_active_directory_role_based_access_control` block supports the following:
 
 * `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
@@ -570,14 +572,6 @@ An `ingress_application_gateway` block supports the following:
 * `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
 -> **Note:** If specifying `ingress_application_gateway` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
-
----
-
-A `role_based_access_control` block supports the following:
-
-* `azure_active_directory` - (Optional) An `azure_active_directory` block.
-
-* `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 
 ---
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +23,7 @@ func dataSourceResourceGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name":     commonschema.ResourceGroupNameForDataSource(),
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 			"tags":     tags.SchemaDataSource(),
 		},
 	}
@@ -48,5 +48,7 @@ func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	// but needs to be fixed (resourcegroups -> resourceGroups)
 	d.SetId(*resp.ID)
 
-	return resourceResourceGroupRead(d, meta)
+	d.Set("name", resp.Name)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	return tags.FlattenAndSet(d, resp.Tags)
 }

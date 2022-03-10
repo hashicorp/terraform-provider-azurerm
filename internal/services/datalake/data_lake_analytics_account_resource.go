@@ -68,7 +68,7 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 					string(accounts.TierTypeCommitmentFiveZeroZeroZeroZeroAUHours),
 					string(accounts.TierTypeCommitmentFiveZeroZeroZeroAUHours),
 					string(accounts.TierTypeCommitmentFiveZeroZeroAUHours),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"default_store_account_name": {

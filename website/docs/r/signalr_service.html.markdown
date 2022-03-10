@@ -63,13 +63,13 @@ The following arguments are supported:
 
 ~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
 
-* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not.
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
-* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. 
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
-* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not.
+* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
-* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
+* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 

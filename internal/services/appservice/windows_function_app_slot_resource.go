@@ -97,7 +97,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true, // TODO - Uncomment this
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 			ExactlyOneOf: []string{
 				"storage_uses_managed_identity",

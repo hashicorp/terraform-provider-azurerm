@@ -8,6 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -23,6 +27,77 @@ import (
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
+	exportPolicyRuleSchema := map[string]*pluginsdk.Schema{
+		"rule_index": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(1, 5),
+		},
+
+		"allowed_clients": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.CIDR,
+			},
+		},
+
+		"protocols_enabled": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		},
+
+		"unix_read_only": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"unix_read_write": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"root_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		exportPolicyRuleSchema["cifs_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `protocols_enabled`",
+		}
+
+		exportPolicyRuleSchema["nfsv3_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `protocols_enabled`",
+		}
+
+		exportPolicyRuleSchema["nfsv4_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Deprecated in favour of `protocols_enabled`",
+		}
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
@@ -143,77 +218,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 5,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"rule_index": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 5),
-						},
-
-						"allowed_clients": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
-							},
-						},
-
-						"protocols_enabled": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"NFSv3",
-									"NFSv4.1",
-									"CIFS",
-								}, false),
-							},
-						},
-
-						// todo remove this in version 3.0 of the provider
-						"cifs_enabled": {
-							Type:       pluginsdk.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favour of `protocols_enabled`",
-						},
-
-						// todo remove this in version 3.0 of the provider
-						"nfsv3_enabled": {
-							Type:       pluginsdk.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favour of `protocols_enabled`",
-						},
-
-						// todo remove this in version 3.0 of the provider
-						"nfsv4_enabled": {
-							Type:       pluginsdk.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favour of `protocols_enabled`",
-						},
-
-						"unix_read_only": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"unix_read_write": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"root_access_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
+					Schema: exportPolicyRuleSchema,
 				},
 			},
 
@@ -897,12 +902,9 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 							}
 						}
 					}
-				} else {
-					// todo remove this in version 3.0 of the provider
+				} else if !features.ThreePointOhBeta() {
 					cifsEnabled = v["cifs_enabled"].(bool)
-					// todo remove this in version 3.0 of the provider
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
-					// todo remove this in version 3.0 of the provider
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
@@ -958,12 +960,9 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *netapp.Volume
 							}
 						}
 					}
-				} else {
-					// todo remove this in version 3.0 of the provider
+				} else if features.ThreePointOhBeta() {
 					cifsEnabled = v["cifs_enabled"].(bool)
-					// todo remove this in version 3.0 of the provider
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
-					// todo remove this in version 3.0 of the provider
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
@@ -1070,32 +1069,32 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		// todo remove this in version 3.0 of the provider
+
 		cifsEnabled := false
-		// todo remove this in version 3.0 of the provider
 		nfsv3Enabled := false
-		// todo remove this in version 3.0 of the provider
 		nfsv4Enabled := false
+
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			// todo remove this in version 3.0 of the provider
-			cifsEnabled = *v
+			if !features.ThreePointOhBeta() {
+				cifsEnabled = *v
+			}
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			// todo remove this in version 3.0 of the provider
-			nfsv3Enabled = *v
+			if !features.ThreePointOhBeta() {
+				nfsv3Enabled = *v
+			}
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			// todo remove this in version 3.0 of the provider
 			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
@@ -1111,20 +1110,20 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			rootAccessEnabled = *v
 		}
 
-		results = append(results, map[string]interface{}{
+		result := map[string]interface{}{
 			"rule_index":          ruleIndex,
 			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
 			"unix_read_only":      unixReadOnly,
 			"unix_read_write":     unixReadWrite,
 			"root_access_enabled": rootAccessEnabled,
 			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
-			// todo remove this in version 3.0 of the provider
-			"cifs_enabled": cifsEnabled,
-			// todo remove this in version 3.0 of the provider
-			"nfsv3_enabled": nfsv3Enabled,
-			// todo remove this in version 3.0 of the provider
-			"nfsv4_enabled": nfsv4Enabled,
-		})
+		}
+		if !features.ThreePointOhBeta() {
+			result["cifs_enabled"] = cifsEnabled
+			result["nfsv3_enabled"] = nfsv3Enabled
+			result["nfsv4_enabled"] = nfsv4Enabled
+		}
+		results = append(results, result)
 	}
 
 	return results
@@ -1157,7 +1156,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 	return []interface{}{
 		map[string]interface{}{
 			"endpoint_type":             strings.ToLower(string(input.Replication.EndpointType)),
-			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
+			"remote_volume_location":    location.NormalizeNilable(input.Replication.RemoteVolumeRegion),
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
 			"replication_frequency":     translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
 		},

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,59 +37,66 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"disable_vpn_encryption": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"allow_branch_to_branch_traffic": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			// TODO 3.0: remove this property
-			"allow_vnet_to_vnet_traffic": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Default:    false,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
-
-			"office365_local_breakout_category": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.OfficeTrafficCategoryAll),
-					string(network.OfficeTrafficCategoryNone),
-					string(network.OfficeTrafficCategoryOptimize),
-					string(network.OfficeTrafficCategoryOptimizeAndAllow),
-				}, false),
-				Default: string(network.OfficeTrafficCategoryNone),
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "Standard",
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceVirtualWanSchema(),
 	}
+}
+
+func resourceVirtualWanSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"disable_vpn_encryption": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"allow_branch_to_branch_traffic": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"office365_local_breakout_category": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.OfficeTrafficCategoryAll),
+				string(network.OfficeTrafficCategoryNone),
+				string(network.OfficeTrafficCategoryOptimize),
+				string(network.OfficeTrafficCategoryOptimizeAndAllow),
+			}, false),
+			Default: string(network.OfficeTrafficCategoryNone),
+		},
+
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "Standard",
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		out["allow_vnet_to_vnet_traffic"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
+		}
+	}
+
+	return out
 }
 
 func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -177,7 +185,9 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
-		d.Set("allow_vnet_to_vnet_traffic", false)
+		if !features.ThreePointOhBeta() {
+			d.Set("allow_vnet_to_vnet_traffic", false)
+		}
 		d.Set("type", props.Type)
 	}
 

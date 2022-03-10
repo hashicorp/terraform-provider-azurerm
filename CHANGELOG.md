@@ -1,8 +1,55 @@
 ## 2.99.0 (Unreleased)
 
+NOTES
+
+* **Preparation for 3.0**: We intend for v2.99.0 to be the last release in the 2.x line - we’ll be turning our focus to 3.0 with the next release. We recommend [consulting the list of changes coming in 3.0](https://registry.terraform.io/providers/hashicorp/azurerm/2.99.0/docs/guides/3.0-upgrade-guide) to be aware and [trialling the Beta available in the latest 2.x releases](https://registry.terraform.io/providers/hashicorp/azurerm/2.99.0/docs/guides/3.0-beta) if you’re interested.
+
+FEATURES:
+
+* New Beta Resource: `azurerm_function_app_function` [GH-15605]
+* New Beta Resource: `azurerm_function_app_hybrid_connection` [GH-15702]
+* New Beta Resource: `azurerm_web_app_hybrid_connection` [GH-15702]
+* New Resource: `azurerm_cosmosdb_sql_role_definition` [GH-15035]
+
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v61.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-15604]
+* dependencies: updating to `v62.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-15716]
+* dependencies: updating `compute` to `2021-11-01` [GH-15099]
+* dependencies: updating `kubernetescluster` to `2022-01-02-preview` [GH-15648]
+* Data Source: `azurerm_kubernetes_cluster` - deprecated the `addon_profile` block in favour of `aci_connector_linux`, `azure_policy_enabled`, `http_application_routing_enabled`, `ingress_application_gateway`, `key_vault_secrets_provider`, `oms_agent` and `open_service_mesh_enabled` [GH-15584]
+* Data Source: `azurerm_kubernetes_cluster` - deprecated the `role_based_access_control` block in favour of `azure_active_directory_role_based_access_control` and `role_based_access_control_enabled` [GH-15584]
+* Data Source: `azurerm_servicebus_namespace_authorization_rule` - added the `namespace_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_namespace_disaster_recovery_config` - added the `namespace_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_queue` - added the `namespace_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_queue_authorization_rule` - added the `queue_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_subscription` - added the `topic_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_topic` - added the `namespace_id` property [GH-15671]
+* Data Source: `azurerm_servicebus_topic_authorization_rule` - added the `topic_id` property [GH-15671]
+* `azurerm_container_registry` support for the `export_policy_enabled` property [GH-15036]
+* `azurerm_kubernetes_cluster` - deprecate the `role_based_access_control` block in favour of `role_based_access_control_enabled` and `azure_active_directory_role_based_access_control` [GH-15546]
+* `azurerm_iothub` - deprecate the `ip_filter_rule` property in favour of the `network_rule_set` property [GH-15590]
+* `azurerm_machine_learning_compute_instance` - updating the validation on the `name` property [GH-14839]
+* `azurerm_mssql_database_extended_auditing_policy` - support for the `enabled` property [GH-15624]
+* `azurerm_mssql_server_extended_auditing_policy` - support for the `enabled` property [GH-15624]
+* `azurerm_lb_nat_rule` - the `frontend_port` and `backend_port` properties now support `0` [GH-15694]
+* `azurerm_management_group_policy_assignment` - the `parameters` property can now be updated [GH-15623]
+* `azurerm_resource_policy_assignment`  - the `parameters` property can now be updated [GH-15623]
+* `azurerm_resource_group_policy_assignment` - the `parameters` property can now be updated [GH-15623]
+* `azurerm_subscription_policy_assignment` - the `parameters` property can now be updated [GH-15623]
+* `azurerm_storage_object_replication` - support for replicating containers across subscriptions [GH-15603]
+* `azurerm_batch_account` - support for customer managed keys [GH-14749]
+
+BUG FIXES:
+
+* `azurerm_backup_protected_vm`: Make `source_vm_id` case insensitive [GH-15656]
+* `azurerm_batch_job` - fix issue where creation failed when multiple `common_environment_properties` were set [GH-15686]
+* `azurerm_container_group` - fix issue when parsing empty or omitted `dns_config.options` and `dns_config.search_domains` [GH-15618]
+* `azurerm_key_vault_key` - correctly set vault id on import [GH-15670]
+* `azurerm_monitor_diagnostic_setting` - fixing an issue when parsing `eventhub_authorization_rule_id` [GH-15582]
+* `azurerm_mssql_managed_instance_active_directory_administrator` - fix a perpetual diff that caused the resource to be replaced [GH-15725]
+* `azurerm_orchestrated_virtual_machine_scale_set` - fixing a crash when the 3.0 beta was enabled [GH-15637]
+* `azurerm_storage_data_lake_gen2_filesystem` - supporting configuring `group` and `owner` [GH-15598]
+* `azurerm_virtual_network_gateway` - fix panic regarding `bgp_settings.0.peering_address` [GH-15689]
 
 ## 2.98.0 (February 25, 2022)
 

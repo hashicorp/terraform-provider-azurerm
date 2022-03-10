@@ -147,7 +147,7 @@ A `application_stack` block supports the following:
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `2.7`, `3.6`, `3.7`, and `3.8`. 
+* `python_version` - (Optional) The version of Python to run. Possible values include `2.7`, `3.7`, `3.8`, and `3.9`. 
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.5` and `2.6`.
 

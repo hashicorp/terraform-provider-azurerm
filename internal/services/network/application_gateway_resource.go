@@ -238,7 +238,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"cookie_based_affinity": {
@@ -248,7 +248,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayCookieBasedAffinityEnabled),
 								string(network.ApplicationGatewayCookieBasedAffinityDisabled),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"affinity_cookie_name": {
@@ -382,7 +382,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"private_link_configuration_name": {
@@ -485,7 +485,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"host_name": {
@@ -645,7 +645,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IPAllocationMethodDynamic),
 											string(network.IPAllocationMethodStatic),
-										}, !features.ThreePointOh()),
+										}, !features.ThreePointOhBeta()),
 										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 
@@ -855,7 +855,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								string(network.ApplicationGatewaySkuNameWAFLarge),
 								string(network.ApplicationGatewaySkuNameWAFMedium),
 								string(network.ApplicationGatewaySkuNameWAFV2),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"tier": {
@@ -867,7 +867,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								string(network.ApplicationGatewayTierStandardV2),
 								string(network.ApplicationGatewayTierWAF),
 								string(network.ApplicationGatewayTierWAFV2),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"capacity": {
@@ -974,7 +974,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"path": {
@@ -1473,7 +1473,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayFirewallModeDetection),
 								string(network.ApplicationGatewayFirewallModePrevention),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"rule_set_type": {

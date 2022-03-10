@@ -469,7 +469,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [
@@ -501,11 +501,11 @@ resource "azurerm_key_vault" "import" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -569,11 +569,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -603,11 +603,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -638,11 +638,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -1105,7 +1105,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [
@@ -1153,7 +1153,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [

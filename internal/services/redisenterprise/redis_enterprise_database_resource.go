@@ -48,7 +48,7 @@ func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 				ValidateFunc: validate.RedisEnterpriseDatabaseName,
 			},
 
-			// TODO: deprecate/remove this
+			// TODO: 3.0 - deprecate/remove this
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cluster_id": {

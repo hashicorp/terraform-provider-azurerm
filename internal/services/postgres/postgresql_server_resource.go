@@ -181,7 +181,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -227,7 +227,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				Computed:      true, // TODO: remove in 2.0 and default to false
+				Computed:      true, // TODO: remove in 3.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
@@ -312,7 +312,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

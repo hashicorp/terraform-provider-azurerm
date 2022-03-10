@@ -358,7 +358,6 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 		"parameters": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			ForceNew:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},

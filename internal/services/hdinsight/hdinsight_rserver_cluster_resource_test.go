@@ -231,7 +231,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -282,10 +281,10 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
   location            = azurerm_hdinsight_rserver_cluster.test.location
   cluster_version     = azurerm_hdinsight_rserver_cluster.test.cluster_version
   tier                = azurerm_hdinsight_rserver_cluster.test.tier
+  rstudio             = azurerm_hdinsight_rserver_cluster.test.rstudio
   dynamic "gateway" {
     for_each = azurerm_hdinsight_rserver_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -372,7 +371,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -426,7 +424,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -498,7 +495,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -574,7 +570,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -668,7 +663,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }

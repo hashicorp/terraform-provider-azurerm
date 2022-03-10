@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -142,7 +142,7 @@ func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceGroupName,
+			ValidateFunc: resourcegroups.ValidateName,
 			Deprecated:   "Deprecated in favour of `storage_account_id`",
 			RequiredWith: []string{
 				"storage_account_name",

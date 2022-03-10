@@ -26,7 +26,7 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			// TODO: deprecate me
+			// TODO: 3.0 - deprecate me
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"cluster_id": {

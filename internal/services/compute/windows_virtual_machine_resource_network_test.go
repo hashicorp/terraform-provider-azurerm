@@ -305,14 +305,14 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "primary"
     subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     primary                       = true
   }
 
   ip_configuration {
     name                          = "secondary"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
@@ -35,6 +36,8 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 			_, err := parse.HybridConnectionID(id)
 			return err
 		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

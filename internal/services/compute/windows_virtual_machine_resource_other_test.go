@@ -390,22 +390,6 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherEnableAutomaticUpdatesDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("false"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccWindowsVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -1594,37 +1578,6 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) otherEnableAutomaticUpdatesDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  size                     = "Standard_F2"
-  admin_username           = "adminuser"
-  admin_password           = "P@$$w0rd1234!"
-  enable_automatic_updates = false
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data))
-}
-
 func (r WindowsVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2378,16 +2331,16 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = [
       "Create",
       "Delete",
-      "Deleteissuers",
+      "DeleteIssuers",
       "Get",
-      "Getissuers",
+      "GetIssuers",
       "Import",
       "List",
-      "Listissuers",
-      "Managecontacts",
-      "Manageissuers",
+      "ListIssuers",
+      "ManageContacts",
+      "ManageIssuers",
       "Purge",
-      "Setissuers",
+      "SetIssuers",
       "Update",
     ]
   }

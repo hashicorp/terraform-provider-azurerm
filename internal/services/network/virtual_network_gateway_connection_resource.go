@@ -58,7 +58,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 					string(network.VirtualNetworkGatewayConnectionTypeExpressRoute),
 					string(network.VirtualNetworkGatewayConnectionTypeIPsec),
 					string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -206,7 +206,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.DhGroupECP256),
 								string(network.DhGroupECP384),
 								string(network.DhGroupNone),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"ike_encryption": {
@@ -221,7 +221,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IkeEncryptionDES3),
 								string(network.IkeEncryptionGCMAES128),
 								string(network.IkeEncryptionGCMAES256),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"ike_integrity": {
@@ -235,7 +235,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IkeIntegritySHA1),
 								string(network.IkeIntegritySHA256),
 								string(network.IkeIntegritySHA384),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"ipsec_encryption": {
@@ -252,7 +252,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IpsecEncryptionGCMAES192),
 								string(network.IpsecEncryptionGCMAES256),
 								string(network.IpsecEncryptionNone),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"ipsec_integrity": {
@@ -266,7 +266,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.IpsecIntegrityMD5),
 								string(network.IpsecIntegritySHA1),
 								string(network.IpsecIntegritySHA256),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"pfs_group": {
@@ -283,7 +283,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 								string(network.PfsGroupPFS2048),
 								string(network.PfsGroupPFS24),
 								string(network.PfsGroupPFSMM),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"sa_datasize": {

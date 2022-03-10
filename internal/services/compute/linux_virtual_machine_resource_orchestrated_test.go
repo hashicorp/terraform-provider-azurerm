@@ -153,7 +153,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
+  zone                         = tolist(azurerm_orchestrated_virtual_machine_scale_set.test.zones)[0]
 }
 `, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -282,7 +282,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
+  zone                         = tolist(azurerm_orchestrated_virtual_machine_scale_set.test.zones)[0]
 }
 `, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -399,7 +399,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
+  zone                         = tolist(azurerm_orchestrated_virtual_machine_scale_set.test.zones)[0]
 }
 
 resource "azurerm_network_interface" "second" {
@@ -439,7 +439,7 @@ resource "azurerm_linux_virtual_machine" "another" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
+  zone                         = tolist(azurerm_orchestrated_virtual_machine_scale_set.test.zones)[0]
 }
 `, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

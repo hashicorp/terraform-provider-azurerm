@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -48,7 +48,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// TODO: remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0
+		// The plan was to remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0.
+		// Turns out it's still in use
+		// TODO: Revisit in 4.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
