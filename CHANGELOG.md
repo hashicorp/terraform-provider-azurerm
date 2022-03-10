@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_server_extended_auditing_policy` - support for the `enabled` property [GH-15624]
 * `azurerm_lb_nat_rule` - the `frontend_port` and `backend_port` properties now support `0` [GH-15694]
 * `azurerm_management_group_policy_assignment` - the `parameters` property can now be updated [GH-15623]
+* `azurerm_mssql_server` - the `administrator_login` and `administrator_login_password` properties are now optional when Azure AD authentication is enforced [GH-15771]
 * `azurerm_resource_policy_assignment`  - the `parameters` property can now be updated [GH-15623]
 * `azurerm_resource_group_policy_assignment` - the `parameters` property can now be updated [GH-15623]
 * `azurerm_subscription_policy_assignment` - the `parameters` property can now be updated [GH-15623]
