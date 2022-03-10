@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	envWrapper "github.com/manicminer/hamilton-autorest/environments"
 	"github.com/manicminer/hamilton/environments"
 )
 
@@ -59,12 +60,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment, builder.AuthConfig.MetadataHost, err)
 	}
 
-	// Hamilton environment configuration
-	environment, err := environments.EnvironmentFromString(builder.AuthConfig.Environment)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment, builder.AuthConfig.MetadataHost, err)
-	}
-
 	// client declarations:
 	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
@@ -94,6 +89,9 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var graphAuth autorest.Authorizer // TODO: remove in v3.0
 
 	if builder.UseMSAL {
+		// Hamilton environment configuration
+		environment := envWrapper.EnvironmentFromAzureEnvironment(*env)
+
 		// TODO: remove UseMSAL toggle and make this the default behaviour in v3.0
 		auth, err = builder.AuthConfig.GetMSALToken(ctx, environment.ResourceManager, sender, oauthConfig, string(environment.ResourceManager.Endpoint))
 		if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
 	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 	"golang.org/x/crypto/pkcs12"
@@ -97,12 +98,7 @@ func (a servicePrincipalClientCertificateAuth) getMSALToken(ctx context.Context,
 		TokenVersion:       auth.TokenVersion2,
 	}
 
-	authorizer := conf.TokenSource(ctx, auth.ClientCredentialsAssertionType)
-	if authTyped, ok := authorizer.(autorest.Authorizer); ok {
-		return authTyped, nil
-	}
-
-	return nil, fmt.Errorf("returned auth.Authorizer does not implement autorest.Authorizer")
+	return &authWrapper.Authorizer{Authorizer: conf.TokenSource(ctx, auth.ClientCredentialsAssertionType)}, nil
 }
 
 func (a servicePrincipalClientCertificateAuth) populateConfig(c *Config) error {

@@ -19,7 +19,7 @@ func (o Id) MarshalJSON() ([]byte, error) {
 
 	u, err := url.Parse(id)
 	if err != nil || u.Scheme == "" || u.Host == "" {
-		matches := regexp.MustCompile(`([a-zA-Z]+)\(['"]([^'"]+)['"]\)`).FindStringSubmatch(id)
+		matches := regexp.MustCompile(`([^()'"]+)\(['"]([^'"]+)['"]\)`).FindStringSubmatch(id)
 		if len(matches) != 3 {
 			return nil, fmt.Errorf("Marshaling odata.Id: could not match a GUID")
 		}

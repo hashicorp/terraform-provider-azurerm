@@ -348,6 +348,135 @@ func (c *ServicePrincipalsClient) RemoveOwners(ctx context.Context, servicePrinc
 	return status, nil
 }
 
+// AssignClaimsMappingPolicy assigns a claimsMappingPolicy to a servicePrincipal
+func (c *ServicePrincipalsClient) AssignClaimsMappingPolicy(ctx context.Context, servicePrincipal *ServicePrincipal) (int, error) {
+	var status int
+
+	if servicePrincipal.ID == nil {
+		return status, errors.New("cannot update service principal with nil ID")
+	}
+	if servicePrincipal.ClaimsMappingPolicies == nil {
+		return status, errors.New("cannot update service principal with nil ClaimsMappingPolicies")
+	}
+
+	for _, policy := range *servicePrincipal.ClaimsMappingPolicies {
+		// don't fail if an owner already exists
+		checkPolicyAlreadyExists := func(resp *http.Response, o *odata.OData) bool {
+			if resp != nil && resp.StatusCode == http.StatusBadRequest && o != nil && o.Error != nil {
+				return o.Error.Match(odata.ErrorAddedObjectReferencesAlreadyExist)
+			}
+			return false
+		}
+
+		body, err := json.Marshal(DirectoryObject{ODataId: policy.ODataId})
+		if err != nil {
+			return status, fmt.Errorf("json.Marshal(): %v", err)
+		}
+
+		_, status, _, err = c.BaseClient.Post(ctx, PostHttpRequestInput{
+			Body:                   body,
+			ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+			ValidStatusCodes:       []int{http.StatusNoContent},
+			ValidStatusFunc:        checkPolicyAlreadyExists,
+			Uri: Uri{
+				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/$ref", *servicePrincipal.ID),
+				HasTenantId: false,
+			},
+		})
+		if err != nil {
+			return status, fmt.Errorf("ServicePrincipalsClient.BaseClient.Post(): %v", err)
+		}
+	}
+
+	return status, nil
+}
+
+// ListClaimsMappingPolicy retrieves the claimsMappingPolicies assigned to the specified Service Principal.
+// id is the object ID of the service principal.
+func (c *ServicePrincipalsClient) ListClaimsMappingPolicy(ctx context.Context, id string) (*[]ClaimsMappingPolicy, int, error) {
+	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
+		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+		ValidStatusCodes:       []int{http.StatusOK},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies", id),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return nil, status, fmt.Errorf("ServicePrincipalsClient.BaseClient.Get(): %v", err)
+	}
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
+	}
+
+	var data struct {
+		Policies []ClaimsMappingPolicy `json:"value"`
+	}
+
+	if err := json.Unmarshal(respBody, &data); err != nil {
+		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	return &data.Policies, status, nil
+}
+
+// RemoveClaimsMappingPolicy removes a claimsMappingPolicy from a servicePrincipal
+func (c *ServicePrincipalsClient) RemoveClaimsMappingPolicy(ctx context.Context, servicePrincipal *ServicePrincipal, policyIds *[]string) (int, error) {
+	var status int
+
+	if policyIds == nil {
+		return status, errors.New("cannot remove, nil policyIds")
+	}
+
+	assignedPolicies, _, err := c.ListClaimsMappingPolicy(ctx, *servicePrincipal.ID)
+	if err != nil {
+		return status, fmt.Errorf("ServicePrincipalsClient.BaseClient.ListClaimsMappingPolicy(): %v", err)
+	}
+
+	if len(*assignedPolicies) == 0 {
+		return http.StatusNoContent, nil
+	}
+
+	mapClaimsMappingPolicy := map[string]ClaimsMappingPolicy{}
+	for _, v := range *assignedPolicies {
+		mapClaimsMappingPolicy[*v.ID] = v
+	}
+
+	for _, policyId := range *policyIds {
+
+		// Check if policy is currently assigned
+		_, ok := mapClaimsMappingPolicy[policyId]
+		if !ok {
+			continue
+		}
+
+		checkPolicyStatus := func(resp *http.Response, o *odata.OData) bool {
+			if resp != nil && resp.StatusCode == http.StatusNotFound && o != nil && o.Error != nil {
+				return o.Error.Match(odata.ErrorResourceDoesNotExist)
+			}
+			return false
+		}
+
+		_, status, _, err = c.BaseClient.Delete(ctx, DeleteHttpRequestInput{
+			ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+			ValidStatusCodes:       []int{http.StatusNoContent},
+			ValidStatusFunc:        checkPolicyStatus,
+			Uri: Uri{
+				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/%s/$ref", *servicePrincipal.ID, policyId),
+				HasTenantId: false,
+			},
+		})
+		if err != nil {
+			return status, fmt.Errorf("ServicePrincipalsClient.BaseClient.Delete(): %v", err)
+		}
+	}
+
+	return status, nil
+}
+
 // ListGroupMemberships returns a list of Groups the Service Principal is member of, optionally queried using OData.
 func (c *ServicePrincipalsClient) ListGroupMemberships(ctx context.Context, id string, query odata.Query) (*[]Group, int, error) {
 	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{

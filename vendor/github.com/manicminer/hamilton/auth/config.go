@@ -53,4 +53,13 @@ type Config struct {
 
 	// Specifies the password to authenticate with using client secret authentication
 	ClientSecret string
+
+	// Enables GitHub OIDC authentication
+	EnableGitHubOIDCAuth bool
+
+	// The URL for GitHub's OIDC provider
+	IDTokenRequestURL string
+
+	// The bearer token for the request to GitHub's OIDC provider
+	IDTokenRequestToken string
 }

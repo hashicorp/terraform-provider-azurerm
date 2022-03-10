@@ -9,8 +9,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
+	envWrapper "github.com/manicminer/hamilton-autorest/environments"
 	"github.com/manicminer/hamilton/auth"
-	"github.com/manicminer/hamilton/environments"
 	"github.com/manicminer/hamilton/msgraph"
 	"github.com/manicminer/hamilton/odata"
 
@@ -40,7 +41,7 @@ func buildServicePrincipalObjectIDFunc(c *Config) func(ctx context.Context) (*st
 }
 
 func claimsFromAutorestAuthorizer(authorizer autorest.Authorizer) (*auth.Claims, error) {
-	wrapper, err := auth.NewAutorestAuthorizerWrapper(authorizer)
+	wrapper, err := authWrapper.NewAuthorizerWrapper(authorizer)
 	if err != nil {
 		return nil, fmt.Errorf("wrapping autorest.Authorizer: %v", err)
 	}
@@ -85,10 +86,12 @@ func objectIdFromADALTokenClaims(ctx context.Context, c *Config) (*string, error
 }
 
 func objectIdFromMSALTokenClaims(ctx context.Context, c *Config) (*string, error) {
-	env, err := environments.EnvironmentFromString(c.Environment)
+	azureEnv, err := AzureEnvironmentByNameFromEndpoint(ctx, c.MetadataHost, c.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("determining environment: %v", err)
 	}
+
+	env := envWrapper.EnvironmentFromAzureEnvironment(*azureEnv)
 
 	oauthConfig, err := c.BuildOAuthConfig(string(env.AzureADEndpoint))
 	if err != nil {
@@ -145,10 +148,12 @@ func objectIdFromAadGraph(ctx context.Context, c *Config) (*string, error) {
 }
 
 func objectIdFromMsGraph(ctx context.Context, c *Config) (*string, error) {
-	env, err := environments.EnvironmentFromString(c.Environment)
+	azureEnv, err := AzureEnvironmentByNameFromEndpoint(ctx, c.MetadataHost, c.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("determining environment: %v", err)
 	}
+
+	env := envWrapper.EnvironmentFromAzureEnvironment(*azureEnv)
 
 	oauthConfig, err := c.BuildOAuthConfig(string(env.AzureADEndpoint))
 	if err != nil {
@@ -160,7 +165,7 @@ func objectIdFromMsGraph(ctx context.Context, c *Config) (*string, error) {
 		return nil, fmt.Errorf("configuring Authorizer: %v", err)
 	}
 
-	authorizerWrapper, err := auth.NewAutorestAuthorizerWrapper(msGraphAuth)
+	authorizerWrapper, err := authWrapper.NewAuthorizerWrapper(msGraphAuth)
 	if err != nil {
 		return nil, fmt.Errorf("configuring Authorizer wrapper: %v", err)
 	}

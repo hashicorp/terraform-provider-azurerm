@@ -17,7 +17,7 @@ type AccessPackageClient struct {
 
 func NewAccessPackageClient(tenantId string) *AccessPackageClient {
 	return &AccessPackageClient{
-		BaseClient: NewClient(VersionBeta, tenantId),
+		BaseClient: NewClient(Version10, tenantId),
 	}
 }
 
@@ -81,6 +81,12 @@ func (c *AccessPackageClient) Create(ctx context.Context, accessPackage AccessPa
 	var newAccessPackage AccessPackage
 	if err := json.Unmarshal(respBody, &newAccessPackage); err != nil {
 		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	if c.BaseClient.ApiVersion == Version10 {
+		newAccessPackage.Catalog = &AccessPackageCatalog{
+			ID: accessPackage.Catalog.ID,
+		} //Stable API doesn't return this
 	}
 
 	return &newAccessPackage, status, nil

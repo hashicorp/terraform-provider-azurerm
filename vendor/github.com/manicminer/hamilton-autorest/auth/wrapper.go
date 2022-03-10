@@ -8,16 +8,22 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/manicminer/hamilton/auth"
 	"golang.org/x/oauth2"
 )
 
-// AutorestAuthorizerWrapper is an Authorizer which sources tokens from an autorest.Authorizer
+// NewAuthorizerWrapper returns a Hamilton auth.Authorizer that sources tokens from a supplied autorest.BearerAuthorizer
+func NewAuthorizerWrapper(autorestAuthorizer autorest.Authorizer) (auth.Authorizer, error) {
+	return &AuthorizerWrapper{authorizer: autorestAuthorizer}, nil
+}
+
+// AuthorizerWrapper is a Hamilton auth.Authorizer which sources tokens from an autorest.Authorizer
 // Fully supports:
 // - autorest.BearerAuthorizer
 // - autorest.MultiTenantBearerAuthorizer
 // For other types that satisfy autorest.Authorizer, the Authorization and X-Ms-Authorization-Auxiliary headers
 // are parsed for access token values, but additional metadata such as refresh tokens and expiry are not provided.
-type AutorestAuthorizerWrapper struct {
+type AuthorizerWrapper struct {
 	authorizer autorest.Authorizer
 }
 
@@ -41,7 +47,7 @@ type ServicePrincipalToken interface {
 	Token() adal.Token
 }
 
-func (a *AutorestAuthorizerWrapper) tokenProviders() (tokenProviders []adal.OAuthTokenProvider, err error) {
+func (a *AuthorizerWrapper) tokenProviders() (tokenProviders []adal.OAuthTokenProvider, err error) {
 	if authorizer, ok := a.authorizer.(*autorest.BearerAuthorizer); ok && authorizer != nil {
 		// autorest.BearerAuthorizer provides a single token for the specified tenant
 		tokenProviders = append(tokenProviders, authorizer.TokenProvider())
@@ -101,7 +107,7 @@ func (a *AutorestAuthorizerWrapper) tokenProviders() (tokenProviders []adal.OAut
 }
 
 // Token returns an access token using an autorest.BearerAuthorizer struct
-func (a *AutorestAuthorizerWrapper) Token() (*oauth2.Token, error) {
+func (a *AuthorizerWrapper) Token() (*oauth2.Token, error) {
 	tokenProviders, err := a.tokenProviders()
 	if err != nil {
 		return nil, err
@@ -128,7 +134,7 @@ func (a *AutorestAuthorizerWrapper) Token() (*oauth2.Token, error) {
 
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, sourced from an
 // autorest.MultiTenantBearerAuthorizer, for use in multi-tenant scenarios
-func (a *AutorestAuthorizerWrapper) AuxiliaryTokens() ([]*oauth2.Token, error) {
+func (a *AuthorizerWrapper) AuxiliaryTokens() ([]*oauth2.Token, error) {
 	tokenProviders, err := a.tokenProviders()
 	if err != nil {
 		return nil, err

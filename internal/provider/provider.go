@@ -277,10 +277,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}
 		}
 
-		useMsal := !features.ThreePointOhBeta()
-		if !features.ThreePointOhBeta() {
-			useMsal = d.Get("use_msal").(bool)
-		}
+		useMsal := features.ThreePointOhBeta() || d.Get("use_msal").(bool)
 
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),

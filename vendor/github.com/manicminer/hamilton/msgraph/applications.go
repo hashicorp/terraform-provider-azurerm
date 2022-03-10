@@ -624,3 +624,143 @@ func (c *ApplicationsClient) UploadLogo(ctx context.Context, applicationId, cont
 
 	return status, nil
 }
+
+// ListFederatedIdentityCredentials returns the federated identity credentials for an application
+func (c *ApplicationsClient) ListFederatedIdentityCredentials(ctx context.Context, applicationId string, query odata.Query) (*[]FederatedIdentityCredential, int, error) {
+	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
+		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+		OData:                  query,
+		ValidStatusCodes:       []int{http.StatusOK},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/applications/%s/federatedIdentityCredentials", applicationId),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return nil, status, fmt.Errorf("ApplicationsClient.BaseClient.Get(): %v", err)
+	}
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
+	}
+
+	var data struct {
+		FederatedIdentityCredentials []FederatedIdentityCredential `json:"value"`
+	}
+	if err := json.Unmarshal(respBody, &data); err != nil {
+		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	return &data.FederatedIdentityCredentials, status, nil
+}
+
+// GetFederatedIdentityCredential returns the federated identity credentials for an application
+func (c *ApplicationsClient) GetFederatedIdentityCredential(ctx context.Context, applicationId, credentialId string, query odata.Query) (*FederatedIdentityCredential, int, error) {
+	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
+		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+		OData:                  query,
+		ValidStatusCodes:       []int{http.StatusOK},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/applications/%s/federatedIdentityCredentials/%s", applicationId, credentialId),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return nil, status, fmt.Errorf("ApplicationsClient.BaseClient.Get(): %v", err)
+	}
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
+	}
+
+	var data FederatedIdentityCredential
+	if err := json.Unmarshal(respBody, &data); err != nil {
+		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	return &data, status, nil
+}
+
+// CreateFederatedIdentityCredential adds a new federated identity credential for an application
+func (c *ApplicationsClient) CreateFederatedIdentityCredential(ctx context.Context, applicationId string, credential FederatedIdentityCredential) (*FederatedIdentityCredential, int, error) {
+	var status int
+
+	body, err := json.Marshal(credential)
+	if err != nil {
+		return nil, status, fmt.Errorf("json.Marshal(): %v", err)
+	}
+
+	resp, status, _, err := c.BaseClient.Post(ctx, PostHttpRequestInput{
+		Body:             body,
+		ValidStatusCodes: []int{http.StatusCreated},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/applications/%s/federatedIdentityCredentials", applicationId),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return nil, status, fmt.Errorf("ApplicationsClient.BaseClient.Post(): %v", err)
+	}
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
+	}
+
+	var result FederatedIdentityCredential
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	return &result, status, nil
+}
+
+// UpdateFederatedIdentityCredential updates an existing federated identity credential for an application
+func (c *ApplicationsClient) UpdateFederatedIdentityCredential(ctx context.Context, applicationId string, credential FederatedIdentityCredential) (int, error) {
+	var status int
+
+	if credential.ID == nil {
+		return status, errors.New("ApplicationsClient.UpdateFederatedIdentityCredential(): cannot update federated identity credential with nil ID")
+	}
+
+	body, err := json.Marshal(credential)
+	if err != nil {
+		return status, fmt.Errorf("json.Marshal(): %v", err)
+	}
+
+	_, status, _, err = c.BaseClient.Patch(ctx, PatchHttpRequestInput{
+		Body:             body,
+		ValidStatusCodes: []int{http.StatusNoContent},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/applications/%s/federatedIdentityCredentials/%s", applicationId, *credential.ID),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return status, fmt.Errorf("ApplicationsClient.BaseClient.Patch(): %v", err)
+	}
+
+	return status, nil
+}
+
+// DeleteFederatedIdentityCredential removes a federated identity credential from an application
+func (c *ApplicationsClient) DeleteFederatedIdentityCredential(ctx context.Context, applicationId, credentialId string) (int, error) {
+	_, status, _, err := c.BaseClient.Delete(ctx, DeleteHttpRequestInput{
+		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+		ValidStatusCodes:       []int{http.StatusNoContent},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/applications/%s/federatedIdentityCredentials/%s", applicationId, credentialId),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return status, fmt.Errorf("ApplicationsClient.BaseClient.Delete(): %v", err)
+	}
+
+	return status, nil
+}

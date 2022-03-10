@@ -146,7 +146,7 @@ func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
 	}
 	defer resp.Body.Close()
 	if c := resp.StatusCode; c < 200 || c > 299 {
-		err = fmt.Errorf("received HTTP status %d", resp.StatusCode)
+		err = fmt.Errorf("received HTTP status %d with body: %s", resp.StatusCode, body)
 		return
 	}
 	return
