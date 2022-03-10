@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `frontdoor_rule_set_id` - (Required) The ID of the Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
 
-* `order` - (Required) The order in which the rules will be applied for the Frontdoor Endpoint. Possible values include `0`, `1`, `2`, `3` etc. A Frontdoor Rule with a lesser order value will be applied before a rule with a greater order value. 
+* `order` - (Required) The order in which the rules will be applied for the Frontdoor Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Frontdoor Rule with a lesser order value will be applied before a rule with a greater order value.
 
 ~>**NOTE:** If the Frontdoor Rule has an order value of `0` they do not require any conditions or actions and they will always be applied.
 
@@ -256,37 +256,69 @@ A `conditions` block supports the following:
 
 A `ssl_protocol_condition` block supports the following:
 
+The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
+
+* `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
+
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+
+* `match_values` - (Required) One or more HTTP methods. Possible values include `TLSv1.0`, `TLSv1.1` or `TLS1.2`. If multiple values are specified, they're evaluated using `OR` logic.
+
 ---
 
 A `host_name_condition` block supports the following:
+
+The `host_name_condition` identifies requests based on the specified hostname in the request from client.
+
+* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+
+* `match_values` - (Required) One or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
+
+* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
 
 ---
 
 A `server_port_condition` block supports the following:
 
+The `server_port_condition` identifies requests based on which port of the Frontdoor server accepted the request on.
+
+* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+
+* `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. Defaults to `80`. If multiple values are specified, they're evaluated using `OR` logic.
+
 ---
 
 A `client_port_condition` block supports the following:
+
+The `client_port_condition` identifies requests based on the port of the client which made the request.
+
+* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+
+* `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. If multiple values are specified, they're evaluated using `OR` logic.
 
 ---
 
 A `socket_address_condition` block supports the following:
 
+The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+
+Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+
+* `operator` - (Optional) The type of match. The Possible value is `IpMatch`. Defaults to `IpMatch`.
+
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+
+* `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
+
+~>**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+
 ---
 
 A `remote_address_condition` block supports the following:
-
-The `remote_address_condition` identifies requests based on the requester's location or IP address.
-
-Use `CIDR` notation when specifying IP address blocks. This means that the syntax for an IP address block is the base IP address followed by a forward slash and the prefix size For example:
-
-* `IPv4` example: `5.5.5.64/26` matches any requests that arrive from addresses `5.5.5.64` through `5.5.5.127`.
-* `IPv6` example: `1:2:3:/48` matches any requests that arrive from addresses `1:2:3:0:0:0:0:0` through `1:2:3:ffff:ffff:ffff:ffff:ffff`.
-
-When you specify multiple IP addresses and IP address blocks, `OR` logic is applied.
-
-* `IPv4` example: if you add two IP addresses `1.2.3.4` and `10.20.30.40`, the condition is matched for any requests that arrive from either address `1.2.3.4` or `10.20.30.40`.
-* `IPv6` example: if you add two IP addresses `1:2:3:4:5:6:7:8` and `10:20:30:40:50:60:70:80`, the condition is matched for any requests that arrive from either address `1:2:3:4:5:6:7:8` or `10:20:30:40:50:60:70:80`.
 
 Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -295,6 +327,8 @@ Remote Address represents the original client IP that is either from the network
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) For the IP Match or IP Not Match operators: specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
+
+~>**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
@@ -477,6 +511,22 @@ Use the `is_device_condition` to identify requests that have been made from a `m
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) Which device should this rule match on? Possible values `Mobile` or `Desktop`. Defaults to `Mobile`.
+
+---
+
+## Specifying IP Address Ranges
+
+When specifying IP address ranges in the `socket_address_condition` and the `remote_address_condition` `match_values` use the following format:
+
+Use `CIDR` notation when specifying IP address blocks. This means that the syntax for an IP address block is the base IP address followed by a forward slash and the prefix size For example:
+
+* `IPv4` example: `5.5.5.64/26` matches any requests that arrive from addresses `5.5.5.64` through `5.5.5.127`.
+* `IPv6` example: `1:2:3:/48` matches any requests that arrive from addresses `1:2:3:0:0:0:0:0` through `1:2:3:ffff:ffff:ffff:ffff:ffff`.
+
+When you specify multiple IP addresses and IP address blocks, `OR` logic is applied.
+
+* `IPv4` example: if you add two IP addresses `1.2.3.4` and `10.20.30.40`, the condition is matched for any requests that arrive from either address `1.2.3.4` or `10.20.30.40`.
+* `IPv6` example: if you add two IP addresses `1:2:3:4:5:6:7:8` and `10:20:30:40:50:60:70:80`, the condition is matched for any requests that arrive from either address `1:2:3:4:5:6:7:8` or `10:20:30:40:50:60:70:80`.
 
 ---
 

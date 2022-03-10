@@ -149,7 +149,7 @@ func InitializeFrontdoorConditionMappings() *FrontdoorCondtionsMappings {
 
 	m.UrlFileExtension = FrontdoorConditionParameters{
 		Name:       track1.NameURLFileExtension,
-		TypeName:   "DeliveryRuleURLFileExtensionMatchConditionParameters",
+		TypeName:   "DeliveryRuleUrlFileExtensionMatchConditionParameters",
 		ConfigName: "url_file_extension_condition",
 	}
 
@@ -185,7 +185,7 @@ func flattenAndValidateNormalizedCondition(condition normalizedCondition, m Fron
 	operator := ""
 	negateCondition := false
 	matchValues := make([]interface{}, 0)
-	conditionTransforms := make([]string, 0)
+	conditionTransforms := make([]interface{}, 0)
 
 	if condition.operator != "" {
 		operator = condition.operator
@@ -199,15 +199,14 @@ func flattenAndValidateNormalizedCondition(condition normalizedCondition, m Fron
 		matchValues = utils.FlattenStringSlice(condition.matchValues)
 	}
 
-	v := map[string]interface{}{
+	flattened := map[string]interface{}{
 		"operator":         operator,
 		"negate_condition": negateCondition,
 		"match_values":     matchValues,
-		"transforms":       conditionTransforms,
 	}
 
 	if condition.selector != nil {
-		v[*condition.selector.name] = *condition.selector.value
+		flattened[*condition.selector.name] = *condition.selector.value
 	}
 
 	if condition.transforms != nil {
@@ -215,10 +214,10 @@ func flattenAndValidateNormalizedCondition(condition normalizedCondition, m Fron
 			conditionTransforms = append(conditionTransforms, string(transform))
 		}
 
-		v["transforms"] = conditionTransforms
+		flattened["transforms"] = conditionTransforms
 	}
 
-	return v, nil
+	return flattened, nil
 }
 
 func validateFrontdoorExpandConditionOperatorValues(operator string, matchValues *[]string, m FrontdoorConditionParameters) error {
@@ -679,11 +678,6 @@ func ExpandFrontdoorSocketAddressCondition(input []interface{}) (*[]track1.Basic
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeTransforms(transforms)
-			condition.Parameters.Transforms = &expanded
-		}
-
 		if err := validateFrontdoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
 			return nil, err
 		}
@@ -711,11 +705,6 @@ func ExpandFrontdoorClientPortCondition(input []interface{}) (*[]track1.BasicDel
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeTransforms(transforms)
-			condition.Parameters.Transforms = &expanded
-		}
-
 		if err := validateFrontdoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
 			return nil, err
 		}
@@ -741,11 +730,6 @@ func ExpandFrontdoorServerPortCondition(input []interface{}) (*[]track1.BasicDel
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
-		}
-
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeTransforms(transforms)
-			condition.Parameters.Transforms = &expanded
 		}
 
 		if err := validateFrontdoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
@@ -815,11 +799,6 @@ func ExpandFrontdoorSslProtocolCondition(input []interface{}) (*[]track1.BasicDe
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeTransforms(transforms)
-			condition.Parameters.Transforms = &expanded
-		}
-
 		if err := validateFrontdoorExpandConditionOperatorValues(*condition.Parameters.Operator, &validationMatchValues, conditionMapping); err != nil {
 			return nil, err
 		}
@@ -830,7 +809,7 @@ func ExpandFrontdoorSslProtocolCondition(input []interface{}) (*[]track1.BasicDe
 	return &output, nil
 }
 
-func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRemoteAddressCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule remote address condition")
@@ -842,20 +821,21 @@ func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondit
 			operator:        string(params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestMethodCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request method condition")
@@ -867,20 +847,21 @@ func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondit
 			operator:        string(*params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleQueryStringCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule query string condition")
@@ -895,17 +876,18 @@ func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRulePostArgsCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule post args condition")
@@ -920,17 +902,18 @@ func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestURICondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request URI condition")
@@ -945,17 +928,18 @@ func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestHeaderCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request header condition")
@@ -970,17 +954,18 @@ func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestBodyCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request body condition")
@@ -995,17 +980,18 @@ func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestSchemeCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request scheme condition")
@@ -1020,17 +1006,18 @@ func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLPathCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url path condition")
@@ -1045,17 +1032,18 @@ func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLFileExtensionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file extension condition")
@@ -1070,17 +1058,18 @@ func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCon
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLFileNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file name condition")
@@ -1095,17 +1084,18 @@ func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleHTTPVersionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule http version condition")
@@ -1120,17 +1110,18 @@ func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleCookiesCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule cookie condition")
@@ -1145,17 +1136,18 @@ func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleIsDeviceCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule is device condition")
@@ -1170,17 +1162,18 @@ func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleSocketAddrCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule socket address condition")
@@ -1192,20 +1185,21 @@ func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondit
 			operator:        string(params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleClientPortCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule client port condition")
@@ -1217,20 +1211,21 @@ func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition
 			operator:        string(params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleServerPortCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule server port condition")
@@ -1242,20 +1237,21 @@ func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition
 			operator:        string(params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleHostNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule host name condition")
@@ -1270,17 +1266,18 @@ func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      params.Transforms,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil
 }
 
-func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) ([]interface{}, error) {
+func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleSslProtocolCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule ssl protocol condition")
@@ -1298,14 +1295,15 @@ func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleConditio
 			operator:        string(*params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     &matchValues,
-			transforms:      params.Transforms,
+			transforms:      nil,
 		}
 
-		if flattened, err := flattenAndValidateNormalizedCondition(condition, m); err != nil {
-			return []interface{}{flattened}, err
-		} else {
-			return []interface{}{flattened}, nil
+		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		if err != nil {
+			return nil, err
 		}
+
+		return flattened, nil
 	}
 
 	return nil, nil

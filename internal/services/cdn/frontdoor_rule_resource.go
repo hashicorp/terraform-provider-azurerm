@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -69,8 +68,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			// I don't need name as a field I can derive the correct value based on what
-			// type of parameter you define in the config
 			"actions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -84,7 +81,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_redirect_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -148,7 +145,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_rewrite_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -179,7 +176,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -214,7 +211,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"response_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -253,7 +250,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"route_configuration_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -326,11 +323,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 								},
 							},
 						},
-					}, // end of Actions
+					},
 				},
 			},
 
-			// type BasicDeliveryRuleCondition interface {
 			"conditions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -342,7 +338,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"remote_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -367,7 +363,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_method_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -384,7 +380,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"query_string_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -403,7 +399,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"postargs_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -429,7 +425,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_uri_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -448,13 +444,13 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_header_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
 									// In the API this is called selector
-									// match_values are optional if operator is Any
+									// match_values are invalid if operator is 'Any'
 									"header_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -475,7 +471,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_body_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -494,7 +490,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_scheme_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -511,7 +507,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_path_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -530,7 +526,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_file_extension_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -549,7 +545,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_filename_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -568,7 +564,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"http_version_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -585,7 +581,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"cookies_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -611,7 +607,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"is_device_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -629,7 +625,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"socket_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -646,8 +642,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
 									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -656,7 +650,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"client_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -666,8 +660,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
 									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -676,7 +668,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"server_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -686,8 +678,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
 									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -696,7 +686,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"host_name_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -716,7 +706,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"ssl_protocol_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -744,8 +734,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 											}, false),
 										},
 									},
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -864,6 +852,7 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if err != nil {
 			return fmt.Errorf("setting %q: %+v", "conditions", err)
 		}
+
 		d.Set("conditions", conditions)
 	}
 
@@ -938,12 +927,14 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 
 	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error)
 
+	m := *frontdoorruleactions.InitializeFrontdoorActionMappings()
+
 	actions := map[string]expandfunc{
-		"route_configuration_override_action": frontdoorruleactions.ExpandFrontdoorRouteConfigurationOverrideAction,
-		"request_header_action":               frontdoorruleactions.ExpandFrontdoorRequestHeaderAction,
-		"response_header_action":              frontdoorruleactions.ExpandFrontdoorResponseHeaderAction,
-		"url_redirect_action":                 frontdoorruleactions.ExpandFrontdoorUrlRedirectAction,
-		"url_rewrite_action":                  frontdoorruleactions.ExpandFrontdoorUrlRewriteAction,
+		m.RouteConfigurationOverride.ConfigName: frontdoorruleactions.ExpandFrontdoorRouteConfigurationOverrideAction,
+		m.RequestHeader.ConfigName:              frontdoorruleactions.ExpandFrontdoorRequestHeaderAction,
+		m.ResponseHeader.ConfigName:             frontdoorruleactions.ExpandFrontdoorResponseHeaderAction,
+		m.URLRedirect.ConfigName:                frontdoorruleactions.ExpandFrontdoorUrlRedirectAction,
+		m.URLRewrite.ConfigName:                 frontdoorruleactions.ExpandFrontdoorUrlRewriteAction,
 	}
 
 	basicDeliveryRuleAction := input[0].(map[string]interface{})
@@ -973,7 +964,8 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicD
 	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
 
 	// TODO: Add validation for this error once I figure out what that validation should be
-	// Error: creating Frontdoor Rule: (Rule Name "jclinerule" / Rule Set Name "jclineruleset" / Profile Name "jcline-profile" / Resource Group "jcline-afdx-profile"): cdn.RulesClient#Create: Failure sending request: StatusCode=400 -- Original Error: Code="BadRequest" Message="Parameters specified for RequestMethod condition are invalid.; \nProperty 'Rule.Conditions[2].Parameters.Selector' is required but it was not set"
+	// "BadRequest" Message="Parameters specified for RequestMethod condition are invalid.;
+	// Property 'Rule.Conditions[2].Parameters.Selector' is required but it was not set"
 
 	conditions := map[string]expandfunc{
 		m.ClientPort.ConfigName:       frontdoorruleconditions.ExpandFrontdoorClientPortCondition,
@@ -997,38 +989,20 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicD
 		m.UrlPath.ConfigName:          frontdoorruleconditions.ExpandFrontdoorUrlPathCondition,
 	}
 
-	// conditions := map[string]expandfunc{
-	// 	"client_port_condition":        frontdoorruleconditions.ExpandFrontdoorClientPortCondition,
-	// 	"cookies_condition":            frontdoorruleconditions.ExpandFrontdoorCookiesCondition,
-	// 	"host_name_condition":          frontdoorruleconditions.ExpandFrontdoorHostNameCondition,
-	// 	"http_version_condition":       frontdoorruleconditions.ExpandFrontdoorHttpVersionCondition,
-	// 	"is_device_condition":          frontdoorruleconditions.ExpandFrontdoorIsDeviceCondition,
-	// 	"postargs_condition":           frontdoorruleconditions.ExpandFrontdoorPostArgsCondition,
-	// 	"query_string_condition":       frontdoorruleconditions.ExpandFrontdoorQueryStringCondition,
-	// 	"remote_address_condition":     frontdoorruleconditions.ExpandFrontdoorRemoteAddressCondition,
-	// 	"request_body_condition":       frontdoorruleconditions.ExpandFrontdoorRequestBodyCondition,
-	// 	"request_header_condition":     frontdoorruleconditions.ExpandFrontdoorRequestHeaderCondition,
-	// 	"request_method_condition":     frontdoorruleconditions.ExpandFrontdoorRequestMethodCondition,
-	// 	"request_scheme_condition":     frontdoorruleconditions.ExpandFrontdoorRequestSchemeCondition,
-	// 	"request_uri_condition":        frontdoorruleconditions.ExpandFrontdoorRequestUriCondition,
-	// 	"server_port_condition":        frontdoorruleconditions.ExpandFrontdoorServerPortCondition,
-	// 	"socket_address_condition":     frontdoorruleconditions.ExpandFrontdoorSocketAddressCondition,
-	// 	"ssl_protocol_condition":       frontdoorruleconditions.ExpandFrontdoorSslProtocolCondition,
-	// 	"url_file_extension_condition": frontdoorruleconditions.ExpandFrontdoorUrlFileExtensionCondition,
-	// 	"url_filename_condition":       frontdoorruleconditions.ExpandFrontdoorUrlFileNameCondition,
-	// 	"url_path_condition":           frontdoorruleconditions.ExpandFrontdoorUrlPathCondition,
-	// }
-
 	basicDeliveryRuleCondition := input[0].(map[string]interface{})
 
 	for conditionName, expand := range conditions {
 		raw := basicDeliveryRuleCondition[conditionName].([]interface{})
-		expanded, err := expand(raw)
-		if err != nil {
-			return nil, err
-		}
+		if len(raw) > 0 {
+			expanded, err := expand(raw)
+			if err != nil {
+				return nil, err
+			}
 
-		results = append(results, *expanded...)
+			if expanded != nil {
+				results = append(results, *expanded...)
+			}
+		}
 	}
 
 	return results, nil
@@ -1041,303 +1015,384 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 	}
 
 	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
+	keys := make(map[string]string)
 
 	for _, BasicDeliveryRuleCondition := range *input {
 		result := make(map[string]interface{})
-		foundRule := false
 
 		// Client Port
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleClientPortCondition(); ok {
-			foundRule = true
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorClientPortCondition(condition, m.ClientPort)
+			conditionMapping := m.ClientPort
+
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorClientPortCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.ClientPort.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Cookies
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); ok {
-			foundRule = true
+			conditionMapping := m.Cookies
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorCookiesCondition(condition, m.Cookies)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorCookiesCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.Cookies.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Host Name
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHostNameCondition(); ok {
-			foundRule = true
+			conditionMapping := m.HostName
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorHostNameCondition(condition, m.HostName)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorHostNameCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.HostName.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// HTTP Version
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); ok {
-			foundRule = true
+			conditionMapping := m.HttpVersion
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorHttpVersionCondition(condition, m.HttpVersion)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorHttpVersionCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.HttpVersion.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Is Device
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); ok {
-			foundRule = true
+			conditionMapping := m.IsDevice
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorIsDeviceCondition(condition, m.IsDevice)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorIsDeviceCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.IsDevice.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Post Args
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); ok {
-			foundRule = true
+			conditionMapping := m.PostArgs
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorPostArgsCondition(condition, m.PostArgs)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorPostArgsCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.PostArgs.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Query String
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); ok {
-			foundRule = true
+			conditionMapping := m.QueryString
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorQueryStringCondition(condition, m.QueryString)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorQueryStringCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.QueryString.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Remote Address
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); ok {
-			foundRule = true
+			conditionMapping := m.RemoteAddress
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRemoteAddressCondition(condition, m.RemoteAddress)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRemoteAddressCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RemoteAddress.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request Body
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); ok {
-			foundRule = true
+			conditionMapping := m.RequestBody
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestBodyCondition(condition, m.RequestBody)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestBodyCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RequestBody.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request Header
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestHeaderCondition(); ok {
-			foundRule = true
+			conditionMapping := m.RequestHeader
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestHeaderCondition(condition, m.RequestHeader)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestHeaderCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RequestHeader.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request Method
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); ok {
-			foundRule = true
+			conditionMapping := m.RequestMethod
 
 			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestMethodCondition(condition, m.RequestMethod)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RequestMethod.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request Scheme
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); ok {
-			foundRule = true
+			conditionMapping := m.RequestScheme
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestSchemeCondition(condition, m.RequestScheme)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestSchemeCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RequestScheme.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request URI
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); ok {
-			foundRule = true
+			conditionMapping := m.RequestUri
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestUriCondition(condition, m.RequestUri)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestUriCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.RequestUri.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Server Port
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleServerPortCondition(); ok {
-			foundRule = true
+			conditionMapping := m.ServerPort
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorServerPortCondition(condition, m.ServerPort)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorServerPortCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.ServerPort.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Socket Address
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSocketAddrCondition(); ok {
-			foundRule = true
+			conditionMapping := m.SocketAddress
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorSocketAddressCondition(condition, m.SocketAddress)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorSocketAddressCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.SocketAddress.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Ssl Protocol
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSslProtocolCondition(); ok {
-			foundRule = true
+			conditionMapping := m.SslProtocol
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorSslProtocolCondition(condition, m.SslProtocol)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorSslProtocolCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.SslProtocol.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// URL File Extension
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); ok {
-			foundRule = true
+			conditionMapping := m.UrlFileExtension
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileExtensionCondition(condition, m.UrlFileExtension)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileExtensionCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.UrlFileExtension.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// URL Filename
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); ok {
-			foundRule = true
+			conditionMapping := m.UrlFilename
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileNameCondition(condition, m.UrlFilename)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileNameCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.UrlFilename.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// URL Path
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); ok {
-			foundRule = true
+			conditionMapping := m.UrlPath
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlPathCondition(condition, m.UrlPath)
+			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlPathCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(flattened) > 0 {
-				result[m.UrlPath.ConfigName] = flattened
+			if flattened != nil {
+				result[conditionMapping.ConfigName] = flattened
+				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
 				results = append(results, result)
+			}
+
+			continue
+		}
+
+		return nil, fmt.Errorf("unknown BasicDeliveryRuleCondition encountered")
+	}
+
+	output := make(map[string][]interface{})
+
+	// at this point our keys map contains the list of all conditions that were flattened
+	if len(keys) > 0 {
+		// set up a bucket to hold the flattened resource
+		for key := range keys {
+			output[key] = make([]interface{}, 0)
+		}
+
+		// now loop over all of the flattened
+		// conditions and add them to the
+		// right bucket in output
+		for _, conditions := range results {
+			condition := conditions.(map[string]interface{})
+
+			for key := range condition {
+				output[key] = append(output[key], condition[key])
 			}
 		}
 
-		if !foundRule {
-			return nil, fmt.Errorf("unknown BasicDeliveryRuleAction encountered")
-		}
-	}
+		// log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm: Flatten Conditions ***************************************************\n")
+		// log.Printf("  output  == %+v\n", output)
+		// log.Printf(" \n\n\n")
+		// log.Printf("  results == %+v\n\n", results)
+		// log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
-	log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm:***************************************************")
-	log.Printf("  results == %+v", results)
-	log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n")
+		return []interface{}{output}, nil
+	}
 
 	return results, nil
 }
@@ -1348,92 +1403,134 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 		return results, nil
 	}
 
+	m := frontdoorruleactions.InitializeFrontdoorActionMappings()
+	keys := make(map[string]string)
+
 	for _, BasicDeliveryRuleAction := range *input {
 		result := make(map[string]interface{})
-		foundRule := false
 
 		// Route Configuraton
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			foundRule = true
 			flattened, err := frontdoorruleactions.FlattenFrontdoorRouteConfigurationOverrideAction(action)
 			if err != nil {
 				return nil, err
 			}
 
+			actionMapping := m.RouteConfigurationOverride
+
 			if len(flattened) > 0 {
-				result["route_configuration_override_action"] = flattened
+				result[actionMapping.ConfigName] = flattened
+				keys[actionMapping.ConfigName] = actionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Request Header
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); ok {
-			foundRule = true
-
 			flattened, err := frontdoorruleactions.FlattenFrontdoorRequestHeaderAction(action)
 			if err != nil {
 				return nil, err
 			}
 
+			actionMapping := m.RequestHeader
+
 			if len(flattened) > 0 {
-				result["request_header_action"] = flattened
+				result[actionMapping.ConfigName] = flattened
+				keys[actionMapping.ConfigName] = actionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// Response Header
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); ok {
-			foundRule = true
-
 			flattened, err := frontdoorruleactions.FlattenFrontdoorResponseHeaderAction(action)
 			if err != nil {
 				return nil, err
 			}
 
+			actionMapping := m.ResponseHeader
+
 			if len(flattened) > 0 {
-				result["response_header_action"] = flattened
+				result[actionMapping.ConfigName] = flattened
+				keys[actionMapping.ConfigName] = actionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// URL Redirect
 		if action, ok := BasicDeliveryRuleAction.AsURLRedirectAction(); ok {
-			foundRule = true
-
 			flattened, err := frontdoorruleactions.FlattenFrontdoorUrlRedirectAction(action)
 			if err != nil {
 				return nil, err
 			}
 
+			actionMapping := m.URLRedirect
+
 			if len(flattened) > 0 {
-				result["url_redirect_action"] = flattened
+				result[actionMapping.ConfigName] = flattened
+				keys[actionMapping.ConfigName] = actionMapping.ConfigName
 				results = append(results, result)
 			}
+
+			continue
 		}
 
 		// URL Rewrite
 		if action, ok := BasicDeliveryRuleAction.AsURLRewriteAction(); ok {
-			foundRule = true
-
 			flattened, err := frontdoorruleactions.FlattenFrontdoorUrlRewriteAction(action)
 			if err != nil {
 				return nil, err
 			}
 
+			actionMapping := m.URLRewrite
+
 			if len(flattened) > 0 {
-				result["url_rewrite_action"] = flattened
+				result[actionMapping.ConfigName] = flattened
+				keys[actionMapping.ConfigName] = actionMapping.ConfigName
 				results = append(results, result)
+			}
+
+			continue
+		}
+
+		return nil, fmt.Errorf("unknown BasicDeliveryRuleAction encountered")
+	}
+
+	output := make(map[string][]interface{})
+
+	// at this point our keys map contains the list of all actions that were flattened
+	if len(keys) > 0 {
+		// set up a bucket to hold the flattened resource
+		for key := range keys {
+			output[key] = make([]interface{}, 0)
+		}
+
+		// now loop over all of the flattened
+		// actions and add them to the
+		// right bucket in output
+		for _, actions := range results {
+			action := actions.(map[string]interface{})
+
+			for key := range action {
+				output[key] = append(output[key], action[key])
 			}
 		}
 
-		if !foundRule {
-			return nil, fmt.Errorf("unknown BasicDeliveryRuleAction encountered")
-		}
+		// log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm: Flatten Actions ***************************************************\n")
+		// log.Printf("  output  == %+v\n", output)
+		// log.Printf(" \n\n\n")
+		// log.Printf("  results == %+v\n\n", results)
+		// log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+
+		return []interface{}{output}, nil
 	}
 
-	log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm:***************************************************")
-	log.Printf("  results == %+v", results)
-	log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n")
-
+	// this should be an empty interface at this point
 	return results, nil
 }

@@ -8,6 +8,56 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+type FrontdoorActionParameters struct {
+	Name       track1.NameBasicDeliveryRuleAction
+	TypeName   string
+	ConfigName string
+}
+
+type FrontdoorActionMappings struct {
+	RouteConfigurationOverride FrontdoorActionParameters
+	RequestHeader              FrontdoorActionParameters
+	ResponseHeader             FrontdoorActionParameters
+	URLRedirect                FrontdoorActionParameters
+	URLRewrite                 FrontdoorActionParameters
+}
+
+func InitializeFrontdoorActionMappings() *FrontdoorActionMappings {
+	m := new(FrontdoorActionMappings)
+
+	m.RouteConfigurationOverride = FrontdoorActionParameters{
+		Name:       track1.NameBasicDeliveryRuleActionNameRouteConfigurationOverride,
+		TypeName:   "DeliveryRuleRouteConfigurationOverrideActionParameters",
+		ConfigName: "route_configuration_override_action",
+	}
+
+	m.RequestHeader = FrontdoorActionParameters{
+		Name:       track1.NameBasicDeliveryRuleActionNameModifyRequestHeader,
+		TypeName:   "DeliveryRuleHeaderActionParameters",
+		ConfigName: "request_header_action",
+	}
+
+	m.ResponseHeader = FrontdoorActionParameters{
+		Name:       track1.NameBasicDeliveryRuleActionNameModifyResponseHeader,
+		TypeName:   "DeliveryRuleHeaderActionParameters",
+		ConfigName: "response_header_action",
+	}
+
+	m.URLRedirect = FrontdoorActionParameters{
+		Name:       track1.NameBasicDeliveryRuleActionNameURLRedirect,
+		TypeName:   "DeliveryRuleUrlRedirectActionParameters",
+		ConfigName: "url_redirect_action",
+	}
+
+	m.URLRewrite = FrontdoorActionParameters{
+		Name:       track1.NameBasicDeliveryRuleActionNameURLRedirect,
+		TypeName:   "DeliveryRuleUrlRewriteActionParameters",
+		ConfigName: "url_rewrite_action",
+	}
+
+	return m
+}
+
 func expandStringSliceToCsvFormat(input []interface{}) *string {
 	if len(input) == 0 {
 		return nil
@@ -37,13 +87,15 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 func ExpandFrontdoorRequestHeaderAction(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error) {
 	output := make([]track1.BasicDeliveryRuleAction, 0)
 
+	m := InitializeFrontdoorActionMappings()
+
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
 		requestHeaderAction := track1.DeliveryRuleRequestHeaderAction{
-			Name: track1.NameBasicDeliveryRuleActionNameModifyRequestHeader,
+			Name: m.RequestHeader.Name,
 			Parameters: &track1.HeaderActionParameters{
-				TypeName:     utils.String("DeliveryRuleHeaderActionParameters"),
+				TypeName:     &m.RequestHeader.TypeName,
 				HeaderAction: track1.HeaderAction(item["header_action"].(string)),
 				HeaderName:   utils.String(item["header_name"].(string)),
 				Value:        utils.String(item["value"].(string)),
@@ -52,11 +104,11 @@ func ExpandFrontdoorRequestHeaderAction(input []interface{}) (*[]track1.BasicDel
 
 		if headerValue := *requestHeaderAction.Parameters.Value; headerValue == "" {
 			if track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionOverwrite || track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionAppend {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", "request_header_action", "value", "header_action", "Append", "Overwrite")
+				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RequestHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
 			}
 		} else {
 			if track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionDelete {
-				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", "request_header_action", "value", "header_action", "Delete")
+				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.RequestHeader.ConfigName, "value", "header_action", "Delete")
 			}
 		}
 
@@ -69,13 +121,15 @@ func ExpandFrontdoorRequestHeaderAction(input []interface{}) (*[]track1.BasicDel
 func ExpandFrontdoorResponseHeaderAction(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error) {
 	output := make([]track1.BasicDeliveryRuleAction, 0)
 
+	m := InitializeFrontdoorActionMappings()
+
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
 		responseHeaderAction := track1.DeliveryRuleResponseHeaderAction{
-			Name: track1.NameBasicDeliveryRuleActionNameModifyResponseHeader,
+			Name: m.ResponseHeader.Name,
 			Parameters: &track1.HeaderActionParameters{
-				TypeName:     utils.String("DeliveryRuleHeaderActionParameters"),
+				TypeName:     utils.String(m.ResponseHeader.TypeName),
 				HeaderAction: track1.HeaderAction(item["header_action"].(string)),
 				HeaderName:   utils.String(item["header_name"].(string)),
 				Value:        utils.String(item["value"].(string)),
@@ -84,11 +138,11 @@ func ExpandFrontdoorResponseHeaderAction(input []interface{}) (*[]track1.BasicDe
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
 			if track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionOverwrite || track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionAppend {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", "response_header_action", "value", "header_action", "Append", "Overwrite")
+				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.ResponseHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
 			}
 		} else {
 			if track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionDelete {
-				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", "response_header_action", "value", "header_action", "Delete")
+				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.ResponseHeader.ConfigName, "value", "header_action", "Delete")
 			}
 		}
 
@@ -101,13 +155,15 @@ func ExpandFrontdoorResponseHeaderAction(input []interface{}) (*[]track1.BasicDe
 func ExpandFrontdoorUrlRedirectAction(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error) {
 	output := make([]track1.BasicDeliveryRuleAction, 0)
 
+	m := InitializeFrontdoorActionMappings()
+
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
 		urlRedirectAction := track1.URLRedirectAction{
-			Name: track1.NameBasicDeliveryRuleActionNameURLRedirect,
+			Name: m.URLRedirect.Name,
 			Parameters: &track1.URLRedirectActionParameters{
-				TypeName:            utils.String("DeliveryRuleUrlRedirectActionParameters"),
+				TypeName:            utils.String(m.URLRedirect.TypeName),
 				RedirectType:        track1.RedirectType(item["redirect_type"].(string)),
 				DestinationProtocol: track1.DestinationProtocol(item["redirect_protocol"].(string)),
 				CustomPath:          utils.String(item["destination_path"].(string)),
@@ -126,13 +182,15 @@ func ExpandFrontdoorUrlRedirectAction(input []interface{}) (*[]track1.BasicDeliv
 func ExpandFrontdoorUrlRewriteAction(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error) {
 	output := make([]track1.BasicDeliveryRuleAction, 0)
 
+	m := InitializeFrontdoorActionMappings()
+
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
 		urlRedirectAction := track1.URLRewriteAction{
-			Name: track1.NameBasicDeliveryRuleActionNameURLRedirect,
+			Name: m.URLRewrite.Name,
 			Parameters: &track1.URLRewriteActionParameters{
-				TypeName:              utils.String("DeliveryRuleUrlRewriteActionParameters"),
+				TypeName:              utils.String(m.URLRewrite.TypeName),
 				Destination:           utils.String(item["destination"].(string)),
 				PreserveUnmatchedPath: utils.Bool(item["preserve_unmatched_path"].(bool)),
 				SourcePattern:         utils.String(item["source_pattern"].(string)),
@@ -147,6 +205,8 @@ func ExpandFrontdoorUrlRewriteAction(input []interface{}) (*[]track1.BasicDelive
 
 func ExpandFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error) {
 	output := make([]track1.BasicDeliveryRuleAction, 0)
+
+	m := InitializeFrontdoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
@@ -173,9 +233,9 @@ func ExpandFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[]tr
 		}
 
 		routeConfigurationOverrideAction := track1.DeliveryRuleRouteConfigurationOverrideAction{
-			Name: track1.NameBasicDeliveryRuleActionNameRouteConfigurationOverride,
+			Name: m.RouteConfigurationOverride.Name,
 			Parameters: &track1.RouteConfigurationOverrideActionParameters{
-				TypeName:            utils.String("DeliveryRuleRouteConfigurationOverrideActionParameters"),
+				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
 				OriginGroupOverride: originGroupOverride,
 				CacheConfiguration:  cacheConfiguration,
 			},
@@ -184,11 +244,11 @@ func ExpandFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[]tr
 		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
 		if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
 			if queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", "route_configuration_override_action", "query_string_parameters", "query_string_caching_behavior", "IncludeSpecifiedQueryStrings", "IgnoreSpecifiedQueryStrings")
+				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RouteConfigurationOverride.ConfigName, "query_string_parameters", "query_string_caching_behavior", "IncludeSpecifiedQueryStrings", "IgnoreSpecifiedQueryStrings")
 			}
 		} else {
 			if queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == track1.RuleQueryStringCachingBehaviorIgnoreQueryString {
-				return nil, fmt.Errorf("the %q block is not valid, %q must not be set if the %q is set to %q or %q", "route_configuration_override_action", "query_string_parameters", "query_string_caching_behavior", "UseQueryStrings", "IgnoreQueryStrings")
+				return nil, fmt.Errorf("the %q block is not valid, %q must not be set if the %q is set to %q or %q", m.RouteConfigurationOverride.ConfigName, "query_string_parameters", "query_string_caching_behavior", "UseQueryStrings", "IgnoreQueryStrings")
 			}
 		}
 
@@ -198,7 +258,7 @@ func ExpandFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[]tr
 	return &output, nil
 }
 
-func FlattenFrontdoorRequestHeaderAction(input track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func FlattenFrontdoorRequestHeaderAction(input track1.BasicDeliveryRuleAction) (map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleRequestHeaderAction()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request header action")
@@ -207,7 +267,7 @@ func FlattenFrontdoorRequestHeaderAction(input track1.BasicDeliveryRuleAction) (
 	return flattenHeaderAction(action.Parameters), nil
 }
 
-func FlattenFrontdoorResponseHeaderAction(input track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func FlattenFrontdoorResponseHeaderAction(input track1.BasicDeliveryRuleAction) (map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleResponseHeaderAction()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule reesponse header action")
@@ -216,7 +276,7 @@ func FlattenFrontdoorResponseHeaderAction(input track1.BasicDeliveryRuleAction) 
 	return flattenHeaderAction(action.Parameters), nil
 }
 
-func flattenHeaderAction(input *track1.HeaderActionParameters) []interface{} {
+func flattenHeaderAction(input *track1.HeaderActionParameters) map[string]interface{} {
 	action := ""
 	name := ""
 	value := ""
@@ -227,14 +287,14 @@ func flattenHeaderAction(input *track1.HeaderActionParameters) []interface{} {
 		value = string(*params.Value)
 	}
 
-	return []interface{}{map[string]interface{}{
+	return map[string]interface{}{
 		"header_action": action,
 		"header_name":   name,
 		"value":         value,
-	}}
+	}
 }
 
-func FlattenFrontdoorUrlRedirectAction(input track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func FlattenFrontdoorUrlRedirectAction(input track1.BasicDeliveryRuleAction) (map[string]interface{}, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
 		return nil, fmt.Errorf("expected a URL redirect action")
@@ -256,17 +316,17 @@ func FlattenFrontdoorUrlRedirectAction(input track1.BasicDeliveryRuleAction) ([]
 		fragment = string(*params.CustomFragment)
 	}
 
-	return []interface{}{map[string]interface{}{
+	return map[string]interface{}{
 		"destination_hostname": destinationHost,
 		"destination_path":     destinationPath,
 		"query_string":         queryString,
 		"redirect_protocol":    destinationProtocol,
 		"redirect_type":        redirectType,
 		"destination_fragment": fragment,
-	}}, nil
+	}, nil
 }
 
-func FlattenFrontdoorUrlRewriteAction(input track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func FlattenFrontdoorUrlRewriteAction(input track1.BasicDeliveryRuleAction) (map[string]interface{}, error) {
 	action, ok := input.AsURLRewriteAction()
 	if !ok {
 		return nil, fmt.Errorf("expected a URL redirect action")
@@ -282,14 +342,14 @@ func FlattenFrontdoorUrlRewriteAction(input track1.BasicDeliveryRuleAction) ([]i
 		sourcePattern = string(*params.SourcePattern)
 	}
 
-	return []interface{}{map[string]interface{}{
+	return map[string]interface{}{
 		"destination":             destination,
 		"preserve_unmatched_path": preservePath,
 		"source_pattern":          sourcePattern,
-	}}, nil
+	}, nil
 }
 
-func FlattenFrontdoorRouteConfigurationOverrideAction(input track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func FlattenFrontdoorRouteConfigurationOverrideAction(input track1.BasicDeliveryRuleAction) (map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleRouteConfigurationOverrideAction()
 	if !ok {
 		return nil, fmt.Errorf("expected a route configuration override action")
@@ -313,7 +373,7 @@ func FlattenFrontdoorRouteConfigurationOverrideAction(input track1.BasicDelivery
 		originGroupId = string(*params.OriginGroupOverride.OriginGroup.ID)
 	}
 
-	return []interface{}{map[string]interface{}{
+	return map[string]interface{}{
 		"query_string_caching_behavior": queryStringCachingBehavior,
 		"cache_behavior":                cacheBehavior,
 		"compression_enabled":           compressionEnabled,
@@ -321,5 +381,5 @@ func FlattenFrontdoorRouteConfigurationOverrideAction(input track1.BasicDelivery
 		"query_string_parameters":       queryParameters,
 		"forwarding_protocol":           forwardingProtocol,
 		"origin_group_id":               originGroupId,
-	}}, nil
+	}, nil
 }
