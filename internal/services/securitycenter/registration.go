@@ -45,7 +45,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_security_center_automation":                                resourceSecurityCenterAutomation(),
 		"azurerm_security_center_auto_provisioning":                         resourceSecurityCenterAutoProvisioning(),
 		"azurerm_security_center_server_vulnerability_assessment":           resourceServerVulnerabilityAssessment(),
-		"azurerm_security_center_vm_server_vulnerability_assessment":        resourceVMServerVulnerabilityAssessment(),
-		"azurerm_security_center_hybrid_vm_server_vulnerability_assessment": resourceHybridVMServerVulnerabilityAssessment(),
+		"azurerm_security_center_server_vulnerability_assessment_hybrid_vm": resourceServerVulnerabilityAssessmentHybridVM(),
+		"azurerm_security_center_server_vulnerability_assessment_vm":        resourceServerVulnerabilityAssessmentVM(),
 	}
 }
