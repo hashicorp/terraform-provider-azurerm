@@ -3,6 +3,7 @@ package costmanagement_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 	"time"
 
@@ -17,6 +18,9 @@ import (
 type CostManagementExportResourceGroupResource struct{}
 
 func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("this resource no longer exists in 3.0 of the provider")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 
@@ -32,6 +36,10 @@ func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("this resource no longer exists in 3.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 

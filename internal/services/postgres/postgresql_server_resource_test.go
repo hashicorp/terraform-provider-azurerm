@@ -763,6 +763,7 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
+  ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
 
   threat_detection_policy {
     enabled              = true
