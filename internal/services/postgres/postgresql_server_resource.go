@@ -472,7 +472,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
-	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 	source := d.Get("creation_source_server_id").(string)
 	version := postgresql.ServerVersion(d.Get("version").(string))
 
@@ -494,6 +493,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
+	}
+
+	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
 	}
 
 	storage := expandPostgreSQLStorageProfile(d)
@@ -725,6 +729,10 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
+	}
 
 	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
