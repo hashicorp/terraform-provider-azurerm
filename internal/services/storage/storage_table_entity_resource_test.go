@@ -189,9 +189,9 @@ resource "azurerm_storage_table_entity" "test" {
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
-    Foo = 123
+    Foo              = 123
     "Foo@odata.type" = "Edm.Int32"
-    Test = "Updated"
+    Test             = "Updated"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
