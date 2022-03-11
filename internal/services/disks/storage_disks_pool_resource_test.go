@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,7 +21,7 @@ type StorageDisksPoolResource struct{}
 
 func TestAccStorageDisksPool_basic(t *testing.T) {
 	if features.ThreePointOhBeta() {
-		t.Skip("This resource is being removed in 3.0")
+		t.Skipf("Skipping since this resource no longer exists in 3.0 of the provider")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}
@@ -37,7 +38,7 @@ func TestAccStorageDisksPool_basic(t *testing.T) {
 
 func TestAccStorageDisksPool_requiresImport(t *testing.T) {
 	if features.ThreePointOhBeta() {
-		t.Skip("This resource is being removed in 3.0")
+		t.Skipf("Skipping since this resource no longer exists in 3.0 of the provider")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}
@@ -54,7 +55,7 @@ func TestAccStorageDisksPool_requiresImport(t *testing.T) {
 
 func TestAccStorageDisksPool_complete(t *testing.T) {
 	if features.ThreePointOhBeta() {
-		t.Skip("This resource is being removed in 3.0")
+		t.Skipf("Skipping since this resource no longer exists in 3.0 of the provider")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}

@@ -200,7 +200,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_user_assigned_identity" "example" {
-  name                = "xz3-TF-identity"
+  name                = "example-identity"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -263,7 +263,7 @@ resource "azurerm_key_vault_access_policy" "example-cosmosdb" {
 }
 
 resource "azurerm_key_vault_key" "example" {
-  name         = "xz3workspaceexamplekeyvaultkey"
+  name         = "example-keyvaultkey"
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
