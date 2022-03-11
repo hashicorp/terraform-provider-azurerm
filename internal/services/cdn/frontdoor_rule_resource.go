@@ -396,7 +396,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						"postargs_condition": {
+						"post_args_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 10,
@@ -405,7 +405,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 
 									// In the API this is called selector
-									"postargs_name": {
+									"post_args_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -683,6 +683,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						},
 
 						// DeliveryRuleHostNameCondition
+						// NOTE: The match values do not have to adhere to RFC 1123 standards
+						// for valid hostnames. Service team delegates that responsibility
+						// to the author of the rule and does not validate passed match values.
 						"host_name_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

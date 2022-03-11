@@ -84,7 +84,7 @@ func InitializeFrontdoorConditionMappings() *FrontdoorCondtionsMappings {
 	m.PostArgs = FrontdoorConditionParameters{
 		Name:       track1.NamePostArgs,
 		TypeName:   "DeliveryRulePostArgsConditionParameters",
-		ConfigName: "postargs_condition",
+		ConfigName: "post_args_condition",
 	}
 
 	m.QueryString = FrontdoorConditionParameters{
@@ -329,7 +329,7 @@ func ExpandFrontdoorPostArgsCondition(input []interface{}) (*[]track1.BasicDeliv
 			Name: conditionMapping.Name,
 			Parameters: &track1.PostArgsMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Selector:        utils.String(item["postargs_name"].(string)),
+				Selector:        utils.String(item["post_args_name"].(string)),
 				Operator:        track1.PostArgsOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
@@ -895,7 +895,7 @@ func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, 
 
 	if params := condition.Parameters; params != nil {
 		condition := normalizedCondition{
-			selector:        &normalizedSelector{name: utils.String("postargs_name"), value: params.Selector},
+			selector:        &normalizedSelector{name: utils.String("post_args_name"), value: params.Selector},
 			operator:        string(params.Operator),
 			negateCondition: params.NegateCondition,
 			matchValues:     params.MatchValues,

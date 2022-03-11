@@ -57,10 +57,10 @@ resource "azurerm_frontdoor_rule" "test" {
 
   conditions {
     host_name_condition {
-      operator         = "Any"
+      operator         = "Equal"
       negate_condition = false
-      match_values     = ["Delete"]
-      transforms       = ["Lowercase"]
+      match_values     = ["www.contoso.com", "images.contoso.com", "video.contoso.com"]
+      transforms       = ["Lowercase", "Trim"]
     }
 
     is_device_condition {
@@ -70,7 +70,7 @@ resource "azurerm_frontdoor_rule" "test" {
     }
 
     post_args_condition {
-      postargs_name    = "customerName"
+      post_args_name   = "customerName"
       operator         = "BeginsWith"
       match_values     = ["J", "K"]
       transforms       = ["Uppercase"]
@@ -220,7 +220,7 @@ A `conditions` block supports the following:
 
 * `query_string_condition` - (Optional) A `query_string_condition` block as defined below.
 
-* `postargs_condition` - (Optional) A `postargs_condition` block as defined below.
+* `post_args_condition` - (Optional) A `post_args_condition` block as defined below.
 
 * `request_uri_condition` - (Optional) A `request_uri_condition` block as defined below.
 
@@ -358,11 +358,11 @@ Use the `query_string_condition` to identify requests that contain a specific qu
 
 ---
 
-A `postargs_condition` block supports the following:
+A `post_args_condition` block supports the following:
 
-Use the `postargs_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
+Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
 
-* `postargs_name` - (Required) A string value representing the name of the `POST` argument.
+* `post_args_name` - (Required) A string value representing the name of the `POST` argument.
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
