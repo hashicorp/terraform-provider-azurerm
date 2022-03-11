@@ -264,7 +264,7 @@ A `managed_disk` block supports the following:
 
 * `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
 
-* `target_disk_encryption_info` - (Optional) A `target_disk_encryption_info` block as defined below.
+* `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
 
 ---
 
@@ -280,7 +280,7 @@ A `network_interface` block supports the following:
 
 ---
 
-The `target_disk_encryption_info` block supports:
+The `target_disk_encryption` block supports:
 
 * `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined below.
 

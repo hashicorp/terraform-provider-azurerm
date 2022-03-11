@@ -45,13 +45,13 @@ func TestAccSiteRecoveryReplicatedVm_des(t *testing.T) {
 	})
 }
 
-func TestAccSiteRecoveryReplicatedVm_targetDiskEncryptionInfo(t *testing.T) {
+func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.targetDiskEncryptionInfo(data),
+			Config: r.targetDiskEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -686,7 +686,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (SiteRecoveryReplicatedVmResource) targetDiskEncryptionInfo(data acceptance.TestData) string {
+func (SiteRecoveryReplicatedVmResource) targetDiskEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -921,7 +921,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
-    target_disk_encryption_info {
+    target_disk_encryption {
       disk_encryption_key {
         secret_url = data.azurerm_snapshot.test.encryption_settings[0].disk_encryption_key[0].secret_url
         vault_id   = azurerm_key_vault.test1.id

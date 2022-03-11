@@ -177,7 +177,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
-						"target_disk_encryption_info": {
+						"target_disk_encryption": {
 							Type:       pluginsdk.TypeList,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Optional:   true,
@@ -328,7 +328,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
 			RecoveryDiskEncryptionSetID:         &targetEncryptionDiskSetID,
-			DiskEncryptionInfo:                  expandTargetDiskEncryptionInfo(diskInput["target_disk_encryption_info"].([]interface{})),
+			DiskEncryptionInfo:                  expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -422,7 +422,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 			DiskID:                         &diskId,
 			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:  &targetDiskType,
-			DiskEncryptionInfo:             expandTargetDiskEncryptionInfo(diskInput["target_disk_encryption_info"].([]interface{})),
+			DiskEncryptionInfo:             expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -549,7 +549,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
 
-				diskOutput["target_disk_encryption_info"] = flattenTargetDiskEncryptionInfo(disk)
+				diskOutput["target_disk_encryption"] = flattenTargetDiskEncryption(disk)
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
@@ -686,7 +686,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 	}
 }
 
-func expandTargetDiskEncryptionInfo(diskEncryptionInfoList []interface{}) *siterecovery.DiskEncryptionInfo {
+func expandTargetDiskEncryption(diskEncryptionInfoList []interface{}) *siterecovery.DiskEncryptionInfo {
 	if len(diskEncryptionInfoList) == 0 {
 		return &siterecovery.DiskEncryptionInfo{}
 	}
@@ -711,7 +711,7 @@ func expandTargetDiskEncryptionInfo(diskEncryptionInfoList []interface{}) *siter
 	return diskEncryptionInfo
 }
 
-func flattenTargetDiskEncryptionInfo(disk siterecovery.A2AProtectedManagedDiskDetails) []interface{} {
+func flattenTargetDiskEncryption(disk siterecovery.A2AProtectedManagedDiskDetails) []interface{} {
 	secretUrl := ""
 	dekVaultId := ""
 	keyUrl := ""
