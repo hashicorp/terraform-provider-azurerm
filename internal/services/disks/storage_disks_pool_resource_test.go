@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,6 +19,9 @@ import (
 type StorageDisksPoolResource struct{}
 
 func TestAccStorageDisksPool_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,6 +36,9 @@ func TestAccStorageDisksPool_basic(t *testing.T) {
 }
 
 func TestAccStorageDisksPool_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,6 +53,9 @@ func TestAccStorageDisksPool_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageDisksPool_complete(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_disks_pool", "test")
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
