@@ -846,8 +846,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -890,8 +889,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1442,8 +1440,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1506,8 +1503,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1562,8 +1558,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1631,8 +1626,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
