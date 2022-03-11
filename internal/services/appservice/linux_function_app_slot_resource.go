@@ -825,7 +825,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 
 		case "AzureWebJobsStorage":
 			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(")
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(SecretUri=")
 				m.StorageKeyVaultSecretID = trimmed
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
