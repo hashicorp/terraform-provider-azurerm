@@ -1,3 +1,5 @@
+## 3.0.0 (Unreleased)
+
 ## 2.99.0 (March 11, 2022)
 
 NOTES
