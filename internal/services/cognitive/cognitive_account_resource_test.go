@@ -183,6 +183,35 @@ func TestAccCognitiveAccount_qnaRuntimeEndpointUnspecified(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_qnaSearchEndpointId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.qnaSearchEndpointId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.qnaSearchEndpointIdUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.qnaSearchEndpointIdRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCognitiveAccount_cognitiveServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -594,6 +623,106 @@ resource "azurerm_cognitive_account" "test" {
   sku_name            = "S0"
 }
 `, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
+}
+
+func (CognitiveAccountResource) qnaSearchEndpointId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                   = "acctestcogacc-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  kind                   = "TextAnalytics"
+  sku_name               = "F0"
+  qna_search_endpoint_id = azurerm_search_service.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) qnaSearchEndpointIdUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_search_service" "test2" {
+  name                = "acctestsearchacc2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                   = "acctestcogacc-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  kind                   = "TextAnalytics"
+  sku_name               = "F0"
+  qna_search_endpoint_id = azurerm_search_service.test2.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) qnaSearchEndpointIdRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_search_service" "test2" {
+  name                = "acctestsearchacc2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "TextAnalytics"
+  sku_name            = "F0"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
