@@ -225,6 +225,8 @@ func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
 type RuntimeVersion string
 
 const (
+	// RuntimeVersionJava17 ...
+	RuntimeVersionJava17 RuntimeVersion = "Java_17"
 	// RuntimeVersionJava11 ...
 	RuntimeVersionJava11 RuntimeVersion = "Java_11"
 	// RuntimeVersionJava8 ...
@@ -235,7 +237,7 @@ const (
 
 // PossibleRuntimeVersionValues returns an array of possible values for the RuntimeVersion const type.
 func PossibleRuntimeVersionValues() []RuntimeVersion {
-	return []RuntimeVersion{RuntimeVersionJava11, RuntimeVersionJava8, RuntimeVersionNetCore31}
+	return []RuntimeVersion{RuntimeVersionJava17, RuntimeVersionJava11, RuntimeVersionJava8, RuntimeVersionNetCore31}
 }
 
 // SkuScaleType enumerates the values for sku scale type.
@@ -289,6 +291,8 @@ func PossibleSupportedRuntimePlatformValues() []SupportedRuntimePlatform {
 type SupportedRuntimeValue string
 
 const (
+	// SupportedRuntimeValueJava17 ...
+	SupportedRuntimeValueJava17 SupportedRuntimeValue = "Java_17"
 	// SupportedRuntimeValueJava11 ...
 	SupportedRuntimeValueJava11 SupportedRuntimeValue = "Java_11"
 	// SupportedRuntimeValueJava8 ...
@@ -299,7 +303,7 @@ const (
 
 // PossibleSupportedRuntimeValueValues returns an array of possible values for the SupportedRuntimeValue const type.
 func PossibleSupportedRuntimeValueValues() []SupportedRuntimeValue {
-	return []SupportedRuntimeValue{SupportedRuntimeValueJava11, SupportedRuntimeValueJava8, SupportedRuntimeValueNetCore31}
+	return []SupportedRuntimeValue{SupportedRuntimeValueJava17, SupportedRuntimeValueJava11, SupportedRuntimeValueJava8, SupportedRuntimeValueNetCore31}
 }
 
 // TestKeyType enumerates the values for test key type.

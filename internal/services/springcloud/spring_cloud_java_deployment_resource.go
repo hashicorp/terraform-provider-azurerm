@@ -444,6 +444,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(appplatform.RuntimeVersionJava8),
 				string(appplatform.RuntimeVersionJava11),
+				string(appplatform.RuntimeVersionJava17),
 			}, false),
 			Default: string(appplatform.RuntimeVersionJava8),
 		},
