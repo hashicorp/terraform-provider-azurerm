@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +33,9 @@ func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicNinePointFiveDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -187,6 +192,9 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updatedDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -250,6 +258,9 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

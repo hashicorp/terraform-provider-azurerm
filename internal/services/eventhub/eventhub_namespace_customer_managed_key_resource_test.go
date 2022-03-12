@@ -225,7 +225,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = azurerm_eventhub_namespace.test.identity.0.tenant_id
   object_id    = azurerm_eventhub_namespace.test.identity.0.principal_id
 
-  key_permissions = ["Get", "Unwrapkey", "Wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "test2" {

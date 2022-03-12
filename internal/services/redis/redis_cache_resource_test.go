@@ -133,25 +133,6 @@ func TestAccRedisCache_premiumShardedScaling(t *testing.T) {
 	})
 }
 
-func TestAccRedisCache_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
-	r := RedisCacheResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-	})
-}
-
 func TestAccRedisCache_BackupDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
@@ -670,31 +651,6 @@ resource "azurerm_redis_cache" "test" {
     maxfragmentationmemory_reserved = 2
     maxmemory_delta                 = 2
     maxmemory_policy                = "allkeys-lru"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RedisCacheResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "c"
-  sku_name            = "basic"
-  enable_non_ssl_port = false
-  redis_configuration {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

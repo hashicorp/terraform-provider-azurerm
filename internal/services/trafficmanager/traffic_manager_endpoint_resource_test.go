@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,6 +19,9 @@ import (
 type TrafficManagerEndpointResource struct{}
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	r := TrafficManagerEndpointResource{}
@@ -36,6 +41,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
@@ -55,6 +63,9 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	r := TrafficManagerEndpointResource{}
 
@@ -67,6 +78,9 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
@@ -95,6 +109,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 
 // Altering weight might be used to ramp up migration traffic
 func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -122,6 +139,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -157,6 +177,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -189,6 +212,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 
 // Altering priority might be used to switch failover/active roles
 func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -216,6 +242,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
 	r := TrafficManagerEndpointResource{}
 
@@ -245,6 +274,9 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
@@ -265,6 +297,9 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
