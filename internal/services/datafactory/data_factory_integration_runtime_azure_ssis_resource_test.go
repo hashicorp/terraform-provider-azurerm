@@ -26,8 +26,6 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("managed-integration-runtime"),
-				check.That(data.ResourceName).Key("data_factory_name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("node_size").HasValue("Standard_D8_v3"),
 			),
