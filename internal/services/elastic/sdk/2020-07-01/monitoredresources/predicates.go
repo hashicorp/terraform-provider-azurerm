@@ -1,11 +1,11 @@
 package monitoredresources
 
-type MonitoredResourcePredicate struct {
+type MonitoredResourceOperationPredicate struct {
 	Id                  *string
 	ReasonForLogsStatus *string
 }
 
-func (p MonitoredResourcePredicate) Matches(input MonitoredResource) bool {
+func (p MonitoredResourceOperationPredicate) Matches(input MonitoredResource) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

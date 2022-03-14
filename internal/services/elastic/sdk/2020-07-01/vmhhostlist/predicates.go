@@ -1,10 +1,10 @@
 package vmhhostlist
 
-type VMResourcesPredicate struct {
+type VMResourcesOperationPredicate struct {
 	VmResourceId *string
 }
 
-func (p VMResourcesPredicate) Matches(input VMResources) bool {
+func (p VMResourcesOperationPredicate) Matches(input VMResources) bool {
 
 	if p.VmResourceId != nil && (input.VmResourceId == nil && *p.VmResourceId != *input.VmResourceId) {
 		return false

@@ -10,23 +10,23 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type TagRulesListResponse struct {
+type TagRulesListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]MonitoringTagRules
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (TagRulesListResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (TagRulesListOperationResponse, error)
 }
 
 type TagRulesListCompleteResult struct {
 	Items []MonitoringTagRules
 }
 
-func (r TagRulesListResponse) HasMore() bool {
+func (r TagRulesListOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r TagRulesListResponse) LoadMore(ctx context.Context) (resp TagRulesListResponse, err error) {
+func (r TagRulesListOperationResponse) LoadMore(ctx context.Context) (resp TagRulesListOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +35,7 @@ func (r TagRulesListResponse) LoadMore(ctx context.Context) (resp TagRulesListRe
 }
 
 // TagRulesList ...
-func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (resp TagRulesListResponse, err error) {
+func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (resp TagRulesListOperationResponse, err error) {
 	req, err := c.preparerForTagRulesList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "rules.RulesClient", "TagRulesList", nil, "Failure preparing request")
@@ -58,11 +58,11 @@ func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (resp TagRu
 
 // TagRulesListComplete retrieves all of the results into a single object
 func (c RulesClient) TagRulesListComplete(ctx context.Context, id MonitorId) (TagRulesListCompleteResult, error) {
-	return c.TagRulesListCompleteMatchingPredicate(ctx, id, MonitoringTagRulesPredicate{})
+	return c.TagRulesListCompleteMatchingPredicate(ctx, id, MonitoringTagRulesOperationPredicate{})
 }
 
 // TagRulesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoringTagRulesPredicate) (resp TagRulesListCompleteResult, err error) {
+func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoringTagRulesOperationPredicate) (resp TagRulesListCompleteResult, err error) {
 	items := make([]MonitoringTagRules, 0)
 
 	page, err := c.TagRulesList(ctx, id)
@@ -142,7 +142,7 @@ func (c RulesClient) preparerForTagRulesListWithNextLink(ctx context.Context, ne
 
 // responderForTagRulesList handles the response to the TagRulesList request. The method always
 // closes the http.Response Body.
-func (c RulesClient) responderForTagRulesList(resp *http.Response) (result TagRulesListResponse, err error) {
+func (c RulesClient) responderForTagRulesList(resp *http.Response) (result TagRulesListOperationResponse, err error) {
 	type page struct {
 		Values   []MonitoringTagRules `json:"value"`
 		NextLink *string              `json:"nextLink"`
@@ -157,7 +157,7 @@ func (c RulesClient) responderForTagRulesList(resp *http.Response) (result TagRu
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result TagRulesListResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result TagRulesListOperationResponse, err error) {
 			req, err := c.preparerForTagRulesListWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "rules.RulesClient", "TagRulesList", nil, "Failure preparing request")

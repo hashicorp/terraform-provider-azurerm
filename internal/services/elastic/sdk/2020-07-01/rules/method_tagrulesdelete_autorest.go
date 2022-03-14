@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
-type TagRulesDeleteResponse struct {
+type TagRulesDeleteOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
 }
 
 // TagRulesDelete ...
-func (c RulesClient) TagRulesDelete(ctx context.Context, id TagRuleId) (result TagRulesDeleteResponse, err error) {
+func (c RulesClient) TagRulesDelete(ctx context.Context, id TagRuleId) (result TagRulesDeleteOperationResponse, err error) {
 	req, err := c.preparerForTagRulesDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "rules.RulesClient", "TagRulesDelete", nil, "Failure preparing request")
@@ -63,7 +63,7 @@ func (c RulesClient) preparerForTagRulesDelete(ctx context.Context, id TagRuleId
 
 // senderForTagRulesDelete sends the TagRulesDelete request. The method will close the
 // http.Response Body if it receives an error.
-func (c RulesClient) senderForTagRulesDelete(ctx context.Context, req *http.Request) (future TagRulesDeleteResponse, err error) {
+func (c RulesClient) senderForTagRulesDelete(ctx context.Context, req *http.Request) (future TagRulesDeleteOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

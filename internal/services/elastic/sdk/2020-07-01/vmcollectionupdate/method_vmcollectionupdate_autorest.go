@@ -9,12 +9,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type VMCollectionUpdateResponse struct {
+type VMCollectionUpdateOperationResponse struct {
 	HttpResponse *http.Response
 }
 
 // VMCollectionUpdate ...
-func (c VMCollectionUpdateClient) VMCollectionUpdate(ctx context.Context, id MonitorId, input VMCollectionUpdate) (result VMCollectionUpdateResponse, err error) {
+func (c VMCollectionUpdateClient) VMCollectionUpdate(ctx context.Context, id MonitorId, input VMCollectionUpdate) (result VMCollectionUpdateOperationResponse, err error) {
 	req, err := c.preparerForVMCollectionUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vmcollectionupdate.VMCollectionUpdateClient", "VMCollectionUpdate", nil, "Failure preparing request")
@@ -54,7 +54,7 @@ func (c VMCollectionUpdateClient) preparerForVMCollectionUpdate(ctx context.Cont
 
 // responderForVMCollectionUpdate handles the response to the VMCollectionUpdate request. The method always
 // closes the http.Response Body.
-func (c VMCollectionUpdateClient) responderForVMCollectionUpdate(resp *http.Response) (result VMCollectionUpdateResponse, err error) {
+func (c VMCollectionUpdateClient) responderForVMCollectionUpdate(resp *http.Response) (result VMCollectionUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

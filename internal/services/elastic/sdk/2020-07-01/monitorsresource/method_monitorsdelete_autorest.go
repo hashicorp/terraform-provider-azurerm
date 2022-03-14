@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
-type MonitorsDeleteResponse struct {
+type MonitorsDeleteOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
 }
 
 // MonitorsDelete ...
-func (c MonitorsResourceClient) MonitorsDelete(ctx context.Context, id MonitorId) (result MonitorsDeleteResponse, err error) {
+func (c MonitorsResourceClient) MonitorsDelete(ctx context.Context, id MonitorId) (result MonitorsDeleteOperationResponse, err error) {
 	req, err := c.preparerForMonitorsDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsDelete", nil, "Failure preparing request")
@@ -63,7 +63,7 @@ func (c MonitorsResourceClient) preparerForMonitorsDelete(ctx context.Context, i
 
 // senderForMonitorsDelete sends the MonitorsDelete request. The method will close the
 // http.Response Body if it receives an error.
-func (c MonitorsResourceClient) senderForMonitorsDelete(ctx context.Context, req *http.Request) (future MonitorsDeleteResponse, err error) {
+func (c MonitorsResourceClient) senderForMonitorsDelete(ctx context.Context, req *http.Request) (future MonitorsDeleteOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

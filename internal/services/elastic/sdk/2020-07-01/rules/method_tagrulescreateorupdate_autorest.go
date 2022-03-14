@@ -8,13 +8,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type TagRulesCreateOrUpdateResponse struct {
+type TagRulesCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *MonitoringTagRules
 }
 
 // TagRulesCreateOrUpdate ...
-func (c RulesClient) TagRulesCreateOrUpdate(ctx context.Context, id TagRuleId, input MonitoringTagRules) (result TagRulesCreateOrUpdateResponse, err error) {
+func (c RulesClient) TagRulesCreateOrUpdate(ctx context.Context, id TagRuleId, input MonitoringTagRules) (result TagRulesCreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForTagRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "rules.RulesClient", "TagRulesCreateOrUpdate", nil, "Failure preparing request")
@@ -54,7 +54,7 @@ func (c RulesClient) preparerForTagRulesCreateOrUpdate(ctx context.Context, id T
 
 // responderForTagRulesCreateOrUpdate handles the response to the TagRulesCreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c RulesClient) responderForTagRulesCreateOrUpdate(resp *http.Response) (result TagRulesCreateOrUpdateResponse, err error) {
+func (c RulesClient) responderForTagRulesCreateOrUpdate(resp *http.Response) (result TagRulesCreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

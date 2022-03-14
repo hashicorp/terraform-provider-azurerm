@@ -11,23 +11,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type MonitorsListByResourceGroupResponse struct {
+type MonitorsListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]ElasticMonitorResource
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (MonitorsListByResourceGroupResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (MonitorsListByResourceGroupOperationResponse, error)
 }
 
 type MonitorsListByResourceGroupCompleteResult struct {
 	Items []ElasticMonitorResource
 }
 
-func (r MonitorsListByResourceGroupResponse) HasMore() bool {
+func (r MonitorsListByResourceGroupOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r MonitorsListByResourceGroupResponse) LoadMore(ctx context.Context) (resp MonitorsListByResourceGroupResponse, err error) {
+func (r MonitorsListByResourceGroupOperationResponse) LoadMore(ctx context.Context) (resp MonitorsListByResourceGroupOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -36,7 +36,7 @@ func (r MonitorsListByResourceGroupResponse) LoadMore(ctx context.Context) (resp
 }
 
 // MonitorsListByResourceGroup ...
-func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp MonitorsListByResourceGroupResponse, err error) {
+func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp MonitorsListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForMonitorsListByResourceGroup(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsListByResourceGroup", nil, "Failure preparing request")
@@ -59,11 +59,11 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context,
 
 // MonitorsListByResourceGroupComplete retrieves all of the results into a single object
 func (c MonitorsResourceClient) MonitorsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (MonitorsListByResourceGroupCompleteResult, error) {
-	return c.MonitorsListByResourceGroupCompleteMatchingPredicate(ctx, id, ElasticMonitorResourcePredicate{})
+	return c.MonitorsListByResourceGroupCompleteMatchingPredicate(ctx, id, ElasticMonitorResourceOperationPredicate{})
 }
 
 // MonitorsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MonitorsResourceClient) MonitorsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ElasticMonitorResourcePredicate) (resp MonitorsListByResourceGroupCompleteResult, err error) {
+func (c MonitorsResourceClient) MonitorsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ElasticMonitorResourceOperationPredicate) (resp MonitorsListByResourceGroupCompleteResult, err error) {
 	items := make([]ElasticMonitorResource, 0)
 
 	page, err := c.MonitorsListByResourceGroup(ctx, id)
@@ -143,7 +143,7 @@ func (c MonitorsResourceClient) preparerForMonitorsListByResourceGroupWithNextLi
 
 // responderForMonitorsListByResourceGroup handles the response to the MonitorsListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c MonitorsResourceClient) responderForMonitorsListByResourceGroup(resp *http.Response) (result MonitorsListByResourceGroupResponse, err error) {
+func (c MonitorsResourceClient) responderForMonitorsListByResourceGroup(resp *http.Response) (result MonitorsListByResourceGroupOperationResponse, err error) {
 	type page struct {
 		Values   []ElasticMonitorResource `json:"value"`
 		NextLink *string                  `json:"nextLink"`
@@ -158,7 +158,7 @@ func (c MonitorsResourceClient) responderForMonitorsListByResourceGroup(resp *ht
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result MonitorsListByResourceGroupResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result MonitorsListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForMonitorsListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsListByResourceGroup", nil, "Failure preparing request")

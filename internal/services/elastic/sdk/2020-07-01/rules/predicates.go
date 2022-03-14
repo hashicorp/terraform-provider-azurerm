@@ -1,12 +1,12 @@
 package rules
 
-type MonitoringTagRulesPredicate struct {
+type MonitoringTagRulesOperationPredicate struct {
 	Id   *string
 	Name *string
 	Type *string
 }
 
-func (p MonitoringTagRulesPredicate) Matches(input MonitoringTagRules) bool {
+func (p MonitoringTagRulesOperationPredicate) Matches(input MonitoringTagRules) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

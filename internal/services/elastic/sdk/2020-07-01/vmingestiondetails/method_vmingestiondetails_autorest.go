@@ -9,13 +9,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type VMIngestionDetailsResponse struct {
+type VMIngestionDetailsOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *VMIngestionDetailsResponse
 }
 
 // VMIngestionDetails ...
-func (c VMIngestionDetailsClient) VMIngestionDetails(ctx context.Context, id MonitorId) (result VMIngestionDetailsResponse, err error) {
+func (c VMIngestionDetailsClient) VMIngestionDetails(ctx context.Context, id MonitorId) (result VMIngestionDetailsOperationResponse, err error) {
 	req, err := c.preparerForVMIngestionDetails(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vmingestiondetails.VMIngestionDetailsClient", "VMIngestionDetails", nil, "Failure preparing request")
@@ -54,7 +54,7 @@ func (c VMIngestionDetailsClient) preparerForVMIngestionDetails(ctx context.Cont
 
 // responderForVMIngestionDetails handles the response to the VMIngestionDetails request. The method always
 // closes the http.Response Body.
-func (c VMIngestionDetailsClient) responderForVMIngestionDetails(resp *http.Response) (result VMIngestionDetailsResponse, err error) {
+func (c VMIngestionDetailsClient) responderForVMIngestionDetails(resp *http.Response) (result VMIngestionDetailsOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

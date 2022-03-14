@@ -1,13 +1,13 @@
 package monitorsresource
 
-type ElasticMonitorResourcePredicate struct {
+type ElasticMonitorResourceOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p ElasticMonitorResourcePredicate) Matches(input ElasticMonitorResource) bool {
+func (p ElasticMonitorResourceOperationPredicate) Matches(input ElasticMonitorResource) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

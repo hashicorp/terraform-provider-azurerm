@@ -9,13 +9,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type ListResponse struct {
+type ListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *DeploymentInfoResponse
 }
 
 // List ...
-func (c DeploymentInfoClient) List(ctx context.Context, id MonitorId) (result ListResponse, err error) {
+func (c DeploymentInfoClient) List(ctx context.Context, id MonitorId) (result ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "deploymentinfo.DeploymentInfoClient", "List", nil, "Failure preparing request")
@@ -54,7 +54,7 @@ func (c DeploymentInfoClient) preparerForList(ctx context.Context, id MonitorId)
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c DeploymentInfoClient) responderForList(resp *http.Response) (result ListResponse, err error) {
+func (c DeploymentInfoClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

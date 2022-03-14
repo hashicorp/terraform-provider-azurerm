@@ -10,23 +10,23 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type ListResponse struct {
+type ListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]MonitoredResource
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (ListResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (ListOperationResponse, error)
 }
 
 type ListCompleteResult struct {
 	Items []MonitoredResource
 }
 
-func (r ListResponse) HasMore() bool {
+func (r ListOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err error) {
+func (r ListOperationResponse) LoadMore(ctx context.Context) (resp ListOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +35,7 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 }
 
 // List ...
-func (c MonitoredResourcesClient) List(ctx context.Context, id MonitorId) (resp ListResponse, err error) {
+func (c MonitoredResourcesClient) List(ctx context.Context, id MonitorId) (resp ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "monitoredresources.MonitoredResourcesClient", "List", nil, "Failure preparing request")
@@ -58,11 +58,11 @@ func (c MonitoredResourcesClient) List(ctx context.Context, id MonitorId) (resp 
 
 // ListComplete retrieves all of the results into a single object
 func (c MonitoredResourcesClient) ListComplete(ctx context.Context, id MonitorId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, MonitoredResourcePredicate{})
+	return c.ListCompleteMatchingPredicate(ctx, id, MonitoredResourceOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MonitoredResourcesClient) ListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourcePredicate) (resp ListCompleteResult, err error) {
+func (c MonitoredResourcesClient) ListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourceOperationPredicate) (resp ListCompleteResult, err error) {
 	items := make([]MonitoredResource, 0)
 
 	page, err := c.List(ctx, id)
@@ -142,7 +142,7 @@ func (c MonitoredResourcesClient) preparerForListWithNextLink(ctx context.Contex
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c MonitoredResourcesClient) responderForList(resp *http.Response) (result ListResponse, err error) {
+func (c MonitoredResourcesClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	type page struct {
 		Values   []MonitoredResource `json:"value"`
 		NextLink *string             `json:"nextLink"`
@@ -157,7 +157,7 @@ func (c MonitoredResourcesClient) responderForList(resp *http.Response) (result 
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListOperationResponse, err error) {
 			req, err := c.preparerForListWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "monitoredresources.MonitoredResourcesClient", "List", nil, "Failure preparing request")

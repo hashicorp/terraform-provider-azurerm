@@ -8,13 +8,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type MonitorsUpdateResponse struct {
+type MonitorsUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *ElasticMonitorResource
 }
 
 // MonitorsUpdate ...
-func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId, input ElasticMonitorResourceUpdateParameters) (result MonitorsUpdateResponse, err error) {
+func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId, input ElasticMonitorResourceUpdateParameters) (result MonitorsUpdateOperationResponse, err error) {
 	req, err := c.preparerForMonitorsUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsUpdate", nil, "Failure preparing request")
@@ -54,7 +54,7 @@ func (c MonitorsResourceClient) preparerForMonitorsUpdate(ctx context.Context, i
 
 // responderForMonitorsUpdate handles the response to the MonitorsUpdate request. The method always
 // closes the http.Response Body.
-func (c MonitorsResourceClient) responderForMonitorsUpdate(resp *http.Response) (result MonitorsUpdateResponse, err error) {
+func (c MonitorsResourceClient) responderForMonitorsUpdate(resp *http.Response) (result MonitorsUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

@@ -11,23 +11,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type MonitorsListResponse struct {
+type MonitorsListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]ElasticMonitorResource
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (MonitorsListResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (MonitorsListOperationResponse, error)
 }
 
 type MonitorsListCompleteResult struct {
 	Items []ElasticMonitorResource
 }
 
-func (r MonitorsListResponse) HasMore() bool {
+func (r MonitorsListOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r MonitorsListResponse) LoadMore(ctx context.Context) (resp MonitorsListResponse, err error) {
+func (r MonitorsListOperationResponse) LoadMore(ctx context.Context) (resp MonitorsListOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -36,7 +36,7 @@ func (r MonitorsListResponse) LoadMore(ctx context.Context) (resp MonitorsListRe
 }
 
 // MonitorsList ...
-func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.SubscriptionId) (resp MonitorsListResponse, err error) {
+func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.SubscriptionId) (resp MonitorsListOperationResponse, err error) {
 	req, err := c.preparerForMonitorsList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsList", nil, "Failure preparing request")
@@ -59,11 +59,11 @@ func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.S
 
 // MonitorsListComplete retrieves all of the results into a single object
 func (c MonitorsResourceClient) MonitorsListComplete(ctx context.Context, id commonids.SubscriptionId) (MonitorsListCompleteResult, error) {
-	return c.MonitorsListCompleteMatchingPredicate(ctx, id, ElasticMonitorResourcePredicate{})
+	return c.MonitorsListCompleteMatchingPredicate(ctx, id, ElasticMonitorResourceOperationPredicate{})
 }
 
 // MonitorsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ElasticMonitorResourcePredicate) (resp MonitorsListCompleteResult, err error) {
+func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ElasticMonitorResourceOperationPredicate) (resp MonitorsListCompleteResult, err error) {
 	items := make([]ElasticMonitorResource, 0)
 
 	page, err := c.MonitorsList(ctx, id)
@@ -143,7 +143,7 @@ func (c MonitorsResourceClient) preparerForMonitorsListWithNextLink(ctx context.
 
 // responderForMonitorsList handles the response to the MonitorsList request. The method always
 // closes the http.Response Body.
-func (c MonitorsResourceClient) responderForMonitorsList(resp *http.Response) (result MonitorsListResponse, err error) {
+func (c MonitorsResourceClient) responderForMonitorsList(resp *http.Response) (result MonitorsListOperationResponse, err error) {
 	type page struct {
 		Values   []ElasticMonitorResource `json:"value"`
 		NextLink *string                  `json:"nextLink"`
@@ -158,7 +158,7 @@ func (c MonitorsResourceClient) responderForMonitorsList(resp *http.Response) (r
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result MonitorsListResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result MonitorsListOperationResponse, err error) {
 			req, err := c.preparerForMonitorsListWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "monitorsresource.MonitorsResourceClient", "MonitorsList", nil, "Failure preparing request")

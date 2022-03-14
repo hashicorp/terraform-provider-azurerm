@@ -10,23 +10,23 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type VMHostListResponse struct {
+type VMHostListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]VMResources
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (VMHostListResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (VMHostListOperationResponse, error)
 }
 
 type VMHostListCompleteResult struct {
 	Items []VMResources
 }
 
-func (r VMHostListResponse) HasMore() bool {
+func (r VMHostListOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r VMHostListResponse) LoadMore(ctx context.Context) (resp VMHostListResponse, err error) {
+func (r VMHostListOperationResponse) LoadMore(ctx context.Context) (resp VMHostListOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +35,7 @@ func (r VMHostListResponse) LoadMore(ctx context.Context) (resp VMHostListRespon
 }
 
 // VMHostList ...
-func (c VMHHostListClient) VMHostList(ctx context.Context, id MonitorId) (resp VMHostListResponse, err error) {
+func (c VMHHostListClient) VMHostList(ctx context.Context, id MonitorId) (resp VMHostListOperationResponse, err error) {
 	req, err := c.preparerForVMHostList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vmhhostlist.VMHHostListClient", "VMHostList", nil, "Failure preparing request")
@@ -58,11 +58,11 @@ func (c VMHHostListClient) VMHostList(ctx context.Context, id MonitorId) (resp V
 
 // VMHostListComplete retrieves all of the results into a single object
 func (c VMHHostListClient) VMHostListComplete(ctx context.Context, id MonitorId) (VMHostListCompleteResult, error) {
-	return c.VMHostListCompleteMatchingPredicate(ctx, id, VMResourcesPredicate{})
+	return c.VMHostListCompleteMatchingPredicate(ctx, id, VMResourcesOperationPredicate{})
 }
 
 // VMHostListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c VMHHostListClient) VMHostListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate VMResourcesPredicate) (resp VMHostListCompleteResult, err error) {
+func (c VMHHostListClient) VMHostListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate VMResourcesOperationPredicate) (resp VMHostListCompleteResult, err error) {
 	items := make([]VMResources, 0)
 
 	page, err := c.VMHostList(ctx, id)
@@ -142,7 +142,7 @@ func (c VMHHostListClient) preparerForVMHostListWithNextLink(ctx context.Context
 
 // responderForVMHostList handles the response to the VMHostList request. The method always
 // closes the http.Response Body.
-func (c VMHHostListClient) responderForVMHostList(resp *http.Response) (result VMHostListResponse, err error) {
+func (c VMHHostListClient) responderForVMHostList(resp *http.Response) (result VMHostListOperationResponse, err error) {
 	type page struct {
 		Values   []VMResources `json:"value"`
 		NextLink *string       `json:"nextLink"`
@@ -157,7 +157,7 @@ func (c VMHHostListClient) responderForVMHostList(resp *http.Response) (result V
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result VMHostListResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result VMHostListOperationResponse, err error) {
 			req, err := c.preparerForVMHostListWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "vmhhostlist.VMHHostListClient", "VMHostList", nil, "Failure preparing request")
