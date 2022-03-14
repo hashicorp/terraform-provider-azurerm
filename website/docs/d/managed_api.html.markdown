@@ -1,5 +1,5 @@
 ---
-subcategory: "Managed API"
+subcategory: "Connections"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_api"
 description: |-
@@ -13,7 +13,7 @@ Uses this data source to access information about an existing Managed API.
 ## Example Usage
 
 ```hcl
-data "azurerm_managed_api" "test" {
+data "azurerm_managed_api" "example" {
   name     = "servicebus"
   location = "West Europe"
 }
