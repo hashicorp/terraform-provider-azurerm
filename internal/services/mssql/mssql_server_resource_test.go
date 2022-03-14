@@ -3,7 +3,6 @@ package mssql_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -164,14 +163,14 @@ func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.aadAdminWithAADAuthOnly(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.basic(data),
+			Config: r.aadAdminWithAADAuthOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -817,13 +816,11 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+data "azurerm_client_config" "test" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
-}
-
-data "azuread_service_principal" "test" {
-  application_id = "%[3]s"
 }
 
 resource "azurerm_mssql_server" "test" {
@@ -836,10 +833,10 @@ resource "azurerm_mssql_server" "test" {
 
   azuread_administrator {
     login_username = "AzureAD Admin"
-    object_id      = data.azuread_service_principal.test.id
+    object_id      = data.azurerm_client_config.test.object_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MsSqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
@@ -850,30 +847,26 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+data "azurerm_client_config" "test" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
 }
 
-data "azuread_service_principal" "test" {
-  application_id = "%[3]s"
-}
-
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "missadministrator"
-  administrator_login_password = "thisIsKat11"
+  name                = "acctestsqlserver%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  version             = "12.0"
 
   azuread_administrator {
     login_username              = "AzureAD Admin2"
-    object_id                   = data.azuread_service_principal.test.id
+    object_id                   = data.azurerm_client_config.test.object_id
     azuread_authentication_only = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MsSqlServerResource) blobAuditingPoliciesWithFirewall(data acceptance.TestData) string {
@@ -883,6 +876,8 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
@@ -918,10 +913,6 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-data "azuread_service_principal" "test" {
-  application_id = "%[4]s"
-}
-
 resource "azurerm_mssql_server" "test" {
   name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -932,7 +923,7 @@ resource "azurerm_mssql_server" "test" {
 
   azuread_administrator {
     login_username = "AzureAD Admin2"
-    object_id      = data.azuread_service_principal.test.id
+    object_id      = data.azurerm_client_config.test.object_id
   }
 
   extended_auditing_policy {
@@ -942,5 +933,5 @@ resource "azurerm_mssql_server" "test" {
     retention_in_days                       = 6
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, os.Getenv("ARM_CLIENT_ID"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

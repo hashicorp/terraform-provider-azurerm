@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-// TODO this can be removed post 3.0 as only `azure_active_directory_role_based_access_control.0.server_app_secret` needs to be ignored in the ImportStep
+// CLEANUP this can be removed post 3.0 as only `azure_active_directory_role_based_access_control.0.server_app_secret` needs to be ignored in the ImportStep
 func rbacServerAppSecret() []string {
 	serverAppSecret := []string{"azure_active_directory_role_based_access_control.0.server_app_secret"}
 	if !features.ThreePointOhBeta() {

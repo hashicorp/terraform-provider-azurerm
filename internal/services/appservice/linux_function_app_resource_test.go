@@ -894,6 +894,22 @@ func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_msiStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // CustomDiff tests
 func TestAccLinuxFunctionApp_consumptionPlanBackupShouldError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
@@ -2127,6 +2143,39 @@ resource "azurerm_linux_function_app" "test" {
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
 }
 `, r.identityTemplate(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) msiStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app.test.identity[0].principal_id
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {

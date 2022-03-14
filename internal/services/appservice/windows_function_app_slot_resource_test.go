@@ -773,6 +773,22 @@ func TestAccWindowsFunctionAppSlot_updateStorageAccount(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_msiStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1775,6 +1791,37 @@ resource "azurerm_windows_function_app_slot" "test" {
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
 }
 `, r.identityTemplate(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) msiStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_windows_function_app_slot.test.identity[0].principal_id
+}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name            = "acctest-WFAS-%d"
+  function_app_id = azurerm_windows_function_app.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 // Config Templates

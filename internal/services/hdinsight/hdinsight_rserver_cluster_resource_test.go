@@ -304,7 +304,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "edge_node", [])
         content {
           password           = lookup(edge_node.value, "password", null)
-          ssh_keys           = lookup(edge_node.value, "ssh_keys", null)
           subnet_id          = lookup(edge_node.value, "subnet_id", null)
           username           = edge_node.value.username
           virtual_network_id = lookup(edge_node.value, "virtual_network_id", null)
@@ -316,7 +315,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "head_node", [])
         content {
           password           = lookup(head_node.value, "password", null)
-          ssh_keys           = lookup(head_node.value, "ssh_keys", null)
           subnet_id          = lookup(head_node.value, "subnet_id", null)
           username           = head_node.value.username
           virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
@@ -328,7 +326,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
           password              = lookup(worker_node.value, "password", null)
-          ssh_keys              = lookup(worker_node.value, "ssh_keys", null)
           subnet_id             = lookup(worker_node.value, "subnet_id", null)
           target_instance_count = worker_node.value.target_instance_count
           username              = worker_node.value.username
@@ -341,7 +338,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
           password           = lookup(zookeeper_node.value, "password", null)
-          ssh_keys           = lookup(zookeeper_node.value, "ssh_keys", null)
           subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
           username           = zookeeper_node.value.username
           virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)

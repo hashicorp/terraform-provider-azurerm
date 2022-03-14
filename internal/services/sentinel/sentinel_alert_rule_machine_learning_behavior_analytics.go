@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
@@ -81,7 +81,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
@@ -104,7 +104,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 		}
@@ -115,7 +115,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 		params.Etag = resp.Value.(securityinsight.MLBehaviorAnalyticsAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name, params); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 	}
 
@@ -134,7 +134,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Sentinel Alert Rule MLBehaviorAnalytics %q was not found - removing from state!", id)
@@ -173,7 +173,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 	}
 
