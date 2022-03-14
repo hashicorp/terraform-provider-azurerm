@@ -180,7 +180,7 @@ func checkForDuplicateCIDRs(input []interface{}) error {
 		if _, value := tmp[CIDR.(string)]; !value {
 			tmp[CIDR.(string)] = true
 		} else {
-			return fmt.Errorf("%q CIDRs must be unique, there is a duplicate entry for CIDR %q in the %[1]q field. Please remove the duplicate entry and re-apply the changes", "match_values", CIDR)
+			return fmt.Errorf("%q CIDRs must be unique, there is a duplicate entry for CIDR %q in the %[1]q field. Please remove the duplicate entry and re-apply", "match_values", CIDR)
 		}
 	}
 
