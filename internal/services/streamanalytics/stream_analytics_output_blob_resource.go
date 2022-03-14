@@ -172,7 +172,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	if v, ok := d.GetOk("storage_account_key"); ok {
 		blobOutputDataSource, ok := props.Datasource.AsBlobOutputDataSource()
 		if !ok {
-			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", id)
 		}
 		(*blobOutputDataSource.StorageAccounts)[0].AccountKey = utils.String(v.(string))
 	}
@@ -232,7 +232,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.OutputProperties; props != nil {
 		v, ok := props.Datasource.AsBlobOutputDataSource()
 		if !ok {
-			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", id)
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
 		}
 
 		d.Set("date_format", v.DateFormat)
@@ -244,7 +244,6 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
 			d.Set("storage_account_name", account.AccountName)
-			d.Set("storage_account_key", d.Get("storage_account_key").(string))
 		}
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
