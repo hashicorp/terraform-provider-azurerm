@@ -711,11 +711,7 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
-* `http_application_routing` - A `http_application_routing` block as defined below.
-
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. 
-
-* `addon_profile` - An `addon_profile` block as defined below.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
 
