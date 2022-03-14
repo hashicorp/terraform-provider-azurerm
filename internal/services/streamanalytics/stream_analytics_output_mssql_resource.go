@@ -77,20 +77,6 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"user": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"password": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -99,6 +85,20 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 					string(streamanalytics.ConnectionString),
 					string(streamanalytics.Msi),
 				}, false),
+			},
+
+			"user": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"password": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}

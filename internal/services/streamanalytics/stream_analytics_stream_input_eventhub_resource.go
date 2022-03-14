@@ -86,6 +86,8 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
+
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -98,8 +100,6 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }

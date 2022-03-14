@@ -158,13 +158,13 @@ func TestAccStreamAnalyticsOutputEventHub_authenticationMode(t *testing.T) {
 	identity := "identity { type = \"SystemAssigned\" }"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.csv(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
 		{
 			Config: r.authenticationMode(data, identity),
 			Check: acceptance.ComposeTestCheckFunc(
