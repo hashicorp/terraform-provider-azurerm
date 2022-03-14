@@ -90,6 +90,16 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.ConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.ConnectionString),
+					string(streamanalytics.Msi),
+				}, false),
+			},
 		},
 	}
 }
@@ -115,8 +125,6 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 	server := d.Get("server").(string)
 	databaseName := d.Get("database").(string)
 	tableName := d.Get("table").(string)
-	sqlUser := d.Get("user").(string)
-	sqlUserPassword := d.Get("password").(string)
 
 	props := streamanalytics.Output{
 		Name: utils.String(id.Name),
@@ -124,14 +132,26 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 			Datasource: &streamanalytics.AzureSQLDatabaseOutputDataSource{
 				Type: streamanalytics.TypeMicrosoftSQLServerDatabase,
 				AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
-					Server:   utils.String(server),
-					Database: utils.String(databaseName),
-					User:     utils.String(sqlUser),
-					Password: utils.String(sqlUserPassword),
-					Table:    utils.String(tableName),
+					Server:             utils.String(server),
+					Database:           utils.String(databaseName),
+					Table:              utils.String(tableName),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 		},
+	}
+
+	sqlDatabaseOutputDataSource, ok := props.Datasource.AsAzureSQLDatabaseOutputDataSource()
+	if !ok {
+		return fmt.Errorf("converting Output Data Source to an Azure Sql Database Output: %+v", id)
+	}
+
+	if v, ok := d.GetOk("user"); ok {
+		sqlDatabaseOutputDataSource.AzureSQLDatabaseOutputDataSourceProperties.User = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("password"); ok {
+		sqlDatabaseOutputDataSource.AzureSQLDatabaseOutputDataSourceProperties.Password = utils.String(v.(string))
 	}
 
 	if d.IsNewResource() {
@@ -182,6 +202,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
+		d.Set("authentication_mode", v.AuthenticationMode)
 	}
 
 	return nil

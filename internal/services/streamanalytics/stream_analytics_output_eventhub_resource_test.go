@@ -152,6 +152,29 @@ func TestAccStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputEventHub_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
+	r := StreamAnalyticsOutputEventhubResource{}
+	identity := "identity { type = \"SystemAssigned\" }"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		//{
+		//	Config: r.csv(data),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
+		//data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.authenticationMode(data, identity),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	jobName := state.Attributes["stream_analytics_job_name"]
@@ -168,7 +191,7 @@ func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, clien
 }
 
 func (r StreamAnalyticsOutputEventhubResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -189,7 +212,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -212,7 +235,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) propertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -236,7 +259,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) partitionKey(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -260,7 +283,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) json(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -283,7 +306,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) jsonArrayFormat(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -306,7 +329,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
 }
 
 func (r StreamAnalyticsOutputEventhubResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -365,7 +388,28 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
 `, template)
 }
 
-func (r StreamAnalyticsOutputEventhubResource) template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputEventhubResource) authenticationMode(data acceptance.TestData, identity string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_name             = azurerm_eventhub.test.name
+  servicebus_namespace      = azurerm_eventhub_namespace.test.name
+  authentication_mode       = "Msi"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+}
+`, r.template(data, identity), data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputEventhubResource) template(data acceptance.TestData, identity string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -410,6 +454,7 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, identity)
 }

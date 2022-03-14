@@ -64,13 +64,6 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"storage_account_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"storage_account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -91,6 +84,16 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.ConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.ConnectionString),
+					string(streamanalytics.Msi),
+				}, false),
+			},
+
 			"batch_max_wait_time": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -100,6 +103,13 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				ValidateFunc: validation.FloatBetween(0, 10000),
+			},
+
+			"storage_account_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -128,7 +138,6 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
 	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
 
@@ -146,18 +155,26 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
-							AccountKey:  utils.String(storageAccountKey),
 							AccountName: utils.String(storageAccountName),
 						},
 					},
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:          utils.String(containerName),
+					DateFormat:         utils.String(dateFormat),
+					PathPattern:        utils.String(pathPattern),
+					TimeFormat:         utils.String(timeFormat),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
 		},
+	}
+
+	if v, ok := d.GetOk("storage_account_key"); ok {
+		blobOutputDataSource, ok := props.Datasource.AsBlobOutputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
+		}
+		(*blobOutputDataSource.StorageAccounts)[0].AccountKey = utils.String(v.(string))
 	}
 
 	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
@@ -215,17 +232,19 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.OutputProperties; props != nil {
 		v, ok := props.Datasource.AsBlobOutputDataSource()
 		if !ok {
-			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", id)
 		}
 
 		d.Set("date_format", v.DateFormat)
 		d.Set("path_pattern", v.PathPattern)
 		d.Set("storage_container_name", v.Container)
 		d.Set("time_format", v.TimeFormat)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
 			d.Set("storage_account_name", account.AccountName)
+			d.Set("storage_account_key", d.Get("storage_account_key").(string))
 		}
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
