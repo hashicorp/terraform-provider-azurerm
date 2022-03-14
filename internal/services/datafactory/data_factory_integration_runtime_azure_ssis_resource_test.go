@@ -167,11 +167,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  node_size           = "Standard_D8_v3"
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -299,17 +298,15 @@ JSON
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIRsh%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIRsh%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size                        = "Standard_D8_v3"
   number_of_nodes                  = 2
@@ -406,11 +403,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size = "Standard_D8_v3"
 
@@ -567,24 +563,21 @@ JSON
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "acctestlinkkv%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "acctestlinkkv%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIRsh%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIRsh%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size                        = "Standard_D8_v3"
   number_of_nodes                  = 2
@@ -706,11 +699,10 @@ resource "azurerm_sql_active_directory_administrator" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  node_size           = "Standard_D8_v3"
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
 
   catalog_info {
     server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name

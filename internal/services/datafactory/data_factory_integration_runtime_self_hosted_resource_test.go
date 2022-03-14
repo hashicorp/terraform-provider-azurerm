@@ -64,9 +64,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIR%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIR%d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -173,9 +172,8 @@ resource "azurerm_data_factory" "host" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "host" {
-  name                = "acctestirshh%d"
-  data_factory_name   = azurerm_data_factory.host.name
-  resource_group_name = azurerm_resource_group.host.name
+  name            = "acctestirshh%d"
+  data_factory_id = azurerm_data_factory.host.id
 }
 
 resource "azurerm_resource_group" "target" {
@@ -200,9 +198,8 @@ resource "azurerm_data_factory" "target" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
-  name                = "acctestirsht%d"
-  data_factory_name   = azurerm_data_factory.target.name
-  resource_group_name = azurerm_resource_group.target.name
+  name            = "acctestirsht%d"
+  data_factory_id = azurerm_data_factory.target.id
 
   rbac_authorization {
     resource_id = azurerm_data_factory_integration_runtime_self_hosted.host.id
