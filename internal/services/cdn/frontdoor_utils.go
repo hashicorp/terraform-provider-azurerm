@@ -165,6 +165,61 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 	return warnings, errors
 }
 
+func ValidateFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
+	}
+
+	// Path cannot be empty and must start with /. Leave empty to use the incoming path as destination path.
+	if v != "" {
+		if !strings.HasPrefix(v, "/") {
+			return nil, []error{fmt.Errorf("%q is invalid: %q must start with a %q, got %q", "url_redirect_action", k, "/", v)}
+		}
+	}
+
+	return nil, nil
+}
+
+func ValidateFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
+	}
+
+	// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
+	if v != "" {
+		if strings.ContainsAny(v, "?&") {
+			return nil, []error{fmt.Errorf("%q is invalid: %q must not include the %q or the %q characters in the %q field. They will be automatically added by Frontdoor, got %q", "url_redirect_action", k, "?", "&", "query_string", v)}
+		}
+
+		if m, regexErrs := validate.RegExHelper(i, k, `^(\b[a-zA-Z0-9-\._~]*)(={1})(\b[a-zA-Z0-9-\._~]*)$`); !m {
+			return nil, append(regexErrs, fmt.Errorf("%q is invalid: %q must be in the <key>=<value> format, got %q", "url_redirect_action", k, v))
+		}
+	} else {
+		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
+	}
+
+	return nil, nil
+}
+
+func ValidateFrontdoorIPMatchCountryCodes(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
+	}
+
+	if v != "" {
+		if m, regexErrs := validate.RegExHelper(i, k, `^[A-Z]{2}$|^[A-Z]{3}$`); !m {
+			return nil, append(regexErrs, fmt.Errorf("%q is invalid: %q must be in the <key>=<value> format, got %q", "url_redirect_action", k, v))
+		}
+	} else {
+		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
+	}
+
+	return nil, nil
+}
+
 func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -329,6 +384,31 @@ func SchemaFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
 	}
 }
 
+func SchemaFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+		Default:  string(track1.OperatorIPMatch),
+		ValidateFunc: validation.StringInSlice([]string{
+			string(track1.OperatorAny),
+			string(track1.OperatorIPMatch),
+			string(track1.OperatorGeoMatch),
+		}, false),
+	}
+}
+
+func SchemaFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+		Default:  string(track1.OperatorIPMatch),
+		ValidateFunc: validation.StringInSlice([]string{
+			string(track1.OperatorAny),
+			string(track1.OperatorIPMatch),
+		}, false),
+	}
+}
+
 func SchemaFrontdoorNegateCondition() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
@@ -346,6 +426,42 @@ func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
 		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
+		},
+	}
+}
+
+func SchemaFrontdoorServerPortMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 2,
+
+		// In some cases it is valid for this to be an empty string
+		Elem: &pluginsdk.Schema{
+			Type:    pluginsdk.TypeString,
+			Default: "80",
+			ValidateFunc: validation.StringInSlice([]string{
+				"80",
+				"443",
+			}, false),
+		},
+	}
+}
+
+func SchemaFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 3,
+
+		Elem: &pluginsdk.Schema{
+			Type:    pluginsdk.TypeString,
+			Default: string(track1.SslProtocolTLSv12),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(track1.SslProtocolTLSv1),
+				string(track1.SslProtocolTLSv11),
+				string(track1.SslProtocolTLSv12),
+			}, false),
 		},
 	}
 }

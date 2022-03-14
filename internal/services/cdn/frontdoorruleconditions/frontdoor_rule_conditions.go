@@ -2,7 +2,9 @@ package frontdoorruleconditions
 
 import (
 	"fmt"
+	"net"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -168,6 +170,155 @@ func InitializeFrontdoorConditionMappings() *FrontdoorCondtionsMappings {
 	return m
 }
 
+func checkForDuplicateCIDRs(input []interface{}) error {
+	if len(input) <= 1 {
+		return nil
+	}
+
+	tmp := make(map[string]bool)
+	for _, CIDR := range input {
+		if _, value := tmp[CIDR.(string)]; !value {
+			tmp[CIDR.(string)] = true
+		} else {
+			return fmt.Errorf("%q CIDRs must be unique, there is a duplicate entry for CIDR %q in the %[1]q field. Please remove the duplicate entry and re-apply the changes", "match_values", CIDR)
+		}
+	}
+
+	return nil
+}
+
+func checkForCIDROverlap(matchValues []interface{}) error {
+	// verify there are no duplicates in the CIDRs
+	err := checkForDuplicateCIDRs(matchValues)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Look at validateCIDROverlap to consolidate this function for both types of CIDRs
+	// separate the CIDRs into IPv6 and IPv4 variants
+	IPv4CIDRs := make([]string, 0)
+	IPv6CIDRs := make([]string, 0)
+
+	for _, matchValue := range matchValues {
+		if matchValue != nil {
+			CIDR := matchValue.(string)
+
+			// I know the CIDR is a valid CIDR because I check in
+			// the main expand function, at this point I just need
+			// to figure out what kind of CIDR I am dealing with
+			// so I can seperate them into different lists...
+			if isValidIPv4CIDR(CIDR) {
+				IPv4CIDRs = append(IPv4CIDRs, CIDR)
+			} else {
+				IPv6CIDRs = append(IPv6CIDRs, CIDR)
+			}
+		}
+	}
+
+	// check to see if the CIDR address ranges overlap based on the type of CIDR
+	if len(IPv4CIDRs) > 1 {
+		for _, sourceCIDR := range IPv4CIDRs {
+			for _, checkCIDR := range IPv4CIDRs {
+				if sourceCIDR == checkCIDR {
+					continue
+				}
+
+				overlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
+				if err != nil {
+					return fmt.Errorf("unable to validate the IPv4 CIDR address ranges overlap: %+v", err)
+				}
+
+				if overlaps {
+					return fmt.Errorf("the IPv4 %q CIDR %q address range overlaps with %q IPv4 CIDR address range", "match_values", sourceCIDR, checkCIDR)
+				}
+			}
+		}
+	}
+
+	if len(IPv6CIDRs) > 1 {
+		for _, sourceCIDR := range IPv6CIDRs {
+			for _, checkCIDR := range IPv6CIDRs {
+				if sourceCIDR == checkCIDR {
+					continue
+				}
+
+				overlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
+				if err != nil {
+					return fmt.Errorf("unable to validate IPv6 CIDR address ranges overlap: %+v", err)
+				}
+
+				if overlaps {
+					return fmt.Errorf("the %q IPv6 CIDR %q address range overlaps with %q IPv6 CIDR address range", "match_values", sourceCIDR, checkCIDR)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// evaluates if the passed CIDR is a valid IPv4 CIDR or not.
+func isValidIPv4CIDR(cidr interface{}) bool {
+	ok, _ := validate.RegExHelper(cidr, "match_values", `^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
+	return ok
+}
+
+// evaluates if the passed CIDR is a valid IPv6 CIDR or not.
+func isValidIPv6CIDR(cidr string) bool {
+	ok, _ := validate.RegExHelper(cidr, "match_values", `^s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)?s*(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$`)
+	return ok
+}
+
+func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
+	_, sourceNetwork, err := net.ParseCIDR(sourceCIDR)
+	if err != nil {
+		return false, fmt.Errorf("unable to parse the %q CIDR: %+v", sourceCIDR, err)
+	}
+
+	sourceOnes, sourceBits := sourceNetwork.Mask.Size()
+	if sourceOnes == 0 && sourceBits == 0 {
+		return false, fmt.Errorf("%q CIDR must be in its canonical form", sourceCIDR)
+	}
+
+	_, checkNetwork, err := net.ParseCIDR(checkCIDR)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse the CIDR that needs to be checked: %q", err)
+	}
+
+	checkOnes, checkBits := checkNetwork.Mask.Size()
+	if checkOnes == 0 && checkBits == 0 {
+		return false, fmt.Errorf("%q CIDR must be in its canonical form", checkCIDR)
+	}
+
+	ipStr := checkNetwork.IP.String()
+	checkIp := net.ParseIP(ipStr)
+	if checkIp == nil {
+		return false, fmt.Errorf("unable to parse %q, invalid IP address", ipStr)
+	}
+
+	ipStr = sourceNetwork.IP.String()
+	sourceIp := net.ParseIP(ipStr)
+	if sourceIp == nil {
+		return false, fmt.Errorf("unable to parse %q, invalid IP address", ipStr)
+	}
+
+	// swap the check values depending on which CIDR is more specific
+	// So much time and so little to do. Wait a minute.
+	// Strike that. Reverse it.
+	if sourceOnes > checkOnes {
+		sourceNetwork = checkNetwork
+		checkIp = sourceIp
+	}
+
+	// validate that the passed CIDRs don't overlap
+	if !sourceNetwork.Contains(checkIp) {
+		return false, nil
+	}
+
+	// CIDR overlap was detected
+	return true, nil
+}
+
 func expandNormalizeTransforms(input []interface{}) []track1.Transform {
 	transforms := make([]track1.Transform, 0)
 	if len(input) == 0 {
@@ -247,6 +398,33 @@ func ExpandFrontdoorRemoteAddressCondition(input []interface{}) (*[]track1.Basic
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
+		}
+
+		if condition.Parameters.Operator == track1.RemoteAddressOperatorGeoMatch {
+			for _, matchValue := range item["match_values"].([]interface{}) {
+				if ok, _ := validate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$|^[A-Z]{3}$`); !ok {
+					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 or 3 uppercase characters, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorGeoMatch, matchValue)
+				}
+			}
+		}
+
+		if condition.Parameters.Operator == track1.RemoteAddressOperatorIPMatch {
+			for _, matchValue := range item["match_values"].([]interface{}) {
+				address := ""
+				if matchValue != nil {
+					address = matchValue.(string)
+				}
+
+				if !isValidIPv4CIDR(address) && !isValidIPv6CIDR(address) {
+					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorIPMatch, address)
+				}
+			}
+
+			// Check for CIDR overlap and CIDR duplicates in the match values
+			err := checkForCIDROverlap(item["match_values"].([]interface{}))
+			if err != nil {
+				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
+			}
 		}
 
 		if err := validateFrontdoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
@@ -676,6 +854,26 @@ func ExpandFrontdoorSocketAddressCondition(input []interface{}) (*[]track1.Basic
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
+		}
+
+		if condition.Parameters.Operator == track1.SocketAddrOperatorIPMatch {
+			for _, matchValue := range item["match_values"].([]interface{}) {
+				address := ""
+				if matchValue != nil {
+					address = matchValue.(string)
+				}
+
+				// TODO: I can be a bit less brute force here, but for time this will work.
+				if !isValidIPv4CIDR(address) && !isValidIPv6CIDR(address) {
+					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the %q must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", track1.SocketAddrOperatorIPMatch, "match_values", address)
+				}
+			}
+
+			// Check for CIDR overlap and CIDR duplicates in the match values
+			err := checkForCIDROverlap(item["match_values"].([]interface{}))
+			if err != nil {
+				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
+			}
 		}
 
 		if err := validateFrontdoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {

@@ -108,12 +108,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// TODO: Write validation function for this
-									// Path cannot be empty and must start with /. Leave empty to use the incoming path as destination path.
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: ValidateFrontdoorUrlRedirectActionDestinationPath,
 									},
 
 									"destination_hostname": {
@@ -122,13 +120,11 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									// TODO: Write validation function for this
-									// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
 									"query_string": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "",
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: ValidateFrontdoorUrlRedirectActionQueryString,
 									},
 
 									"destination_fragment": {
@@ -343,15 +339,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RemoteAddressOperatorAny),
-											string(track1.RemoteAddressOperatorIPMatch),
-											string(track1.RemoteAddressOperatorGeoMatch),
-										}, false),
-									},
+									"operator": SchemaFrontdoorOperatorRemoteAddress(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
@@ -630,14 +618,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.SocketAddrOperatorAny),
-											string(track1.SocketAddrOperatorIPMatch),
-										}, false),
-									},
+									"operator": SchemaFrontdoorOperatorSocketAddress(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
@@ -677,7 +658,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values": SchemaFrontdoorServerPortMatchValues(),
 								},
 							},
 						},
@@ -714,29 +695,11 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"operator": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+									"operator": SchemaFrontdoorOperatorEqualOnly(),
 
 									"negate_condition": SchemaFrontdoorNegateCondition(),
 
-									"match_values": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 3,
-
-										Elem: &pluginsdk.Schema{
-											Type:    pluginsdk.TypeString,
-											Default: string(track1.SslProtocolTLSv12),
-											ValidateFunc: validation.StringInSlice([]string{
-												string(track1.SslProtocolTLSv1),
-												string(track1.SslProtocolTLSv11),
-												string(track1.SslProtocolTLSv12),
-											}, false),
-										},
-									},
+									"match_values": SchemaFrontdoorSslProtocolMatchValues(),
 								},
 							},
 						},
@@ -788,6 +751,10 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "conditions", err)
+	}
+
+	if len(conditions) > 10 {
+		return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
 	}
 
 	props := track1.Rule{
@@ -880,6 +847,10 @@ func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "conditions", err)
+	}
+
+	if len(conditions) > 10 {
+		return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
 	}
 
 	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
