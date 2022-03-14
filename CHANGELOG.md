@@ -5,6 +5,11 @@ NOTES:
 * **Major Version**: Version 3.0 of the Azure Provider is a major version - some behaviours have changed and some deprecated fields/resources have been removed - please refer to [the 3.0 upgrade guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-upgrade-guide).
 * When upgrading to v3.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)) - the next major release of the AzureRM Provider (v4.0) will require Terraform 1.0 or later.
 
+FEATURES:
+
+* **New Data Source**: `azurerm_managed_api` [GH-15797]
+* **New Resource**: `azurerm_api_connection` [GH-15797]
+
 ENHANCEMENTS:
 
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
