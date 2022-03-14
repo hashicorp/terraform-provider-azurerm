@@ -28,7 +28,63 @@ resource "azurerm_frontdoor_rule_set" "test" {
   frontdoor_profile_id = azurerm_frontdoor_profile.test.id
 }
 
+resource "azurerm_frontdoor_endpoint" "test" {
+  name                 = "example-endpoint"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
+  tags = {
+    endpoint = "contoso.com"
+  }
+}
+
+resource "azurerm_frontdoor_origin_group" "test" {
+  name                 = "example-origin-group"
+  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+
+  health_probe {
+    interval_in_seconds = 240
+    path                = "/healthProbe"
+    protocol            = "Https"
+    request_type        = "GET"
+  }
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+
+  response_based_origin_error_detection {
+    http_error_ranges {
+      begin = 300
+      end   = 599
+    }
+
+    detected_error_types          = "TcpAndHttpErrors"
+    failover_threshold_percentage = 10
+  }
+
+  session_affinity                      = true
+  restore_traffic_or_new_endpoints_time = 10
+}
+
+resource "azurerm_frontdoor_origin" "test" {
+  name                      = "example-origin"
+  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+
+  enable_health_probes           = true
+  enforce_certificate_name_check = false
+  host_name                      = azurerm_frontdoor_endpoint.test.host_name
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "contoso.com"
+  priority                       = 1
+  weight                         = 500
+}
+
 resource "azurerm_frontdoor_rule" "test" {
+  depends_on = [azurerm_frontdoor_origin_group.test, azurerm_frontdoor_origin.test]
+
   name                      = "examplerule"
   frontdoor_rule_set_id     = azurerm_frontdoor_rule_set.test.id
   order                     = 1
