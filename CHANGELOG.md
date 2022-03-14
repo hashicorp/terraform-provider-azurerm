@@ -1,5 +1,9 @@
 ## 3.0.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
+
 ## 2.99.0 (March 11, 2022)
 
 NOTES
