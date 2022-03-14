@@ -239,7 +239,9 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
-
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
+		return err
+	}
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -270,7 +272,9 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 			}
-
+			if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -329,6 +333,9 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
+		return err
 	}
 
 	return resourceVPNGatewayRead(d, meta)
