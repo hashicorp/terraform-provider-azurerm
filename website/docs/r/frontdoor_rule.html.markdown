@@ -118,9 +118,9 @@ An `actions` block supports the following:
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
-* `url_rewrite_action` - (Optional) A `url_rewrite_action` block as defined below.
+* `url_rewrite_action` - (Optional) A `url_rewrite_action` block as defined below. You may not have a `url_rewrite_action` **and** a `url_redirect_action` defined in the same `actions` block.
 
-* `url_redirect_action` - (Optional) A `url_redirect_action` block as defined below.
+* `url_redirect_action` - (Optional) A `url_redirect_action` block as defined below. You may not have a `url_redirect_action` **and** a `url_rewrite_action` defined in the same `actions` block.
 
 * `route_configuration_override_action` - (Optional) A `route_configuration_override_action` block as defined below.
 
