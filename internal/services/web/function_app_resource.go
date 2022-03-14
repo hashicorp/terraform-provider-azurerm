@@ -387,7 +387,8 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
-
+		
+		// TODO - Do we need to lock the function app for updates?
 		future, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
 		if err != nil {
 			return fmt.Errorf("failed to create %s: %+v", id, err)
