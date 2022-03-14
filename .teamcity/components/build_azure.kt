@@ -28,7 +28,7 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     }
     hiddenPasswordVariable("env.ARM_TENANT_ID", config.tenantId, "The ID of the Azure Tenant used for Testing")
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
-    hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Primary region which should be used for testing")
-    hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.ternary, "The Primary region which should be used for testing")
+    hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
+    hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.ternary, "The Tertiary region which should be used for testing")
     hiddenVariable("env.ARM_THREEPOINTZERO_BETA", "true", "Opt into the use of 3.0 beta resources")
 }
