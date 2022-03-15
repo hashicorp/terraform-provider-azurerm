@@ -71,7 +71,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 			"actions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 5,
+				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -81,7 +81,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_redirect_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -141,7 +140,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_rewrite_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -172,7 +170,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -207,7 +204,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"response_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -246,7 +242,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"route_configuration_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 5,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -326,7 +321,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 			"conditions": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 10,
+				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -334,7 +329,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"remote_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -351,7 +345,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_method_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -368,7 +361,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"query_string_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -387,7 +379,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"post_args_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -413,7 +404,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_uri_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -432,7 +422,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_header_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -459,7 +448,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_body_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -478,7 +466,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"request_scheme_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -495,7 +482,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_path_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -514,7 +500,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_file_extension_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -533,7 +518,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"url_filename_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -552,7 +536,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"http_version_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -569,7 +552,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"cookies_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -595,7 +577,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"is_device_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -613,7 +594,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"socket_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -631,7 +611,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"client_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -649,7 +628,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"server_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -670,7 +648,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"host_name_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -690,7 +667,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 						"ssl_protocol_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 10,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -751,10 +727,6 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "conditions", err)
-	}
-
-	if len(conditions) > 10 {
-		return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
 	}
 
 	props := track1.Rule{
@@ -920,7 +892,25 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 			return nil, err
 		}
 
-		results = append(results, *expanded...)
+		if expanded != nil {
+			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
+				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.URLRewrite.ConfigName, "actions", len(*expanded))
+			}
+
+			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
+				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.URLRedirect.ConfigName, "actions", len(*expanded))
+			}
+
+			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
+				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.RouteConfigurationOverride.ConfigName, "actions", len(*expanded))
+			}
+
+			results = append(results, *expanded...)
+		}
+	}
+
+	if len(results) > 5 {
+		return nil, fmt.Errorf("the %q match block may only contain upto 5 match actions, got %d", "actions", len(results))
 	}
 
 	// validate action block
@@ -977,6 +967,10 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicD
 				results = append(results, *expanded...)
 			}
 		}
+	}
+
+	if len(results) > 10 {
+		return nil, fmt.Errorf("the %q match block may only contain upto 10 match conditions, got %d", "conditions", len(results))
 	}
 
 	return results, nil

@@ -192,26 +192,10 @@ func ValidateFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ [
 		if strings.ContainsAny(v, "?&") {
 			return nil, []error{fmt.Errorf("%q is invalid: %q must not include the %q or the %q characters in the %q field. They will be automatically added by Frontdoor, got %q", "url_redirect_action", k, "?", "&", "query_string", v)}
 		}
-
-		if m, regexErrs := validate.RegExHelper(i, k, `^(\b[a-zA-Z0-9-\._~]*)(={1})(\b[a-zA-Z0-9-\._~]*)$`); !m {
-			return nil, append(regexErrs, fmt.Errorf("%q is invalid: %q must be in the <key>=<value> format, got %q", "url_redirect_action", k, v))
-		}
-	} else {
-		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
-	}
-
-	return nil, nil
-}
-
-func ValidateFrontdoorIPMatchCountryCodes(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
-	}
-
-	if v != "" {
-		if m, regexErrs := validate.RegExHelper(i, k, `^[A-Z]{2}$|^[A-Z]{3}$`); !m {
-			return nil, append(regexErrs, fmt.Errorf("%q is invalid: %q must be in the <key>=<value> format, got %q", "url_redirect_action", k, v))
+		// ^(\b[a-zA-Z0-9\-\._~]*)(={1})(\b[a-zA-Z0-9\-\._~]*)$
+		// ^(\b[a-zA-Z0-9\-\._~]*)(={1})((\b[a-zA-Z0-9\-\._~]*)|(\{{1}\b[a-zA-Z0-9\-\._~]*)\}{1})$
+		if m, _ := validate.RegExHelper(i, k, `^(\b[a-zA-Z0-9\-\._~]*)(={1})((\b[a-zA-Z0-9\-\._~]*)|(\{{1}\b(socket_ip|client_ip|client_port|hostname|geo_country|http_method|http_version|query_string|request_scheme|request_uri|ssl_protocol|server_port|url_path){1}\}){1})$`); !m {
+			return nil, []error{fmt.Errorf("%q is invalid: %q must be in the <key>=<value> or <key>={action_server_variable} format, got %q", "url_redirect_action", k, v)}
 		}
 	} else {
 		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
@@ -226,8 +210,8 @@ func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors [
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers, got %q`, v, k))
+	if m, _ := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
+		return nil, []error{fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers, got %q`, v, k)}
 	}
 
 	return nil, nil
@@ -239,8 +223,8 @@ func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, regexErrs := validate.RegExHelper(i, k, `^([0-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v))
+	if m, _ := validate.RegExHelper(i, k, `^([0-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
+		return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 
 	return nil, nil
@@ -253,7 +237,7 @@ func ValidateFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []s
 	}
 
 	if strings.HasPrefix(v, "/") {
-		return nil, append(errors, fmt.Errorf(`%q must not start with the URLs paths leading slash(e.g. /), got %q`, k, v))
+		return nil, []error{fmt.Errorf(`%q must not start with the URLs paths leading slash(e.g. /), got %q`, k, v)}
 	}
 
 	return nil, nil
@@ -265,8 +249,8 @@ func ValidateFrontdoorRuleName(i interface{}, k string) (_ []string, errors []er
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, regexErrs := validate.RegExHelper(i, k, `^[a-zA-Z][a-zA-Z0-9]{0,259}$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must start with a letter and contain only numbers and letters with a maximum length of 260 characters, got %q`, k, v))
+	if m, _ := validate.RegExHelper(i, k, `^[a-zA-Z][a-zA-Z0-9]{0,259}$`); !m {
+		return nil, []error{fmt.Errorf(`%q must start with a letter and contain only numbers and letters with a maximum length of 260 characters, got %q`, k, v)}
 	}
 
 	return nil, nil
@@ -348,7 +332,7 @@ func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
 	}
 
 	if urlRedirect && urlRewrite {
-		return fmt.Errorf("the %q and the %q are both present in the %q block", "url_redirect_action", "url_rewrite_action", "actions")
+		return fmt.Errorf("the %q and the %q are both present in the %q match block", "url_redirect_action", "url_rewrite_action", "actions")
 	}
 
 	return nil

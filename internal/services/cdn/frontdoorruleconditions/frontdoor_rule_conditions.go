@@ -222,7 +222,7 @@ func checkForCIDROverlap(matchValues []interface{}) error {
 
 				cidrOverlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
 				if err != nil {
-					return fmt.Errorf("unable to validate the IPv4 CIDR address ranges overlap: %+v", err)
+					return err
 				}
 
 				if cidrOverlaps {
@@ -263,7 +263,7 @@ func isValidCidr(cidr interface{}) bool {
 	}
 
 	// evaluates if the passed CIDR is a valid IPv4 CIDR or not.
-	ok, _ := validate.RegExHelper(cidr, "match_values", `^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
+	ok, _ := validate.RegExHelper(cidr, "match_values", `^([0-9]{1,3}\.){3}[0-9]{1,3}(/([0-9]|[1-2][0-9]|3[0-2]))?$`)
 	return ok
 
 }
@@ -271,7 +271,7 @@ func isValidCidr(cidr interface{}) bool {
 func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
 	_, sourceNetwork, err := net.ParseCIDR(sourceCIDR)
 	if err != nil {
-		return false, fmt.Errorf("unable to parse the %q CIDR: %+v", sourceCIDR, err)
+		return false, err
 	}
 
 	sourceOnes, sourceBits := sourceNetwork.Mask.Size()
@@ -281,7 +281,7 @@ func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
 
 	_, checkNetwork, err := net.ParseCIDR(checkCIDR)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse the CIDR that needs to be checked: %q", err)
+		return false, err
 	}
 
 	checkOnes, checkBits := checkNetwork.Mask.Size()
