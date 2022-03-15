@@ -97,7 +97,7 @@ resource "azurerm_frontdoor_rule" "test" {
       query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
       query_string_parameters       = ["foo", "clientIp={client_ip}"]
       compression_enabled           = true
-      cache_behavior                = "OverrideIfOriginMissing" 
+      cache_behavior                = "OverrideIfOriginMissing"
       cache_duration                = "365.23:59:59"
     }
 
@@ -126,10 +126,10 @@ resource "azurerm_frontdoor_rule" "test" {
     }
 
     post_args_condition {
-      post_args_name   = "customerName"
-      operator         = "BeginsWith"
-      match_values     = ["J", "K"]
-      transforms       = ["Uppercase"]
+      post_args_name = "customerName"
+      operator       = "BeginsWith"
+      match_values   = ["J", "K"]
+      transforms     = ["Uppercase"]
     }
 
     request_method_condition {
