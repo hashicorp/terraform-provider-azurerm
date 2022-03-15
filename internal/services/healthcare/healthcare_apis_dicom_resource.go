@@ -2,12 +2,12 @@ package healthcare
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
@@ -52,7 +52,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -140,7 +140,7 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	parameters := healthcareapis.DicomService{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
 		DicomServiceProperties: &healthcareapis.DicomServiceProperties{
 			PublicNetworkAccess: publicNetworkAccess,
@@ -184,7 +184,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("workspace_id", workspaceId.ID())
 
 	if resp.Location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
+		d.Set("location", location.Normalize(*resp.Location))
 	}
 
 	if props := resp.DicomServiceProperties; props != nil {
