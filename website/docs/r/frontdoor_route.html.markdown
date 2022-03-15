@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 
-~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuraton file. 
+~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file. 
 
 * `custom_domains` - (Optional) A `custom_domains` block as defined below.
 
