@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	// "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -52,7 +52,8 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentity(),
+			// Figure out how to deal with this later
+			// "identity": commonschema.SystemAssignedUserAssignedIdentity(),
 
 			"origin_response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
@@ -165,7 +166,7 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.ProfileProperties; props != nil {
 		d.Set("frontdoor_id", props.FrontDoorID)
-		d.Set("identity", flattenSystemAndUserAssignedIdentity(props.Identity))
+		// d.Set("identity", flattenSystemAndUserAssignedIdentity(props.Identity))
 		d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
 	}
 
@@ -273,27 +274,27 @@ func flattenProfileSku(input *track1.Sku) string {
 	return result
 }
 
-func flattenSystemAndUserAssignedIdentity(input *track1.ManagedServiceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+// func flattenSystemAndUserAssignedIdentity(input *track1.ManagedServiceIdentity) []interface{} {
+// 	if input == nil {
+// 		return []interface{}{}
+// 	}
 
-	identityIds := make([]string, 0)
-	for k, _ := range input.UserAssignedIdentities {
-		identityIds = append(identityIds, k)
-	}
+// 	identityIds := make([]string, 0)
+// 	for k, _ := range input.UserAssignedIdentities {
+// 		identityIds = append(identityIds, k)
+// 	}
 
-	// TODO: Not right fix this later
-	if string(input.Type) == string(track1.ManagedServiceIdentityTypeNone) {
-		return []interface{}{}
-	} else {
-		return []interface{}{
-			map[string]interface{}{
-				"type":         string(input.Type),
-				"identity_ids": identityIds,
-				"principal_id": input.PrincipalID,
-				"tenant_id":    input.TenantID,
-			},
-		}
-	}
-}
+// 	// TODO: Not right fix this later
+// 	if string(input.Type) == string(track1.ManagedServiceIdentityTypeNone) {
+// 		return []interface{}{}
+// 	} else {
+// 		return []interface{}{
+// 			map[string]interface{}{
+// 				"type":         string(input.Type),
+// 				"identity_ids": identityIds,
+// 				"principal_id": input.PrincipalID,
+// 				"tenant_id":    input.TenantID,
+// 			},
+// 		}
+// 	}
+// }
