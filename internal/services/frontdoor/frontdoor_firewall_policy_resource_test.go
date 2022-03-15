@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorFirewallPolicyResource struct {
-}
+type FrontDoorFirewallPolicyResource struct{}
 
 func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")

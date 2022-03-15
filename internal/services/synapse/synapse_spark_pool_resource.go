@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -197,11 +198,17 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "2.4",
-				ValidateFunc: validation.StringInSlice([]string{
-					"2.4",
-					"3.0", // TODO: remove in 3.0 as support for this value has been dropped
-					"3.1",
-				}, false),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						"2.4",
+						"3.1",
+					}
+					if !features.ThreePointOh() {
+						out = append(out, "3.0")
+					}
+					return validation.StringInSlice(out, false)
+
+				}(),
 			},
 
 			"tags": tags.Schema(),

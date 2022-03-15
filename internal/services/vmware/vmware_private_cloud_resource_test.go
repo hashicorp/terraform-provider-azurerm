@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VmwarePrivateCloudResource struct {
-}
+type VmwarePrivateCloudResource struct{}
 
 func TestAccVmwarePrivateCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")

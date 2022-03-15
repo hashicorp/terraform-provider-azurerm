@@ -10,12 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
@@ -34,8 +36,6 @@ var (
 	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
-
-type eventhubNamespaceIdentityType = identity.SystemAssigned
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -71,12 +71,12 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"sku": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"capacity": {
@@ -105,7 +105,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: eventhubsclusters.ValidateClusterID,
 			},
 
-			"identity": eventhubNamespaceIdentityType{}.Schema(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
@@ -144,7 +144,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// the API returns the subnet ID's resource group name in lowercase
 									// https://github.com/Azure/azure-sdk-for-go/issues/5855
 									"subnet_id": {
@@ -594,22 +593,29 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 	}}
 }
 
-func expandEventHubIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := eventhubNamespaceIdentityType{}.Expand(input)
+func expandEventHubIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result := identity.SystemUserAssignedIdentityMap{}
-	result.FromExpandedConfig(*expanded)
+	result := legacyIdentity.SystemUserAssignedIdentityMap{
+		Type:        legacyIdentity.Type(string(expanded.Type)),
+		PrincipalId: &expanded.PrincipalId,
+		TenantId:    &expanded.TenantId,
+	}
 	return &result, nil
 }
 
-func flattenEventHubIdentity(input *identity.SystemUserAssignedIdentityMap) []interface{} {
+func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	config := input.ToExpandedConfig()
-	return eventhubNamespaceIdentityType{}.Flatten(&config)
+	legacyConfig := input.ToExpandedConfig()
+	return identity.FlattenSystemAssigned(&identity.SystemAssigned{
+		Type:        identity.Type(string(legacyConfig.Type)),
+		PrincipalId: legacyConfig.PrincipalId,
+		TenantId:    legacyConfig.TenantId,
+	})
 }

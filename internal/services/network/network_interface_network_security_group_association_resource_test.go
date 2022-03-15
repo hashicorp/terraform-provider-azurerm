@@ -6,17 +6,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/azuresdkhacks"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceNetworkSecurityGroupAssociationResource struct {
-}
+type NetworkInterfaceNetworkSecurityGroupAssociationResource struct{}
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
@@ -197,7 +197,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

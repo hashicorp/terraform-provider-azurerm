@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,9 +30,9 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"public_ip_addresses": {
 				Type:     pluginsdk.TypeList,
@@ -38,6 +40,11 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"public_ip_address_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"private_ip_addresses": {
@@ -63,33 +70,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"notification_sender_email": {
 				Type:     pluginsdk.TypeString,
@@ -131,7 +112,14 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"zones": commonschema.ZonesMultipleComputed(),
 
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
@@ -144,6 +132,11 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
+						},
+
+						"public_ip_address_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 
 						"private_ip_addresses": {
@@ -237,9 +230,9 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenApiManagementDataSourceIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -256,6 +249,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 
 		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
@@ -339,59 +333,43 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
-		if prop.Location != nil {
-			output["location"] = azure.NormalizeLocation(*prop.Location)
+		var capacity *int32
+		if prop.Sku.Capacity != nil {
+			capacity = prop.Sku.Capacity
 		}
 
+		var publicIpAddresses []string
 		if prop.PublicIPAddresses != nil {
-			output["public_ip_addresses"] = *prop.PublicIPAddresses
+			publicIpAddresses = *prop.PublicIPAddresses
 		}
 
+		publicIpAddressId := ""
+		if prop.PublicIPAddressID != nil {
+			publicIpAddressId = *prop.PublicIPAddressID
+		}
+
+		var privateIpAddresses []string
 		if prop.PrivateIPAddresses != nil {
-			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+			privateIpAddresses = *prop.PrivateIPAddresses
 		}
 
+		gatewayRegionalUrl := ""
 		if prop.GatewayRegionalURL != nil {
-			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"capacity":             capacity,
+			"gateway_regional_url": gatewayRegionalUrl,
+			"location":             location.NormalizeNilable(prop.Location),
+			"private_ip_addresses": privateIpAddresses,
+			"public_ip_address_id": publicIpAddressId,
+			"public_ip_addresses":  publicIpAddresses,
+			"zones":                zones.Flatten(prop.Zones),
+		})
 	}
 
 	return results
-}
-
-func flattenApiManagementDataSourceIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-		result["identity_ids"] = identityIds
-	}
-
-	return []interface{}{result}, nil
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {

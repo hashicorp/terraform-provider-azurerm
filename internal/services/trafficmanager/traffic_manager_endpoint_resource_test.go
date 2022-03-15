@@ -3,12 +3,15 @@ package trafficmanager_test
 import (
 	"context"
 	"fmt"
-	"path"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,6 +19,9 @@ import (
 type TrafficManagerEndpointResource struct{}
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	r := TrafficManagerEndpointResource{}
@@ -35,6 +41,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
@@ -54,6 +63,9 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	r := TrafficManagerEndpointResource{}
 
@@ -66,6 +78,9 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
@@ -94,6 +109,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 
 // Altering weight might be used to ramp up migration traffic
 func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -121,6 +139,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -156,6 +177,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -188,6 +212,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 
 // Altering priority might be used to switch failover/active roles
 func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
@@ -215,6 +242,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
 	r := TrafficManagerEndpointResource{}
 
@@ -244,6 +274,9 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
@@ -264,6 +297,9 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being removed in 3.0 so we can skip")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
@@ -290,29 +326,29 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 }
 
 func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	endpointType := state.Attributes["type"]
-	profileName := state.Attributes["profile_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, err
+	}
+
+	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	endpointType := state.Attributes["type"]
-	profileName := state.Attributes["profile_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := endpoints.ParseEndpointTypeIDInsensitively(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
-		return nil, fmt.Errorf("deleting Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -339,7 +375,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -411,7 +447,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -468,7 +504,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -516,7 +552,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -564,7 +600,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -612,7 +648,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -660,7 +696,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -718,7 +754,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -768,7 +804,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -820,7 +856,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -872,7 +908,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -889,7 +925,7 @@ resource "azurerm_traffic_manager_profile" "child" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -938,7 +974,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -955,7 +991,7 @@ resource "azurerm_traffic_manager_profile" "child" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -1006,7 +1042,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -1045,7 +1081,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -1084,7 +1120,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "http"
+    protocol = "HTTP"
     port     = 80
     path     = "/"
   }
@@ -1127,7 +1163,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "http"
+    protocol = "HTTP"
     port     = 80
     path     = "/"
   }

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MarketplaceAgreementResource struct {
-}
+type MarketplaceAgreementResource struct{}
 
 func TestAccMarketplaceAgreement(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){

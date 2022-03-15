@@ -1,5 +1,5 @@
 ---
-subcategory: "Web Publishing Subscription"
+subcategory: "Web PubSub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -69,7 +69,7 @@ The following arguments are supported:
 * `event_handler` - (Required) An `event_handler` block as defined below.
 
 * `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`.
-  Possible value are `true`, `false`.
+  Possible values are `true`, `false`.
 
 ---
 

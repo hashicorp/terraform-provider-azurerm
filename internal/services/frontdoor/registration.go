@@ -1,12 +1,17 @@
 package frontdoor
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// TODO: move this to the network one
-
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/frontdoor"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

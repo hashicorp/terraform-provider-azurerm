@@ -22,7 +22,6 @@ func TestFeatureID(t *testing.T) {
 		Error    bool
 		Expected *FeatureId
 	}{
-
 		{
 			// empty
 			Input: "",

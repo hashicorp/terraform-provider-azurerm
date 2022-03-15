@@ -1,8 +1,17 @@
 package synapse
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/synapse"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

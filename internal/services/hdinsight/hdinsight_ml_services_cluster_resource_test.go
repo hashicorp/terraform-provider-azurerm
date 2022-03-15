@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,10 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightMLServicesClusterResource struct {
-}
+type HDInsightMLServicesClusterResource struct{}
 
 func TestAccHDInsightMLServicesCluster_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -42,6 +46,9 @@ func TestAccHDInsightMLServicesCluster_basic(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_requiresImport(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 
@@ -60,6 +67,9 @@ func TestAccHDInsightMLServicesCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_update(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -103,6 +113,9 @@ func TestAccHDInsightMLServicesCluster_update(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_sshKeys(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -128,6 +141,9 @@ func TestAccHDInsightMLServicesCluster_sshKeys(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_virtualNetwork(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -153,6 +169,9 @@ func TestAccHDInsightMLServicesCluster_virtualNetwork(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_complete(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -178,6 +197,9 @@ func TestAccHDInsightMLServicesCluster_complete(t *testing.T) {
 }
 
 func TestAccHDInsightMLServicesCluster_tls(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	r := HDInsightMLServicesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -232,7 +254,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -286,7 +307,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_ml_services_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -373,7 +393,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -427,7 +446,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -499,7 +517,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -575,7 +592,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -669,7 +685,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   tls_min_version     = "1.2"
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }

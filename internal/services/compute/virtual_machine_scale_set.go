@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,99 +67,68 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 	}
 }
 
-func VirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.ResourceIdentityTypeSystemAssigned),
-						string(compute.ResourceIdentityTypeUserAssigned),
-						string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
-					}, false),
-				},
-
-				"identity_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
+func expandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func ExpandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
-	if len(input) == 0 {
-		// TODO: Does this want to be this, or nil?
-		return &compute.VirtualMachineScaleSetIdentity{
-			Type: compute.ResourceIdentityTypeNone,
-		}, nil
+	out := compute.VirtualMachineScaleSetIdentity{
+		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
-
-	raw := input[0].(map[string]interface{})
-
-	identity := compute.VirtualMachineScaleSetIdentity{
-		Type: compute.ResourceIdentityType(raw["type"].(string)),
-	}
-
-	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
-	}
-
-	if len(identityIds) > 0 {
-		if identity.Type != compute.ResourceIdentityTypeUserAssigned && identity.Type != compute.ResourceIdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
-		}
-
-		identity.UserAssignedIdentities = identityIds
-	}
-
-	return &identity, nil
-}
-
-func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
-	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
-
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
 			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
+	return &out, nil
+}
+
+func flattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-		},
-	}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func flattenOrchestratedVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -182,11 +153,13 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -227,10 +200,12 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 						Type: pluginsdk.TypeString,
 					},
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -872,7 +847,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 }
 
 func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	out := &pluginsdk.Schema{
 		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -937,15 +912,13 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_iops_read_write": {
+				"ultra_ssd_disk_iops_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
 				},
 
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_mbps_read_write": {
+				"ultra_ssd_disk_mbps_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
@@ -953,6 +926,26 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		o := out.Elem.(*pluginsdk.Resource)
+
+		o.Schema["disk_iops_read_write"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeInt,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
+		}
+
+		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeInt,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
+		}
+	}
+
+	return out
 }
 
 func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
@@ -978,17 +971,35 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			}
 		}
 
-		if iops := raw["disk_iops_read_write"].(int); iops != 0 {
-			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`disk_iops_read_write` are only available for UltraSSD disks")
-			}
+		var iops int
+		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+			iops = diskIops.(int)
+		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
+			iops = ssdIops.(int)
+		}
+
+		if iops > 0 && !ultraSSDEnabled {
+			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
+		}
+
+		var mbps int
+		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+			mbps = diskMbps.(int)
+		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
+			mbps = ssdMbps.(int)
+		}
+
+		if mbps > 0 && !ultraSSDEnabled {
+			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
 			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
-		if mbps := raw["disk_mbps_read_write"].(int); mbps != 0 {
-			if !ultraSSDEnabled {
-				return nil, fmt.Errorf("`disk_mbps_read_write` are only available for UltraSSD disks")
-			}
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
 			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
 
@@ -1040,7 +1051,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		output = append(output, map[string]interface{}{
+		dataDisk := map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
 			"lun":                       lun,
@@ -1048,9 +1059,27 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_iops_read_write":      iops,
-			"disk_mbps_read_write":      mbps,
-		})
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_iops_read_write"] = iops
+			} else {
+				dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+			}
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			if !features.ThreePointOhBeta() {
+				dataDisk["disk_mbps_read_write"] = mbps
+			} else {
+				dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+			}
+		}
+
+		output = append(output, dataDisk)
 	}
 
 	return output
@@ -1244,6 +1273,7 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_automatic_os_upgrade": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DiskEncryptionSetResource struct {
-}
+type DiskEncryptionSetResource struct{}
 
 func TestAccDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
@@ -139,8 +138,9 @@ func (DiskEncryptionSetResource) dependencies(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

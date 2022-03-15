@@ -5,9 +5,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -24,6 +27,8 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 		Read:   resourceSqlFailoverGroupRead,
 		Update: resourceSqlFailoverGroupCreateUpdate,
 		Delete: resourceSqlFailoverGroupDelete,
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_failover_group` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_failover_group` resource instead."),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FailoverGroupID(id)
@@ -45,9 +50,9 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"location": commonschema.LocationComputed(),
 
 			"server_name": {
 				Type:         pluginsdk.TypeString,
@@ -76,7 +81,7 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"role": {
 							Type:     pluginsdk.TypeString,
@@ -214,9 +219,7 @@ func resourceSqlFailoverGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("server_name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.FailoverGroupProperties; props != nil {
 		if err := d.Set("read_write_endpoint_failover_policy", flattenSqlFailoverGroupReadWritePolicy(props.ReadWriteEndpoint)); err != nil {
@@ -341,17 +344,15 @@ func flattenSqlFailoverGroupPartnerServers(input *[]sql.PartnerInfo) []map[strin
 
 	if input != nil {
 		for _, server := range *input {
-			info := make(map[string]interface{})
-
+			id := ""
 			if v := server.ID; v != nil {
-				info["id"] = *v
+				id = *v
 			}
-			if v := server.Location; v != nil {
-				info["location"] = *v
-			}
-			info["role"] = string(server.ReplicationRole)
-
-			result = append(result, info)
+			result = append(result, map[string]interface{}{
+				"id":       id,
+				"location": location.NormalizeNilable(server.Location),
+				"role":     string(server.ReplicationRole),
+			})
 		}
 	}
 	return result

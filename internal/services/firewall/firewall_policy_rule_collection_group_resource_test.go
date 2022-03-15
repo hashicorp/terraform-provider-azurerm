@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyRuleCollectionGroupResource struct {
-}
+type FirewallPolicyRuleCollectionGroupResource struct{}
 
 func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
@@ -135,7 +134,7 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 }
 
 func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyRuleCollectionGroupID(state.ID)
+	id, err := parse.FirewallPolicyRuleCollectionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -184,8 +183,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -331,8 +329,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -457,8 +454,7 @@ resource "azurerm_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {
@@ -607,8 +603,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dns {
-    network_rule_fqdn_enabled = false
-    proxy_enabled             = true
+    proxy_enabled = true
   }
 }
 resource "azurerm_ip_group" "test_source" {

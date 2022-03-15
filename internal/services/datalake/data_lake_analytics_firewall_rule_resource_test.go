@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataLakeAnalyticsFirewallRuleResource struct {
-}
+type DataLakeAnalyticsFirewallRuleResource struct{}
 
 func TestAccDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")

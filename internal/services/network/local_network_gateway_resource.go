@@ -110,8 +110,8 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_local_network_gateway", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
 		}
 	}
 

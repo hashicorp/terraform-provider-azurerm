@@ -13,8 +13,8 @@ type networkInterfaceIPConfigurationLockingDetails struct {
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) lock() {
-	locks.MultipleByName(&details.subnetNamesToLock, SubnetResourceName)
 	locks.MultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
+	locks.MultipleByName(&details.subnetNamesToLock, SubnetResourceName)
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) unlock() {

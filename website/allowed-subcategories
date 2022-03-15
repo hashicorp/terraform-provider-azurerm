@@ -19,6 +19,7 @@ CDN
 Cognitive Services
 Communication
 Compute
+Connections
 Consumption
 Container
 CosmosDB (DocumentDB)
@@ -84,4 +85,4 @@ Template
 Time Series Insights
 VMware (AVS)
 Video Analyzer
-Web Publishing Subscription
+Web PubSub

@@ -109,6 +109,16 @@ resource "azurerm_site_recovery_protection_container_mapping" "container-mapping
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.policy.id
 }
 
+resource "azurerm_site_recovery_network_mapping" "network-mapping" {
+  name                        = "network-mapping"
+  resource_group_name         = azurerm_resource_group.secondary.name
+  recovery_vault_name         = azurerm_recovery_services_vault.vault.name
+  source_recovery_fabric_name = azurerm_site_recovery_fabric.primary.name
+  target_recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
+  source_network_id           = azurerm_virtual_network.primary.id
+  target_network_id           = azurerm_virtual_network.secondary.id
+}
+
 resource "azurerm_storage_account" "primary" {
   name                     = "primaryrecoverycache"
   location                 = azurerm_resource_group.primary.location
@@ -197,9 +207,14 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 
   network_interface {
     source_network_interface_id   = azurerm_network_interface.vm.id
-    target_subnet_name            = "network2-subnet"
+    target_subnet_name            = azurerm_subnet.secondary.name
     recovery_public_ip_address_id = azurerm_public_ip.secondary.id
   }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.container-mapping,
+    azurerm_site_recovery_network_mapping.network-mapping,
+  ]
 }
 ```
 

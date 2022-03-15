@@ -61,6 +61,21 @@ func TestAccLogicAppIntegrationAccountMap_complete(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppIntegrationAccountMap_liquidContentType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_map", "test")
+	r := LogicAppIntegrationAccountMapResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.liquidContentType(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("content"), // not returned from the API
+	})
+}
+
 func TestAccLogicAppIntegrationAccountMap_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_map", "test")
 	r := LogicAppIntegrationAccountMapResource{}
@@ -179,6 +194,24 @@ resource "azurerm_logic_app_integration_account_map" "test" {
 
   metadata = {
     foo = "bar2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppIntegrationAccountMapResource) liquidContentType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_integration_account_map" "test" {
+  name                     = "acctest-iamap-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  integration_account_name = azurerm_logic_app_integration_account.test.name
+  map_type                 = "Liquid"
+  content                  = file("testdata/integration_account_map_content.liquid")
+
+  metadata = {
+    foo = "bar"
   }
 }
 `, r.template(data), data.RandomInteger)

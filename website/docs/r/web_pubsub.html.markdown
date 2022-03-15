@@ -1,5 +1,5 @@
 ---
-subcategory: "Web Publishing Subscription"
+subcategory: "Web PubSub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
@@ -24,7 +24,7 @@ resource "azurerm_web_pubsub" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   sku      = "Standard_S1"
-  capactiy = 1
+  capacity = 1
 
   public_network_access_enabled = false
 
@@ -32,6 +32,10 @@ resource "azurerm_web_pubsub" "example" {
     enabled                   = true
     messaging_logs_enabled    = true
     connectivity_logs_enabled = false
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 ```
@@ -53,9 +57,13 @@ The following arguments are supported:
 * `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
   Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
@@ -75,6 +83,14 @@ A `live_trace` block supports the following:
 * `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
 
 * `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of identity used for the Web PubSub service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+
+* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Web PubSub service.
 
 ## Attributes Reference
 

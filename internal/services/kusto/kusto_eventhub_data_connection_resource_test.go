@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoEventHubDataConnectionResource struct {
-}
+type KustoEventHubDataConnectionResource struct{}
 
 func TestAccKustoEventHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")

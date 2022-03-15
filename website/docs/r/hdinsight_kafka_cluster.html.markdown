@@ -326,7 +326,11 @@ A `monitor` block supports the following:
 
 A `rest_proxy` block supports the following:
 
-* `security_group_id` - (Required) The Azure Active Directory Security Group ID.
+* `security_group_id` - (Required) The Azure Active Directory Security Group ID. Changing this forces a new resource to be created.
+
+* `security_group_name` - (Optional) The Azure Active Directory Security Group name. Changing this forces a new resource to be created.
+
+-> **Note:** The `security_group_name` property will be Required in version 3.0 of the AzureRM Provider.
 
 ---
 

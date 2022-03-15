@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceKeyVaultResource struct {
-}
+type LinkedServiceKeyVaultResource struct{}
 
 func TestAccDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")

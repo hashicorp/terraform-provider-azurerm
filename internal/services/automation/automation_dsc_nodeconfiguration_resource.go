@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,7 +100,7 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
 		DscNodeConfigurationCreateOrUpdateParametersProperties: &automation.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: &automation.ContentSource{
-				Type:  automation.EmbeddedContent,
+				Type:  automation.ContentSourceTypeEmbeddedContent,
 				Value: utils.String(content),
 			},
 			Configuration: &automation.DscConfigurationAssociationProperty{
@@ -110,8 +110,12 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 		Name: utils.String(id.Name),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating/updating %q: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update for %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

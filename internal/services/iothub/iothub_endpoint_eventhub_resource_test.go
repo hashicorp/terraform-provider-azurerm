@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubEndpointEventHubResource struct {
-}
+type IotHubEndpointEventHubResource struct{}
 
 func TestAccIotHubEndpointEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
@@ -185,7 +184,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
@@ -199,7 +198,7 @@ func (r IotHubEndpointEventHubResource) requiresImport(data acceptance.TestData)
 
 resource "azurerm_iothub_endpoint_eventhub" "import" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
@@ -304,7 +303,7 @@ func (r IotHubEndpointEventHubResource) authenticationTypeDefault(data acceptanc
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
@@ -318,7 +317,7 @@ func (r IotHubEndpointEventHubResource) authenticationTypeSystemAssignedIdentity
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"
@@ -338,7 +337,7 @@ func (r IotHubEndpointEventHubResource) authenticationTypeUserAssignedIdentity(d
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -371,6 +371,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
+
 func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`

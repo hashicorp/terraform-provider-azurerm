@@ -22,9 +22,6 @@ func Default() UserFeatures {
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: false,
 		},
-		Network: NetworkFeatures{
-			RelaxedLocking: false,
-		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: false,
 		},

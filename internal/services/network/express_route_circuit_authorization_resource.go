@@ -80,8 +80,8 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit_authorization", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_authorization", id.ID())
 		}
 	}
 

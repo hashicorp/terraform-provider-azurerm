@@ -9,15 +9,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CostManagementExportResourceGroupResource struct {
-}
+type CostManagementExportResourceGroupResource struct{}
 
 func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("Skipping since this resource no longer exists in 3.0 of the provider")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 
@@ -33,6 +36,10 @@ func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skipf("Skipping since this resource no longer exists in 3.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 	r := CostManagementExportResourceGroupResource{}
 
