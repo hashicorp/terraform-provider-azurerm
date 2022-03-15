@@ -39,7 +39,6 @@ import (
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
-	devspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
@@ -150,7 +149,6 @@ type Client struct {
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
 	DesktopVirtualization *desktopvirtualization.Client
-	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
@@ -263,7 +261,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
-	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
