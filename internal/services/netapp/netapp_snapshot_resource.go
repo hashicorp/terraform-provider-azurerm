@@ -192,7 +192,7 @@ func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion  of %q: %+v", id, err)
 	}
 
 	return nil
