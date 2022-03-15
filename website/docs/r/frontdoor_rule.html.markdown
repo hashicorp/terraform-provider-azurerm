@@ -316,7 +316,7 @@ The `ssl_protocol_condition` identifies requests based on the SSL protocol of an
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Required) One or more HTTP methods. Possible values include `TLSv1.0`, `TLSv1.1` or `TLS1.2`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -340,7 +340,7 @@ The `server_port_condition` identifies requests based on which port of the Front
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. Defaults to `80`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -352,7 +352,7 @@ The `client_port_condition` identifies requests based on the port of the client 
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -366,7 +366,7 @@ Remote Address represents the original client IP that is either from the network
 
 * `operator` - (Optional) The type of match. The Possible value is `IpMatch`. Defaults to `IpMatch`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
 
@@ -380,7 +380,7 @@ Remote Address represents the original client IP that is either from the network
 
 * `operator` - (Required) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) For the IP Match or IP Not Match operators: specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
 
@@ -394,7 +394,7 @@ The `request_method_condition` identifies requests that use the specified HTTP r
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Required) One or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -406,7 +406,7 @@ Use the `query_string_condition` to identify requests that contain a specific qu
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the query string to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -422,7 +422,7 @@ Use the `post_args_condition` to identify requests based on the arguments provid
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the `POST` argument to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -436,7 +436,7 @@ A `request_uri_condition` block supports the following:
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request URL to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -452,7 +452,7 @@ The `request_header_condition` identifies requests that include a specific heade
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -468,7 +468,7 @@ The `request_body_condition` identifies requests based on specific text that app
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request body text to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -482,7 +482,7 @@ The `request_scheme_condition` identifies requests that use the specified protoc
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) The requests protocol to match. Possible values include `HTTP` or `HTTPS`. Defaults to `HTTP`.
 
@@ -494,7 +494,7 @@ The `url_path_condition` identifies requests that include the specified path in 
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request path to match. Don't include the leading slash (`/`). If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -508,7 +508,7 @@ The `url_file_extension_condition` identifies requests that include the specifie
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request file extension to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -522,7 +522,7 @@ The `url_filename_condition` identifies requests that include the specified file
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request file name to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -536,7 +536,7 @@ Use the HTTP version match condition to identify requests that have been made by
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) What HTTP version should this condition match? Possible values `2.0`, `1.1`, `1.0` or `0.9`.
 
@@ -550,7 +550,7 @@ Use the `cookies_condition` to identify requests that have include a specific co
 
 * `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -564,7 +564,7 @@ Use the `is_device_condition` to identify requests that have been made from a `m
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more infomation see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
 * `match_values` - (Optional) Which device should this rule match on? Possible values `Mobile` or `Desktop`. Defaults to `Mobile`.
 
