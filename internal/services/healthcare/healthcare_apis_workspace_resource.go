@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
@@ -44,9 +45,9 @@ func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"tags": tags.Schema(),
 		},
@@ -69,11 +70,11 @@ func resourceHealthcareApisWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthcareapis_workspace", id.ID())
+			return tf.ImportAsExistsError("azurerm_healthcare_workspace", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := healthcareapis.Workspace{
@@ -87,7 +88,7 @@ func resourceHealthcareApisWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting creating/ updating %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -115,8 +116,8 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if locations := resp.Location; locations != nil {
+		d.Set("location", location.Normalize(*locations))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -137,7 +138,7 @@ func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deleting of %s: %+v", id, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 	return nil
 }

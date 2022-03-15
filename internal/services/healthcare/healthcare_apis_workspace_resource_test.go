@@ -16,7 +16,7 @@ import (
 type HealthCareWorkspaceResouce struct{}
 
 func TestAccHealthCareWorkspace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
 	r := HealthCareWorkspaceResouce{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -30,7 +30,7 @@ func TestAccHealthCareWorkspace_basic(t *testing.T) {
 }
 
 func TestAccHealthCareWorkspace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
 	r := HealthCareWorkspaceResouce{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -51,7 +51,7 @@ func (HealthCareWorkspaceResouce) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.HealthCare.HealthcareWorkspaceClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Healthcare workspace %s, %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil
@@ -67,7 +67,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_healthcareapis_workspace" "test" {
+resource "azurerm_healthcare_workspace" "test" {
   name                = "acctestwk%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -78,10 +78,10 @@ resource "azurerm_healthcareapis_workspace" "test" {
 func (r HealthCareWorkspaceResouce) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcareapis_workspace" "import" {
-  name                = azurerm_healthcareapis_workspace.test.name
-  resource_group_name = azurerm_healthcareapis_workspace.test.resource_group_name
-  location            = azurerm_healthcareapis_workspace.test.location
+resource "azurerm_healthcare_workspace" "import" {
+  name                = azurerm_healthcare_workspace.test.name
+  resource_group_name = azurerm_healthcare_workspace.test.resource_group_name
+  location            = azurerm_healthcare_workspace.test.location
 }
 
 

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -29,9 +30,9 @@ func dataSourceHealthcareWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"tags": tags.Schema(),
 		},
@@ -58,8 +59,8 @@ func dataSourceHealthcareWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if locations := resp.Location; locations != nil {
+		d.Set("location", location.Normalize(*locations))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
