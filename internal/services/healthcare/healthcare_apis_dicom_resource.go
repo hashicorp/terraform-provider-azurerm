@@ -1,21 +1,18 @@
 package healthcare
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	dicomService "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/dicomservices"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -36,30 +33,36 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := dicomService.ParseDicomServiceID(id)
+			_, err := parse.DicomServiceID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				//todo check the validation func
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DicomServiceName(),
 			},
 
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: workspaces.ValidateWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"location": azure.SchemaLocation(),
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authority": {
@@ -70,6 +73,24 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						},
+					},
+				},
+			},
+
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -91,33 +112,48 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Dicom Service creation.")
 
-	workspace, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("workspace_id").(string))
+	workspace, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing healthcare workspace error: %+v", err)
 	}
 
-	dicomServiceId := dicomService.NewDicomServiceID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))
+	dicomServiceId := parse.NewDicomServiceID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dicomServiceId)
+		existing, err := client.Get(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presense of existing %s: %+v", dicomServiceId, err)
 			}
 		}
 
-		if existing.Model != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_healthcareapis_dicom_service", dicomServiceId.ID())
 		}
 	}
 
-	parameters := dicomService.DicomService{
-		Name:     utils.String(dicomServiceId.DicomServiceName),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+	t := d.Get("tags").(map[string]interface{})
+
+	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, dicomServiceId, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", dicomServiceId, err)
+	parameters := healthcareapis.DicomService{
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Tags:     tags.Expand(t),
+		DicomServiceProperties: &healthcareapis.DicomServiceProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", dicomServiceId, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update %s: %+v", dicomServiceId, err)
 	}
 
 	d.SetId(dicomServiceId.ID())
@@ -129,35 +165,36 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dicomService.ParseDicomServiceIDInsensitively(d.Id())
+	id, err := parse.DicomServiceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Dicom service error: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.DicomServiceName)
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	d.Set("name", id.Name)
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("workspace_id", workspaceId.ID())
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+	if resp.Location != nil {
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
+	}
 
-		if props := model.Properties; props != nil {
-			d.Set("authentication_configuration", flattenDicomAuthentication(props.AuthenticationConfiguration))
-			d.Set("service_url", props.ServiceUrl)
-		}
+	if props := resp.DicomServiceProperties; props != nil {
+		d.Set("authentication_configuration", flattenDicomAuthentication(props.AuthenticationConfiguration))
+		d.Set("private_endpoint_connection", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
+		d.Set("service_url", props.ServiceURL)
+	}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
+	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
+		return err
 	}
 
 	return nil
@@ -168,83 +205,24 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dicomService.ParseDicomServiceID(d.Id())
+	id, err := parse.DicomServiceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Dicom service error: %+v", err)
 	}
 
-	future, err := client.Delete(ctx, *id)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.WorkspaceName)
 	if err != nil {
-		if response.WasNotFound(future.HttpResponse) {
-			return nil
-		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-	return waitForHealthcareApiDicomServiceToBeDelete(ctx, client, *id)
-}
 
-func waitForHealthcareApiDicomServiceToBeDelete(ctx context.Context, client *dicomService.DicomServicesClient, id dicomService.DicomServiceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to be deleted...", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: healthcareApiDicomServiceStateCodeRefreshFunc(ctx, client, id),
-		Timeout: time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func healthcareApiDicomServiceStateCodeRefreshFunc(ctx context.Context, client *dicomService.DicomServicesClient, id dicomService.DicomServiceId) pluginsdk.StateRefreshFunc{
-	return func()(interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if res.HttpResponse != nil {
-			log.Printf("Retrieving %s returned status %d", id, res.HttpResponse.StatusCode)
-		}
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
-	}
-}
-
-func expandDicomAuthentication(input []interface{}) *dicomService.DicomServiceAuthenticationConfiguration {
-	if len(input) == 0 {
-		return &dicomService.DicomServiceAuthenticationConfiguration{}
-	}
-
-	authConfiguration := input[0].(map[string]interface{})
-	authority := authConfiguration["authority"].(string)
-
-	audienceList := make([]string, 0)
-	if v := authConfiguration["audience"]; v != nil {
-		audienceRawData := v.(*pluginsdk.Set).List()
-		for _, audience := range audienceRawData {
-			url := audience.(string)
-			audienceList = append(audienceList, url)
-		}
-	}
-
-	return &dicomService.DicomServiceAuthenticationConfiguration{
-		Authority: &authority,
-		Audiences: &audienceList,
-	}
-}
-
-func flattenDicomAuthentication(input *dicomService.DicomServiceAuthenticationConfiguration) []interface{} {
+func flattenDicomAuthentication(input *healthcareapis.DicomServiceAuthenticationConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -263,4 +241,23 @@ func flattenDicomAuthentication(input *dicomService.DicomServiceAuthenticationCo
 	authBlock["audience"] = pluginsdk.NewSet(pluginsdk.HashString, audience)
 
 	return []interface{}{authBlock}
+}
+
+func flattenDicomServicePrivateEndpoint(input *[]healthcareapis.PrivateEndpointConnection) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, endpoint := range *input {
+		result := map[string]interface{}{}
+		if endpoint.Name != nil {
+			result["name"] = *endpoint.Name
+		}
+
+		if endpoint.ID != nil {
+			result["id"] = *endpoint.ID
+		}
+	}
+	return results
 }
