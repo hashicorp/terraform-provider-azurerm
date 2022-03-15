@@ -477,13 +477,13 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	aadAdmin, err := aadAdminClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(aadAdmin.Response) {
+		if !utils.ResponseWasNotFound(aadAdmin.Response) && !utils.ResponseWasConflict(aadAdmin.Response) {
 			return fmt.Errorf("retrieving AzureAD Admin for %s: %+v", *id, err)
 		}
 	}
 	sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(sqlAdmin.Response) {
+		if !utils.ResponseWasNotFound(sqlAdmin.Response) && !utils.ResponseWasConflict(sqlAdmin.Response) {
 			return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
 		}
 	}
