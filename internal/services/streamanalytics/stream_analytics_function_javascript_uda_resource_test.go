@@ -118,9 +118,9 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) basic(data acceptance.Test
 %s
 
 resource "azurerm_stream_analytics_function_javascript_uda" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  name                    = "acctestinput-%d"
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
+  resource_group_name     = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function main() {
@@ -155,10 +155,10 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) requiresImport(data accept
 %s
 
 resource "azurerm_stream_analytics_function_javascript_uda" "import" {
-  name                      = azurerm_stream_analytics_function_javascript_uda.test.name
-  stream_analytics_job_id   = azurerm_stream_analytics_function_javascript_uda.test.stream_analytics_job_id
-  resource_group_name       = azurerm_stream_analytics_function_javascript_uda.test.resource_group_name
-  script                    = azurerm_stream_analytics_function_javascript_uda.test.script
+  name                    = azurerm_stream_analytics_function_javascript_uda.test.name
+  stream_analytics_job_id = azurerm_stream_analytics_function_javascript_uda.test.stream_analytics_job_id
+  resource_group_name     = azurerm_stream_analytics_function_javascript_uda.test.resource_group_name
+  script                  = azurerm_stream_analytics_function_javascript_uda.test.script
 
   input {
     type = azurerm_stream_analytics_function_javascript_uda.test.input.0.type
@@ -176,9 +176,9 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) complete(data acceptance.T
 %s
 
 resource "azurerm_stream_analytics_function_javascript_uda" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  name                    = "acctestinput-%d"
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
+  resource_group_name     = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function main() {
@@ -217,9 +217,9 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) update(data acceptance.Tes
 %s
 
 resource "azurerm_stream_analytics_function_javascript_uda" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  name                    = "acctestinput-%d"
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
+  resource_group_name     = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function main() {
