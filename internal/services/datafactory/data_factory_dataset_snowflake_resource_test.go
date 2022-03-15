@@ -335,7 +335,6 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 
 resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 
