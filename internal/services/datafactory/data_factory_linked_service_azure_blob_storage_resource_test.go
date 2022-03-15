@@ -140,10 +140,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -166,12 +165,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
+  annotations       = ["test1", "test2", "test3"]
+  description       = "test description"
 
   parameters = {
     foO = "test1"
@@ -204,9 +202,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctestlsblob%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   connection_string = "DefaultEndpointsProtocol=https;AccountName=foo3;AccountKey=bar"
   annotations       = ["Test1", "Test2"]
@@ -266,7 +263,6 @@ resource "azurerm_role_assignment" "test" {
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                 = "acctestBlobStorage%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
   data_factory_id      = azurerm_data_factory.test.id
   service_endpoint     = azurerm_storage_account.test.primary_blob_endpoint
   use_managed_identity = true
@@ -298,10 +294,9 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestBlobStorage%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  sas_uri             = "https://storageaccountname.blob.core.windows.net/sascontainer/sasblob.txt?sv=2019-02-02&st=2019-04-29T22:18:26Z&se=2019-04-30T02:23:26Z&sr=b&sp=rw&sip=168.1.5.60-168.1.5.70&spr=https&sig=koLniLcK0tMLuMfYeuSQwB+BLnWibhPqnrINxaIRbvU<"
+  name            = "acctestBlobStorage%d"
+  data_factory_id = azurerm_data_factory.test.id
+  sas_uri         = "https://storageaccountname.blob.core.windows.net/sascontainer/sasblob.txt?sv=2019-02-02&st=2019-04-29T22:18:26Z&se=2019-04-30T02:23:26Z&sr=b&sp=rw&sip=168.1.5.60-168.1.5.70&spr=https&sig=koLniLcK0tMLuMfYeuSQwB+BLnWibhPqnrINxaIRbvU<"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -338,17 +333,15 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestBlobStorage"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  sas_uri             = "https://storageaccountname.blob.core.windows.net"
+  name            = "acctestBlobStorage"
+  data_factory_id = azurerm_data_factory.test.id
+  sas_uri         = "https://storageaccountname.blob.core.windows.net"
   key_vault_sas_token {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"

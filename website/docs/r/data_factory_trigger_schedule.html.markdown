@@ -31,10 +31,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "example"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  pipeline_name       = azurerm_data_factory_pipeline.test.name
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+  pipeline_name   = azurerm_data_factory_pipeline.test.name
 
   interval  = 5
   frequency = "Day"
@@ -47,9 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Schedule Trigger. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Schedule Trigger. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
 

@@ -191,9 +191,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     foo = "bar"

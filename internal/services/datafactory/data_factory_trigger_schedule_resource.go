@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -46,28 +45,11 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			// TODO remove in 3.0
-			"data_factory_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
-				ExactlyOneOf: []string{"data_factory_id"},
-			},
-
 			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true, // TODO set to Required in 3.0
-				Computed:     true, // TODO remove in 3.0
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
-				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			"description": {
@@ -194,8 +176,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"activated": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				// Default:  true, // todo 3.0 remove this comment and remove the Computed tag
-				Computed: true,
+				Default:  true,
 			},
 
 			"pipeline_name": {
@@ -230,19 +211,11 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO remove/simplify this after deprecation in 3.0
-	var err error
-	var dataFactoryId *parse.DataFactoryId
-	if v := d.Get("data_factory_name").(string); v != "" {
-		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
-		dataFactoryId = &newDataFactoryId
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
 	}
-	if v := d.Get("data_factory_id").(string); v != "" {
-		dataFactoryId, err = parse.DataFactoryID(v)
-		if err != nil {
-			return err
-		}
-	}
+
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -346,9 +319,6 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO remove in 3.0
-	d.Set("data_factory_name", id.FactoryName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
