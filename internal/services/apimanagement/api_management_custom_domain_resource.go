@@ -170,6 +170,17 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
 
+	// The API expects user assigned identities to be submitted with nil values
+	if existing.Identity != nil {
+		for k, v := range existing.Identity.UserAssignedIdentities {
+			if v == nil {
+				continue
+			}
+			existing.Identity.UserAssignedIdentities[k].ClientID = nil
+			existing.Identity.UserAssignedIdentities[k].PrincipalID = nil
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
