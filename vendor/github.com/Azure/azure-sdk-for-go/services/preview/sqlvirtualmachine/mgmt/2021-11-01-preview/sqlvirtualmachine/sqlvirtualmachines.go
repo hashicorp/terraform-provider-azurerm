@@ -74,11 +74,12 @@ func (client SQLVirtualMachinesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -156,7 +157,7 @@ func (client SQLVirtualMachinesClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -243,7 +244,7 @@ func (client SQLVirtualMachinesClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,7 +323,7 @@ func (client SQLVirtualMachinesClient) ListPreparer(ctx context.Context) (*http.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -439,7 +440,7 @@ func (client SQLVirtualMachinesClient) ListByResourceGroupPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -558,7 +559,7 @@ func (client SQLVirtualMachinesClient) ListBySQLVMGroupPreparer(ctx context.Cont
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -626,6 +627,164 @@ func (client SQLVirtualMachinesClient) ListBySQLVMGroupComplete(ctx context.Cont
 	return
 }
 
+// Redeploy uninstalls and reinstalls the SQL Iaas Extension.
+// Parameters:
+// resourceGroupName - name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal.
+// SQLVirtualMachineName - name of the SQL virtual machine.
+func (client SQLVirtualMachinesClient) Redeploy(ctx context.Context, resourceGroupName string, SQLVirtualMachineName string) (result SQLVirtualMachinesRedeployFutureType, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLVirtualMachinesClient.Redeploy")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RedeployPreparer(ctx, resourceGroupName, SQLVirtualMachineName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Redeploy", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RedeploySender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Redeploy", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RedeployPreparer prepares the Redeploy request.
+func (client SQLVirtualMachinesClient) RedeployPreparer(ctx context.Context, resourceGroupName string, SQLVirtualMachineName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"sqlVirtualMachineName": autorest.Encode("path", SQLVirtualMachineName),
+		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-11-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/{sqlVirtualMachineName}/redeploy", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RedeploySender sends the Redeploy request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLVirtualMachinesClient) RedeploySender(req *http.Request) (future SQLVirtualMachinesRedeployFutureType, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// RedeployResponder handles the response to the Redeploy request. The method always
+// closes the http.Response Body.
+func (client SQLVirtualMachinesClient) RedeployResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// StartAssessment starts Assessment on SQL virtual machine.
+// Parameters:
+// resourceGroupName - name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal.
+// SQLVirtualMachineName - name of the SQL virtual machine.
+func (client SQLVirtualMachinesClient) StartAssessment(ctx context.Context, resourceGroupName string, SQLVirtualMachineName string) (result SQLVirtualMachinesStartAssessmentFutureType, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLVirtualMachinesClient.StartAssessment")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.StartAssessmentPreparer(ctx, resourceGroupName, SQLVirtualMachineName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "StartAssessment", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.StartAssessmentSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "StartAssessment", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// StartAssessmentPreparer prepares the StartAssessment request.
+func (client SQLVirtualMachinesClient) StartAssessmentPreparer(ctx context.Context, resourceGroupName string, SQLVirtualMachineName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"sqlVirtualMachineName": autorest.Encode("path", SQLVirtualMachineName),
+		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-11-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/{sqlVirtualMachineName}/startAssessment", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// StartAssessmentSender sends the StartAssessment request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLVirtualMachinesClient) StartAssessmentSender(req *http.Request) (future SQLVirtualMachinesStartAssessmentFutureType, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// StartAssessmentResponder handles the response to the StartAssessment request. The method always
+// closes the http.Response Body.
+func (client SQLVirtualMachinesClient) StartAssessmentResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update updates a SQL virtual machine.
 // Parameters:
 // resourceGroupName - name of the resource group that contains the resource. You can obtain this value from
@@ -666,7 +825,7 @@ func (client SQLVirtualMachinesClient) UpdatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
