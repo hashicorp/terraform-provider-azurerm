@@ -183,27 +183,27 @@ func TestAccCognitiveAccount_qnaRuntimeEndpointUnspecified(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccount_qnaSearchEndpointId(t *testing.T) {
+func TestAccCognitiveAccount_customQuestionAnsweringSearchServiceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.qnaSearchEndpointId(data),
+			Config: r.customQuestionAnsweringSearchServiceId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.qnaSearchEndpointIdUpdated(data),
+			Config: r.customQuestionAnsweringSearchServiceIdUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.qnaSearchEndpointIdRemoved(data),
+			Config: r.customQuestionAnsweringSearchServiceIdRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -625,7 +625,7 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
 }
 
-func (CognitiveAccountResource) qnaSearchEndpointId(data acceptance.TestData) string {
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -644,17 +644,17 @@ resource "azurerm_search_service" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                   = "acctestcogacc-%[1]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  kind                   = "TextAnalytics"
-  sku_name               = "F0"
-  qna_search_endpoint_id = azurerm_search_service.test.id
+  name                                        = "acctestcogacc-%[1]d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  kind                                        = "TextAnalytics"
+  sku_name                                    = "F0"
+  custom_question_answering_search_service_id = azurerm_search_service.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (CognitiveAccountResource) qnaSearchEndpointIdUpdated(data acceptance.TestData) string {
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -680,17 +680,17 @@ resource "azurerm_search_service" "test2" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                   = "acctestcogacc-%[1]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  kind                   = "TextAnalytics"
-  sku_name               = "F0"
-  qna_search_endpoint_id = azurerm_search_service.test2.id
+  name                                        = "acctestcogacc-%[1]d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  kind                                        = "TextAnalytics"
+  sku_name                                    = "F0"
+  custom_question_answering_search_service_id = azurerm_search_service.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (CognitiveAccountResource) qnaSearchEndpointIdRemoved(data acceptance.TestData) string {
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

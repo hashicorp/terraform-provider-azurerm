@@ -44,9 +44,9 @@ The following attributes are exported:
 
 * `qna_runtime_endpoint` - If `kind` is `QnAMaker` the link to the QNA runtime.
 
-* `qna_search_endpoint_id` - If `kind` is `TextAnalytics` the ID to the Search service.
+* `custom_question_answering_search_service_id` - If `kind` is `TextAnalytics` the ID to the Search service.
 
--> **NOTE:** `qna_search_endpoint_id` is used for [the new version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
+-> **NOTE:** `custom_question_answering_search_service_id` is used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
 
 * `primary_access_key` - The primary access key of the Cognitive Services Account
 
