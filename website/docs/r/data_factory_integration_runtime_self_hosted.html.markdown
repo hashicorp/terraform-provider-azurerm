@@ -60,9 +60,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Factory.
 
-* `authorization_key_primary` - The primary integration runtime authentication key.
+* `primary_authorization_key` - The primary integration runtime authentication key.
 
-* `authorization_key_secondary` - The secondary integration runtime authentication key.
+* `secondary_authorization_key` - The secondary integration runtime authentication key.
 
 ## Timeouts
 

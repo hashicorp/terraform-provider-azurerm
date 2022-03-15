@@ -474,9 +474,9 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
-The field `auth_key_1` will be removed in favour of the `authorization_key_primary` property
+The field `auth_key_1` will be removed in favour of the `primary_authorization_key` property
 
-The field `auth_key_2` will be removed in favour of the `authorization_key_secondary` property
+The field `auth_key_2` will be removed in favour of the `secondary_authorization_key` property
 
 ### Resource: `azurerm_data_factory_linked_service_azure_blob_storage`
 

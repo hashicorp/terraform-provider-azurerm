@@ -74,12 +74,12 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				},
 			},
 
-			"authorization_key_primary": {
+			"primary_authorization_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"authorization_key_secondary": {
+			"secondary_authorization_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -199,8 +199,8 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving Auth Keys for Data Factory Self-Hosted %s: %+v", *id, errKey)
 	}
 
-	d.Set("authorization_key_primary", respKey.AuthKey1)
-	d.Set("authorization_key_secondary", respKey.AuthKey2)
+	d.Set("primary_authorization_key", respKey.AuthKey1)
+	d.Set("secondary_authorization_key", respKey.AuthKey2)
 
 	return nil
 }
