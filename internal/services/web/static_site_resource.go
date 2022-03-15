@@ -77,7 +77,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,
@@ -235,7 +235,7 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	config, err := identity.ExpandSystemOrUserAssignedMap(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -259,10 +259,10 @@ func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity,
 }
 
 func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemOrUserAssignedMap
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemOrUserAssignedMap{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
@@ -281,5 +281,5 @@ func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{
 		}
 	}
 
-	return identity.FlattenSystemOrUserAssignedMap(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
