@@ -10,6 +10,8 @@ description: |-
 
 Allows you to add, update, or remove an Azure SQL server to a subnet of a virtual network.
 
+-> **Note:** The `azurerm_sql_virtual_network_rule` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_virtual_network_rule`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_virtual_network_rule) resource instead.
+
 ## Example Usage
 
 ```hcl

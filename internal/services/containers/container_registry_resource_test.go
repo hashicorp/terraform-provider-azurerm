@@ -460,6 +460,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("10"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
 		{
@@ -472,6 +473,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("20"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
 		{
@@ -482,6 +484,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1113,6 +1116,9 @@ resource "azurerm_container_registry" "test" {
   trust_policy {
     enabled = true
   }
+
+  export_policy_enabled         = false
+  public_network_access_enabled = false
 
   tags = {
     Environment = "Production"
