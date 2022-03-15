@@ -1,4 +1,4 @@
-// Package sqlvirtualmachine implements the Azure ARM Sqlvirtualmachine service API version 2017-03-01-preview.
+// Package sqlvirtualmachine implements the Azure ARM Sqlvirtualmachine service API version 2021-11-01-preview.
 //
 // The SQL virtual machine management API provides a RESTful set of web APIs that interact with Azure Compute, Network
 // & Storage services to manage your SQL Server virtual machine. The API enables users to create, delete and retrieve a

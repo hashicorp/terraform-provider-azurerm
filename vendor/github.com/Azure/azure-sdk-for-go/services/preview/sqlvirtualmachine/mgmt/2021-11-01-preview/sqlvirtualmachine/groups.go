@@ -72,11 +72,12 @@ func (client GroupsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -154,7 +155,7 @@ func (client GroupsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -240,7 +241,7 @@ func (client GroupsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -316,7 +317,7 @@ func (client GroupsClient) ListPreparer(ctx context.Context) (*http.Request, err
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -433,7 +434,7 @@ func (client GroupsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -541,7 +542,7 @@ func (client GroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

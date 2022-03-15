@@ -76,11 +76,12 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdatePreparer(ctx contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -160,7 +161,7 @@ func (client AvailabilityGroupListenersClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -206,7 +207,8 @@ func (client AvailabilityGroupListenersClient) DeleteResponder(resp *http.Respon
 // the Azure Resource Manager API or the portal.
 // SQLVirtualMachineGroupName - name of the SQL virtual machine group.
 // availabilityGroupListenerName - name of the availability group listener.
-func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resourceGroupName string, SQLVirtualMachineGroupName string, availabilityGroupListenerName string) (result AvailabilityGroupListener, err error) {
+// expand - the child resources to include in the response.
+func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resourceGroupName string, SQLVirtualMachineGroupName string, availabilityGroupListenerName string, expand string) (result AvailabilityGroupListener, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AvailabilityGroupListenersClient.Get")
 		defer func() {
@@ -217,7 +219,7 @@ func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resource
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, SQLVirtualMachineGroupName, availabilityGroupListenerName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, SQLVirtualMachineGroupName, availabilityGroupListenerName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Get", nil, "Failure preparing request")
 		return
@@ -240,7 +242,7 @@ func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resource
 }
 
 // GetPreparer prepares the Get request.
-func (client AvailabilityGroupListenersClient) GetPreparer(ctx context.Context, resourceGroupName string, SQLVirtualMachineGroupName string, availabilityGroupListenerName string) (*http.Request, error) {
+func (client AvailabilityGroupListenersClient) GetPreparer(ctx context.Context, resourceGroupName string, SQLVirtualMachineGroupName string, availabilityGroupListenerName string, expand string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"availabilityGroupListenerName": autorest.Encode("path", availabilityGroupListenerName),
 		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
@@ -248,9 +250,12 @@ func (client AvailabilityGroupListenersClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -330,7 +335,7 @@ func (client AvailabilityGroupListenersClient) ListByGroupPreparer(ctx context.C
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-01-preview"
+	const APIVersion = "2021-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
