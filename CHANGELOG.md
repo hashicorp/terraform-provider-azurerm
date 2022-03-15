@@ -14,7 +14,11 @@ ENHANCEMENTS:
 
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
+* `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_network_security_rule` - no longer locking on the network security group name [GH-15719]
+* `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
 
 ## 2.99.0 (March 11, 2022)
 
