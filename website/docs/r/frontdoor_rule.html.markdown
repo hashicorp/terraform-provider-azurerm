@@ -120,8 +120,8 @@ resource "azurerm_frontdoor_rule" "test" {
     }
 
     is_device_condition {
-      operator         = "Equal",
-      negate_condition = false,
+      operator         = "Equal"
+      negate_condition = false
       match_values     = ["Mobile"]
     }
 
