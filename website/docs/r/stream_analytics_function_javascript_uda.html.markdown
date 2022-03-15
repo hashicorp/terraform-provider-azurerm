@@ -1,14 +1,14 @@
 ---
 subcategory: "Stream Analytics"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_stream_analytics_function_javascript_udf"
+page_title: "Azure Resource Manager: azurerm_stream_analytics_function_javascript_uda"
 description: |-
-  Manages a JavaScript UDF Function within Stream Analytics Streaming Job.
+  Manages a JavaScript UDA Function within Stream Analytics Streaming Job.
 ---
 
-# azurerm_stream_analytics_function_javascript_udf
+# azurerm_stream_analytics_function_javascript_uda
 
-Manages a JavaScript UDF Function within Stream Analytics Streaming Job.
+Manages a JavaScript UDA Function within Stream Analytics Streaming Job.
 
 ## Example Usage
 
@@ -22,17 +22,26 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_stream_analytics_function_javascript_udf" "example" {
+resource "azurerm_stream_analytics_function_javascript_uda" "example" {
   name                      = "example-javascript-function"
   stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
   resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
   script = <<SCRIPT
-function getRandomNumber(in) {
-  return in;
+function main() {
+    this.init = function () {
+        this.state = 0;
+    }
+
+    this.accumulate = function (value, timestamp) {
+        this.state += value;
+    }
+
+    this.computeResult = function () {
+        return this.state;
+    }
 }
 SCRIPT
-
 
   input {
     type = "bigint"
@@ -48,49 +57,49 @@ SCRIPT
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the JavaScript UDF Function. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the JavaScript UDA Function. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
 
-* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job where this Function should be created. Changing this forces a new resource to be created.
+* `stream_analytics_job_id` - (Required) The resource ID of the Stream Analytics Job where this Function should be created. Changing this forces a new resource to be created.
 
 * `input` - (Required) One or more `input` blocks as defined below.
 
 * `output` - (Required) An `output` blocks as defined below.
 
-* `script` - (Required) The JavaScript of this UDF Function.
+* `script` - (Required) The JavaScript of this UDA Function.
 
 ---
 
 A `input` block supports the following:
 
-* `type` - The Data Type for the Input Argument of this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - The Data Type for the Input Argument of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 ---
 
 A `output` block supports the following:
 
-* `type` - The Data Type output from this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - The Data Type output from this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Stream Analytics JavaScript UDF Function.
+* `id` - The ID of the Stream Analytics JavaScript UDA Function.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics JavaScript UDF Function.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics JavaScript UDF Function.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics JavaScript UDF Function.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics JavaScript UDF Function.
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics JavaScript UDA Function.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics JavaScript UDA Function.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics JavaScript UDA Function.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics JavaScript UDA Function.
 
 ## Import
 
-Stream Analytics JavaScript UDF Functions can be imported using the `resource id`, e.g.
+Stream Analytics JavaScript UDA Functions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_function_javascript_udf.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_function_javascript_uda.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/functions/func1
 ```

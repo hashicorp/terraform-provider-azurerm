@@ -58,7 +58,36 @@ func TestAccStreamAnalyticsFunctionJavaScriptUDA_inputs(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.inputs(data),
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStreamAnalyticsFunctionJavaScriptUDA_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_uda", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDAResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -90,7 +119,7 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) basic(data acceptance.Test
 
 resource "azurerm_stream_analytics_function_javascript_uda" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
@@ -127,7 +156,7 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) requiresImport(data accept
 
 resource "azurerm_stream_analytics_function_javascript_uda" "import" {
   name                      = azurerm_stream_analytics_function_javascript_uda.test.name
-  stream_analytics_job_name = azurerm_stream_analytics_function_javascript_uda.test.stream_analytics_job_name
+  stream_analytics_job_id   = azurerm_stream_analytics_function_javascript_uda.test.stream_analytics_job_id
   resource_group_name       = azurerm_stream_analytics_function_javascript_uda.test.resource_group_name
   script                    = azurerm_stream_analytics_function_javascript_uda.test.script
 
@@ -142,13 +171,13 @@ resource "azurerm_stream_analytics_function_javascript_uda" "import" {
 `, r.basic(data))
 }
 
-func (r StreamAnalyticsFunctionJavaScriptUDAResource) inputs(data acceptance.TestData) string {
+func (r StreamAnalyticsFunctionJavaScriptUDAResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_stream_analytics_function_javascript_uda" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
@@ -173,11 +202,48 @@ SCRIPT
   }
 
   input {
-    type = "bigint"
+    type = "float"
   }
 
   output {
     type = "bigint"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r StreamAnalyticsFunctionJavaScriptUDAResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_function_javascript_uda" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+
+  script = <<SCRIPT
+function main() {
+    this.init = function () {
+        this.state = 0;
+    }
+
+    this.accumulate = function (value) {
+        this.state += value;
+    }
+
+    this.computeResult = function () {
+        return this.state;
+    }
+}
+SCRIPT
+
+
+  input {
+    type = "float"
+  }
+
+  output {
+    type = "float"
   }
 }
 `, r.template(data), data.RandomInteger)

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,14 +42,14 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.FunctionName,
 			},
 
-			"stream_analytics_job_name": {
+			"stream_analytics_job_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.StreamingJobID,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -64,9 +65,9 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"any",
-								"datetime",
 								"array",
 								"bigint",
+								"datetime",
 								"float",
 								"nvarchar(max)",
 								"record",
@@ -87,9 +88,9 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"any",
-								"datetime",
 								"array",
 								"bigint",
+								"datetime",
 								"float",
 								"nvarchar(max)",
 								"record",
@@ -114,7 +115,12 @@ func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	jobId, err := parse.StreamingJobID(d.Get("stream_analytics_job_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), jobId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
@@ -129,36 +135,29 @@ func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	script := d.Get("script").(string)
-	inputsRaw := d.Get("input").([]interface{})
-	inputs := expandStreamAnalyticsFunctionUDAInputs(inputsRaw)
-
-	outputRaw := d.Get("output").([]interface{})
-	output := expandStreamAnalyticsFunctionUDAOutput(outputRaw)
-
-	function := streamanalytics.Function{
-		Properties: &streamanalytics.ScalarFunctionProperties{
+	props := streamanalytics.Function{
+		Properties: &streamanalytics.AggregateFunctionProperties{
 			Type: streamanalytics.TypeAggregate,
 			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
 				Binding: &streamanalytics.JavaScriptFunctionBinding{
 					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
 					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
-						Script: utils.String(script),
+						Script: utils.String(d.Get("script").(string)),
 					},
 				},
-				Inputs: inputs,
-				Output: output,
+				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
+				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]interface{})),
 			},
 		},
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -187,8 +186,10 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("name", id.Name)
-	d.Set("stream_analytics_job_name", id.StreamingjobName)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	jobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+	d.Set("stream_analytics_job_id", jobId.ID())
 
 	if props := resp.Properties; props != nil {
 		aggregateProps, ok := props.AsAggregateFunctionProperties()
