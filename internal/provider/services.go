@@ -94,7 +94,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
@@ -223,7 +222,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			sentinel.Registration{},
 			servicebus.Registration{},
 			servicefabric.Registration{},
-			servicefabricmesh.Registration{},
 			signalr.Registration{},
 			sql.Registration{},
 			storage.Registration{},

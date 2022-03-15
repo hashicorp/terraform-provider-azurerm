@@ -97,7 +97,6 @@ import (
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
-	serviceFabricMesh "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	sql "github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/client"
@@ -208,7 +207,6 @@ type Client struct {
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
 	ServiceFabric         *serviceFabric.Client
-	ServiceFabricMesh     *serviceFabricMesh.Client
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
@@ -323,7 +321,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
-	client.ServiceFabricMesh = serviceFabricMesh.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
