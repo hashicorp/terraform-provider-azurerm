@@ -282,31 +282,31 @@ func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType i
 // 	return results
 // }
 
-func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]track1.ActivatedResourceReference {
-	results := make([]track1.ActivatedResourceReference, 0)
-	if len(input) == 0 {
-		return &results
-	}
+// func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]track1.ActivatedResourceReference {
+// 	results := make([]track1.ActivatedResourceReference, 0)
+// 	if len(input) == 0 {
+// 		return &results
+// 	}
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		activatedResourceReference := track1.ActivatedResourceReference{}
+// 	for _, item := range input {
+// 		v := item.(map[string]interface{})
+// 		activatedResourceReference := track1.ActivatedResourceReference{}
 
-		if id := v["id"].(string); id != "" {
-			activatedResourceReference.ID = utils.String(id)
+// 		if id := v["id"].(string); id != "" {
+// 			activatedResourceReference.ID = utils.String(id)
 
-			enabled := v["enabled"].(bool)
+// 			enabled := v["enabled"].(bool)
 
-			if !enabled {
-				activatedResourceReference.IsActive = utils.Bool(enabled)
-			}
+// 			if !enabled {
+// 				activatedResourceReference.IsActive = utils.Bool(enabled)
+// 			}
 
-			results = append(results, activatedResourceReference)
-		}
-	}
+// 			results = append(results, activatedResourceReference)
+// 		}
+// 	}
 
-	return &results
-}
+// 	return &results
+// }
 
 func expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
 	if len(input) == 0 || input[0] == nil {

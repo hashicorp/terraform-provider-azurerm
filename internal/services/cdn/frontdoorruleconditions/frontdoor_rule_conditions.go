@@ -331,7 +331,7 @@ func expandNormalizeTransforms(input []interface{}) []track1.Transform {
 	return transforms
 }
 
-func flattenAndValidateNormalizedCondition(condition normalizedCondition, m FrontdoorConditionParameters) (map[string]interface{}, error) {
+func flattenAndValidateNormalizedCondition(condition normalizedCondition) (map[string]interface{}, error) {
 	operator := ""
 	negateCondition := false
 	matchValues := make([]interface{}, 0)
@@ -1020,7 +1020,7 @@ func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1046,7 +1046,7 @@ func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1072,7 +1072,7 @@ func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1098,7 +1098,7 @@ func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1124,7 +1124,7 @@ func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1150,7 +1150,7 @@ func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1176,7 +1176,7 @@ func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1202,7 +1202,7 @@ func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1228,7 +1228,7 @@ func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1254,7 +1254,7 @@ func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCon
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1280,7 +1280,7 @@ func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1306,7 +1306,7 @@ func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1332,7 +1332,7 @@ func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1358,7 +1358,7 @@ func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1384,7 +1384,7 @@ func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondit
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1410,7 +1410,7 @@ func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1436,7 +1436,7 @@ func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1462,7 +1462,7 @@ func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, 
 			transforms:      params.Transforms,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}
@@ -1494,7 +1494,7 @@ func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleConditio
 			transforms:      nil,
 		}
 
-		flattened, err := flattenAndValidateNormalizedCondition(condition, m)
+		flattened, err := flattenAndValidateNormalizedCondition(condition)
 		if err != nil {
 			return nil, err
 		}

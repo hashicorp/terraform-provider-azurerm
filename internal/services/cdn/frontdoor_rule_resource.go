@@ -679,8 +679,6 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 								},
 							},
 						},
-						//
-						//
 					},
 				},
 			},
@@ -1377,7 +1375,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 	for _, BasicDeliveryRuleAction := range *input {
 		result := make(map[string]interface{})
 
-		// Route Configuraton
+		// Route Configuration
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
 			flattened, err := frontdoorruleactions.FlattenFrontdoorRouteConfigurationOverrideAction(action)
 			if err != nil {
