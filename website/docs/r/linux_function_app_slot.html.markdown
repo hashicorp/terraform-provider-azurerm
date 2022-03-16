@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
 
-~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name` and the value of the specified Secret must be a Key Vault reference as described [here](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#reference-syntax)
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
