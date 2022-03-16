@@ -128,6 +128,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
@@ -574,7 +576,8 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &compute.Sku{
 			Name:     utils.String(d.Get("sku").(string)),
 			Capacity: utils.Int64(int64(d.Get("instances").(int))),
@@ -995,6 +998,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
