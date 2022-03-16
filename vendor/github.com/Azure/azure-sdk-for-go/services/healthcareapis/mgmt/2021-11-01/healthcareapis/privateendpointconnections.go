@@ -88,7 +88,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdatePreparer(ctx contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -121,7 +121,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Re
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpointConnectionDescription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -183,7 +183,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +229,7 @@ func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Respon
 // resourceName - the name of the service instance.
 // privateEndpointConnectionName - the name of the private endpoint connection associated with the Azure
 // resource
-func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionDescription, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Get")
 		defer func() {
@@ -282,7 +282,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,7 +303,7 @@ func (client PrivateEndpointConnectionsClient) GetSender(req *http.Request) (*ht
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response) (result PrivateEndpointConnectionDescription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -317,7 +317,7 @@ func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response)
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the service instance.
 // resourceName - the name of the service instance.
-func (client PrivateEndpointConnectionsClient) ListByService(ctx context.Context, resourceGroupName string, resourceName string) (result PrivateEndpointConnectionListResult, err error) {
+func (client PrivateEndpointConnectionsClient) ListByService(ctx context.Context, resourceGroupName string, resourceName string) (result PrivateEndpointConnectionListResultDescription, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.ListByService")
 		defer func() {
@@ -369,7 +369,7 @@ func (client PrivateEndpointConnectionsClient) ListByServicePreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +390,7 @@ func (client PrivateEndpointConnectionsClient) ListByServiceSender(req *http.Req
 
 // ListByServiceResponder handles the response to the ListByService request. The method always
 // closes the http.Response Body.
-func (client PrivateEndpointConnectionsClient) ListByServiceResponder(resp *http.Response) (result PrivateEndpointConnectionListResult, err error) {
+func (client PrivateEndpointConnectionsClient) ListByServiceResponder(resp *http.Response) (result PrivateEndpointConnectionListResultDescription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

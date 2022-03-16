@@ -35,7 +35,7 @@ func NewOperationResultsClientWithBaseURI(baseURI string, subscriptionID string)
 // Parameters:
 // locationName - the location of the operation.
 // operationResultID - the ID of the operation result to get.
-func (client OperationResultsClient) Get(ctx context.Context, locationName string, operationResultID string) (result SetObject, err error) {
+func (client OperationResultsClient) Get(ctx context.Context, locationName string, operationResultID string) (result OperationResultsDescription, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationResultsClient.Get")
 		defer func() {
@@ -76,7 +76,7 @@ func (client OperationResultsClient) GetPreparer(ctx context.Context, locationNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -97,11 +97,11 @@ func (client OperationResultsClient) GetSender(req *http.Request) (*http.Respons
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client OperationResultsClient) GetResponder(resp *http.Response) (result SetObject, err error) {
+func (client OperationResultsClient) GetResponder(resp *http.Response) (result OperationResultsDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
-		autorest.ByUnmarshallingJSON(&result.Value),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return

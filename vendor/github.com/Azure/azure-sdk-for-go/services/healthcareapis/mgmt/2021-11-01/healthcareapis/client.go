@@ -1,4 +1,4 @@
-// Package healthcareapis implements the Azure ARM Healthcareapis service API version 2020-03-30.
+// Package healthcareapis implements the Azure ARM Healthcareapis service API version 2021-11-01.
 //
 // Azure Healthcare APIs Client
 package healthcareapis

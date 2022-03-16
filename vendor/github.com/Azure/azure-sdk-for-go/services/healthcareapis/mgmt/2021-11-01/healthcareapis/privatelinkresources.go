@@ -37,7 +37,7 @@ func NewPrivateLinkResourcesClientWithBaseURI(baseURI string, subscriptionID str
 // resourceGroupName - the name of the resource group that contains the service instance.
 // resourceName - the name of the service instance.
 // groupName - the name of the private link resource group.
-func (client PrivateLinkResourcesClient) Get(ctx context.Context, resourceGroupName string, resourceName string, groupName string) (result PrivateLinkResource, err error) {
+func (client PrivateLinkResourcesClient) Get(ctx context.Context, resourceGroupName string, resourceName string, groupName string) (result PrivateLinkResourceDescription, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesClient.Get")
 		defer func() {
@@ -90,7 +90,7 @@ func (client PrivateLinkResourcesClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,7 +111,7 @@ func (client PrivateLinkResourcesClient) GetSender(req *http.Request) (*http.Res
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (result PrivateLinkResource, err error) {
+func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (result PrivateLinkResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -125,7 +125,7 @@ func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (resu
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the service instance.
 // resourceName - the name of the service instance.
-func (client PrivateLinkResourcesClient) ListByService(ctx context.Context, resourceGroupName string, resourceName string) (result PrivateLinkResourceListResult, err error) {
+func (client PrivateLinkResourcesClient) ListByService(ctx context.Context, resourceGroupName string, resourceName string) (result PrivateLinkResourceListResultDescription, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesClient.ListByService")
 		defer func() {
@@ -177,7 +177,7 @@ func (client PrivateLinkResourcesClient) ListByServicePreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-30"
+	const APIVersion = "2021-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -198,7 +198,7 @@ func (client PrivateLinkResourcesClient) ListByServiceSender(req *http.Request) 
 
 // ListByServiceResponder handles the response to the ListByService request. The method always
 // closes the http.Response Body.
-func (client PrivateLinkResourcesClient) ListByServiceResponder(resp *http.Response) (result PrivateLinkResourceListResult, err error) {
+func (client PrivateLinkResourcesClient) ListByServiceResponder(resp *http.Response) (result PrivateLinkResourceListResultDescription, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
