@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"strconv"
 	"strings"
@@ -160,6 +161,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					"dedicated_host_id",
 				},
 			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
@@ -458,10 +461,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Identity:         identity,
+		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -700,9 +704,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
