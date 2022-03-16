@@ -68,9 +68,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_workspace" "test" {
-  name                = "acctestwk%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                          = "acctestwk%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }

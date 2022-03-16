@@ -1,19 +1,19 @@
 ---
 subcategory: "Healthcare"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_healthcareapis_workspace"
+page_title: "Azure Resource Manager: azurerm_healthcare_workspace"
 description: |-
-  Manages a Healthcare API Workspace.
+  Manages a Healthcare Workspace.
 ---
 
-# azurerm_healthcareapis_workspace
+# azurerm_healthcare_workspace
 
 Manages a Healthcare workspace
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_healthcareapis_workspace" "test" {
+resource "azurerm_healthcare_workspace" "test" {
   name                = "tfexworkspace"
   resource_group_name = "tfex-resource_group"
   location            = "east us"
@@ -24,9 +24,11 @@ resource "azurerm_healthcareapis_workspace" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Healthcare API Workspace. Changing this forces a new Healthcare API Workspace to be created.
-* `resource_group_name`  - (Required) Specifies the name of the Resource Group where the Healthcare API Workspace should exist. Changing this forces a new Healthcare API Workspace to be created.
-* `location` - (Required) Specifies the Azure Region where the Healthcare API Workspace should be created. Changing this forces a new Healthcare API Workspace to be created.
+* `name` - (Required) Specifies the name of the Healthcare Workspace. Changing this forces a new Healthcare Workspace to be created.
+
+* `resource_group_name`  - (Required) Specifies the name of the Resource Group where the Healthcare Workspace should exist. Changing this forces a new Healthcare Workspace to be created.
+
+* `location` - (Required) Specifies the Azure Region where the Healthcare Workspace should be created. Changing this forces a new Healthcare Workspace to be created.
 
 ## Attributes Reference
 
@@ -44,8 +46,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Healthcare API Workspaces can be imported using the resource`id`, e.g.
+Healthcare Workspaces can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcareapis_workspace.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1
+terraform import azurerm_healthcare_workspace.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1
 ```

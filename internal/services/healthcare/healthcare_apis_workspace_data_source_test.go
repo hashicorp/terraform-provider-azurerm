@@ -11,7 +11,7 @@ import (
 type HealthCareWorkspaceDataSource struct{}
 
 func TestAccHealthCareWorkspaceDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_healthcareapis_workspace", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_workspace", "test")
 	r := HealthCareWorkspaceDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -34,15 +34,15 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_healthcareapis_workspace" "test" {
+resource "azurerm_healthcare_workspace" "test" {
   name                = "acctestwk%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-data "azurerm_healthcareapis_workspace" "test" {
-  name                = azurerm_healthcareapis_workspace.test.name
-  resource_group_name = azurerm_healthcareapis_workspace.test.resource_group_name
-  location            = azurerm_healthcareapis_workspace.test.location
+data "azurerm_healthcare_workspace" "test" {
+  name                = azurerm_healthcare_workspace.test.name
+  resource_group_name = azurerm_healthcare_workspace.test.resource_group_name
+  location            = azurerm_healthcare_workspace.test.location
 }`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
