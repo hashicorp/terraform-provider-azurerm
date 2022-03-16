@@ -20,9 +20,9 @@ import (
 
 func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisWorkspaceCreateUpdate,
+		Create: resourceHealthcareApisWorkspaceCreate,
 		Read:   resourceHealthcareApisWorkspaceRead,
-		Update: resourceHealthcareApisWorkspaceCreateUpdate,
+		Update: resourceHealthcareApisWorkspaceUpdate,
 		Delete: resourceHealthcareApisWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,12 +49,30 @@ func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceHealthcareApisWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -95,6 +113,7 @@ func resourceHealthcareApisWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	return resourceHealthcareApisWorkspaceRead(d, meta)
 }
+
 func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -120,8 +139,43 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.Normalize(*locations))
 	}
 
+	if props := resp.Properties; props != nil {
+		d.Set("private_endpoint_connection", flattenWorkspacePrivateEndpoint(props.PrivateEndpointConnections))
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
+
+func resourceHealthcareApisWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.WorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	t := d.Get("tags").(map[string]interface{})
+
+	parameters := healthcareapis.WorkspacePatchResource{
+		Tags: tags.Expand(t),
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceHealthcareApisWorkspaceRead(d, meta)
+}
+
 func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -141,4 +195,23 @@ func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 	return nil
+}
+
+func flattenWorkspacePrivateEndpoint(input *[]healthcareapis.PrivateEndpointConnection) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, endpoint := range *input {
+		result := map[string]interface{}{}
+		if endpoint.Name != nil {
+			result["name"] = *endpoint.Name
+		}
+
+		if endpoint.ID != nil {
+			result["id"] = *endpoint.ID
+		}
+	}
+	return results
 }

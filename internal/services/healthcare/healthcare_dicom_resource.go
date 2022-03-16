@@ -54,12 +54,6 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -134,17 +128,9 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 
 	t := d.Get("tags").(map[string]interface{})
 
-	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
-	}
-
 	parameters := healthcareapis.DicomService{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
-		DicomServiceProperties: &healthcareapis.DicomServiceProperties{
-			PublicNetworkAccess: publicNetworkAccess,
-		},
 	}
 
 	future, err := client.CreateOrUpdate(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name, parameters)
