@@ -5,7 +5,7 @@ import (
 	"time"
 
 	// "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,12 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorProfile() *pluginsdk.Resource {
+func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorProfileCreate,
-		Read:   resourceFrontdoorProfileRead,
-		Update: resourceFrontdoorProfileUpdate,
-		Delete: resourceFrontdoorProfileDelete,
+		Create: resourceCdnFrontdoorProfileCreate,
+		Read:   resourceCdnFrontdoorProfileRead,
+		Update: resourceCdnFrontdoorProfileUpdate,
+		Delete: resourceCdnFrontdoorProfileDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -47,7 +47,7 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"frontdoor_id": {
+			"cdn_frontdoor_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -55,7 +55,7 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 			// Figure out how to deal with this later
 			// "identity": commonschema.SystemAssignedUserAssignedIdentity(),
 
-			"origin_response_timeout_seconds": {
+			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
 				ForceNew:     true,
 				Optional:     true,
@@ -89,7 +89,7 @@ func resourceFrontdoorProfile() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -106,23 +106,28 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_profile", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
 		}
 	}
 
 	// Can only be Global for all Frontdoors
 	location := azure.NormalizeLocation("global")
 
-	identity, err := expandSystemAndUserAssignedIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	// identity, err := expandSystemAndUserAssignedIdentity(d.Get("identity").([]interface{}))
+	// if err != nil {
+	// 	return fmt.Errorf("expanding `identity`: %+v", err)
+	// }
+
+	// TODO: Get Identity Working once service team fixes their bug
+	identity := &track1.ManagedServiceIdentity{
+		Type: track1.ManagedServiceIdentityTypeNone,
 	}
 
 	props := track1.Profile{
 		Location: utils.String(location),
 		ProfileProperties: &track1.ProfileProperties{
 			Identity:                     identity,
-			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("origin_response_timeout_seconds").(int))),
+			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku:  expandProfileSku(d.Get("sku_name").(string)),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -139,10 +144,10 @@ func resourceFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	return resourceFrontdoorProfileRead(d, meta)
+	return resourceCdnFrontdoorProfileRead(d, meta)
 }
 
-func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,9 +170,9 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ProfileProperties; props != nil {
-		d.Set("frontdoor_id", props.FrontDoorID)
+		d.Set("cdn_frontdoor_id", props.FrontDoorID)
 		// d.Set("identity", flattenSystemAndUserAssignedIdentity(props.Identity))
-		d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
+		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
 	}
 
 	if err := d.Set("sku_name", flattenProfileSku(resp.Sku)); err != nil {
@@ -181,7 +186,7 @@ func resourceFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,10 +208,10 @@ func resourceFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorProfileRead(d, meta)
+	return resourceCdnFrontdoorProfileRead(d, meta)
 }
 
-func resourceFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,28 +243,28 @@ func expandProfileSku(input string) *track1.Sku {
 	}
 }
 
-func expandSystemAndUserAssignedIdentity(input []interface{}) (*track1.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
+// func expandSystemAndUserAssignedIdentity(input []interface{}) (*track1.ManagedServiceIdentity, error) {
+// 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	out := track1.ManagedServiceIdentity{
-		Type: track1.ManagedServiceIdentityType(expanded.Type),
-	}
+// 	out := track1.ManagedServiceIdentity{
+// 		Type: track1.ManagedServiceIdentityType(expanded.Type),
+// 	}
 
-	if len(expanded.IdentityIds) > 0 {
-		for k := range expanded.IdentityIds {
-			// The user identity dictionary key references will be ARM resource ids in the form:
-			// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
-			out.UserAssignedIdentities[k] = &track1.UserAssignedIdentity{
-				// intentionally empty
-			}
-		}
-	}
+// 	if len(expanded.IdentityIds) > 0 {
+// 		for k := range expanded.IdentityIds {
+// 			// The user identity dictionary key references will be ARM resource ids in the form:
+// 			// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+// 			out.UserAssignedIdentities[k] = &track1.UserAssignedIdentity{
+// 				// intentionally empty
+// 			}
+// 		}
+// 	}
 
-	return &out, nil
-}
+// 	return &out, nil
+// }
 
 func flattenProfileSku(input *track1.Sku) string {
 	result := ""

@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorEndpoint() *pluginsdk.Resource {
+func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorEndpointCreate,
-		Read:   resourceFrontdoorEndpointRead,
-		Update: resourceFrontdoorEndpointUpdate,
-		Delete: resourceFrontdoorEndpointDelete,
+		Create: resourceCdnFrontdoorEndpointCreate,
+		Read:   resourceCdnFrontdoorEndpointRead,
+		Update: resourceCdnFrontdoorEndpointUpdate,
+		Delete: resourceCdnFrontdoorEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -42,7 +42,7 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_profile_id": {
+			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -66,7 +66,7 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 			// 	Default:  60,
 			// },
 
-			"frontdoor_profile_name": {
+			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -76,12 +76,12 @@ func resourceFrontdoorEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -125,10 +125,10 @@ func resourceFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	return resourceFrontdoorEndpointRead(d, meta)
+	return resourceCdnFrontdoorEndpointRead(d, meta)
 }
 
-func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,14 +150,14 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", id.AfdEndpointName)
-	d.Set("frontdoor_profile_id", profileId.ID())
+	d.Set("cdn_frontdoor_profile_id", profileId.ID())
 
 	if props := resp.AFDEndpointProperties; props != nil {
 		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("host_name", props.HostName)
 
 		// BUG: Profile Name is not being returned by the API pull it from the ID
-		d.Set("frontdoor_profile_name", id.ProfileName)
+		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
 
 		// BUG API does not currently expose this field so temporarily hardcoding to default value
 		// d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
@@ -173,12 +173,12 @@ func resourceFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -205,10 +205,10 @@ func resourceFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorEndpointRead(d, meta)
+	return resourceCdnFrontdoorEndpointRead(d, meta)
 }
 
-func resourceFrontdoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

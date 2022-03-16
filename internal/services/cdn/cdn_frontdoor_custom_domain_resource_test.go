@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorCustomDomainResource struct{}
+type CdnFrontdoorCustomDomainResource struct{}
 
-func TestAccFrontdoorCustomDomain_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_domain", "test")
-	r := FrontdoorCustomDomainResource{}
+func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontdoorCustomDomainResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorCustomDomain_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorCustomDomain_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_domain", "test")
-	r := FrontdoorCustomDomainResource{}
+func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontdoorCustomDomainResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorCustomDomain_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_domain", "test")
-	r := FrontdoorCustomDomainResource{}
+func TestAccCdnFrontdoorCustomDomain_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontdoorCustomDomainResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorCustomDomain_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorCustomDomain_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_domain", "test")
-	r := FrontdoorCustomDomainResource{}
+func TestAccCdnFrontdoorCustomDomain_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontdoorCustomDomainResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorCustomDomain_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorCustomDomainResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorCustomDomainResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,21 +106,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r FrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_custom_domain" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-c-%d"
+  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   azure_dns_zone_id                       = ""
   host_name                               = ""
@@ -137,14 +137,14 @@ resource "azurerm_frontdoor_custom_domain" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_custom_domain" "import" {
-  name                 = azurerm_frontdoor_custom_domain.test.name
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_custom_domain" "import" {
+  name                     = azurerm_cdn_frontdoor_custom_domain.test.name
+  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   azure_dns_zone_id                       = ""
   host_name                               = ""
@@ -161,14 +161,14 @@ resource "azurerm_frontdoor_custom_domain" "import" {
 `, config)
 }
 
-func (r FrontdoorCustomDomainResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_custom_domain" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-c-%d"
+  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   azure_dns_zone_id                       = ""
   host_name                               = ""
@@ -185,14 +185,14 @@ resource "azurerm_frontdoor_custom_domain" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorCustomDomainResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_custom_domain" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-c-%d"
+  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
   azure_dns_zone {
     id = ""
   }

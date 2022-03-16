@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor_rule"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule"
 description: |-
   Manages a Frontdoor Rule.
 ---
 
-# azurerm_frontdoor_rule
+# azurerm_cdn_frontdoor_rule
 
 Manages a Frontdoor Rule.
 
@@ -18,28 +18,28 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "exampleruleset"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "exampleruleset"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 
-resource "azurerm_frontdoor_endpoint" "test" {
-  name                 = "example-endpoint"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
     endpoint = "contoso.com"
   }
 }
 
-resource "azurerm_frontdoor_origin_group" "test" {
-  name                 = "example-origin-group"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "example-origin-group"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   health_probe {
     interval_in_seconds = 240
@@ -68,13 +68,13 @@ resource "azurerm_frontdoor_origin_group" "test" {
   restore_traffic_or_new_endpoints_time = 10
 }
 
-resource "azurerm_frontdoor_origin" "test" {
-  name                      = "example-origin"
-  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   enable_health_probes           = true
   enforce_certificate_name_check = false
-  host_name                      = azurerm_frontdoor_endpoint.test.host_name
+  host_name                      = azurerm_cdn_frontdoor_endpoint.test.host_name
   http_port                      = 80
   https_port                     = 443
   origin_host_header             = "contoso.com"
@@ -82,17 +82,17 @@ resource "azurerm_frontdoor_origin" "test" {
   weight                         = 500
 }
 
-resource "azurerm_frontdoor_rule" "test" {
-  depends_on = [azurerm_frontdoor_origin_group.test, azurerm_frontdoor_origin.test]
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
   name                      = "examplerule"
-  frontdoor_rule_set_id     = azurerm_frontdoor_rule_set.test.id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
   order                     = 1
   match_processing_behavior = "Continue"
 
   actions {
     route_configuration_override_action {
-      origin_group_id               = azurerm_frontdoor_origin_group.test.id
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
       forwarding_protocol           = "HttpsOnly"
       query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
       query_string_parameters       = ["foo", "clientIp={client_ip}"]
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
 
-* `frontdoor_rule_set_id` - (Required) The ID of the Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
+* `cdn_frontdoor_rule_set_id` - (Required) The ID of the Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
 
 * `order` - (Required) The order in which the rules will be applied for the Frontdoor Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Frontdoor Rule with a lesser order value will be applied before a rule with a greater order value.
 
@@ -204,7 +204,7 @@ A `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-* `origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
+* `cdn_frontdoor_origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
 
 * `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
@@ -697,7 +697,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Rule.
 
-* `frontdoor_rule_set_name` - The name of the Frontdoor Rule Set containing this Frontdoor Rule.
+* `cdn_frontdoor_rule_set_name` - The name of the Frontdoor Rule Set containing this Frontdoor Rule.
 
 ## Timeouts
 
@@ -713,5 +713,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 cdn Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1
+terraform import azurerm_cdn_frontdoor_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1
 ```

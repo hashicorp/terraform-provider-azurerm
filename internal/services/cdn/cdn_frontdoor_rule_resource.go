@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
+	cdnfrontdoorruleactions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
+	cdnfrontdoorruleconditions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorRule() *pluginsdk.Resource {
+func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorRuleCreate,
-		Read:   resourceFrontdoorRuleRead,
-		Update: resourceFrontdoorRuleUpdate,
-		Delete: resourceFrontdoorRuleDelete,
+		Create: resourceCdnFrontdoorRuleCreate,
+		Read:   resourceCdnFrontdoorRuleRead,
+		Update: resourceCdnFrontdoorRuleUpdate,
+		Delete: resourceCdnFrontdoorRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -42,10 +42,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateFrontdoorRuleName,
+				ValidateFunc: ValidateCdnFrontdoorRuleName,
 			},
 
-			"frontdoor_rule_set_id": {
+			"cdn_frontdoor_rule_set_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -110,7 +110,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: ValidateFrontdoorUrlRedirectActionDestinationPath,
+										ValidateFunc: ValidateCdnFrontdoorUrlRedirectActionDestinationPath,
 									},
 
 									"destination_hostname": {
@@ -123,7 +123,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "",
-										ValidateFunc: ValidateFrontdoorUrlRedirectActionQueryString,
+										ValidateFunc: ValidateCdnFrontdoorUrlRedirectActionQueryString,
 									},
 
 									"destination_fragment": {
@@ -246,7 +246,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"origin_group_id": {
+									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validate.FrontdoorOriginGroupID,
@@ -309,7 +309,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: ValidateFrontdoorCacheDuration,
+										ValidateFunc: ValidateCdnFrontdoorCacheDuration,
 									},
 								},
 							},
@@ -332,9 +332,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorRemoteAddress(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorRemoteAddress(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -345,9 +345,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorRequestMethodMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorRequestMethodMatchValues(),
 								},
 							},
 						},
@@ -358,10 +358,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -379,10 +379,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -393,10 +393,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -415,10 +415,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -429,10 +429,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -443,9 +443,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorProtocolMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -456,10 +456,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorUrlPathConditionMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorUrlPathConditionMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -470,10 +470,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -484,10 +484,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -498,9 +498,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorHttpVersionMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorHttpVersionMatchValues(),
 								},
 							},
 						},
@@ -519,10 +519,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -533,9 +533,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorIsDeviceMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorIsDeviceMatchValues(),
 								},
 							},
 						},
@@ -547,9 +547,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorSocketAddress(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorSocketAddress(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -561,9 +561,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -575,9 +575,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorServerPortMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorServerPortMatchValues(),
 								},
 							},
 						},
@@ -592,10 +592,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperator(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorMatchValues(),
-									"transforms":       SchemaFrontdoorRuleTransforms(),
+									"operator":         SchemaCdnFrontdoorOperator(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -607,9 +607,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaFrontdoorNegateCondition(),
-									"match_values":     SchemaFrontdoorSslProtocolMatchValues(),
+									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
+									"match_values":     SchemaCdnFrontdoorSslProtocolMatchValues(),
 								},
 							},
 						},
@@ -617,7 +617,7 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 				},
 			},
 
-			"frontdoor_rule_set_name": {
+			"cdn_frontdoor_rule_set_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -625,12 +625,12 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	ruleSetId, err := parse.FrontdoorRuleSetID(d.Get("frontdoor_rule_set_id").(string))
+	ruleSetId, err := parse.FrontdoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
 	if err != nil {
 		return err
 	}
@@ -682,10 +682,10 @@ func resourceFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.SetId(id.ID())
 
-	return resourceFrontdoorRuleRead(d, meta)
+	return resourceCdnFrontdoorRuleRead(d, meta)
 }
 
-func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -707,14 +707,14 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", id.RuleName)
-	d.Set("frontdoor_rule_set_id", ruleSetId.ID())
+	d.Set("cdn_frontdoor_rule_set_id", ruleSetId.ID())
 
 	if props := resp.RuleProperties; props != nil {
 		d.Set("match_processing_behavior", props.MatchProcessingBehavior)
 		d.Set("order", props.Order)
 
 		// BUG: RuleSetName is not being returned by the API
-		d.Set("frontdoor_rule_set_name", ruleSetId.RuleSetName)
+		d.Set("cdn_frontdoor_rule_set_name", ruleSetId.RuleSetName)
 
 		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 		if err != nil {
@@ -733,7 +733,7 @@ func resourceFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -775,10 +775,10 @@ func resourceFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorRuleRead(d, meta)
+	return resourceCdnFrontdoorRuleRead(d, meta)
 }
 
-func resourceFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -805,14 +805,14 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 
 	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error)
 
-	m := *frontdoorruleactions.InitializeFrontdoorActionMappings()
+	m := *cdnfrontdoorruleactions.InitializeCdnFrontdoorActionMappings()
 
 	actions := map[string]expandfunc{
-		m.RouteConfigurationOverride.ConfigName: frontdoorruleactions.ExpandFrontdoorRouteConfigurationOverrideAction,
-		m.RequestHeader.ConfigName:              frontdoorruleactions.ExpandFrontdoorRequestHeaderAction,
-		m.ResponseHeader.ConfigName:             frontdoorruleactions.ExpandFrontdoorResponseHeaderAction,
-		m.URLRedirect.ConfigName:                frontdoorruleactions.ExpandFrontdoorUrlRedirectAction,
-		m.URLRewrite.ConfigName:                 frontdoorruleactions.ExpandFrontdoorUrlRewriteAction,
+		m.RouteConfigurationOverride.ConfigName: cdnfrontdoorruleactions.ExpandCdnFrontdoorRouteConfigurationOverrideAction,
+		m.RequestHeader.ConfigName:              cdnfrontdoorruleactions.ExpandCdnFrontdoorRequestHeaderAction,
+		m.ResponseHeader.ConfigName:             cdnfrontdoorruleactions.ExpandCdnFrontdoorResponseHeaderAction,
+		m.URLRedirect.ConfigName:                cdnfrontdoorruleactions.ExpandCdnFrontdoorUrlRedirectAction,
+		m.URLRewrite.ConfigName:                 cdnfrontdoorruleactions.ExpandCdnFrontdoorUrlRewriteAction,
 	}
 
 	basicDeliveryRuleAction := input[0].(map[string]interface{})
@@ -857,32 +857,32 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicD
 	results := make([]track1.BasicDeliveryRuleCondition, 0)
 
 	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error)
-	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
+	m := cdnfrontdoorruleconditions.InitializeCdnFrontdoorConditionMappings()
 
 	// TODO: Add validation for this error once I figure out what that validation should be
 	// "BadRequest" Message="Parameters specified for RequestMethod condition are invalid.;
 	// Property 'Rule.Conditions[2].Parameters.Selector' is required but it was not set"
 
 	conditions := map[string]expandfunc{
-		m.ClientPort.ConfigName:       frontdoorruleconditions.ExpandFrontdoorClientPortCondition,
-		m.Cookies.ConfigName:          frontdoorruleconditions.ExpandFrontdoorCookiesCondition,
-		m.HostName.ConfigName:         frontdoorruleconditions.ExpandFrontdoorHostNameCondition,
-		m.HttpVersion.ConfigName:      frontdoorruleconditions.ExpandFrontdoorHttpVersionCondition,
-		m.IsDevice.ConfigName:         frontdoorruleconditions.ExpandFrontdoorIsDeviceCondition,
-		m.PostArgs.ConfigName:         frontdoorruleconditions.ExpandFrontdoorPostArgsCondition,
-		m.QueryString.ConfigName:      frontdoorruleconditions.ExpandFrontdoorQueryStringCondition,
-		m.RemoteAddress.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRemoteAddressCondition,
-		m.RequestBody.ConfigName:      frontdoorruleconditions.ExpandFrontdoorRequestBodyCondition,
-		m.RequestHeader.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestHeaderCondition,
-		m.RequestMethod.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestMethodCondition,
-		m.RequestScheme.ConfigName:    frontdoorruleconditions.ExpandFrontdoorRequestSchemeCondition,
-		m.RequestUri.ConfigName:       frontdoorruleconditions.ExpandFrontdoorRequestUriCondition,
-		m.ServerPort.ConfigName:       frontdoorruleconditions.ExpandFrontdoorServerPortCondition,
-		m.SocketAddress.ConfigName:    frontdoorruleconditions.ExpandFrontdoorSocketAddressCondition,
-		m.SslProtocol.ConfigName:      frontdoorruleconditions.ExpandFrontdoorSslProtocolCondition,
-		m.UrlFileExtension.ConfigName: frontdoorruleconditions.ExpandFrontdoorUrlFileExtensionCondition,
-		m.UrlFilename.ConfigName:      frontdoorruleconditions.ExpandFrontdoorUrlFileNameCondition,
-		m.UrlPath.ConfigName:          frontdoorruleconditions.ExpandFrontdoorUrlPathCondition,
+		m.ClientPort.ConfigName:       cdnfrontdoorruleconditions.ExpandCdnFrontdoorClientPortCondition,
+		m.Cookies.ConfigName:          cdnfrontdoorruleconditions.ExpandCdnFrontdoorCookiesCondition,
+		m.HostName.ConfigName:         cdnfrontdoorruleconditions.ExpandCdnFrontdoorHostNameCondition,
+		m.HttpVersion.ConfigName:      cdnfrontdoorruleconditions.ExpandCdnFrontdoorHttpVersionCondition,
+		m.IsDevice.ConfigName:         cdnfrontdoorruleconditions.ExpandCdnFrontdoorIsDeviceCondition,
+		m.PostArgs.ConfigName:         cdnfrontdoorruleconditions.ExpandCdnFrontdoorPostArgsCondition,
+		m.QueryString.ConfigName:      cdnfrontdoorruleconditions.ExpandCdnFrontdoorQueryStringCondition,
+		m.RemoteAddress.ConfigName:    cdnfrontdoorruleconditions.ExpandCdnFrontdoorRemoteAddressCondition,
+		m.RequestBody.ConfigName:      cdnfrontdoorruleconditions.ExpandCdnFrontdoorRequestBodyCondition,
+		m.RequestHeader.ConfigName:    cdnfrontdoorruleconditions.ExpandCdnFrontdoorRequestHeaderCondition,
+		m.RequestMethod.ConfigName:    cdnfrontdoorruleconditions.ExpandCdnFrontdoorRequestMethodCondition,
+		m.RequestScheme.ConfigName:    cdnfrontdoorruleconditions.ExpandCdnFrontdoorRequestSchemeCondition,
+		m.RequestUri.ConfigName:       cdnfrontdoorruleconditions.ExpandCdnFrontdoorRequestUriCondition,
+		m.ServerPort.ConfigName:       cdnfrontdoorruleconditions.ExpandCdnFrontdoorServerPortCondition,
+		m.SocketAddress.ConfigName:    cdnfrontdoorruleconditions.ExpandCdnFrontdoorSocketAddressCondition,
+		m.SslProtocol.ConfigName:      cdnfrontdoorruleconditions.ExpandCdnFrontdoorSslProtocolCondition,
+		m.UrlFileExtension.ConfigName: cdnfrontdoorruleconditions.ExpandCdnFrontdoorUrlFileExtensionCondition,
+		m.UrlFilename.ConfigName:      cdnfrontdoorruleconditions.ExpandCdnFrontdoorUrlFileNameCondition,
+		m.UrlPath.ConfigName:          cdnfrontdoorruleconditions.ExpandCdnFrontdoorUrlPathCondition,
 	}
 
 	basicDeliveryRuleCondition := input[0].(map[string]interface{})
@@ -914,7 +914,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		return results, nil
 	}
 
-	m := frontdoorruleconditions.InitializeFrontdoorConditionMappings()
+	m := cdnfrontdoorruleconditions.InitializeCdnFrontdoorConditionMappings()
 	keys := make(map[string]string)
 
 	for _, BasicDeliveryRuleCondition := range *input {
@@ -924,7 +924,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleClientPortCondition(); ok {
 			conditionMapping := m.ClientPort
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorClientPortCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorClientPortCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -942,7 +942,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); ok {
 			conditionMapping := m.Cookies
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorCookiesCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorCookiesCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -960,7 +960,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHostNameCondition(); ok {
 			conditionMapping := m.HostName
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorHostNameCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorHostNameCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -978,7 +978,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); ok {
 			conditionMapping := m.HttpVersion
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorHttpVersionCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorHttpVersionCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -996,7 +996,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); ok {
 			conditionMapping := m.IsDevice
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorIsDeviceCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorIsDeviceCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1014,7 +1014,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); ok {
 			conditionMapping := m.PostArgs
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorPostArgsCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorPostArgsCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1032,7 +1032,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); ok {
 			conditionMapping := m.QueryString
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorQueryStringCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorQueryStringCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1050,7 +1050,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); ok {
 			conditionMapping := m.RemoteAddress
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRemoteAddressCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRemoteAddressCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1068,7 +1068,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); ok {
 			conditionMapping := m.RequestBody
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestBodyCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRequestBodyCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1086,7 +1086,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestHeaderCondition(); ok {
 			conditionMapping := m.RequestHeader
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestHeaderCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRequestHeaderCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1104,7 +1104,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); ok {
 			conditionMapping := m.RequestMethod
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestMethodCondition(condition, m.RequestMethod)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRequestMethodCondition(condition, m.RequestMethod)
 			if err != nil {
 				return nil, err
 			}
@@ -1122,7 +1122,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); ok {
 			conditionMapping := m.RequestScheme
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestSchemeCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRequestSchemeCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1140,7 +1140,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); ok {
 			conditionMapping := m.RequestUri
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorRequestUriCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorRequestUriCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1158,7 +1158,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleServerPortCondition(); ok {
 			conditionMapping := m.ServerPort
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorServerPortCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorServerPortCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1176,7 +1176,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSocketAddrCondition(); ok {
 			conditionMapping := m.SocketAddress
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorSocketAddressCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorSocketAddressCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1194,7 +1194,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSslProtocolCondition(); ok {
 			conditionMapping := m.SslProtocol
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorSslProtocolCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorSslProtocolCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1212,7 +1212,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); ok {
 			conditionMapping := m.UrlFileExtension
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileExtensionCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorUrlFileExtensionCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1230,7 +1230,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); ok {
 			conditionMapping := m.UrlFilename
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlFileNameCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorUrlFileNameCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1248,7 +1248,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); ok {
 			conditionMapping := m.UrlPath
 
-			flattened, err := frontdoorruleconditions.FlattenFrontdoorUrlPathCondition(condition, conditionMapping)
+			flattened, err := cdnfrontdoorruleconditions.FlattenFrontdoorUrlPathCondition(condition, conditionMapping)
 			if err != nil {
 				return nil, err
 			}
@@ -1303,7 +1303,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 		return results, nil
 	}
 
-	m := frontdoorruleactions.InitializeFrontdoorActionMappings()
+	m := cdnfrontdoorruleactions.InitializeCdnFrontdoorActionMappings()
 	keys := make(map[string]string)
 
 	for _, BasicDeliveryRuleAction := range *input {
@@ -1311,7 +1311,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 
 		// Route Configuration
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened, err := frontdoorruleactions.FlattenFrontdoorRouteConfigurationOverrideAction(action)
+			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorRouteConfigurationOverrideAction(action)
 			if err != nil {
 				return nil, err
 			}
@@ -1329,7 +1329,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 
 		// Request Header
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); ok {
-			flattened, err := frontdoorruleactions.FlattenFrontdoorRequestHeaderAction(action)
+			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorRequestHeaderAction(action)
 			if err != nil {
 				return nil, err
 			}
@@ -1347,7 +1347,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 
 		// Response Header
 		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); ok {
-			flattened, err := frontdoorruleactions.FlattenFrontdoorResponseHeaderAction(action)
+			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorResponseHeaderAction(action)
 			if err != nil {
 				return nil, err
 			}
@@ -1365,7 +1365,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 
 		// URL Redirect
 		if action, ok := BasicDeliveryRuleAction.AsURLRedirectAction(); ok {
-			flattened, err := frontdoorruleactions.FlattenFrontdoorUrlRedirectAction(action)
+			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRedirectAction(action)
 			if err != nil {
 				return nil, err
 			}
@@ -1383,7 +1383,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction
 
 		// URL Rewrite
 		if action, ok := BasicDeliveryRuleAction.AsURLRewriteAction(); ok {
-			flattened, err := frontdoorruleactions.FlattenFrontdoorUrlRewriteAction(action)
+			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRewriteAction(action)
 			if err != nil {
 				return nil, err
 			}

@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor_route"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_route"
 description: |-
   Manages a Frontdoor Route.
 ---
 
-# azurerm_frontdoor_route
+# azurerm_cdn_frontdoor_route
 
 Manages a Frontdoor Route.
 
@@ -18,33 +18,33 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "frontdoor_origin_group" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 
 resource "azurerm_frontdoor_endpoint" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 
-resource "azurerm_frontdoor_route" "test" {
-  name                      = "acctest-c-%d"
-  frontdoor_endpoint_id     = azurerm_frontdoor_endpoint.test.id
-  frontdoor_origin_group_id = azurerm_frontdoor_origin_group.test.id
-  enabled                   = true
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "acctest-c-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  forwarding_protocol    = "HttpsOnly"
-  https_redirect         = true
-  link_to_default_domain = true
-  patterns_to_match      = ["/*"]
-  supported_protocols    = ["Http", "Https"]
-  rule_set_ids           = [azurerm_frontdoor_rule_set.test.id]
+  forwarding_protocol        = "HttpsOnly"
+  https_redirect             = true
+  link_to_default_domain     = true
+  patterns_to_match          = ["/*"]
+  supported_protocols        = ["Http", "Https"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
 
   cache_configuration {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
@@ -61,11 +61,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
 
-* `frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
 
-* `frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Route to be created.
 
-* `frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 
@@ -83,11 +83,11 @@ The following arguments are supported:
 
 * `link_to_default_domain` - (Optional) Will this route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
-* `origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
+* `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
 
 * `patterns_to_match` - (Optional) The route patterns of the rule.
 
-* `rule_set_ids` - (Optional) One or more Frontdoor Rule Set Resource ID's.
+* `cdn_frontdoor_rule_set_ids` - (Optional) One or more Frontdoor Rule Set Resource ID's.
 
 ---
 
@@ -139,5 +139,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Frontdoor Routes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_route.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1
+terraform import azurerm_cdn_frontdoor_route.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1
 ```

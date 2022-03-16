@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorOriginGroupResource struct{}
+type CdnFrontdoorOriginGroupResource struct{}
 
-func TestAccFrontdoorOriginGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_origin_group", "test")
-	r := FrontdoorOriginGroupResource{}
+func TestAccCdnFrontdoorOriginGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorOriginGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorOriginGroup_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_origin_group", "test")
-	r := FrontdoorOriginGroupResource{}
+func TestAccCdnFrontdoorOriginGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorOriginGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorOriginGroup_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_origin_group", "test")
-	r := FrontdoorOriginGroupResource{}
+func TestAccCdnFrontdoorOriginGroup_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorOriginGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorOriginGroup_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_origin_group", "test")
-	r := FrontdoorOriginGroupResource{}
+func TestAccCdnFrontdoorOriginGroup_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorOriginGroup_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorOriginGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorOriginGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorOriginGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorOriginGroupResource) Exists(ctx context.Context, clients *clien
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorOriginGroupResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -105,45 +105,45 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-afdx-%d"
   location = "%s"
 }
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r FrontdoorOriginGroupResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginGroupResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_origin_group" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorOriginGroupResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginGroupResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_origin_group" "import" {
-  name                 = azurerm_frontdoor_origin_group.test.name
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "import" {
+  name                     = azurerm_cdn_frontdoor_origin_group.test.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, config)
 }
 
-func (r FrontdoorOriginGroupResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginGroupResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_origin_group" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   health_probe {
     interval_in_seconds = 240
@@ -178,14 +178,14 @@ resource "azurerm_frontdoor_origin_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorOriginGroupResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginGroupResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_origin_group" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   health_probe {
     interval_in_seconds = 120

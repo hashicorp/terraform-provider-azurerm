@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorRouteResource struct{}
+type CdnFrontdoorRouteResource struct{}
 
 func TestAccFrontdoorRoute_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_route", "test")
-	r := FrontdoorRouteResource{}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,8 +30,8 @@ func TestAccFrontdoorRoute_basic(t *testing.T) {
 }
 
 func TestAccFrontdoorRoute_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_route", "test")
-	r := FrontdoorRouteResource{}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,8 +44,8 @@ func TestAccFrontdoorRoute_requiresImport(t *testing.T) {
 }
 
 func TestAccFrontdoorRoute_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_route", "test")
-	r := FrontdoorRouteResource{}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -58,8 +58,8 @@ func TestAccFrontdoorRoute_complete(t *testing.T) {
 }
 
 func TestAccFrontdoorRoute_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_route", "test")
-	r := FrontdoorRouteResource{}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorRoute_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorRouteID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorRouteResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorRouteResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorRouteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,26 +106,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_frontdoor_endpoint" "test" {
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
   name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+  frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FrontdoorRouteResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_route" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                      = "acctest-c-%d"
+  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
 
   cache_configuration {
     query_parameters              = ["foo", "bar"]
@@ -136,27 +136,27 @@ resource "azurerm_frontdoor_route" "test" {
     id = ""
   }
 
-  enabled                = true
-  forwarding_protocol    = true
-  https_redirect         = true
-  link_to_default_domain = true
-  origin_group_id        = azurerm_frontdoor_group.test.id
-  origin_path            = ""
-  patterns_to_match      = []
-  rule_set_ids           = [""]
-  supported_protocols    = ["Http", "Https"]
+  enabled                       = true
+  forwarding_protocol           = true
+  https_redirect                = true
+  link_to_default_domain        = true
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_group.test.id
+  cdn_frontdoor_origin_path     = ""
+  patterns_to_match             = []
+  rule_set_ids                  = [""]
+  supported_protocols           = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorRouteResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorRouteResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_route" "import" {
-  name                  = azurerm_frontdoor_route.test.name
-  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+resource "azurerm_cdn_frontdoor_route" "import" {
+  name                      = azurerm_cdn_frontdoor_route.test.name
+  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
 
   cache_configuration {
     query_parameters              = ""
@@ -167,27 +167,27 @@ resource "azurerm_frontdoor_route" "import" {
     id = ""
   }
 
-  enabled_state          = ""
-  forwarding_protocol    = ""
-  https_redirect         = ""
-  link_to_default_domain = ""
-  origin_group_id        = ""
-  origin_path            = ""
-  patterns_to_match      = []
-  rule_set_ids           = [""]
-  supported_protocols    = ["Http", "Https"]
+  enabled_state                 = ""
+  forwarding_protocol           = ""
+  https_redirect                = ""
+  link_to_default_domain        = ""
+  cdn_frontdoor_origin_group_id = ""
+  cdn_frontdoor_origin_path     = ""
+  patterns_to_match             = []
+  rule_set_ids                  = [""]
+  supported_protocols           = ["Http", "Https"]
 }
 `, config)
 }
 
-func (r FrontdoorRouteResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorRouteResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_route" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                      = "acctest-c-%d"
+  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
 
   cache_configuration {
     query_parameters              = ""
@@ -198,27 +198,27 @@ resource "azurerm_frontdoor_route" "test" {
     id = ""
   }
 
-  enabled_state          = ""
-  forwarding_protocol    = ""
-  https_redirect         = ""
-  link_to_default_domain = ""
-  origin_group_id        = ""
-  origin_path            = ""
-  patterns_to_match      = [""]
-  rule_set_ids           = [""]
-  supported_protocols    = ["Http", "Https"]
+  enabled_state                 = ""
+  forwarding_protocol           = ""
+  https_redirect                = ""
+  link_to_default_domain        = ""
+  cdn_frontdoor_origin_group_id = ""
+  cdn_frontdoor_origin_path     = ""
+  patterns_to_match             = [""]
+  rule_set_ids                  = [""]
+  supported_protocols           = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorRouteResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorRouteResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_route" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_endpoint_id = azurerm_frontdoor_endpoint.test.id
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                      = "acctest-c-%d"
+  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
 
   cache_configuration {
     query_parameters              = ""
@@ -229,15 +229,15 @@ resource "azurerm_frontdoor_route" "test" {
     id = ""
   }
 
-  enabled_state          = ""
-  forwarding_protocol    = ""
-  https_redirect         = ""
-  link_to_default_domain = ""
-  origin_group_id        = ""
-  origin_path            = ""
-  patterns_to_match      = []
-  rule_set_ids           = [""]
-  supported_protocols    = ["Https"]
+  enabled_state                 = ""
+  forwarding_protocol           = ""
+  https_redirect                = ""
+  link_to_default_domain        = ""
+  cdn_frontdoor_origin_group_id = ""
+  cdn_frontdoor_origin_path     = ""
+  patterns_to_match             = []
+  rule_set_ids                  = [""]
+  supported_protocols           = ["Https"]
 }
 `, template, data.RandomInteger)
 }

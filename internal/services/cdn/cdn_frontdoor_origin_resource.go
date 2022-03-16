@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorOrigin() *pluginsdk.Resource {
+func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorOriginCreate,
-		Read:   resourceFrontdoorOriginRead,
-		Update: resourceFrontdoorOriginUpdate,
-		Delete: resourceFrontdoorOriginDelete,
+		Create: resourceCdnFrontdoorOriginCreate,
+		Read:   resourceCdnFrontdoorOriginRead,
+		Update: resourceCdnFrontdoorOriginUpdate,
+		Delete: resourceCdnFrontdoorOriginDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -41,7 +41,7 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_origin_group_id": {
+			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,14 +55,9 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"azure_origin_id": {
+			"cdn_frontdoor_origin_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-			},
-
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"enable_health_probes": {
@@ -76,8 +71,6 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			// Property 'AfdOrigin.Priority' cannot be set to '10000000'. Acceptable values are within range [1, 5];
-			// Property 'AfdOrigin.Weight' cannot be set to '10000000'. Acceptable values are within range [1, 1000]"
 			"http_port": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -93,12 +86,14 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 			},
 
 			// Must be a valid domain name, IP version 4, or IP version 6
-			"origin_host_header": {
+			"cdn_frontdoor_origin_host_header": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: IsValidDomain,
 			},
 
+			// Property 'AfdOrigin.Priority' cannot be set to '10000000'. Acceptable values are within range [1, 5];
+			// Property 'AfdOrigin.Weight' cannot be set to '10000000'. Acceptable values are within range [1, 1000]"
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -113,12 +108,7 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
-			"origin_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
+			"cdn_frontdoor_origin_group_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -126,12 +116,12 @@ func resourceFrontdoorOrigin() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupId, err := parse.FrontdoorOriginGroupID(d.Get("frontdoor_origin_group_id").(string))
+	originGroupId, err := parse.FrontdoorOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
 	if err != nil {
 		return err
 	}
@@ -147,19 +137,19 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_origin", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin", id.ID())
 		}
 	}
 
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
-			AzureOrigin:                 expandResourceReference(d.Get("azure_origin_id").(string)),
+			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
 			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			OriginHostHeader:            utils.String(d.Get("origin_host_header").(string)),
+			OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
 			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
 			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
 		},
@@ -175,10 +165,10 @@ func resourceFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
-	return resourceFrontdoorOriginRead(d, meta)
+	return resourceCdnFrontdoorOriginRead(d, meta)
 }
 
-func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,31 +189,29 @@ func resourceFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.OriginName)
 
-	d.Set("frontdoor_origin_group_id", parse.NewFrontdoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
+	d.Set("cdn_frontdoor_origin_group_id", parse.NewFrontdoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
 
 	if props := resp.AFDOriginProperties; props != nil {
 
-		if err := d.Set("azure_origin_id", flattenResourceReference(props.AzureOrigin)); err != nil {
-			return fmt.Errorf("setting `azure_origin_id`: %+v", err)
+		if err := d.Set("cdn_frontdoor_origin_id", flattenResourceReference(props.AzureOrigin)); err != nil {
+			return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
 		}
 
-		d.Set("deployment_status", props.DeploymentStatus)
 		d.Set("enable_health_probes", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
-		d.Set("origin_group_name", props.OriginGroupName)
-		d.Set("origin_host_header", props.OriginHostHeader)
+		d.Set("cdn_frontdoor_origin_group_name", props.OriginGroupName)
+		d.Set("cdn_frontdoor_origin_host_header", props.OriginHostHeader)
 		d.Set("priority", props.Priority)
-		d.Set("provisioning_state", props.ProvisioningState)
 		d.Set("weight", props.Weight)
 	}
 
 	return nil
 }
 
-func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,13 +223,13 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	props := track1.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
-			AzureOrigin:                 expandResourceReference(d.Get("azure_origin_id").(string)),
+			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
 			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			OriginHostHeader:            utils.String(d.Get("origin_host_header").(string)),
+			OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
 			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
 			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
 		},
@@ -255,10 +243,10 @@ func resourceFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorOriginRead(d, meta)
+	return resourceCdnFrontdoorOriginRead(d, meta)
 }
 
-func resourceFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

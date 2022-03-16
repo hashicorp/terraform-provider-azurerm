@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorProfileEndpointResource struct{}
+type CdnFrontdoorProfileEndpointResource struct{}
 
-func TestAccFrontdoorEndpoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_endpoint", "test")
-	r := FrontdoorProfileEndpointResource{}
+func TestAccCdnFrontdoorEndpoint_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontdoorProfileEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorEndpoint_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_endpoint", "test")
-	r := FrontdoorProfileEndpointResource{}
+func TestAccCdnFrontdoorEndpoint_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontdoorProfileEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorEndpoint_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorEndpoint_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_endpoint", "test")
-	r := FrontdoorProfileEndpointResource{}
+func TestAccCdnFrontdoorEndpoint_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontdoorProfileEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorEndpoint_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorEndpoint_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_endpoint", "test")
-	r := FrontdoorProfileEndpointResource{}
+func TestAccCdnFrontdoorEndpoint_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontdoorProfileEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorProfileEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorProfileEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.EndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorProfileEndpointResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorProfileEndpointResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,21 +106,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r FrontdoorProfileEndpointResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_endpoint" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
     ENV = "Test"
@@ -129,14 +129,14 @@ resource "azurerm_frontdoor_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorProfileEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_endpoint" "import" {
-  name                 = azurerm_frontdoor_endpoint.test.name
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_endpoint" "import" {
+  name                     = azurerm_cdn_frontdoor_endpoint.test.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
     ENV = "Test"
@@ -145,14 +145,14 @@ resource "azurerm_frontdoor_endpoint" "import" {
 `, config)
 }
 
-func (r FrontdoorProfileEndpointResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_endpoint" "test" {
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
-  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id        = azurerm_cdn_frontdoor_profile.test.id
   enabled_state                   = true
   origin_response_timeout_seconds = 120
 
@@ -163,14 +163,14 @@ resource "azurerm_frontdoor_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorProfileEndpointResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_endpoint" "test" {
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
   name                            = "acctest-c-%d"
-  frontdoor_profile_id            = azurerm_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id        = azurerm_cdn_frontdoor_profile.test.id
   enabled_state                   = false
   origin_response_timeout_seconds = 120
 

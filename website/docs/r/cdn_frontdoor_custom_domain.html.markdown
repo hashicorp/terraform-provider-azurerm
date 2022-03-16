@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor_profile_custom_domain"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile_custom_domain"
 description: |-
   Manages a Frontdoor Custom Domain.
 ---
 
-# azurerm_frontdoor_profile_custom_domain
+# azurerm_cdn_frontdoor_profile_custom_domain
 
 Manages a Frontdoor Custom Domain.
 
@@ -18,16 +18,16 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_frontdoor_profile_custom_domain" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
-  dns_zone_id          = ""
-  host_name            = ""
+resource "azurerm_cdn_frontdoor_profile_custom_domain" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = ""
+  host_name                = ""
 
   pre_validated_custom_domain_resource_id {
     id = ""
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Changing this forces a new Frontdoor Custom Domain to be created.
 
-* `frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
 * `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new Frontdoor Custom Domain to be created.
 
@@ -113,5 +113,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Frontdoor Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_profile_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
+terraform import azurerm_cdn_frontdoor_profile_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
 ```

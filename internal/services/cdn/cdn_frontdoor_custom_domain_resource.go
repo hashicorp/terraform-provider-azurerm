@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
+func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorCustomDomainCreate,
-		Read:   resourceFrontdoorCustomDomainRead,
-		Update: resourceFrontdoorCustomDomainUpdate,
-		Delete: resourceFrontdoorCustomDomainDelete,
+		Create: resourceCdnFrontdoorCustomDomainCreate,
+		Read:   resourceCdnFrontdoorCustomDomainRead,
+		Update: resourceCdnFrontdoorCustomDomainUpdate,
+		Delete: resourceCdnFrontdoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -43,7 +43,7 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_profile_id": {
+			"frontdoor_cdn_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -73,7 +73,7 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"profile_name": {
+			"frontdoor_cdn_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -138,12 +138,12 @@ func resourceFrontdoorCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_cdn_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func resourceFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_custom_domain", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
 		}
 	}
 
@@ -181,10 +181,10 @@ func resourceFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
-	return resourceFrontdoorCustomDomainRead(d, meta)
+	return resourceCdnFrontdoorCustomDomainRead(d, meta)
 }
 
-func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +205,7 @@ func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.CustomDomainName)
 
-	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("frontdoor_cdn_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	resp, err = client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
@@ -219,7 +219,7 @@ func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("frontdoor_profile_name", props.ProfileName)
+		d.Set("frontdoor_cdn_profile_name", props.ProfileName)
 
 		if err := d.Set("azure_dns_zone", flattenResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
@@ -241,7 +241,7 @@ func resourceFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,10 +268,10 @@ func resourceFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorCustomDomainRead(d, meta)
+	return resourceCdnFrontdoorCustomDomainRead(d, meta)
 }
 
-func resourceFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

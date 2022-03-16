@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorSecret() *pluginsdk.Resource {
+func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorSecretCreate,
-		Read:   resourceFrontdoorSecretRead,
-		Delete: resourceFrontdoorSecretDelete,
+		Create: resourceCdnFrontdoorSecretCreate,
+		Read:   resourceCdnFrontdoorSecretRead,
+		Delete: resourceCdnFrontdoorSecretDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,16 +39,11 @@ func resourceFrontdoorSecret() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_profile_id": {
+			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FrontdoorProfileID,
-			},
-
-			"deployment_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"parameters": {
@@ -69,12 +64,7 @@ func resourceFrontdoorSecret() *pluginsdk.Resource {
 				},
 			},
 
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
+			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -82,12 +72,12 @@ func resourceFrontdoorSecret() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -103,7 +93,7 @@ func resourceFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_secret", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
 		}
 	}
 
@@ -123,10 +113,10 @@ func resourceFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
-	return resourceFrontdoorSecretRead(d, meta)
+	return resourceCdnFrontdoorSecretRead(d, meta)
 }
 
-func resourceFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,22 +137,19 @@ func resourceFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.SecretName)
 
-	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecretProperties; props != nil {
-		d.Set("deployment_status", props.DeploymentStatus)
-
 		if err := d.Set("parameters", flattenSecretSecretParameters(&props.Parameters)); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
-		d.Set("profile_name", props.ProfileName)
-		d.Set("provisioning_state", props.ProvisioningState)
+		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
 	}
 
 	return nil
 }
 
-func resourceFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

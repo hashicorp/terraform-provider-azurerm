@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorRuleSet() *pluginsdk.Resource {
+func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorRuleSetCreate,
-		Read:   resourceFrontdoorRuleSetRead,
-		Delete: resourceFrontdoorRuleSetDelete,
+		Create: resourceCdnFrontdoorRuleSetCreate,
+		Read:   resourceCdnFrontdoorRuleSetRead,
+		Delete: resourceCdnFrontdoorRuleSetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,14 +40,14 @@ func resourceFrontdoorRuleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"frontdoor_profile_id": {
+			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
-			"frontdoor_profile_name": {
+			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -55,12 +55,12 @@ func resourceFrontdoorRuleSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func resourceFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_rule_set", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
 		}
 	}
 
@@ -86,10 +86,10 @@ func resourceFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
-	return resourceFrontdoorRuleSetRead(d, meta)
+	return resourceCdnFrontdoorRuleSetRead(d, meta)
 }
 
-func resourceFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,16 +109,16 @@ func resourceFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.RuleSetName)
-	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.RuleSetProperties; props != nil {
-		d.Set("frontdoor_profile_name", props.ProfileName)
+		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
 	}
 
 	return nil
 }
 
-func resourceFrontdoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

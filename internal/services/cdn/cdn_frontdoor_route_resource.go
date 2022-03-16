@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorRoute() *pluginsdk.Resource {
+func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorRouteCreate,
-		Read:   resourceFrontdoorRouteRead,
-		Update: resourceFrontdoorRouteUpdate,
-		Delete: resourceFrontdoorRouteDelete,
+		Create: resourceCdnFrontdoorRouteCreate,
+		Read:   resourceCdnFrontdoorRouteRead,
+		Update: resourceCdnFrontdoorRouteUpdate,
+		Delete: resourceCdnFrontdoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -41,21 +41,21 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_endpoint_id": {
+			"cdn_frontdoor_endpoint_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FrontdoorEndpointID,
 			},
 
-			"frontdoor_origin_group_id": {
+			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FrontdoorOriginGroupID,
 			},
 
-			"frontdoor_origin_ids": {
+			"cdn_frontdoor_origin_ids": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
@@ -110,7 +110,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice(validContentTypes(), false),
+								ValidateFunc: validation.StringInSlice(validCdnFrontdoorContentTypes(), false),
 							},
 						},
 					},
@@ -165,7 +165,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"origin_path": {
+			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
@@ -179,7 +179,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			"rule_set_ids": {
+			"cdn_frontdoor_rule_set_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
@@ -202,7 +202,7 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			"frontdoor_endpoint_name": {
+			"cdn_frontdoor_endpoint_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -210,12 +210,12 @@ func resourceFrontdoorRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	afdEndpointId, err := parse.FrontdoorEndpointID(d.Get("frontdoor_endpoint_id").(string))
+	afdEndpointId, err := parse.FrontdoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_route", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 		}
 	}
 
@@ -243,14 +243,14 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
+			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
 
-	if originPath := d.Get("origin_path").(string); originPath != "" {
+	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
 		props.RouteProperties.OriginPath = utils.String(originPath)
 	}
 
@@ -264,12 +264,12 @@ func resourceFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
-	d.Set("frontdoor_origin_ids", utils.ExpandStringSlice(d.Get("frontdoor_origin_ids").([]interface{})))
+	d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(d.Get("cdn_frontdoor_origin_ids").([]interface{})))
 
-	return resourceFrontdoorRouteRead(d, meta)
+	return resourceCdnFrontdoorRouteRead(d, meta)
 }
 
-func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -290,18 +290,18 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.RouteName)
 
-	d.Set("frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
+	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
 		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
 		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
-		d.Set("origin_path", props.OriginPath)
+		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
 		// BUG: Endpoint name is not being returned by the API
-		d.Set("frontdoor_endpoint_name", id.AfdEndpointName)
+		d.Set("cdn_frontdoor_endpoint_name", id.AfdEndpointName)
 
 		if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache_configuration`: %+v", err)
@@ -311,12 +311,12 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `custom_domains`: %+v", err)
 		}
 
-		if err := d.Set("frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
-			return fmt.Errorf("setting `frontdoor_origin_group_id`: %+v", err)
+		if err := d.Set("cdn_frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
+			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 
-		if err := d.Set("rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
-			return fmt.Errorf("setting `rule_set_ids`: %+v", err)
+		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
+			return fmt.Errorf("setting `cdn_frontdoor_rule_set_ids`: %+v", err)
 		}
 
 		if err := d.Set("supported_protocols", flattenRouteAFDEndpointProtocolsArray(props.SupportedProtocols)); err != nil {
@@ -327,7 +327,7 @@ func resourceFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -345,14 +345,14 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
-			OriginGroup:         expandResourceReference(d.Get("frontdoor_origin_group_id").(string)),
+			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRouteResourceReferenceArray(d.Get("rule_set_ids").([]interface{})),
+			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
 	}
 
-	if originPath := d.Get("origin_path").(string); originPath != "" {
+	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
 		props.RouteUpdatePropertiesParameters.OriginPath = &originPath
 	}
 
@@ -364,10 +364,10 @@ func resourceFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceFrontdoorRouteRead(d, meta)
+	return resourceCdnFrontdoorRouteRead(d, meta)
 }
 
-func resourceFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

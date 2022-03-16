@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func ConvertFrontdoorTags(tagMap *map[string]string) map[string]*string {
+func ConvertCdnFrontdoorTags(tagMap *map[string]string) map[string]*string {
 	t := make(map[string]*string)
 
 	if tagMap != nil {
@@ -94,24 +94,6 @@ func flattenResourceReference(input *track1.ResourceReference) string {
 	return result
 }
 
-// func ConvertBoolToOriginsEnabledState(isEnabled bool) *afdorigins.EnabledState {
-// 	out := afdorigins.EnabledState(afdorigins.EnabledStateDisabled)
-
-// 	if isEnabled {
-// 		out = afdorigins.EnabledState(afdorigins.EnabledStateEnabled)
-// 	}
-
-// 	return &out
-// }
-
-// func ConvertOriginsEnabledStateToBool(enabledState *afdorigins.EnabledState) bool {
-// 	if enabledState == nil {
-// 		return false
-// 	}
-
-// 	return (*enabledState == afdorigins.EnabledState(afdorigins.EnabledStateEnabled))
-// }
-
 func ConvertBoolToRouteHttpsRedirect(isEnabled bool) track1.HTTPSRedirect {
 	out := track1.HTTPSRedirect(track1.HTTPSRedirectDisabled)
 
@@ -165,7 +147,7 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 	return warnings, errors
 }
 
-func ValidateFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
@@ -181,7 +163,7 @@ func ValidateFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) 
 	return nil, nil
 }
 
-func ValidateFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
@@ -204,7 +186,7 @@ func ValidateFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ [
 	return nil, nil
 }
 
-func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -217,7 +199,7 @@ func ValidateFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors [
 	return nil, nil
 }
 
-func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -230,7 +212,7 @@ func ValidateFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors
 	return nil, nil
 }
 
-func ValidateFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -243,7 +225,7 @@ func ValidateFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []s
 	return nil, nil
 }
 
-func ValidateFrontdoorRuleName(i interface{}, k string) (_ []string, errors []error) {
+func ValidateCdnFrontdoorRuleName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -256,7 +238,7 @@ func ValidateFrontdoorRuleName(i interface{}, k string) (_ []string, errors []er
 	return nil, nil
 }
 
-func validContentTypes() []string {
+func validCdnFrontdoorContentTypes() []string {
 	return []string{
 		"application/eot",
 		"application/font",
@@ -338,7 +320,7 @@ func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
 	return nil
 }
 
-func SchemaFrontdoorOperator() *pluginsdk.Schema {
+func SchemaCdnFrontdoorOperator() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Required: true,
@@ -357,7 +339,7 @@ func SchemaFrontdoorOperator() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
+func SchemaCdnFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -368,7 +350,7 @@ func SchemaFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
+func SchemaCdnFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -381,7 +363,7 @@ func SchemaFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
+func SchemaCdnFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -393,7 +375,7 @@ func SchemaFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorNegateCondition() *pluginsdk.Schema {
+func SchemaCdnFrontdoorNegateCondition() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
@@ -401,7 +383,7 @@ func SchemaFrontdoorNegateCondition() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -414,7 +396,7 @@ func SchemaFrontdoorMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorServerPortMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorServerPortMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -432,7 +414,7 @@ func SchemaFrontdoorServerPortMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -450,7 +432,7 @@ func SchemaFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -458,12 +440,12 @@ func SchemaFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: ValidateFrontdoorUrlPathConditionMatchValue,
+			ValidateFunc: ValidateCdnFrontdoorUrlPathConditionMatchValue,
 		},
 	}
 }
 
-func SchemaFrontdoorMatchValuesRequired() *pluginsdk.Schema {
+func SchemaCdnFrontdoorMatchValuesRequired() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -476,7 +458,7 @@ func SchemaFrontdoorMatchValuesRequired() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -497,7 +479,7 @@ func SchemaFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorProtocolMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -514,7 +496,7 @@ func SchemaFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -531,7 +513,7 @@ func SchemaFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
+func SchemaCdnFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -549,7 +531,7 @@ func SchemaFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func SchemaFrontdoorRuleTransforms() *pluginsdk.Schema {
+func SchemaCdnFrontdoorRuleTransforms() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor_profile"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
   Manages a Frontdoor Profile to create a collection of Frontdoor Endpoints.
 ---
 
-# azurerm_frontdoor_profile
+# azurerm_cdn_frontdoor_profile
 
 Manages a Frontdoor Profile to create a collection of Frontdoor Endpoints.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "exampleFrontdoorProfile"
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Standard_Verizon"
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `origin_response_timeout_seconds` - Possible values are between `16` and `240` seconds(inclusive). Defaults to `120` seconds.
+* `response_timeout_seconds` - Possible values are between `16` and `240` seconds(inclusive). Defaults to `120` seconds.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Frontdoor Profile.
 
-* `frontdoor_id` - The UUID of the Frontdoor instance.
+* `cdn_frontdoor_id` - The UUID of the Frontdoor instance.
 
 ## Timeouts
 
@@ -77,5 +77,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Frontdoor Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1
+terraform import azurerm_cdn_frontdoor_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1
 ```

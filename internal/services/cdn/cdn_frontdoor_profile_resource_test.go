@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorProfileResource struct{}
+type CdnFrontdoorProfileResource struct{}
 
-func TestAccFrontdoorProfile_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_profile", "test")
-	r := FrontdoorProfileResource{}
+func TestAccCdnFrontdoorProfile_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontdoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorProfile_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_profile", "test")
-	r := FrontdoorProfileResource{}
+func TestAccCdnFrontdoorProfile_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontdoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorProfile_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_profile", "test")
-	r := FrontdoorProfileResource{}
+func TestAccCdnFrontdoorProfile_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontdoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorProfile_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorProfile_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_profile", "test")
-	r := FrontdoorProfileResource{}
+func TestAccCdnFrontdoorProfile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontdoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorProfile_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorProfileID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorProfileResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorProfileResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -108,12 +108,12 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FrontdoorProfileResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 
@@ -121,9 +121,9 @@ resource "azurerm_frontdoor_profile" "test" {
     type = "SystemAssigned"
   }
 
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
-  sku_name                        = ""
+  location                 = "%s"
+  response_timeout_seconds = 0
+  sku_name                 = ""
 
 
   tags = {
@@ -133,22 +133,22 @@ resource "azurerm_frontdoor_profile" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FrontdoorProfileResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_profile" "import" {
-  name                = azurerm_frontdoor_profile.test.name
+resource "azurerm_cdn_frontdoor_profile" "import" {
+  name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
 
   identity = {
     type = "SystemAssigned"
   }
 
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
-  sku_name                        = ""
+  location                 = "%s"
+  response_timeout_seconds = 0
+  sku_name                 = ""
 
   tags = {
     ENV = "Test"
@@ -157,12 +157,12 @@ resource "azurerm_frontdoor_profile" "import" {
 `, config, data.Locations.Primary)
 }
 
-func (r FrontdoorProfileResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 
@@ -170,9 +170,9 @@ resource "azurerm_frontdoor_profile" "test" {
     type = "SystemAssigned"
   }
 
-  location                        = "%s"
-  origin_response_timeout_seconds = 0
-  sku_name                        = ""
+  location                 = "%s"
+  response_timeout_seconds = 0
+  sku_name                 = ""
 
   tags = {
     ENV = "Test"
@@ -181,12 +181,12 @@ resource "azurerm_frontdoor_profile" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FrontdoorProfileResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorProfileResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 

@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorSecretResource struct{}
+type CdnFrontdoorSecretResource struct{}
 
-func TestAccFrontdoorSecret_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_secret", "test")
-	r := FrontdoorSecretResource{}
+func TestAccCdnFrontdoorSecret_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
+	r := CdnFrontdoorSecretResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorSecret_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_secret", "test")
-	r := FrontdoorSecretResource{}
+func TestAccCdnFrontdoorSecret_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
+	r := CdnFrontdoorSecretResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorSecret_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorSecret_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_secret", "test")
-	r := FrontdoorSecretResource{}
+func TestAccCdnFrontdoorSecret_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
+	r := CdnFrontdoorSecretResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorSecret_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorSecret_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_secret", "test")
-	r := FrontdoorSecretResource{}
+func TestAccCdnFrontdoorSecret_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
+	r := CdnFrontdoorSecretResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorSecret_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorSecretID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Cl
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorSecretResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorSecretResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,21 +106,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r FrontdoorSecretResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorSecretResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_secret" "test" {
-  name                      = "acctest-c-%d"
-  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_secret" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -128,14 +128,14 @@ resource "azurerm_frontdoor_secret" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorSecretResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorSecretResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_secret" "import" {
-  name                      = azurerm_frontdoor_secret.test.name
-  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_secret" "import" {
+  name                     = azurerm_cdn_frontdoor_secret.test.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -143,14 +143,14 @@ resource "azurerm_frontdoor_secret" "import" {
 `, config)
 }
 
-func (r FrontdoorSecretResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorSecretResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_secret" "test" {
-  name                      = "acctest-c-%d"
-  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_secret" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   parameters {
     type = ""
   }
@@ -158,14 +158,14 @@ resource "azurerm_frontdoor_secret" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorSecretResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorSecretResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_secret" "test" {
-  name                      = "acctest-c-%d"
-  azurerm_frontdoor_profile = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_secret" "test" {
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomInteger)
 }

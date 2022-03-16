@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontdoorRuleResource struct{}
+type CdnFrontdoorRuleResource struct{}
 
-func TestAccFrontdoorRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_rule", "test")
-	r := FrontdoorRuleResource{}
+func TestAccCdnFrontdoorRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontdoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFrontdoorRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_rule", "test")
-	r := FrontdoorRuleResource{}
+func TestAccCdnFrontdoorRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontdoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFrontdoorRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_rule", "test")
-	r := FrontdoorRuleResource{}
+func TestAccCdnFrontdoorRule_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontdoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFrontdoorRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccFrontdoorRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_rule", "test")
-	r := FrontdoorRuleResource{}
+func TestAccCdnFrontdoorRule_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontdoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccFrontdoorRule_update(t *testing.T) {
 	})
 }
 
-func (r FrontdoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r FrontdoorRuleResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(true), nil
 }
 
-func (r FrontdoorRuleResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,54 +106,54 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_frontdoor_profile_profile.test.id
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "acctest-c-%d"
+  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FrontdoorRuleResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_frontdoor_rule" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  name                      = "acctest-c-%d"
+  frontdoor_cdn_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   order = 0
 }
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorRuleResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorRuleResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_rule" "import" {
-  name                  = azurerm_frontdoor_rule.test.name
-  frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+resource "azurerm_cdn_frontdoor_rule" "import" {
+  name                      = azurerm_cdn_frontdoor_rule.test.name
+  frontdoor_cdn_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   order = 0
 }
 `, config)
 }
 
-func (r FrontdoorRuleResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_rule" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  name                      = "acctest-c-%d"
+  frontdoor_cdn_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   actions    = ["CacheExpiration", "UrlRedirect", "OriginGroupOverride"]
   conditions = ["HostName", "IsDevice", "PostArgs", "RequestMethod"]
@@ -164,14 +164,14 @@ resource "azurerm_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FrontdoorRuleResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorRuleResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_frontdoor_rule" "test" {
-  name                  = "acctest-c-%d"
-  frontdoor_rule_set_id = azurerm_frontdoor_rule_set.test.id
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  name                      = "acctest-c-%d"
+  frontdoor_cdn_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   actions    = ["CacheExpiration", "UrlRedirect"]
   conditions = ["HostName", "IsDevice", "RequestMethod"]

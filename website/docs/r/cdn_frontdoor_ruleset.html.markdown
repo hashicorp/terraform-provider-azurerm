@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor_rule_set"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule_set"
 description: |-
   Manages a Frontdoor Rule Set.
 ---
 
-# azurerm_frontdoor_rule_set
+# azurerm_cdn_frontdoor_rule_set
 
 Manages a Frontdoor Rule Set.
 
@@ -18,14 +18,14 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_frontdoor_rule_set" "test" {
-  name                 = "exampleruleset"
-  frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "exampleruleset"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 ```
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Frontdoor Rule Set. Changing this forces a new Frontdoor Rule Set to be created.
 
-* `frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Rule Set to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Rule Set to be created.
 
 ## Attributes Reference
 
@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Rule Set.
 
-* `frontdoor_profile_name` - The name of the Frontdoor Profile containing this Frontdoor Rule Set.
+* `cdn_frontdoor_profile_name` - The name of the Frontdoor Profile containing this Frontdoor Rule Set.
 
 ## Timeouts
 

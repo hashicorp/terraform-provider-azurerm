@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
+func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontdoorSecurityPolicyCreate,
-		Read:   resourceFrontdoorSecurityPolicyRead,
-		Delete: resourceFrontdoorSecurityPolicyDelete,
+		Create: resourceCdnFrontdoorSecurityPolicyCreate,
+		Read:   resourceCdnFrontdoorSecurityPolicyRead,
+		Delete: resourceCdnFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_profile_id": {
+			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -108,7 +108,7 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"frontdoor_profile_name": {
+			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -116,12 +116,12 @@ func resourceFrontdoorSecurityPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -138,13 +138,13 @@ func resourceFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_security_policy", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
 		}
 	}
 
 	params := track1.BasicSecurityPolicyPropertiesParameters(nil)
 	if waf, ok := d.GetOk("web_application_firewall"); ok {
-		params = expandFrontdoorSecurityPoliciesParameters(waf.([]interface{}), waf)
+		params = expandCdnFrontdoorSecurityPoliciesParameters(waf.([]interface{}), waf)
 	} else {
 		// Will look for DDoS policy here once it is GA
 		return fmt.Errorf("unable to locate %q policy parameters", "web_application_firewall")
@@ -166,10 +166,10 @@ func resourceFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.SetId(id.ID())
-	return resourceFrontdoorSecurityPolicyRead(d, meta)
+	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
 }
 
-func resourceFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,13 +189,13 @@ func resourceFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.SecurityPolicyName)
-	d.Set("frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecurityPolicyProperties; props != nil {
 		// If it is not Type WebApplicationFirewall ignore this for now
 		switch params := props.Parameters.(type) {
 		case track1.SecurityPolicyWebApplicationFirewallParameters:
-			if err := d.Set("web_application_firewall", flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
+			if err := d.Set("web_application_firewall", flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
 				return fmt.Errorf("setting `web_application_firewall`: %+v", err)
 			}
 		default:
@@ -209,7 +209,7 @@ func resourceFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType interface{}) track1.SecurityPolicyPropertiesParameters {
+func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, policyType interface{}) track1.SecurityPolicyPropertiesParameters {
 	if len(input) == 0 || input[0] == nil {
 		return track1.SecurityPolicyPropertiesParameters{}
 	}
@@ -308,20 +308,20 @@ func expandFrontdoorSecurityPoliciesParameters(input []interface{}, policyType i
 // 	return &results
 // }
 
-func expandFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
+func expandCdnFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
 	if len(input) == 0 || input[0] == nil {
 		return track1.SecurityPolicyUpdateProperties{}
 	}
 
 	// TODO: This isn't quite right...
-	waf := expandFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
+	waf := expandCdnFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
 
 	return track1.SecurityPolicyUpdateProperties{
 		Parameters: track1.BasicSecurityPolicyPropertiesParameters(waf),
 	}
 }
 
-func flattenFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
+func flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
 	params := make([]interface{}, 0)
 	associations := make([]interface{}, 0)
 	if input == nil {
