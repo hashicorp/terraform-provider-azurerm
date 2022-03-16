@@ -30,11 +30,11 @@ func dataSourceHealthcareWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceName,
 			},
 
-			"location": commonschema.Location(),
-
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"tags": tags.Schema(),
+			"location": commonschema.LocationComputed(),
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }

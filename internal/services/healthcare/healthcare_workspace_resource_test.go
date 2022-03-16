@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HealthCareWorkspaceResouce struct{}
+type HealthCareWorkspaceResource struct{}
 
 func TestAccHealthCareWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
-	r := HealthCareWorkspaceResouce{}
+	r := HealthCareWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,9 +29,29 @@ func TestAccHealthCareWorkspace_basic(t *testing.T) {
 	})
 }
 
+func TestAccHealthCareWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
+	r := HealthCareWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccHealthCareWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
-	r := HealthCareWorkspaceResouce{}
+	r := HealthCareWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -43,7 +63,7 @@ func TestAccHealthCareWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func (HealthCareWorkspaceResouce) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (HealthCareWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -56,7 +76,8 @@ func (HealthCareWorkspaceResouce) Exists(ctx context.Context, clients *clients.C
 
 	return utils.Bool(resp.Properties != nil), nil
 }
-func (HealthCareWorkspaceResouce) basic(data acceptance.TestData) string {
+
+func (HealthCareWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -75,7 +96,54 @@ resource "azurerm_healthcare_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
 
-func (r HealthCareWorkspaceResouce) requiresImport(data acceptance.TestData) string {
+func (HealthCareWorkspaceResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-health-%d"
+  location = "%s"
+}
+
+resource "azurerm_healthcare_workspace" "test" {
+  name                = "acctestwk%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    environment = "Dev"
+    test        = "true"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+}
+
+func (HealthCareWorkspaceResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-health-%d"
+  location = "%s"
+}
+
+resource "azurerm_healthcare_workspace" "test" {
+  name                = "acctestwk%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    environment = "Prod"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+}
+
+func (r HealthCareWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_workspace" "import" {
