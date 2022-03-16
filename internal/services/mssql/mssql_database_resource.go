@@ -63,10 +63,12 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				if !features.ThreePointOhBeta() {
 					return nil
 				}
+				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				sku := d.Get("sku_name").(string)
-				if !strings.HasPrefix(sku, "DW") && !d.Get("transparent_data_encryption_enabled").(bool) {
+				if !strings.HasPrefix(sku, "DW") && !transparentDataEncryption {
 					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
 				}
+
 				return nil
 			}),
 	}
@@ -327,7 +329,46 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	if features.ThreePointOhBeta() {
+	// Wait for the ProvisioningState to become "Succeeded"
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
+	pendingStatuses := make([]string, 0)
+	for _, s := range sql.PossibleDatabaseStatusValues() {
+		if s != sql.DatabaseStatusOnline {
+			pendingStatuses = append(pendingStatuses, string(s))
+		}
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: pendingStatuses,
+		Target:  []string{string(sql.DatabaseStatusOnline)},
+		Refresh: func() (interface{}, string, error) {
+			log.Printf("[DEBUG] Checking to see if %s is online...", id)
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
+			}
+
+			if props := resp.DatabaseProperties; props != nil {
+				return resp, string(props.Status), nil
+			}
+
+			return resp, "", nil
+		},
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 2,
+	}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	// Cannot set transparent data encryption for secondary databases
+	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 		statusProperty := sql.TransparentDataEncryptionStatusDisabled
 		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
 		if encryptionStatus {

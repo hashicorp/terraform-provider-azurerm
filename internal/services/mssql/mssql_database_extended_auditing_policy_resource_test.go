@@ -443,20 +443,18 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_sql_virtual_network_rule" "sqlvnetrule" {
-  name                = "sql-vnet-rule"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  subnet_id           = azurerm_subnet.test.id
+resource "azurerm_mssql_virtual_network_rule" "sqlvnetrule" {
+  name      = "sql-vnet-rule"
+  server_id = azurerm_mssql_server.test.id
+  subnet_id = azurerm_subnet.test.id
 
 }
 
-resource "azurerm_sql_firewall_rule" "test" {
-  name                = "FirewallRule1"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "test" {
+  name             = "FirewallRule1"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
 
