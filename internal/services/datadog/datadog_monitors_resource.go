@@ -62,39 +62,45 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						},
 
 						"api_key": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Required:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"application_key": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Required:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"enterprise_app_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"linking_auth_code": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"linking_client_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"redirect_uri": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"id": {
@@ -287,13 +293,15 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("datadog_organization_properties", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties)); err != nil {
 			return fmt.Errorf("setting `datadog_organization_properties`: %+v", err)
 		}
-		d.Set("sku", flattenMonitorResourceSku("Linked"))
+		if err := d.Set("user_info", flattenMonitorUserInfo(props.UserInfo, d)); err != nil {
+			return fmt.Errorf("setting `user_info`: %+v", err)
+		}
 		d.Set("monitoring_status", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
-
+	d.Set("sku", flattenMonitorResourceSku("Linked"))
 	d.Set("type", resp.Type)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -440,6 +448,23 @@ func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties)
 		map[string]interface{}{
 			"name": name,
 			"id":   id,
+		},
+	}
+}
+
+func flattenMonitorUserInfo(input *datadog.UserInfo, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	userInfo := d.Get("user_info").([]interface{})
+	v := userInfo[0].(map[string]interface{})
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":          utils.String(v["name"].(string)),
+			"email_address": utils.String(v["email_address"].(string)),
+			"phone_number":  utils.String(v["phone_number"].(string)),
 		},
 	}
 }

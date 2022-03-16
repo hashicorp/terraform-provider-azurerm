@@ -25,7 +25,15 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info", "api_key", "application_key", "enterprise_app_id", "linking_auth_code", "linking_client_id", "redirect_uri"),
+		data.ImportStep("user_info",
+			"user_info.0.name",
+			"user_info.0.email_address",
+			"datadog_organization_properties.0.api_key",
+			"datadog_organization_properties.0.application_key",
+			"datadog_organization_properties.0.enterprise_app_id",
+			"datadog_organization_properties.0.linking_auth_code",
+			"datadog_organization_properties.0.linking_client_id",
+			"datadog_organization_properties.0.redirect_uri"),
 	})
 }
 
