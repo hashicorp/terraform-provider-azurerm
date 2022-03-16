@@ -104,9 +104,11 @@ The following arguments are supported:
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
 
-* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
 
 ~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App.
 

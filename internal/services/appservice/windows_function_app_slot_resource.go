@@ -126,7 +126,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemId,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
