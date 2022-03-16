@@ -28,6 +28,9 @@ type WatchlistModel struct {
 	Description             string   `tfschema:"description"`
 	Labels                  []string `tfschema:"labels"`
 	DefaultDuration         string   `tfschema:"default_duration"`
+	ItemsSearchKey          string   `tfschema:"items_search_key"`
+	RawContent              string   `tfschema:"raw_content"`
+	Source                  string   `tfschema:"source"`
 }
 
 func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
@@ -70,6 +73,24 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonValidate.ISO8601Duration,
+		},
+		"items_search_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"source": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"raw_content": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -126,8 +147,11 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 
 					// The "source" and "contentType" represent the source file name which contains the watchlist items and its content type.
 					// Setting them here is merely to make the API happy.
-					Source:      securityinsight.Source("a.csv"),
+					Source:      securityinsight.Source(model.Source),
 					ContentType: utils.String("Text/Csv"),
+
+					ItemsSearchKey: utils.String(model.ItemsSearchKey),
+					RawContent:     utils.String(model.RawContent),
 				},
 			}
 
@@ -189,6 +213,13 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				if props.DefaultDuration != nil {
 					model.DefaultDuration = *props.DefaultDuration
 				}
+				if props.ItemsSearchKey != nil {
+					model.ItemsSearchKey = *props.ItemsSearchKey
+				}
+				if props.RawContent != nil {
+					model.RawContent = *props.RawContent
+				}
+				model.Source = string(props.Source)
 			}
 
 			return metadata.Encode(&model)
