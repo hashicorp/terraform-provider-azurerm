@@ -332,12 +332,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorRemoteAddress(),
-
+									"operator":         SchemaFrontdoorOperatorRemoteAddress(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values":     SchemaFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -348,12 +345,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorEqualOnly(),
-
+									"operator":         SchemaFrontdoorOperatorEqualOnly(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorRequestMethodMatchValues(),
+									"match_values":     SchemaFrontdoorRequestMethodMatchValues(),
 								},
 							},
 						},
@@ -364,14 +358,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -389,14 +379,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -407,14 +393,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -433,14 +415,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -451,14 +429,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValuesRequired(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -469,12 +443,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorEqualOnly(),
-
+									"operator":         SchemaFrontdoorOperatorEqualOnly(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorProtocolMatchValues(),
+									"match_values":     SchemaFrontdoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -485,14 +456,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorUrlPathConditionMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorUrlPathConditionMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -503,14 +470,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValuesRequired(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -521,14 +484,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValuesRequired(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValuesRequired(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -539,12 +498,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorEqualOnly(),
-
+									"operator":         SchemaFrontdoorOperatorEqualOnly(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorHttpVersionMatchValues(),
+									"match_values":     SchemaFrontdoorHttpVersionMatchValues(),
 								},
 							},
 						},
@@ -563,13 +519,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -580,12 +533,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorEqualOnly(),
-
+									"operator":         SchemaFrontdoorOperatorEqualOnly(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorIsDeviceMatchValues(),
+									"match_values":     SchemaFrontdoorIsDeviceMatchValues(),
 								},
 							},
 						},
@@ -597,12 +547,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorSocketAddress(),
-
+									"operator":         SchemaFrontdoorOperatorSocketAddress(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values":     SchemaFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -614,12 +561,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
+									"match_values":     SchemaFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -631,12 +575,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorServerPortMatchValues(),
+									"match_values":     SchemaFrontdoorServerPortMatchValues(),
 								},
 							},
 						},
@@ -651,14 +592,10 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperator(),
-
+									"operator":         SchemaFrontdoorOperator(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorMatchValues(),
-
-									"transforms": SchemaFrontdoorRuleTransforms(),
+									"match_values":     SchemaFrontdoorMatchValues(),
+									"transforms":       SchemaFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -670,12 +607,9 @@ func resourceFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
-									"operator": SchemaFrontdoorOperatorEqualOnly(),
-
+									"operator":         SchemaFrontdoorOperatorEqualOnly(),
 									"negate_condition": SchemaFrontdoorNegateCondition(),
-
-									"match_values": SchemaFrontdoorSslProtocolMatchValues(),
+									"match_values":     SchemaFrontdoorSslProtocolMatchValues(),
 								},
 							},
 						},
