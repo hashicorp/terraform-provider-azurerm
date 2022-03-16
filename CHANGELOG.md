@@ -7,8 +7,10 @@ NOTES:
 
 FEATURES:
 
+* **New Data Source**: `azurerm_healthcare_workspace` [GH-15759]
 * **New Data Source**: `azurerm_managed_api` [GH-15797]
 * **New Resource**: `azurerm_api_connection` [GH-15797]
+* **New Resource**: `azurerm_healthcare_workspace` [GH-15759]
 
 ENHANCEMENTS:
 
