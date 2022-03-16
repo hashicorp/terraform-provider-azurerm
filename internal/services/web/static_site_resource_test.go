@@ -77,7 +77,7 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// There is API issue to downgrade the sku to Free with identity configured: https://github.com/Azure/azure-rest-api-specs/issues/18253
+		// TODO: re-enable this once the API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18253
 		// {
 		// 	Config: r.basic(data),
 		// 	Check: acceptance.ComposeTestCheckFunc(
