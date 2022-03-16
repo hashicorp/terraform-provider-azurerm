@@ -241,7 +241,7 @@ func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, policyTyp
 	// TODO: Add DDoS when it GA's
 	switch policyType.(type) {
 	case track1.SecurityPolicyWebApplicationFirewallParameters:
-		//results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
+		// results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
 		results = track1.SecurityPolicyPropertiesParameters{
 			Type: track1.TypeWebApplicationFirewall,
 		}
@@ -308,18 +308,18 @@ func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, policyTyp
 // 	return &results
 // }
 
-func expandCdnFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
-	if len(input) == 0 || input[0] == nil {
-		return track1.SecurityPolicyUpdateProperties{}
-	}
+// func expandCdnFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
+// 	if len(input) == 0 || input[0] == nil {
+// 		return track1.SecurityPolicyUpdateProperties{}
+// 	}
 
-	// TODO: This isn't quite right...
-	waf := expandCdnFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
+// 	// TODO: This isn't quite right...
+// 	waf := expandCdnFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
 
-	return track1.SecurityPolicyUpdateProperties{
-		Parameters: track1.BasicSecurityPolicyPropertiesParameters(waf),
-	}
-}
+// 	return track1.SecurityPolicyUpdateProperties{
+// 		Parameters: track1.BasicSecurityPolicyPropertiesParameters(waf),
+// 	}
+// }
 
 func flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
 	params := make([]interface{}, 0)

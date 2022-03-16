@@ -103,11 +103,11 @@ func ExpandCdnFrontdoorRequestHeaderAction(input []interface{}) (*[]track1.Basic
 		}
 
 		if headerValue := *requestHeaderAction.Parameters.Value; headerValue == "" {
-			if track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionOverwrite || track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionAppend {
+			if requestHeaderAction.Parameters.HeaderAction == track1.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == track1.HeaderActionAppend {
 				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RequestHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
 			}
 		} else {
-			if track1.HeaderAction(requestHeaderAction.Parameters.HeaderAction) == track1.HeaderActionDelete {
+			if requestHeaderAction.Parameters.HeaderAction == track1.HeaderActionDelete {
 				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.RequestHeader.ConfigName, "value", "header_action", "Delete")
 			}
 		}
@@ -137,11 +137,11 @@ func ExpandCdnFrontdoorResponseHeaderAction(input []interface{}) (*[]track1.Basi
 		}
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
-			if track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionOverwrite || track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionAppend {
+			if responseHeaderAction.Parameters.HeaderAction == track1.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == track1.HeaderActionAppend {
 				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.ResponseHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
 			}
 		} else {
-			if track1.HeaderAction(responseHeaderAction.Parameters.HeaderAction) == track1.HeaderActionDelete {
+			if responseHeaderAction.Parameters.HeaderAction == track1.HeaderActionDelete {
 				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.ResponseHeader.ConfigName, "value", "header_action", "Delete")
 			}
 		}
@@ -283,7 +283,7 @@ func flattenCdnFrontdoorHeaderAction(input *track1.HeaderActionParameters) map[s
 
 	if params := input; params != nil {
 		action = string(params.HeaderAction)
-		name = string(*params.HeaderName)
+		name = *params.HeaderName
 		value = string(*params.Value)
 	}
 
@@ -309,8 +309,8 @@ func FlattenCdnFrontdoorUrlRedirectAction(input track1.BasicDeliveryRuleAction) 
 
 	if params := action.Parameters; params != nil {
 		destinationHost = string(*params.CustomHostname)
-		destinationPath = string(*params.CustomPath)
-		queryString = string(*params.CustomQueryString)
+		destinationPath = *params.CustomPath
+		queryString = *params.CustomQueryString
 		destinationProtocol = string(params.DestinationProtocol)
 		redirectType = string(params.RedirectType)
 		fragment = string(*params.CustomFragment)
@@ -337,9 +337,9 @@ func FlattenCdnFrontdoorUrlRewriteAction(input track1.BasicDeliveryRuleAction) (
 	sourcePattern := ""
 
 	if params := action.Parameters; params != nil {
-		destination = string(*params.Destination)
+		destination = *params.Destination
 		preservePath = bool(*params.PreserveUnmatchedPath)
-		sourcePattern = string(*params.SourcePattern)
+		sourcePattern = *params.SourcePattern
 	}
 
 	return map[string]interface{}{
