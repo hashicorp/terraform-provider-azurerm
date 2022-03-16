@@ -44,5 +44,6 @@ data "azurerm_healthcare_workspace" "test" {
   name                = azurerm_healthcare_workspace.test.name
   resource_group_name = azurerm_healthcare_workspace.test.resource_group_name
   location            = azurerm_healthcare_workspace.test.location
-}`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
