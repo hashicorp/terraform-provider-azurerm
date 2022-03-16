@@ -84,12 +84,11 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			},
 
 			"virtual_router_ips": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"route": {
