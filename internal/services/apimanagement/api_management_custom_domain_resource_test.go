@@ -336,7 +336,7 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func (r ApiManagementCustomDomainResource) basicWithUserIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
