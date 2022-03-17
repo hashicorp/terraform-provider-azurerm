@@ -951,12 +951,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
     caching              = "ReadWrite"
   }
 
