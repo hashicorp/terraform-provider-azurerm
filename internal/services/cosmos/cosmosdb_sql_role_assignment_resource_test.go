@@ -76,6 +76,21 @@ func TestAccCosmosDbSQLRoleAssignment_update(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSQLRoleAssignment_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_assignment", "test")
+	r := CosmosDbSQLRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CosmosDbSQLRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SqlRoleAssignmentID(state.ID)
 	if err != nil {
@@ -207,7 +222,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test" {
 `, r.template(data), data.RandomString, roleAssignmentId)
 }
 
-func (r CosmosDbSQLRoleAssignmentResource) multipleAssignments(data acceptance.TestData) string {
+func (r CosmosDbSQLRoleAssignmentResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -238,5 +253,5 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test2" {
   principal_id        = data.azurerm_client_config.current.object_id
   scope               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}"
 }
-`, r.template(data))
+`, r.template(data), data.RandomString)
 }

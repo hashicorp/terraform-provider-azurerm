@@ -102,8 +102,8 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 
 	id := parse.NewSqlRoleAssignmentID(subscriptionId, resourceGroup, accountName, name)
 
-	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
 
 	existing, err := client.GetSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
@@ -180,8 +180,8 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
 
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
 		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
@@ -214,8 +214,8 @@ func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
 
 	future, err := client.DeleteSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
