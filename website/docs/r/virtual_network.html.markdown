@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
+---
+
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
 -> **NOTE** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
@@ -76,6 +78,8 @@ The following arguments are supported:
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
 
 -> **NOTE** Since `dns_servers` can be configured both inline and via the separate `azurerm_virtual_network_dns_servers` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network should exist. Changing this forces a new Virtual Network to be created.
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
 
