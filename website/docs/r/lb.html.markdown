@@ -42,14 +42,23 @@ resource "azurerm_lb" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Load Balancer.
+
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
+
 * `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+
+---
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Load Balancer should exist. Changing this forces a new Load Balancer to be created.
+
 * `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
+
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`.
 
 -> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The Sku Tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
+* 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
