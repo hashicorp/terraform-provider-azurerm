@@ -17,6 +17,10 @@ ENHANCEMENTS:
 
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
+* `azurerm_linux_function_app` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_windows_function_app` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_network_security_rule` - no longer locking on the network security group name [GH-15719]
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
