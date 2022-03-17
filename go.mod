@@ -29,6 +29,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
+	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220316022247-5b7680ba3f79
 	github.com/manicminer/hamilton v0.37.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
@@ -40,9 +41,8 @@ require (
 	github.com/tombuildsstuff/giovanni v0.18.0
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151 // indirect
 	google.golang.org/grpc v1.39.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
