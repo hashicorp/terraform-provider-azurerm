@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,6 +41,7 @@ type LinuxWebAppSlotModel struct {
 	SiteConfig                    []helpers.SiteConfigLinuxWebAppSlot `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount            `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString          `tfschema:"connection_string"`
+	SubnetID                      string                              `tfschema:"subnet_id"`
 	Tags                          map[string]string                   `tfschema:"tags"`
 	CustomDomainVerificationId    string                              `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                              `tfschema:"default_hostname"`
@@ -144,6 +146,13 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaLinuxWebAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchema(),
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+			Description:  "The ID of the Subnet to use for regional VNet integration. This subnet must have the `Microsoft.Web/serverfarms` delegation to be used.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -272,6 +281,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if webAppSlot.SubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.SubnetID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -425,6 +438,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				SubnetID:                    utils.NormalizeNilableString(props.VirtualNetworkSubnetID),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
@@ -543,6 +557,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
 				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+			}
+
+			if metadata.ResourceData.HasChange("subnet_id") {
+				existing.VirtualNetworkSubnetID = utils.String(state.SubnetID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

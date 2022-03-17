@@ -47,6 +47,7 @@ type LinuxWebAppDataSourceModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
+	SubnetID                      string                     `tfschema:"subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -184,6 +185,12 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 
+		"subnet_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Subnet used for regional VNet integration.",
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }
@@ -286,6 +293,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				webApp.SubnetID = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
