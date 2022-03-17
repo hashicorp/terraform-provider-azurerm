@@ -1190,12 +1190,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 												"components": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Computed: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"path_only",
 														"query_string_only",
-														"",
-													}, true),
+													}, false),
 												},
 
 												"reroute": {
@@ -3631,26 +3629,36 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
-							urlConfig := map[string]interface{}{}
-
+							components := ""
+							path := ""
 							if config.ModifiedPath != nil {
-								urlConfig["path"] = *config.ModifiedPath
-								urlConfig["components"] = "path_only"
+								path = *config.ModifiedPath
 							}
 
+							queryString := ""
 							if config.ModifiedQueryString != nil {
-								urlConfig["query_string"] = *config.ModifiedQueryString
-								urlConfig["components"] = "query_string_only"
+								queryString = *config.ModifiedQueryString
 							}
 
-							if config.ModifiedQueryString != nil && config.ModifiedPath != nil {
-								urlConfig["components"] = ""
+							if path != queryString {
+								if path != "" {
+									components = "path_only"
+								} else {
+									components = "query_string_only"
+								}
 							}
 
+							reroute := false
 							if config.Reroute != nil {
-								urlConfig["reroute"] = *config.Reroute
+								reroute = *config.Reroute
 							}
-							urlConfigs = append(urlConfigs, urlConfig)
+
+							urlConfigs = append(urlConfigs, map[string]interface{}{
+								"components":   components,
+								"query_string": queryString,
+								"path":         path,
+								"reroute":      reroute,
+							})
 						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
