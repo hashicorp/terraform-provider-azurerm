@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -51,8 +50,6 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.StreamingJobID,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"input": {
 				Type:     pluginsdk.TypeList,
@@ -120,7 +117,7 @@ func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	id := parse.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), jobId.Name, d.Get("name").(string))
+	id := parse.NewFunctionID(subscriptionId, jobId.ResourceGroup, jobId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
@@ -177,16 +174,15 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	jobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
 	d.Set("stream_analytics_job_id", jobId.ID())
@@ -230,7 +226,7 @@ func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta in
 
 	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

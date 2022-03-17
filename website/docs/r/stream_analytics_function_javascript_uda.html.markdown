@@ -3,12 +3,12 @@ subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_function_javascript_uda"
 description: |-
-  Manages a JavaScript UDA Function within Stream Analytics Streaming Job.
+  Manages a JavaScript UDA Function within a Stream Analytics Streaming Job.
 ---
 
 # azurerm_stream_analytics_function_javascript_uda
 
-Manages a JavaScript UDA Function within Stream Analytics Streaming Job.
+Manages a JavaScript UDA Function within a Stream Analytics Streaming Job.
 
 ## Example Usage
 
@@ -23,9 +23,8 @@ data "azurerm_stream_analytics_job" "example" {
 }
 
 resource "azurerm_stream_analytics_function_javascript_uda" "example" {
-  name                      = "example-javascript-function"
-  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
-  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  name                    = "example-javascript-function"
+  stream_analytics_job_id = data.azurerm_stream_analytics_job.example.id
 
   script = <<SCRIPT
 function main() {
@@ -59,27 +58,25 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the JavaScript UDA Function. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
-
 * `stream_analytics_job_id` - (Required) The resource ID of the Stream Analytics Job where this Function should be created. Changing this forces a new resource to be created.
 
 * `input` - (Required) One or more `input` blocks as defined below.
 
-* `output` - (Required) An `output` blocks as defined below.
+* `output` - (Required) An `output` block as defined below.
 
 * `script` - (Required) The JavaScript of this UDA Function.
 
 ---
 
-A `input` block supports the following:
+An `input` block supports the following:
 
-* `type` - The Data Type for the Input Argument of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - The input data type of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 ---
 
-A `output` block supports the following:
+An `output` block supports the following:
 
-* `type` - The Data Type output from this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - The output data type from this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 ## Attributes Reference
 
