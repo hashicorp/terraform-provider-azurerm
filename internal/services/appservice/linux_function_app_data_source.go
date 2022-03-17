@@ -46,15 +46,15 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                      map[string]string                    `tfschema:"tags"`
 
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
-
-	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+	CustomDomainVerificationId    string                   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string                   `tfschema:"default_hostname"`
+	Kind                          string                   `tfschema:"kind"`
+	OutboundIPAddresses           string                   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string                 `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string                   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string                 `tfschema:"possible_outbound_ip_address_list"`
+	SubnetID                      string                   `tfschema:"subnet_id"`
+	SiteCredentials               []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
 func (d LinuxFunctionAppDataSource) ModelObject() interface{} {
@@ -209,6 +209,12 @@ func (r LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
+
+		"subnet_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Subnet used for regional VNet integration.",
+		},
 	}
 }
 
@@ -289,6 +295,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				Tags:                 tags.ToTypedObject(functionApp.Tags),
 				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				SubnetID:             utils.NormalizeNilableString(props.VirtualNetworkSubnetID),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)

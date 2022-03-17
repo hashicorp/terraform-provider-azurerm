@@ -95,6 +95,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `subnet_id` - The ID of the Subnet used for regional VNet integration.
+
 ---
 
 An `active_directory` block exports the following:

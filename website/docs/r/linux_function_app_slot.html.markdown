@@ -108,6 +108,10 @@ The following arguments are supported:
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified. 
 
+* `subnet_id` - (Optional) The ID of the Subnet to use for regional VNet integration. This subnet must have the `Microsoft.Web/serverFarms` delegation to be used.
+
+~> **NOTE:** This property is only valid on `Standard` Service Plan SKU's and above, it has no effect on Dynamic, Consumption, nor Basic Plans.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 ---
