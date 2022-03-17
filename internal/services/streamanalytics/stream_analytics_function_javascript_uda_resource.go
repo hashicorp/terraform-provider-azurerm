@@ -19,9 +19,9 @@ import (
 
 func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStreamAnalyticsFunctionUDACreateUpdate,
+		Create: resourceStreamAnalyticsFunctionUDACreate,
 		Read:   resourceStreamAnalyticsFunctionUDARead,
-		Update: resourceStreamAnalyticsFunctionUDACreateUpdate,
+		Update: resourceStreamAnalyticsFunctionUDAUpdate,
 		Delete: resourceStreamAnalyticsFunctionUDADelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -106,7 +106,7 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -119,17 +119,15 @@ func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := parse.NewFunctionID(subscriptionId, jobId.ResourceGroup, jobId.Name, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
 	}
 
 	props := streamanalytics.Function{
@@ -148,15 +146,11 @@ func resourceStreamAnalyticsFunctionUDACreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
-
-		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	return resourceStreamAnalyticsFunctionUDARead(d, meta)
 }
@@ -212,6 +206,39 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	return nil
+}
+
+func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.FunctionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	props := streamanalytics.Function{
+		Properties: &streamanalytics.AggregateFunctionProperties{
+			Type: streamanalytics.TypeAggregate,
+			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
+				Binding: &streamanalytics.JavaScriptFunctionBinding{
+					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
+					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
+						Script: utils.String(d.Get("script").(string)),
+					},
+				},
+				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
+				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]interface{})),
+			},
+		},
+	}
+
+	if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceStreamAnalyticsFunctionUDARead(d, meta)
 }
 
 func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta interface{}) error {
