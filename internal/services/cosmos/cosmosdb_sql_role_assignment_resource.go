@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"log"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var CosmosDbSQLRoleAssignmentResourceName = "azurerm_cosmosdb_sql_role_assignment"
 
 func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -99,6 +102,9 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 
 	id := parse.NewSqlRoleAssignmentID(subscriptionId, resourceGroup, accountName, name)
 
+	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+
 	existing, err := client.GetSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -174,6 +180,9 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
 		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
 			PrincipalID:      utils.String(d.Get("principal_id").(string)),
@@ -204,6 +213,9 @@ func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
+	defer locks.UnlockByName(id.Name, CosmosDbSQLRoleAssignmentResourceName)
 
 	future, err := client.DeleteSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
