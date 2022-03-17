@@ -482,7 +482,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 25 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
