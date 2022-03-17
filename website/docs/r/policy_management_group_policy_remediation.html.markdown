@@ -1,35 +1,41 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_subscription_policy_remediation"
+page_title: "Azure Resource Manager: azurerm_management_group_policy_remediation"
 description: |-
-  Manages an Azure Subscription Policy Remediation.
+  Manages an Azure Management Group Policy Remediation.
 ---
 
-# azurerm_subscription_policy_remediation
+# azurerm_management_group_policy_remediation
 
-Manages an Azure Subscription Policy Remediation.
+Manages an Azure Management Group Policy Remediation.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "example" {}
+resource "azurerm_management_group" "example" {
+  display_name = "Example Managmenet Group"
+}
 
-resource "azurerm_subscription_policy_assignment" "example" {
+data "azurerm_policy_definition" "example" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_management_group_policy_assignment" "example" {
   name                 = "exampleAssignment"
-  subscription_id      = data.azurerm_subscription.example.id
+  management_group_id  = azurerm_management_group.example.id
   policy_definition_id = data.azurerm_policy_definition.example.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["West Europe", "East US"]
+      "value" = ["East US"]
     }
   })
 }
 
-resource "azurerm_subscription_policy_remediation" "example" {
-  name                    = "exampleRemediation"
-  subscription_id         = data.azurerm_subscription.example.id
-  policy_assignment_id    = azurerm_subscription_policy_assignment.example.id
+resource "azurerm_management_group_policy_remediation" "example" {
+  name                 = "exampleRemediation"
+  management_group_id      = azurerm_management_group.example.id
+  policy_assignment_id = azurerm_management_group_policy_assignment.example.id
 }
 ```
 
@@ -39,7 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Remediation. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The Subscription ID at which the Policy Remediation should be applied. Changing this forces a new resource to be created.
+* `management_group_id` - (Required) The Management Group ID at which the Policy Remediation should be applied. Changing this forces a new resource to be created.
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
@@ -70,5 +76,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Policy Remediations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_subscription_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/remediation1
+terraform import azurerm_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```

@@ -94,7 +94,7 @@ func (r SubscriptionPolicyRemediationResource) basic(data acceptance.TestData) s
 resource "azurerm_subscription_policy_remediation" "test" {
   name                 = "acctestremediation-%[2]s"
   subscription_id      = data.azurerm_subscription.test.id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
+  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
 }
 `, r.template(data), data.RandomString)
 }

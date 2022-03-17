@@ -104,7 +104,7 @@ func (r ResourcePolicyRemediationResource) basic(data acceptance.TestData) strin
 resource "azurerm_resource_policy_remediation" "test" {
   name                 = "acctestremediation-%[2]s"
   resource_id          = azurerm_virtual_network.test.id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
+  policy_assignment_id = azurerm_resource_policy_assignment.test.id
 }
 `, r.template(data), data.RandomString)
 }

@@ -25,10 +25,6 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
-data "azurerm_policy_definition" "test" {
-  display_name = "Allowed locations"
-}
-
 resource "azurerm_resource_policy_assignment" "example" {
   name                 = "assignment1"
   resource_id          = azurerm_virtual_network.example.id
@@ -40,9 +36,9 @@ resource "azurerm_resource_policy_assignment" "example" {
   })
 }
 
-resource "azurerm_resource_policy_remediation" "test" {
+resource "azurerm_resource_policy_remediation" "example" {
   name                 = "remediation1"
-  resource_id          = azurerm_virtual_network.test.id
+  resource_id          = azurerm_virtual_network.example.id
   policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
 }
 ```
