@@ -131,7 +131,7 @@ func (r ResourceGroupPolicyRemediationResource) basic(data acceptance.TestData) 
 
 resource "azurerm_resource_group_policy_remediation" "test" {
   name                 = "acctestremediation-%[2]s"
-  resource_group_id                = azurerm_resource_group_policy_assignment.test.resource_group_id
+  resource_group_id    = azurerm_resource_group_policy_assignment.test.resource_group_id
   policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
 }
 `, r.template(data), data.RandomString)
@@ -142,11 +142,11 @@ func (r ResourceGroupPolicyRemediationResource) complete(data acceptance.TestDat
 %s
 
 resource "azurerm_resource_group_policy_remediation" "test" {
-  name                 = "acctestremediation-%[2]s"
-  resource_group_id                = azurerm_resource_group_policy_assignment.test.resource_group_id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
-  location_filters     = ["westus"]
-  policy_definition_reference_id = azurerm_policy_definition.test.id
+  name                    = "acctestremediation-%[2]s"
+  resource_group_id       = azurerm_resource_group_policy_assignment.test.resource_group_id
+  policy_assignment_id    = azurerm_resource_group_policy_assignment.test.id
+  location_filters        = ["westus"]
+  policy_definition_id    = azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
 }
 `, r.template(data), data.RandomString)
