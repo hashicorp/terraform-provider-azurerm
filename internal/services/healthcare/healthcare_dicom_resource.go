@@ -2,6 +2,8 @@ package healthcare
 
 import (
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
@@ -53,6 +55,8 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 			},
 
 			"location": commonschema.Location(),
+
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
@@ -124,6 +128,11 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_healthcareapis_dicom_service", dicomServiceId.ID())
 		}
+	}
+
+	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -246,4 +255,25 @@ func flattenDicomServicePrivateEndpoint(input *[]healthcareapis.PrivateEndpointC
 		}
 	}
 	return results
+}
+
+func expandManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := healthcareapis.ServiceManagedIdentityIdentity{
+		Type: healthcareapis.ServiceManagedIdentityType(expanded.Type),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = make(map[string]*healthcareapis.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &healthcareapis.UserAssignedIdentity{
+			}
+		}
+	}
+
+	return &out, nil
 }
