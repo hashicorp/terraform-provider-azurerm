@@ -22,6 +22,10 @@ ENHANCEMENTS:
 * `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
 
+BUG FIXES:
+
+* `azurerm_cosmosdb_mongo_collection` - the `default_ttl_seconds` can now be set to `-1` [GH-15736]
+
 ## 2.99.0 (March 11, 2022)
 
 NOTES
