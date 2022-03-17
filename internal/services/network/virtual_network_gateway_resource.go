@@ -3,6 +3,8 @@ package network
 import (
 	"bytes"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
 
@@ -78,6 +80,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 				string(network.VpnTypePolicyBased),
 			}, !features.ThreePointOhBeta()),
 		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_bgp": {
@@ -458,6 +462,7 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	gateway := network.VirtualNetworkGateway{
 		Name:                                  &id.Name,
+		ExtendedLocation:                      expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                              &location,
 		Tags:                                  tags.Expand(t),
 		VirtualNetworkGatewayPropertiesFormat: properties,
@@ -498,9 +503,8 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))

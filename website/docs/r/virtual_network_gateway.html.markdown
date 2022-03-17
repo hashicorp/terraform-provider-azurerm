@@ -104,31 +104,42 @@ EOF
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Network Gateway. Changing the name
-    forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Virtual Network Gateway. Changing the resource group name forces
-    a new resource to be created.
+* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+  An active-standby gateway requires exactly one `ip_configuration` block,
+  an active-active gateway requires exactly two `ip_configuration` blocks whereas
+  an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `location` - (Required) The location/region where the Virtual Network Gateway is
-    located. Changing the location/region forces a new resource to be created.
+  located. Changing the location/region forces a new resource to be created.
+
+* `name` - (Required) The name of the Virtual Network Gateway. Changing the name
+  forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to
+  create the Virtual Network Gateway. Changing the resource group name forces
+  a new resource to be created.
+
+* `sku` - (Required) Configuration of the size and capacity of the virtual network
+  gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
+  `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`,
+  `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and
+  `generation` arguments.
+  A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
+  sku is only supported by an `ExpressRoute` gateway.
+
+~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+
+~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
 * `type` - (Required) The type of the Virtual Network Gateway. Valid options are
-    `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
+  `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
-* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
-    options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
-
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
-    for this Virtual Network Gateway. Defaults to `false`.
+---
 
 * `active_active` - (Optional) If `true`, an active-active Virtual Network Gateway
-    will be created. An active-active gateway requires a `HighPerformance` or an
-    `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
-    Defaults to `false`.
-
-* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
+  will be created. An active-active gateway requires a `HighPerformance` or an
+  `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
+  Defaults to `false`.
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -136,32 +147,25 @@ The following arguments are supported:
     [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
     If not specified, forced tunnelling is disabled.
 
-* `sku` - (Required) Configuration of the size and capacity of the virtual network
-    gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`,
-    `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and
-    `generation` arguments.
-    A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
-    sku is only supported by an `ExpressRoute` gateway.
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
 
-~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
-
-~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region. 
+* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
+  for this Virtual Network Gateway. Defaults to `false`.
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
-* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
-    An active-standby gateway requires exactly one `ip_configuration` block,
-    an active-active gateway requires exactly two `ip_configuration` blocks whereas
-    an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
-
-* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
-    is documented below. In this block the Virtual Network Gateway can be configured
-    to accept IPSec point-to-site connections.
+* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
+  is documented below. In this block the Virtual Network Gateway can be configured
+  to accept IPSec point-to-site connections.
+
+* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
+  options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
 
 ---
 
