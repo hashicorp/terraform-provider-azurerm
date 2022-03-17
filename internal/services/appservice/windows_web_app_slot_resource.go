@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,6 +46,7 @@ type WindowsWebAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                              `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential              `tfschema:"site_credential"`
+	SubnetID                      string                                `tfschema:"subnet_id"`
 	Tags                          map[string]string                     `tfschema:"tags"`
 }
 
@@ -142,6 +144,13 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaWindowsWebAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+			Description:  "The ID of the Subnet to use for regional VNet integration. This subnet must have the `Microsoft.Web/serverfarms` delegation to be used.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -261,6 +270,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if webAppSlot.SubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.SubnetID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -432,6 +445,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
+				SubnetID:                    utils.NormalizeNilableString(props.VirtualNetworkSubnetID),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
@@ -540,6 +554,14 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+			}
+
+			if metadata.ResourceData.HasChange("subnet_id") {
+				existing.VirtualNetworkSubnetID = utils.String(state.SubnetID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

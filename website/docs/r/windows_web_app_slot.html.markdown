@@ -90,6 +90,10 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `subnet_id` - (Optional) The ID of the Subnet to use for regional VNet integration. This subnet must have the `Microsoft.Web/serverFarms` delegation to be used.
+
+~> **NOTE:** This property is only valid on `Standard` Service Plan SKU's and above, it has no effect on Basic Plans.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App Slot.
 
 ---
