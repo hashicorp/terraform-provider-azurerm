@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,6 +19,9 @@ import (
 type PolicySetDefinitionResource struct{}
 
 func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
@@ -62,6 +67,9 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
@@ -216,6 +224,9 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 }
 
 func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 
@@ -246,6 +257,9 @@ func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 }
 
 func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
 

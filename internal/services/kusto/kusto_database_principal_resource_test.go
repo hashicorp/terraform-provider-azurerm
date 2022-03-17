@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +18,9 @@ import (
 type KustoDatabasePrincipalResource struct{}
 
 func TestAccKustoDatabasePrincipal_basic(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal", "test")
 	r := KustoDatabasePrincipalResource{}
 

@@ -37,6 +37,7 @@ output "virtual_network_id" {
 * `guid` - The GUID of the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
+* `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts
 

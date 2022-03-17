@@ -51,7 +51,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 	},
 }
 
-// TODO 3.0 - Remove this schema as it's deprecated
+// CLEANUP: 3.0 - Remove this schema as it's deprecated
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 	//lintignore:XS003
 	return &pluginsdk.Schema{
@@ -580,7 +580,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return out
 }
 
-// TODO 3.0 - Remove this function
+// CLEANUP: 3.0 - Remove this function
 func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 	disabled := containerservice.ManagedClusterAddonProfile{
 		Enabled: utils.Bool(false),
@@ -880,7 +880,7 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 	return &output, nil
 }
 
-// TODO 3.0 - Remove this function
+// CLEANUP: 3.0 - Remove this function
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	aciConnectors := make([]interface{}, 0)
 	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {

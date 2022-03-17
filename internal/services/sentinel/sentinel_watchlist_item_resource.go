@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -89,7 +89,7 @@ func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -105,7 +105,7 @@ func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, params); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -126,7 +126,7 @@ func (r WatchlistItemResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -164,7 +164,7 @@ func (r WatchlistItemResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -190,7 +190,7 @@ func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 			}
 			id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -206,7 +206,7 @@ func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 				update.WatchlistItemProperties.ItemsKeyValue = model.Properties
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, update); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.WatchlistName, id.Name, update); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

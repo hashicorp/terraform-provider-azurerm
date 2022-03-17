@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -49,10 +48,6 @@ func resourceDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
 				Type:         pluginsdk.TypeString,
@@ -227,7 +222,6 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	odbc, ok := resp.Properties.AsOdbcLinkedService()

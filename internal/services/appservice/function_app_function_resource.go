@@ -68,7 +68,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 		"function_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.WebAppID,
+			ValidateFunc: validate.FunctionAppID,
 			ForceNew:     true,
 			Description:  "The ID of the Function App in which this function should reside.",
 		},

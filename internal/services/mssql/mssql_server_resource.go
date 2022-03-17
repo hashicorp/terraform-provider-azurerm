@@ -72,15 +72,20 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			},
 
 			"administrator_login": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
+				RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			},
 
 			"administrator_login_password": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				AtLeastOneOf: []string{"administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
+				RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			},
 
 			"azuread_administrator": {
@@ -257,7 +262,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
 	t := d.Get("tags").(map[string]interface{})
@@ -279,10 +283,21 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
 			Version:                       utils.String(version),
-			AdministratorLogin:            utils.String(adminUsername),
 			PublicNetworkAccess:           sql.ServerNetworkAccessFlagEnabled,
 			RestrictOutboundNetworkAccess: sql.ServerNetworkAccessFlagDisabled,
 		},
+	}
+
+	if v := d.Get("administrator_login"); v.(string) != "" {
+		props.ServerProperties.AdministratorLogin = utils.String(v.(string))
+	}
+
+	if v := d.Get("administrator_login_password"); v.(string) != "" {
+		props.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
+	}
+
+	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); ok {
+		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -305,17 +320,8 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
-	if d.HasChange("administrator_login_password") {
-		adminPassword := d.Get("administrator_login_password").(string)
-		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
-	}
-
 	if v := d.Get("minimum_tls_version"); v.(string) != "" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
-	}
-
-	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); ok {
-		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
@@ -375,7 +381,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
 	t := d.Get("tags").(map[string]interface{})
@@ -386,7 +391,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
 			Version:                       utils.String(version),
-			AdministratorLogin:            utils.String(adminUsername),
 			PublicNetworkAccess:           sql.ServerNetworkAccessFlagEnabled,
 			RestrictOutboundNetworkAccess: sql.ServerNetworkAccessFlagDisabled,
 		},

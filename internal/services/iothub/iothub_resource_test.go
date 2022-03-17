@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -541,26 +542,7 @@ resource "azurerm_iothub" "test" {
 }
 
 func (IotHubResource) ipFilterRules(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "S1"
-    capacity = "1"
-  }
-
+	ipFilterRules := `
   ip_filter_rule {
     name    = "test"
     ip_mask = "10.0.0.0/31"
@@ -578,15 +560,11 @@ resource "azurerm_iothub" "test" {
     ip_mask = "10.0.3.0/31"
     action  = "Accept"
   }
+`
+	if features.ThreePointOhBeta() {
+		ipFilterRules = ""
+	}
 
-  tags = {
-    purpose = "testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (IotHubResource) ipFilterRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -607,6 +585,18 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
+  %s
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipFilterRules)
+}
+
+func (IotHubResource) ipFilterRulesUpdate(data acceptance.TestData) string {
+
+	ipFilterRules := `
   ip_filter_rule {
     name    = "test4"
     ip_mask = "10.0.4.0/31"
@@ -630,12 +620,37 @@ resource "azurerm_iothub" "test" {
     ip_mask = "10.0.5.0/31"
     action  = "Accept"
   }
+`
+	if features.ThreePointOhBeta() {
+		ipFilterRules = ""
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  %s
 
   tags = {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipFilterRules)
 }
 
 func (IotHubResource) networkRuleSet(data acceptance.TestData) string {
@@ -1740,18 +1755,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = false
   send   = true
@@ -1759,16 +1771,13 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true

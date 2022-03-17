@@ -231,7 +231,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -282,10 +281,10 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
   location            = azurerm_hdinsight_rserver_cluster.test.location
   cluster_version     = azurerm_hdinsight_rserver_cluster.test.cluster_version
   tier                = azurerm_hdinsight_rserver_cluster.test.tier
+  rstudio             = azurerm_hdinsight_rserver_cluster.test.rstudio
   dynamic "gateway" {
     for_each = azurerm_hdinsight_rserver_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -305,7 +304,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "edge_node", [])
         content {
           password           = lookup(edge_node.value, "password", null)
-          ssh_keys           = lookup(edge_node.value, "ssh_keys", null)
           subnet_id          = lookup(edge_node.value, "subnet_id", null)
           username           = edge_node.value.username
           virtual_network_id = lookup(edge_node.value, "virtual_network_id", null)
@@ -317,7 +315,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "head_node", [])
         content {
           password           = lookup(head_node.value, "password", null)
-          ssh_keys           = lookup(head_node.value, "ssh_keys", null)
           subnet_id          = lookup(head_node.value, "subnet_id", null)
           username           = head_node.value.username
           virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
@@ -329,7 +326,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
           password              = lookup(worker_node.value, "password", null)
-          ssh_keys              = lookup(worker_node.value, "ssh_keys", null)
           subnet_id             = lookup(worker_node.value, "subnet_id", null)
           target_instance_count = worker_node.value.target_instance_count
           username              = worker_node.value.username
@@ -342,7 +338,6 @@ resource "azurerm_hdinsight_rserver_cluster" "import" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
           password           = lookup(zookeeper_node.value, "password", null)
-          ssh_keys           = lookup(zookeeper_node.value, "ssh_keys", null)
           subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
           username           = zookeeper_node.value.username
           virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)
@@ -372,7 +367,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -426,7 +420,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -498,7 +491,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -574,7 +566,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -583,6 +574,7 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+    storage_resource_id  = azurerm_storage_account.test.id
   }
 
   roles {
@@ -668,7 +660,6 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
   rstudio             = true
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }

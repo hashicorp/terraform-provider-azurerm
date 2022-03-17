@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,6 +43,9 @@ func TestAccFrontDoor_basic(t *testing.T) {
 
 // remove in 3.0
 func TestAccFrontDoor_global(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is deprecated for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	r := FrontDoorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

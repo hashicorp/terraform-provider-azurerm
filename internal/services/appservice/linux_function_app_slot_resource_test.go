@@ -744,6 +744,8 @@ func TestAccLinuxFunctionAppSlot_appStackPowerShellCore(t *testing.T) {
 	})
 }
 
+// Others
+
 func TestAccLinuxFunctionAppSlot_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -780,22 +782,6 @@ func TestAccLinuxFunctionAppSlot_identity(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
-// Others
-
 func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -811,6 +797,36 @@ func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_msiStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1050,8 +1066,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     ]
 
     active_directory {
-      client_id     = "aadclientid"
-      client_secret = "aadsecret"
+      client_id = "aadclientid"
 
       allowed_audiences = [
         "activedirectorytokenaudiences",
@@ -1898,6 +1913,37 @@ resource "azurerm_linux_function_app_slot" "test" {
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
 }
 `, r.identityTemplate(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) msiStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app_slot.test.identity[0].principal_id
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name            = "acctest-LFAS-%[2]d"
+  function_app_id = azurerm_linux_function_app.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (LinuxFunctionAppSlotResource) template(data acceptance.TestData, planSku string) string {
