@@ -11,6 +11,7 @@ FEATURES:
 * **New Data Source**: `azurerm_managed_api` [GH-15797]
 * **New Resource**: `azurerm_api_connection` [GH-15797]
 * **New Resource**: `azurerm_healthcare_workspace` [GH-15759]
+* **New Resource**: `azurerm_stream_analytics_function_javascript_uda` [GH-15831]
 
 ENHANCEMENTS:
 
