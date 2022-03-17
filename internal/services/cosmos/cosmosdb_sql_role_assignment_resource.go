@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var CosmosDbSQLRoleAssignmentResourceName = "azurerm_cosmosdb_sql_role_assignment"
-
 func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCosmosDbSQLRoleAssignmentCreate,
@@ -102,8 +100,8 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 
 	id := parse.NewSqlRoleAssignmentID(subscriptionId, resourceGroup, accountName, name)
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 	existing, err := client.GetSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
@@ -180,8 +178,8 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
 		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
@@ -214,8 +212,8 @@ func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbSQLRoleAssignmentResourceName)
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 	future, err := client.DeleteSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
