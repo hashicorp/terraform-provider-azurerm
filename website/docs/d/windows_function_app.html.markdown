@@ -93,6 +93,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 
+* `subnet_id` - The ID of the Subnet used for regional VNet integration.
+
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
 ---

@@ -44,6 +44,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                   `tfschema:"https_only"`
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	SubnetID                  string                                 `tfschema:"subnet_id"`
 	Tags                      map[string]string                      `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -203,6 +204,12 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
 
+		"subnet_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Subnet used for regional VNet integration.",
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
@@ -245,6 +252,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
+			functionApp.SubnetID = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
