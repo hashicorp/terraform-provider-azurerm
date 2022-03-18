@@ -112,7 +112,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["error"]
+  event_types         = ["Error"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -126,7 +126,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["InforMation", "warning", "Error"]
+  event_types         = ["Information", "Warning", "Error"]
 }
 `, r.template(data), data.RandomInteger)
 }

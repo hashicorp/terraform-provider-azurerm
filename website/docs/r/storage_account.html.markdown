@@ -121,6 +121,8 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
+* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
@@ -190,7 +192,18 @@ A `cors_rule` block supports the following:
 A `custom_domain` block supports the following:
 
 * `name` - (Required) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
+
+* `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
+
+~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` and the identity type is `UserAssigned`.
 
 ---
 

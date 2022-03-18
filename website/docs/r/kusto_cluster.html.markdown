@@ -50,11 +50,13 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
 
-* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+* `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
-* `enable_purge` - (Optional) Specifies if the purge operations are enabled.
+* `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
+
+* `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 

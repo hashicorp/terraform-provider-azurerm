@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,12 +29,26 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+			"namespace_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NamespaceID,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"namespace_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
+
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
 
 			"partner_namespace_id": {
 				Type:     pluginsdk.TypeString,
@@ -72,7 +88,22 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	var resourceGroup string
+	var namespaceName string
+	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+		namespaceId, err := parse.NamespaceID(v)
+		if err != nil {
+			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+		}
+		resourceGroup = namespaceId.ResourceGroup
+		namespaceName = namespaceId.Name
+	} else {
+		resourceGroup = d.Get("resource_group_name").(string)
+		namespaceName = d.Get("namespace_name").(string)
+	}
+	name := d.Get("name").(string)
+
+	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, name)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

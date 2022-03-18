@@ -9,10 +9,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -81,8 +82,8 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.NamespaceTypeMessaging),
 					string(notificationhubs.NamespaceTypeNotificationHub),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"tags": tags.Schema(),
@@ -188,7 +189,6 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.NamespaceProperties; props != nil {
 		d.Set("enabled", props.Enabled)
-		d.Set("namespace_type", props.NamespaceType)
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 

@@ -13,7 +13,7 @@ import (
 // This will be used to signify resources which will be Deprecated in 3.0,
 // but not Removed (which will happen in a later, presumably 4.x release).
 func DeprecatedInThreePointOh(deprecationMessage string) string {
-	if !ThreePointOh() {
+	if !ThreePointOhBeta() {
 		return ""
 	}
 
@@ -35,10 +35,10 @@ func ThreePointOh() bool {
 // Any features behind this flag should be backwards-compatible to allow
 // users to try out 3.0 functionality.
 //
-// Whilst this currently isn't exposed, this will be via an Environment
-// Variable in the future.
+// This flag can be controlled by setting the Environment Variable
+// `ARM_THREEPOINTZERO_BETA` to `true`.
 func ThreePointOhBeta() bool {
-	return ThreePointOh() || false
+	return ThreePointOh() || strings.EqualFold(os.Getenv("ARM_THREEPOINTZERO_BETA"), "true")
 }
 
 // ThreePointOhAppServiceResources returns whether this provider is opted into

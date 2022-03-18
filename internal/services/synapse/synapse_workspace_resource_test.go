@@ -749,10 +749,10 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 }
@@ -799,10 +799,10 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 }
@@ -842,7 +842,8 @@ func (r SynapseWorkspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

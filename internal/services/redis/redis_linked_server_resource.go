@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,7 +64,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 					string(redis.ReplicationRolePrimary),
 					string(redis.ReplicationRoleSecondary),
 				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: func() schema.SchemaDiffSuppressFunc {
+				DiffSuppressFunc: func() pluginsdk.SchemaDiffSuppressFunc {
 					if !features.ThreePointOhBeta() {
 						return suppress.CaseDifference
 					}

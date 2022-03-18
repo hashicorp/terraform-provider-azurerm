@@ -3,7 +3,6 @@ package datalake
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
@@ -33,6 +33,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 			_, err := parse.AccountID(id)
 			return err
 		}),
+
+		DeprecationMessage: `Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.`,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -57,7 +59,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Default:          string(accounts.TierTypeConsumption),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.TierTypeConsumption),
 					string(accounts.TierTypeCommitmentOneTB),
@@ -66,7 +68,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 					string(accounts.TierTypeCommitmentFiveZeroZeroTB),
 					string(accounts.TierTypeCommitmentOnePB),
 					string(accounts.TierTypeCommitmentFivePB),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"encryption_state": {
@@ -77,8 +79,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionStateEnabled),
 					string(accounts.EncryptionStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"encryption_type": {
@@ -88,8 +90,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.EncryptionConfigTypeServiceManaged),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"firewall_state": {
@@ -99,8 +101,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallStateEnabled),
 					string(accounts.FirewallStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"firewall_allow_azure_ips": {
@@ -110,8 +112,8 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(accounts.FirewallAllowAzureIpsStateEnabled),
 					string(accounts.FirewallAllowAzureIpsStateDisabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"endpoint": {
@@ -158,21 +160,21 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %s", id)
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	// @tombuildsstuff: the Data Lake Store API doesn't support 'None' and expects null instead
 	// https://github.com/Azure/azure-rest-api-specs/issues/16962
-	if strings.EqualFold(string(identity.Type), "None") {
-		identity = nil
+	if expandedIdentity.Type == identity.TypeNone {
+		expandedIdentity = nil
 	}
 
 	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
 		Location: location,
 		Tags:     tags.Expand(t),
-		Identity: identity,
+		Identity: expandedIdentity,
 		Properties: &accounts.CreateDataLakeStoreAccountProperties{
 			NewTier:               &tier,
 			FirewallState:         &firewallState,

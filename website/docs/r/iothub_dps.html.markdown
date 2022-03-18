@@ -47,6 +47,10 @@ The following arguments are supported:
 
 * `linked_hub` - (Optional) A `linked_hub` block as defined below.
 
+* `public_network_access_enabled` - (Optional) Whether requests from Public Network are allowed. Defaults to `true`.
+
+* `ip_filter_rule` - (Optional) An `ip_filter_rule` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -70,6 +74,18 @@ A `linked_hub` block supports the following:
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 
 * `hostname` - (Computed) The IoT Hub hostname.
+
+---
+
+An `ip_filter_rule` block supports the following:
+
+* `name` - (Required) The name of the filter.
+
+* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
+
+* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+
+* `target` - (Optional) Target for requests captured by this rule. Possible values are `All`, `DeviceApi` and `ServiceApi`.
 
 ## Attributes Reference
 

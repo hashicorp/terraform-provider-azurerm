@@ -140,7 +140,9 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Machine Learning Inference Cluster. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Synapse Spark. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+
+~> **Note:** The older value `SystemAssigned,UserAssigned` (with no spaces) is deprecated and will be removed in version 3.0 of the Azure Provider.
 
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 

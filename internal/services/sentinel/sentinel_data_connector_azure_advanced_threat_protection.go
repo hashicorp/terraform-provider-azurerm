@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
@@ -73,7 +73,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *plugins
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -95,7 +95,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *plugins
 		AATPDataConnectorProperties: &securityinsight.AATPDataConnectorProperties{
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.AlertsDataTypeOfDataConnector{
-				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
+				Alerts: &securityinsight.DataConnectorDataTypeCommon{
 					State: securityinsight.DataTypeStateEnabled,
 				},
 			},
@@ -103,7 +103,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *plugins
 		Kind: securityinsight.KindBasicDataConnectorKindAzureAdvancedThreatProtection,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -123,7 +123,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d *pluginsdk
 	}
 	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
@@ -156,7 +156,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete(d *plugins
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

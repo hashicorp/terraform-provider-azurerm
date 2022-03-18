@@ -185,7 +185,7 @@ The following arguments are supported:
 `itsm_receiver` supports the following:
 
 * `name` - (Required) The name of the ITSM receiver.
-* `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined.
+* `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined. Format is `<subscription id>|<workspace id>`, for example `00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000`.
 * `connection_id` - (Required) The unique connection identifier of the ITSM connection.
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
 * `region` - (Required) The region of the workspace.

@@ -102,13 +102,14 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
-			Parameters: read.WorkflowProperties.Parameters,
+			Definition:         definition,
+			Parameters:         read.WorkflowProperties.Parameters,
+			AccessControl:      read.WorkflowProperties.AccessControl,
+			IntegrationAccount: read.WorkflowProperties.IntegrationAccount,
 		},
 		Identity: read.Identity,
 		Tags:     read.Tags,
 	}
-
 	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s for %s %q: %+v", workflowId, kind, name, err)
 	}
@@ -184,7 +185,7 @@ func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, resourc
 
 func retrieveLogicAppHttpTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, *string, error) {
 	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
-	if err != nil {
+	if err != nil || t == nil {
 		return nil, nil, nil, err
 	}
 	url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, resourceGroup, logicAppName, name)

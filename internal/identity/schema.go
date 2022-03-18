@@ -6,13 +6,6 @@ import (
 
 type Type string
 
-const (
-	none                       Type = "None"
-	systemAssigned             Type = "SystemAssigned"
-	userAssigned               Type = "UserAssigned"
-	systemAssignedUserAssigned Type = "SystemAssigned, UserAssigned"
-)
-
 type ExpandedConfig struct {
 	// Type is the type of User Assigned Identity, either `None`, `SystemAssigned`, `UserAssigned`
 	// or `SystemAssigned, UserAssigned`

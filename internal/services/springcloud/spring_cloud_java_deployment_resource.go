@@ -90,14 +90,17 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 				RelativePath: utils.String("<default>"),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
-				CPU:                  utils.Int32(int32(d.Get("cpu").(int))),
-				MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
 				JvmOptions:           utils.String(d.Get("jvm_options").(string)),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(cpu, mem, d.Get("quota").([]interface{})),
 				RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
 			},
 		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		deployment.Properties.DeploymentSettings.CPU = utils.Int32(int32(cpu))
+		deployment.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(mem))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
