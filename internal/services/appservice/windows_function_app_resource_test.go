@@ -673,7 +673,7 @@ func TestAccWindowsFunctionApp_appStackNode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuConsumptionPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -689,7 +689,7 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "12"),
+			Config: r.appStackNode(data, SkuBasicPlan, "~12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -697,7 +697,15 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuBasicPlan, "~16"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNode(data, SkuBasicPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
