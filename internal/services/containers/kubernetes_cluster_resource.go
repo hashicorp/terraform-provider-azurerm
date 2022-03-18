@@ -1011,7 +1011,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema[k] = v
 	}
 
-	if features.KubeConfigsAreSensitive() {
+	if features.ThreePointOhBeta() {
 		resource.Schema["kube_config"] = &pluginsdk.Schema{
 			Type:      pluginsdk.TypeList,
 			Computed:  true,
