@@ -121,10 +121,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 		d.Set("service_url", props.ServiceURL)
 	}
 
-	identity, err := flattenManagedIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+	identity, _ := flattenDicomManagedIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}

@@ -63,7 +63,7 @@ func TestAccHealthCareDicom_update(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_updateIdentity(t *testing.T) {
+func TestAccHealthCareDicom_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 

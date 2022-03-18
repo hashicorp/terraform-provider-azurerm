@@ -55,7 +55,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
@@ -129,7 +129,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandDicomManagedIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -189,11 +189,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("service_url", props.ServiceURL)
 	}
 
-	identity, err := flattenManagedIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
+	identity, _ := flattenDicomManagedIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -201,47 +197,40 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dicomServiceId, err := parse.DicomServiceID(d.Id())
+	id, err := parse.DicomServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.Get(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *dicomServiceId, err)
-	}
-	if existing.DicomServiceProperties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *dicomServiceId)
-	}
-
-	update := healthcareapis.DicomServicePatchResource{}
-
-	update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-
-	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandDicomManagedIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	update.Identity = identity
 
-	future, err := client.Update(ctx, dicomServiceId.ResourceGroup, dicomServiceId.Name, dicomServiceId.WorkspaceName, update)
+	parameters := healthcareapis.DicomService{
+		Location:               utils.String(location.Normalize(d.Get("location").(string))),
+		Identity:               expandedIdentity,
+		DicomServiceProperties: &healthcareapis.DicomServiceProperties{},
+		Tags:                   tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", dicomServiceId, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update %s: %+v", dicomServiceId, err)
+		return fmt.Errorf("waiting for update %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
 	return resourceHealthcareApisDicomServiceRead(d, meta)
 }
 
@@ -307,8 +296,8 @@ func flattenDicomServicePrivateEndpoint(input *[]healthcareapis.PrivateEndpointC
 	return results
 }
 
-func expandManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {
-	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+func expandDicomManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -317,23 +306,24 @@ func expandManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedI
 		Type: healthcareapis.ServiceManagedIdentityType(string(expanded.Type)),
 	}
 
-	if len(expanded.IdentityIds) > 0 {
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
 		out.UserAssignedIdentities = make(map[string]*healthcareapis.UserAssignedIdentity)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &healthcareapis.UserAssignedIdentity{}
+			out.UserAssignedIdentities[k] = &healthcareapis.UserAssignedIdentity{
+				// intentionally empty
+			}
 		}
 	}
-
 	return &out, nil
 }
 
-func flattenManagedIdentity(input *healthcareapis.ServiceManagedIdentityIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemOrUserAssignedMap
+func flattenDicomManagedIdentity(input *healthcareapis.ServiceManagedIdentityIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemOrUserAssignedMap{
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		transform = &identity.SystemAndUserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalID != nil {
 			id := *input.PrincipalID
@@ -345,14 +335,12 @@ func flattenManagedIdentity(input *healthcareapis.ServiceManagedIdentityIdentity
 		}
 
 		for k, v := range input.UserAssignedIdentities {
-			clientID := v.ClientID
-			principalID := v.PrincipalID
 			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    utils.String(clientID.String()),
-				PrincipalId: utils.String(principalID.String()),
+				ClientId:    utils.String(v.ClientID.String()),
+				PrincipalId: utils.String(v.PrincipalID.String()),
 			}
 		}
 	}
 
-	return identity.FlattenSystemOrUserAssignedMap(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

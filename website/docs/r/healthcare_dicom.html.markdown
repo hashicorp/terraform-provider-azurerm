@@ -38,11 +38,11 @@ resource "azurerm_healthcare_dicom_service" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Healthcare Dicom Service. Changing this forces a new Healthcare Workspace to be created.
+* `name` - (Required) Specifies the name of the Healthcare Dicom Service. Changing this forces a new Healthcare Dicom Service to be created.
 
-* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare Dicom Service should exist. Changing this forces a new Healthcare Workspace to be created.
+* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare Dicom Service should exist. Changing this forces a new Healthcare Dicom Service to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Healthcare Dicom Service should be created. Changing this forces a new Healthcare Workspace to be created.
+* `location` - (Required) Specifies the Azure Region where the Healthcare Dicom Service should be created. Changing this forces a new Healthcare Dicom Service to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
