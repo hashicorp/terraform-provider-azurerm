@@ -14,7 +14,7 @@ Use this data source to access information about an existing Healthcare Dicom Se
 
 ```hcl
 data "azurerm_healthcare_dicom_service" "example" {
-  name                = "example-healthcare_dicom_service"
+  name         = "example-healthcare_dicom_service"
   workspace_id = "example_healthcare_workspace"
 }
 
@@ -33,7 +33,7 @@ output "azurerm_healthcare_dicom_service" {
 
 The following attributes are exported:
 
-* `id` - The ID of the Healthcare Workspace.
+* `id` - The ID of the Healthcare Dicom Service.
 
 * `location` - The Azure Region where the Healthcare Dicom Service is located.
 

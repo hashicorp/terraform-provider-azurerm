@@ -33,7 +33,6 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceID,
 			},
 
