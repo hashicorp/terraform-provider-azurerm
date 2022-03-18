@@ -158,7 +158,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			containers.Registration{},
 			consumption.Registration{},
 			cosmos.Registration{},
-			costmanagement.Registration{},
 			customproviders.Registration{},
 			databricks.Registration{},
 			datafactory.Registration{},
