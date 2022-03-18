@@ -179,23 +179,12 @@ func resourceExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
-			Target:         utils.String(d.Get("target").(string)),
+			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
+			Target:         utils.String(d.Get("target").(string)),
+			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 			Weight:         utils.Int64(int64(d.Get("weight").(int))),
 		},
-	}
-
-	headerSlice := make([]endpoints.EndpointPropertiesCustomHeadersInlined, 0)
-	for _, header := range d.Get("custom_header").([]interface{}) {
-		headerBlock := header.(map[string]interface{})
-		headerSlice = append(headerSlice, endpoints.EndpointPropertiesCustomHeadersInlined{
-			Name:  utils.String(headerBlock["name"].(string)),
-			Value: utils.String(headerBlock["value"].(string)),
-		})
-	}
-
-	if len(headerSlice) > 0 {
-		params.Properties.CustomHeaders = &headerSlice
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
@@ -213,25 +202,6 @@ func resourceExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 	if len(geoMappings) > 0 {
 		params.Properties.GeoMapping = &geoMappings
-	}
-
-	subnetSlice := make([]endpoints.EndpointPropertiesSubnetsInlined, 0)
-	for _, subnet := range d.Get("subnet").([]interface{}) {
-		subnetBlock := subnet.(map[string]interface{})
-		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
-			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Last:  utils.String(subnetBlock["last"].(string)),
-			})
-		} else {
-			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Scope: utils.Int64(int64(subnetBlock["scope"].(int))),
-			})
-		}
-	}
-	if len(subnetSlice) > 0 {
-		params.Properties.Subnets = &subnetSlice
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
