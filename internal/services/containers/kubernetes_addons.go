@@ -37,17 +37,11 @@ const (
 // omitted from this list an addon/environment combination will be supported
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
-		aciConnectorKey,                 // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
-		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
-		openServiceMeshKey,              // Preview features are not supported in Azure China
-		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
+		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
+		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
 	azure.USGovernmentCloud.Name: {
-		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
-		openServiceMeshKey,              // Preview features are not supported in Azure Government
-		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
+		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
 }
 
