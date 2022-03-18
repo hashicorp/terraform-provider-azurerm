@@ -798,6 +798,7 @@ resource "azurerm_mysql_flexible_server" "pitr" {
   create_mode                       = "PointInTimeRestore"
   source_server_id                  = azurerm_mysql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
+  zone                              = "1"
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
