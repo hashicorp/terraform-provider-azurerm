@@ -1,6 +1,7 @@
 package synapse
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/url"
@@ -564,7 +565,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key_versionless_id") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key") {
 		publicNetworkAccess := synapse.WorkspacePublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled
@@ -599,6 +600,26 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting on updating future for Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{
+				"Updating",
+				"ActivatingWorkspace",
+			},
+			Target: []string{
+				"Succeeded",
+				"Consistent",
+				"AwaitingUserAction",
+			},
+			Refresh:                   synapseWorkspaceCMKUpdateStateRefreshFunc(ctx, client, id),
+			MinTimeout:                5 * time.Second,
+			ContinuousTargetOccurence: 5,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
 	}
 
@@ -681,6 +702,19 @@ func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if res.Encryption != nil && res.Encryption.Cmk != nil {
+			return res, *res.Encryption.Cmk.Status, nil
+		}
+		return res, "Succeeded", nil
+	}
 }
 
 func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2FilesystemId string) *synapse.DataLakeStorageAccountDetails {
