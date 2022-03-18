@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	monitorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -169,6 +170,8 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 
 func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
+	actionGroupClient := meta.(*clients.Client).Monitor.ActionGroupsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -179,7 +182,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -189,7 +192,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_application_insights", resourceId)
+			return tf.ImportAsExistsError("azurerm_application_insights", resourceId.ID())
 		}
 	}
 
@@ -252,6 +255,43 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
+	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
+	// Azure creates a rule and action group when creating this resource that are very noisy
+	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
+	// Instead, we'll opt to disable them here
+	ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
+	ruleId := monitorParse.NewSmartDetectorAlertRuleID(resourceId.SubscriptionId, resourceId.ResourceGroup, ruleName)
+	result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, utils.Bool(true))
+	if err != nil {
+		if !utils.ResponseWasNotFound(result.Response) {
+			return fmt.Errorf("making Read request for %s: %+v", ruleId, err)
+		}
+	}
+
+	result.State = alertsmanagement.AlertRuleStateDisabled
+	updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
+	if err != nil {
+		if !utils.ResponseWasNotFound(updateRuleResult.Response) {
+			return fmt.Errorf("issuing delete request for %s: %+v", ruleId, err)
+		}
+	}
+
+	actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
+	groupResult, err := actionGroupClient.Get(ctx, actionGroupId.ResourceGroup, actionGroupId.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(result.Response) {
+			return fmt.Errorf("making Read request for %s: %+v", actionGroupId, err)
+		}
+	}
+
+	groupResult.Enabled = utils.Bool(false)
+	updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
+	if err != nil {
+		if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
+			return fmt.Errorf("issuing update request for %s: %+v", actionGroupId, err)
+		}
+	}
+
 	billingRead, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
@@ -274,7 +314,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(resourceId.ID())
 
 	return resourceApplicationInsightsRead(d, meta)
 }
