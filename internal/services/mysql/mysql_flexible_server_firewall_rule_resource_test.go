@@ -77,6 +77,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
+  zone                   = "1"
 }
 
 resource "azurerm_mysql_flexible_server_firewall_rule" "test" {
@@ -99,6 +100,7 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "import" {
   server_name         = azurerm_mysql_flexible_server_firewall_rule.test.server_name
   start_ip_address    = azurerm_mysql_flexible_server_firewall_rule.test.start_ip_address
   end_ip_address      = azurerm_mysql_flexible_server_firewall_rule.test.end_ip_address
+  zone                = azurerm_mysql_flexible_server_firewall_rule.test.zone
 }
 `, r.basic(data))
 }

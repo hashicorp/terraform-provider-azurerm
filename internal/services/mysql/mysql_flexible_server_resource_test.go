@@ -702,6 +702,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
