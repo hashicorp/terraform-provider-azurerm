@@ -2,10 +2,10 @@ package healthcare
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func dataSourceHealthcareApisDicomService() *pluginsdk.Resource {
+func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceHealthcareApisDicomServiceRead,
 
@@ -30,9 +30,14 @@ func dataSourceHealthcareApisDicomService() *pluginsdk.Resource {
 				ValidateFunc: validate.DicomServiceName(),
 			},
 
-			"location": commonschema.LocationComputed(),
+			"workspace_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.WorkspaceID,
+			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"location": commonschema.LocationComputed(),
 
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
@@ -52,47 +57,76 @@ func dataSourceHealthcareApisDicomService() *pluginsdk.Resource {
 				},
 			},
 
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"service_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DicomServiceID(d.Id())
+	workspaceId, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Dicom service error: %+v", err)
+		return fmt.Errorf("parsing workspace id error: %+v", err)
 	}
 
+	id := parse.NewDicomServiceID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	d.Set("name", id.Name)
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("workspace_id", workspaceId.ID())
 
 	if resp.Location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
+		d.Set("location", location.Normalize(*resp.Location))
 	}
 
 	if props := resp.DicomServiceProperties; props != nil {
 		d.Set("authentication_configuration", flattenDicomAuthentication(props.AuthenticationConfiguration))
 		d.Set("private_endpoint_connection", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 		d.Set("service_url", props.ServiceURL)
+	}
+
+	identity, err := flattenManagedIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {

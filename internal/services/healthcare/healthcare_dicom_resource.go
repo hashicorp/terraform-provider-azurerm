@@ -2,14 +2,13 @@ package healthcare
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
@@ -22,9 +21,9 @@ import (
 
 func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisDicomServiceCreateUpdate,
+		Create: resourceHealthcareApisDicomServiceCreate,
 		Read:   resourceHealthcareApisDicomServiceRead,
-		Update: resourceHealthcareApisDicomServiceCreateUpdate,
+		Update: resourceHealthcareApisDicomServiceUpdate,
 		Delete: resourceHealthcareApisDicomServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -60,7 +59,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authority": {
@@ -104,9 +103,9 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Dicom Service creation.")
 
@@ -126,7 +125,7 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthcareapis_dicom_service", dicomServiceId.ID())
+			return tf.ImportAsExistsError("azurerm_healthcare_dicom_service", dicomServiceId.ID())
 		}
 	}
 
@@ -138,6 +137,7 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := healthcareapis.DicomService{
+		Identity: identity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
 	}
@@ -152,6 +152,7 @@ func resourceHealthcareApisDicomServiceCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(dicomServiceId.ID())
+
 	return resourceHealthcareApisDicomServiceRead(d, meta)
 }
 
@@ -188,11 +189,60 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("service_url", props.ServiceURL)
 	}
 
+	identity, err := flattenManagedIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	dicomServiceId, err := parse.DicomServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *dicomServiceId, err)
+	}
+	if existing.DicomServiceProperties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *dicomServiceId)
+	}
+
+	update := healthcareapis.DicomServicePatchResource{}
+
+	update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+
+	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	update.Identity = identity
+
+	future, err := client.Update(ctx, dicomServiceId.ResourceGroup, dicomServiceId.Name, dicomServiceId.WorkspaceName, update)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", dicomServiceId, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update %s: %+v", dicomServiceId, err)
+	}
+
+	return resourceHealthcareApisDicomServiceRead(d, meta)
 }
 
 func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -264,16 +314,45 @@ func expandManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedI
 	}
 
 	out := healthcareapis.ServiceManagedIdentityIdentity{
-		Type: healthcareapis.ServiceManagedIdentityType(expanded.Type),
+		Type: healthcareapis.ServiceManagedIdentityType(string(expanded.Type)),
 	}
 
 	if len(expanded.IdentityIds) > 0 {
 		out.UserAssignedIdentities = make(map[string]*healthcareapis.UserAssignedIdentity)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &healthcareapis.UserAssignedIdentity{
-			}
+			out.UserAssignedIdentities[k] = &healthcareapis.UserAssignedIdentity{}
 		}
 	}
 
 	return &out, nil
+}
+
+func flattenManagedIdentity(input *healthcareapis.ServiceManagedIdentityIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemOrUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+			Type:        identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			id := *input.PrincipalID
+			transform.PrincipalId = id.String()
+		}
+		if input.TenantID != nil {
+			tenantID := *input.TenantID
+			transform.TenantId = tenantID.String()
+		}
+
+		for k, v := range input.UserAssignedIdentities {
+			clientID := v.ClientID
+			principalID := v.PrincipalID
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    utils.String(clientID.String()),
+				PrincipalId: utils.String(principalID.String()),
+			}
+		}
+	}
+
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }

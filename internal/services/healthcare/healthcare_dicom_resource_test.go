@@ -3,10 +3,10 @@ package healthcare_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,9 +29,63 @@ func TestAccHealthCareDicom_basic(t *testing.T) {
 	})
 }
 
+func TestAccHealthCareDicom_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
+	r := HealthCareDicomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHealthCareDicom_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
+	r := HealthCareDicomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHealthCareDicom_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
+	r := HealthCareDicomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccHealthCareDicom_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
-	r := HealthCareWorkspaceResouce{}
+	r := HealthCareDicomResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,19 +111,60 @@ func (HealthCareDicomResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.DicomServiceProperties != nil), nil
 }
 
-func (HealthCareDicomResource) basic(data acceptance.TestData) string {
+func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%s
+
+resource "azurerm_healthcare_dicom_service" "test" {
+  name         = "acctest-dicom%d"
+  workspace_id = azurerm_healthcare_workspace.test.id
+  location     = "east us"
+}
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-hcwk-%d"
-  location = "%s"
+func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_healthcare_dicom_service" "test" {
+  name         = "acctest-dicom%d"
+  workspace_id = azurerm_healthcare_workspace.test.id
+  location     = "east us"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "None"
+  }
+}
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
-resource "azurerm_healthcare_workspace" "test" {
-  name                = "acctestwk%d"
+func (r HealthCareDicomResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_healthcare_dicom_service" "test" {
+  name         = "acctest-dicom%d"
+  workspace_id = azurerm_healthcare_workspace.test.id
+  location     = "east us"
+
+  tags = {
+    environment = "Prod"
+  }
+}
+`, r.template(data), data.RandomIntOfLength(8))
+}
+
+func (r HealthCareDicomResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -78,8 +173,17 @@ resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "east us"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "None"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
 
 func (r HealthCareDicomResource) requiresImport(data acceptance.TestData) string {
@@ -91,4 +195,23 @@ resource "azurerm_healthcare_dicom_service" "import" {
   location     = azurerm_healthcare_dicom_service.test.location
 }
 `, r.basic(data))
+}
+
+func (HealthCareDicomResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-dicom-%d"
+  location = "%s"
+}
+
+resource "azurerm_healthcare_workspace" "test" {
+  name                = "acctestwk%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
