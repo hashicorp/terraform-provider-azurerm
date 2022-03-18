@@ -271,12 +271,12 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.DeploymentName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DeploymentName)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
-
-	if err := waitForTemplateDeploymentToBeDeleted(ctx, client, *id); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	return nil
@@ -297,27 +297,6 @@ func expandTemplateBody(template string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
-}
-
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, id parse.ResourceGroupTemplateDeploymentId) error {
-	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to be deleted", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
 }
 
 func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, id parse.ResourceGroupTemplateDeploymentId) pluginsdk.StateRefreshFunc {
