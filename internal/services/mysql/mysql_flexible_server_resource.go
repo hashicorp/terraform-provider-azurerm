@@ -318,6 +318,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ServerProperties: &mysqlflexibleservers.ServerProperties{
 			CreateMode:       createMode,
+			Version:          mysqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			Storage:          expandArmServerStorage(d.Get("storage").([]interface{})),
 			Network:          expandArmServerNetwork(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
@@ -341,10 +342,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
 		parameters.SourceServerResourceID = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
-		parameters.ServerProperties.Version = mysqlflexibleservers.ServerVersion(v.(string))
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
