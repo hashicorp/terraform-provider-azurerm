@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -153,7 +153,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(compute.DiskStorageAccountTypesPremiumLRS),
 								string(compute.DiskStorageAccountTypesStandardSSDLRS),
 								string(compute.DiskStorageAccountTypesUltraSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"target_replica_disk_type": {
@@ -165,7 +165,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(compute.DiskStorageAccountTypesPremiumLRS),
 								string(compute.DiskStorageAccountTypesStandardSSDLRS),
 								string(compute.DiskStorageAccountTypesUltraSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"target_disk_encryption_set_id": {

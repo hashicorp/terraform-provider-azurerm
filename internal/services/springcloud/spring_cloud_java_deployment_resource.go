@@ -100,6 +100,11 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
+	if !features.ThreePointOhBeta() {
+		deployment.Properties.DeploymentSettings.CPU = utils.Int32(int32(cpu))
+		deployment.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(mem))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)

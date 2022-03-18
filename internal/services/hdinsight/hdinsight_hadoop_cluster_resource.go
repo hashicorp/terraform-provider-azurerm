@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
@@ -55,8 +56,12 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 		Read:   resourceHDInsightHadoopClusterRead,
 		Update: hdinsightClusterUpdate("Hadoop", resourceHDInsightHadoopClusterRead),
 		Delete: hdinsightClusterDelete("Hadoop"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -132,7 +137,7 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
+										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 									},
 
 									"install_script_action": {
@@ -377,8 +382,15 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
+		tier := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range hdinsight.PossibleTierValues() {
+			if strings.EqualFold(string(v), string(props.Tier)) {
+				tier = string(v)
+			}
+		}
+		d.Set("tier", tier)
 		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tier", string(props.Tier))
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
@@ -457,8 +469,15 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 				if targetInstanceCount := role.TargetInstanceCount; targetInstanceCount != nil {
 					edgeNode["target_instance_count"] = targetInstanceCount
 				}
-				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil {
-					edgeNode["vm_size"] = hardwareProfile.VMSize
+				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil && hardwareProfile.VMSize != nil {
+					vmSize := ""
+					// the Azure API is inconsistent here, so rewrite this into the casing we expect
+					for _, v := range validate.NodeDefinitionVMSize {
+						if strings.EqualFold(v, *hardwareProfile.VMSize) {
+							vmSize = v
+						}
+					}
+					edgeNode["vm_size"] = vmSize
 				}
 			}
 		}

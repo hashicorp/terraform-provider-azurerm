@@ -200,7 +200,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -246,7 +246,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -281,7 +281,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }

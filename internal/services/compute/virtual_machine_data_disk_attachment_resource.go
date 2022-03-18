@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,7 +67,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 					string(compute.CachingTypesNone),
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -79,7 +79,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

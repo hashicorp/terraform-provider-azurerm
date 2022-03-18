@@ -5,8 +5,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// TODO: this can be moved into Container
-
 type Registration struct{}
 
 // Name is the name of this Service
@@ -32,7 +30,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		return map[string]*pluginsdk.Resource{}
 	}
 
-	// TODO: remove this entire package in 3.0
 	return map[string]*pluginsdk.Resource{
 		"azurerm_devspace_controller": resourceDevSpaceController(),
 	}

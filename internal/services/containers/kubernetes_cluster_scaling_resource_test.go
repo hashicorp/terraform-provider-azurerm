@@ -196,13 +196,6 @@ func TestAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 			Config: r.autoscaleWithAvailabilityZonesConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("2"),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
-				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.#").HasValue("2"),
-				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.0").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.1").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -440,7 +433,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     max_count           = 2
     enable_auto_scaling = true
     vm_size             = "Standard_DS2_v2"
-    availability_zones  = ["1", "2"]
+    zones               = ["1", "2"]
   }
 
   identity {
@@ -449,7 +442,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "kubenet"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)

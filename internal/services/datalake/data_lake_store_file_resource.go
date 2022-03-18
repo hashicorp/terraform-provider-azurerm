@@ -2,6 +2,7 @@ package datalake
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -27,8 +28,20 @@ func resourceDataLakeStoreFile() *pluginsdk.Resource {
 		Read:   resourceDataLakeStoreFileRead,
 		Delete: resourceDataLakeStoreFileDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			// this is intentionally a noop since we need the DNS Syntax to parse it
+			return nil
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Datalake.StoreFilesClient
+			_, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
+
+		DeprecationMessage: `Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.`,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -187,8 +200,6 @@ func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 		return nil, fmt.Errorf("parsing %q as URI: %+v", input, err)
 	}
 
-	// TODO: switch to pulling this from the Environment when it's available there
-	// BUG: https://github.com/Azure/go-autorest/issues/312
 	replacement := fmt.Sprintf(".%s", suffix)
 	accountName := strings.ReplaceAll(uri.Host, replacement, "")
 

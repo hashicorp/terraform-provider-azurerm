@@ -97,7 +97,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true, // TODO - Uncomment this
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 			ExactlyOneOf: []string{
 				"storage_uses_managed_identity",
@@ -482,7 +482,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 25 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
@@ -784,6 +784,10 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
 			}
 
+			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
 
@@ -808,6 +812,13 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
 			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+
+		case "AzureWebJobsStorage__accountName":
+			m.StorageUsesMSI = true
+			m.StorageAccountName = utils.NormalizeNilableString(v)
+
+		case "AzureWebJobsDashboard__accountName":
+			m.BuiltinLogging = true
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

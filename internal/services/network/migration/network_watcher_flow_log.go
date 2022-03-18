@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -110,10 +111,9 @@ func (NetworkWatcherFlowLogV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"location": {
-			// TODO: `computed` should be removed in 3.0
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: !features.ThreePointOhBeta(),
 			ForceNew: true,
 		},
 

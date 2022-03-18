@@ -251,8 +251,12 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// The resource NetApp Pool depends on the resource NetApp Account.

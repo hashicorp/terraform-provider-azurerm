@@ -274,17 +274,17 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
 			}
-			// Inherit Key Vault recovery setting by default. If we're on 3.0 then the code below will overwrite
-			// these values as needed.
-			// TODO: Remove in 3.0
-			featuresMap.KeyVault.RecoverSoftDeletedCerts = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-			featuresMap.KeyVault.RecoverSoftDeletedSecrets = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-			featuresMap.KeyVault.RecoverSoftDeletedKeys = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-			featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
-			featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
-			featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 
-			if features.ThreePointOhBeta() {
+			if !features.ThreePointOhBeta() {
+				// Inherit Key Vault recovery setting by default. If we're on 3.0 then the code below will overwrite
+				// these values as needed.
+				featuresMap.KeyVault.RecoverSoftDeletedCerts = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+				featuresMap.KeyVault.RecoverSoftDeletedSecrets = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+				featuresMap.KeyVault.RecoverSoftDeletedKeys = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+				featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+				featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+				featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+			} else {
 				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 				}
@@ -313,16 +313,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
 			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
 				featuresMap.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["network"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 {
-			networkRaw := items[0].(map[string]interface{})
-			if v, ok := networkRaw["relaxed_locking"]; ok {
-				featuresMap.Network.RelaxedLocking = v.(bool)
 			}
 		}
 	}

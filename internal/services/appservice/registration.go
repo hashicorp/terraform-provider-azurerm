@@ -40,6 +40,8 @@ func (r Registration) Resources() []sdk.Resource {
 		return []sdk.Resource{
 			AppServiceSourceControlTokenResource{},
 			FunctionAppActiveSlotResource{},
+			FunctionAppFunctionResource{},
+			FunctionAppHybridConnectionResource{},
 			LinuxFunctionAppResource{},
 			LinuxFunctionAppSlotResource{},
 			LinuxWebAppResource{},
@@ -48,10 +50,11 @@ func (r Registration) Resources() []sdk.Resource {
 			SourceControlResource{},
 			SourceControlSlotResource{},
 			WebAppActiveSlotResource{},
-			WindowsWebAppResource{},
+			WebAppHybridConnectionResource{},
 			WindowsFunctionAppResource{},
-			WindowsWebAppSlotResource{},
 			WindowsFunctionAppSlotResource{},
+			WindowsWebAppResource{},
+			WindowsWebAppSlotResource{},
 		}
 	}
 	return []sdk.Resource{}

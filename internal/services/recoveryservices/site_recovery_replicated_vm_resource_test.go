@@ -273,7 +273,8 @@ func (SiteRecoveryReplicatedVmResource) des(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -329,12 +330,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -598,12 +599,12 @@ resource "azurerm_key_vault_key" "test2" {
   key_size     = 2048
 
   key_opts = [
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal2"]

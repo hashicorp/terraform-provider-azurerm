@@ -75,7 +75,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku": {
@@ -87,7 +87,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.PublicIPAddressSkuNameBasic),
 						string(network.PublicIPAddressSkuNameStandard),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku_tier": {
@@ -250,7 +250,6 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		zones := &[]string{"1", "2"}
 		zonesSet := false
-		// TODO - Remove in 3.0
 		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 			zonesSet = true
 			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))

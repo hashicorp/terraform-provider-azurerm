@@ -31,8 +31,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "example-queue"
-  resource_group_name = data.azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 

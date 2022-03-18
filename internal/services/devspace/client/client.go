@@ -5,7 +5,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-// TODO: this can probably be folded into Containers
 type Client struct {
 	ControllersClient *devspaces.ControllersClient
 }

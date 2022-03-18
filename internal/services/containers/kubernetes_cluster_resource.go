@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -60,9 +60,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KubernetesClusterV0ToV1{},
+			1: migration.KubernetesClusterV1ToV2{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -517,16 +518,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(containerservice.LoadBalancerSkuStandard),
-							ForceNew: true,
-							// TODO: fix the casing in the Swagger
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          string(containerservice.LoadBalancerSkuStandard),
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"outbound_type": {
@@ -655,21 +655,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"private_link_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"private_cluster_enabled"},
-				Deprecated:    "Deprecated in favour of `private_cluster_enabled`", // TODO -- remove this in next major version
-			},
-
 			"private_cluster_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"private_link_enabled"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: !features.ThreePointOhBeta(),
+				ConflictsWith: func() []string {
+					if !features.ThreePointOhBeta() {
+						return []string{"private_link_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"private_cluster_public_fqdn_enabled": {
@@ -699,101 +695,110 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"role_based_access_control": {
+			"role_based_access_control_enabled": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return &schema.Schema{
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Computed:      true,
+						ForceNew:      true,
+						ConflictsWith: []string{"role_based_access_control"},
+					}
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+					ForceNew: true,
+				}
+			}(),
+
+			"azure_active_directory_role_based_access_control": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
+				Computed: !features.ThreePointOhBeta(),
+				ConflictsWith: func() []string {
+					if !features.ThreePointOhBeta() {
+						return []string{"role_based_access_control"}
+					}
+					return []string{}
+				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-							ForceNew: true,
+						"client_app_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
 						},
-						"azure_active_directory": {
+
+						"server_app_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"server_app_secret": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							// OrEmpty since this can be sourced from the client config if it's not specified
+							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"managed": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"azure_rbac_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"admin_group_object_ids": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"client_app_id": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsUUID,
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-
-									"server_app_id": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsUUID,
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-
-									"server_app_secret": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-
-									"tenant_id": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Computed: true,
-										// OrEmpty since this can be sourced from the client config if it's not specified
-										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-
-									"managed": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-
-									"azure_rbac_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"admin_group_object_ids": {
-										Type:       pluginsdk.TypeSet,
-										Optional:   true,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsUUID,
-										},
-										AtLeastOneOf: []string{
-											"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-										},
-									},
-								},
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsUUID,
+							},
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 							},
 						},
 					},
@@ -1001,7 +1006,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	// TODO: post-3.0 we should inline these?
+	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
 	}
@@ -1087,6 +1092,120 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 		}
 	}
+
+	if !features.ThreePointOhBeta() {
+		resource.Schema["private_link_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"private_cluster_enabled"},
+			Deprecated:    "`private_link_enabled` is deprecated in favour of `private_cluster_enabled` and will be removed in version 3.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["role_based_access_control"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"role_based_access_control_enabled", "azure_active_directory_role_based_access_control"},
+			Deprecated:    "`role_based_access_control` is deprecated in favour of the properties `role_based_access_control_enabled` and `azure_active_directory_role_based_access_control` and will be removed in version 3.0 of the AzureRM provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+						ForceNew: true,
+					},
+					"azure_active_directory": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_app_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.IsUUID,
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+
+								"server_app_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.IsUUID,
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+
+								"server_app_secret": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Sensitive:    true,
+									ValidateFunc: validation.StringIsNotEmpty,
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+
+								"tenant_id": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Computed: true,
+									// OrEmpty since this can be sourced from the client config if it's not specified
+									ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+
+								"managed": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+
+								"azure_rbac_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"admin_group_object_ids": {
+									Type:       pluginsdk.TypeSet,
+									Optional:   true,
+									ConfigMode: pluginsdk.SchemaConfigModeAttr,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.IsUUID,
+									},
+									AtLeastOneOf: []string{
+										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
 	return resource
 }
 
@@ -1154,10 +1273,25 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-	if err != nil {
-		return err
+	rbacEnabled := true
+	var azureADProfile *containerservice.ManagedClusterAADProfile
+	if v, ok := d.GetOk("role_based_access_control_enabled"); ok {
+		rbacEnabled = v.(bool)
+	}
+	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
+		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("role_based_access_control"); ok {
+			rbacEnabled, azureADProfile, err = expandKubernetesClusterRoleBasedAccessControl(v.([]interface{}), tenantId)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -1169,8 +1303,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
 	enablePrivateCluster := false
-	if v, ok := d.GetOk("private_link_enabled"); ok {
-		enablePrivateCluster = v.(bool)
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("private_link_enabled"); ok {
+			enablePrivateCluster = v.(bool)
+		}
 	}
 	if v, ok := d.GetOk("private_cluster_enabled"); ok {
 		enablePrivateCluster = v.(bool)
@@ -1385,38 +1521,84 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	updateCluster := false
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
-	if d.HasChange("role_based_access_control") {
+	if !features.ThreePointOhBeta() {
+		if d.HasChange("role_based_access_control") {
+			props := existing.ManagedClusterProperties
+			// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
+			if props.EnableRBAC == nil {
+				return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
+			}
+			rbacRaw := d.Get("role_based_access_control").([]interface{})
+			tenantId := meta.(*clients.Client).Account.TenantId
+			rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+			if err != nil {
+				return err
+			}
+
+			// changing rbacEnabled must still force cluster recreation
+			if *props.EnableRBAC == rbacEnabled {
+				props.AadProfile = azureADProfile
+				props.EnableRBAC = utils.Bool(rbacEnabled)
+
+				// Reset AAD profile is only possible if not managed
+				if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
+					log.Printf("[DEBUG] Updating the RBAC AAD profile")
+					future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
+					if err != nil {
+						return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
+					}
+
+					if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+						return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
+					}
+				}
+			} else {
+				updateCluster = true
+			}
+
+			if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
+				existing.ManagedClusterProperties.AadProfile = azureADProfile
+				updateCluster = true
+			}
+		}
+	}
+
+	if d.HasChange("role_based_access_control_enabled") {
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
 			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
 		}
-		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		rbacEnabled := d.Get("role_based_access_control_enabled").(bool)
+
+		// changing rbacEnabled must still force cluster recreation
+		if *props.EnableRBAC == rbacEnabled {
+			props.EnableRBAC = utils.Bool(rbacEnabled)
+		} else {
+			updateCluster = true
+		}
+	}
+
+	if d.HasChange("azure_active_directory_role_based_access_control") {
+		props := existing.ManagedClusterProperties
 		tenantId := meta.(*clients.Client).Account.TenantId
-		rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		azureADRaw := d.Get("azure_active_directory_role_based_access_control").([]interface{})
+		azureADProfile, err := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw, tenantId)
 		if err != nil {
 			return err
 		}
 
-		// changing rbacEnabled must still force cluster recreation
-		if *props.EnableRBAC == rbacEnabled {
-			props.AadProfile = azureADProfile
-			props.EnableRBAC = utils.Bool(rbacEnabled)
-
-			// Reset AAD profile is only possible if not managed
-			if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-				log.Printf("[DEBUG] Updating the RBAC AAD profile")
-				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
-				if err != nil {
-					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-					return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
-				}
+		props.AadProfile = azureADProfile
+		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
+			log.Printf("[DEBUG] Updating the RBAC AAD profile")
+			future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
+			if err != nil {
+				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
 			}
-		} else {
-			updateCluster = true
+
+			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+				return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
+			}
 		}
 
 		if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
@@ -1452,8 +1634,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 
 		enablePrivateCluster := false
-		if v, ok := d.GetOk("private_link_enabled"); ok {
-			enablePrivateCluster = v.(bool)
+		if !features.ThreePointOhBeta() {
+			if v, ok := d.GetOk("private_link_enabled"); ok {
+				enablePrivateCluster = v.(bool)
+			}
 		}
 		if v, ok := d.GetOk("private_cluster_enabled"); ok {
 			enablePrivateCluster = v.(bool)
@@ -1791,7 +1975,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
+		// CurrentKubernetesVersion contains the actual version the Managed Cluster is running after upgrading
+		// KubernetesVersion now seems to contain the initial version the cluster was created with
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		if v := props.CurrentKubernetesVersion; v != nil {
+			d.Set("kubernetes_version", v)
+		}
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
@@ -1810,7 +1999,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
-			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+			if !features.ThreePointOhBeta() {
+				d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+			}
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
 			switch {
@@ -1874,9 +2065,22 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
-		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
-			return fmt.Errorf("setting `role_based_access_control`: %+v", err)
+		if !features.ThreePointOhBeta() {
+			roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
+			if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
+				return fmt.Errorf("setting `role_based_access_control`: %+v", err)
+			}
+		}
+
+		rbacEnabled := true
+		if props.EnableRBAC != nil {
+			rbacEnabled = *props.EnableRBAC
+		}
+		d.Set("role_based_access_control_enabled", rbacEnabled)
+
+		aadRbac := flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(props, d)
+		if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
+			return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
 		}
 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(props.ServicePrincipalProfile, d)
@@ -2396,11 +2600,19 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		ngwProfiles = append(ngwProfiles, ng)
 	}
 
+	// TODO - Remove the workaround below once issue https://github.com/Azure/azure-rest-api-specs/issues/18056 is resolved
+	sku := profile.LoadBalancerSku
+	for _, v := range containerservice.PossibleLoadBalancerSkuValues() {
+		if strings.EqualFold(string(v), string(sku)) {
+			sku = v
+		}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
-			"load_balancer_sku":     string(profile.LoadBalancerSku),
+			"load_balancer_sku":     string(sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
 			"network_plugin":        string(profile.NetworkPlugin),
@@ -2476,6 +2688,64 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	}
 
 	return rbacEnabled, aad, nil
+}
+
+func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*containerservice.ManagedClusterAADProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	var aad *containerservice.ManagedClusterAADProfile
+
+	azureAdRaw := input[0].(map[string]interface{})
+
+	clientAppId := azureAdRaw["client_app_id"].(string)
+	serverAppId := azureAdRaw["server_app_id"].(string)
+	serverAppSecret := azureAdRaw["server_app_secret"].(string)
+	tenantId := azureAdRaw["tenant_id"].(string)
+	managed := azureAdRaw["managed"].(bool)
+	azureRbacEnabled := azureAdRaw["azure_rbac_enabled"].(bool)
+	adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].([]interface{})
+	adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
+
+	if tenantId == "" {
+		tenantId = providerTenantId
+	}
+
+	if managed {
+		aad = &containerservice.ManagedClusterAADProfile{
+			TenantID:            utils.String(tenantId),
+			Managed:             utils.Bool(managed),
+			AdminGroupObjectIDs: adminGroupObjectIds,
+			EnableAzureRBAC:     utils.Bool(azureRbacEnabled),
+		}
+
+		if clientAppId != "" || serverAppId != "" || serverAppSecret != "" {
+			return nil, fmt.Errorf("can't specify client_app_id or server_app_id or server_app_secret when using managed aad rbac (managed = true)")
+		}
+	} else {
+		aad = &containerservice.ManagedClusterAADProfile{
+			ClientAppID:     utils.String(clientAppId),
+			ServerAppID:     utils.String(serverAppId),
+			ServerAppSecret: utils.String(serverAppSecret),
+			TenantID:        utils.String(tenantId),
+			Managed:         utils.Bool(managed),
+		}
+
+		if len(*adminGroupObjectIds) > 0 {
+			return nil, fmt.Errorf("can't specify admin_group_object_ids when using managed aad rbac (managed = false)")
+		}
+
+		if clientAppId == "" || serverAppId == "" || serverAppSecret == "" {
+			return nil, fmt.Errorf("you must specify client_app_id and server_app_id and server_app_secret when using managed aad rbac (managed = false)")
+		}
+
+		if azureRbacEnabled {
+			return nil, fmt.Errorf("you must enable Managed AAD before Azure RBAC can be enabled")
+		}
+	}
+
+	return aad, nil
 }
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*containerservice.ManagedClusterIdentity, error) {
@@ -2592,6 +2862,63 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 			"azure_active_directory": results,
 		},
 	}
+}
+
+func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
+
+		clientAppId := ""
+		if profile.ClientAppID != nil {
+			clientAppId = *profile.ClientAppID
+		}
+
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		azureRbacEnabled := false
+		if profile.EnableAzureRBAC != nil {
+			azureRbacEnabled = *profile.EnableAzureRBAC
+		}
+
+		serverAppId := ""
+		if profile.ServerAppID != nil {
+			serverAppId = *profile.ServerAppID
+		}
+
+		serverAppSecret := ""
+		// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
+		// azure_active_directory_role_based_access_control.0.server_app_secret
+		if existing, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
+			aadRbacRaw := existing.([]interface{})
+			if len(aadRbacRaw) > 0 {
+				aadRbac := aadRbacRaw[0].(map[string]interface{})
+				if v := aadRbac["server_app_secret"]; v != nil {
+					serverAppSecret = v.(string)
+				}
+			}
+		}
+
+		tenantId := ""
+		if profile.TenantID != nil {
+			tenantId = *profile.TenantID
+		}
+
+		results = append(results, map[string]interface{}{
+			"admin_group_object_ids": adminGroupObjectIds,
+			"client_app_id":          clientAppId,
+			"managed":                managed,
+			"server_app_id":          serverAppId,
+			"server_app_secret":      serverAppSecret,
+			"tenant_id":              tenantId,
+			"azure_rbac_enabled":     azureRbacEnabled,
+		})
+	}
+
+	return results
 }
 
 func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *pluginsdk.ResourceData) []interface{} {

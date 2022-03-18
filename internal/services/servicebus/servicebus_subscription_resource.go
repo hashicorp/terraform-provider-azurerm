@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,126 +37,136 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SubscriptionName(),
-			},
+		Schema: resourceServicebusSubscriptionSchema(),
+	}
+}
 
-			// TODO 3.0 - Make it required
-			"topic_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.TopicID,
-				ConflictsWith: []string{"topic_name", "namespace_name", "resource_group_name"},
-			},
+func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SubscriptionName(),
+		},
 
-			// TODO 3.0 - Remove in favor of topic_id
-			"topic_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.TopicName(),
-				Deprecated:    `Deprecated in favor of "topic_id"`,
-				ConflictsWith: []string{"topic_id"},
-			},
+		//lintignore: S013
+		"topic_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			Computed:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.TopicID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"topic_name", "namespace_name", "resource_group_name"}
+				}
+				return []string{}
+			}(),
+		},
 
-			// TODO 3.0 - Remove in favor of topic_id
-			"namespace_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceName,
-				Deprecated:    `Deprecated in favor of "topic_id"`,
-				ConflictsWith: []string{"topic_id"},
-			},
+		"auto_delete_on_idle": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			// TODO 3.0 - Remove in favor of topic_id
-			"resource_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
-				Deprecated:    `Deprecated in favor of "topic_id"`,
-				ConflictsWith: []string{"topic_id"},
-			},
+		"default_message_ttl": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"auto_delete_on_idle": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"lock_duration": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"default_message_ttl": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"dead_lettering_on_message_expiration": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 
-			"lock_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"dead_lettering_on_filter_evaluation_error": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
-			"dead_lettering_on_message_expiration": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_batched_operations": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 
-			"dead_lettering_on_filter_evaluation_error": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+		"max_delivery_count": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+		},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_batched_operations": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
+		"requires_session": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// cannot be modified
+			ForceNew: true,
+		},
 
-			"max_delivery_count": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-			},
+		"forward_to": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"requires_session": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				// cannot be modified
-				ForceNew: true,
-			},
+		"forward_dead_lettered_messages_to": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"forward_to": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"forward_dead_lettered_messages_to": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servicebus.EntityStatusActive),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.EntityStatusActive),
-					string(servicebus.EntityStatusDisabled),
-					string(servicebus.EntityStatusReceiveDisabled),
-				}, false),
-			},
+		"status": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicebus.EntityStatusActive),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicebus.EntityStatusActive),
+				string(servicebus.EntityStatusDisabled),
+				string(servicebus.EntityStatusReceiveDisabled),
+			}, false),
 		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		s["topic_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validate.TopicName(),
+			Deprecated:    `Deprecated in favor of "topic_id"`,
+			ConflictsWith: []string{"topic_id"},
+		}
+
+		s["namespace_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validate.NamespaceName,
+			Deprecated:    `Deprecated in favor of "topic_id"`,
+			ConflictsWith: []string{"topic_id"},
+		}
+
+		s["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			Deprecated:    `Deprecated in favor of "topic_id"`,
+			ConflictsWith: []string{"topic_id"},
+		}
+	}
+	return s
 }
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -169,7 +180,7 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := parse.TopicID(topicIdLit)
 		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
-	} else {
+	} else if !features.ThreePointOhBeta() {
 		resourceId = parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
 	}
 
@@ -244,10 +255,13 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if !features.ThreePointOhBeta() {
+		d.Set("topic_name", id.TopicName)
+		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
+
 	d.Set("name", id.Name)
-	d.Set("topic_name", id.TopicName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if props := resp.SBSubscriptionProperties; props != nil {
