@@ -17,7 +17,7 @@ type ResourcePolicyRemediationResource struct{}
 
 func TestAccAzureRMResourcePolicyRemediation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_policy_remediation", "test")
-	r := SubscriptionPolicyRemediationResource{}
+	r := ResourcePolicyRemediationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
