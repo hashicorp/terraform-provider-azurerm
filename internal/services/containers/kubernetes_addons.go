@@ -39,11 +39,9 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
 	},
 	azure.USGovernmentCloud.Name: {
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
 	},
 }
 
