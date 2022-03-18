@@ -100,7 +100,6 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "import" {
   server_name         = azurerm_mysql_flexible_server_firewall_rule.test.server_name
   start_ip_address    = azurerm_mysql_flexible_server_firewall_rule.test.start_ip_address
   end_ip_address      = azurerm_mysql_flexible_server_firewall_rule.test.end_ip_address
-  zone                = azurerm_mysql_flexible_server_firewall_rule.test.zone
 }
 `, r.basic(data))
 }
