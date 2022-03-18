@@ -98,6 +98,12 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access_enabled" :{
+				Type: pluginsdk.TypeBool,
+				Optional: true,
+				Default: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -138,8 +144,14 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 
 	parameters := healthcareapis.DicomService{
 		Identity: identity,
+		DicomServiceProperties:&healthcareapis.DicomServiceProperties{
+			PublicNetworkAccess:healthcareapis.PublicNetworkAccessEnabled,
+		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
+	}
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		parameters.DicomServiceProperties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, dicomServiceId.ResourceGroup, dicomServiceId.WorkspaceName, dicomServiceId.Name, parameters)
@@ -187,7 +199,12 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("authentication_configuration", flattenDicomAuthentication(props.AuthenticationConfiguration))
 		d.Set("private_endpoint_connection", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 		d.Set("service_url", props.ServiceURL)
+
+		if props.PublicNetworkAccess != "" {
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == healthcareapis.PublicNetworkAccessEnabled)
+		}
 	}
+
 
 	identity, _ := flattenDicomManagedIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
@@ -218,9 +235,16 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	parameters := healthcareapis.DicomService{
 		Location:               utils.String(location.Normalize(d.Get("location").(string))),
 		Identity:               expandedIdentity,
-		DicomServiceProperties: &healthcareapis.DicomServiceProperties{},
+		DicomServiceProperties: &healthcareapis.DicomServiceProperties{
+			PublicNetworkAccess: healthcareapis.PublicNetworkAccessEnabled,
+		},
 		Tags:                   tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		parameters.DicomServiceProperties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
