@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * Resources supporting Managed Identity: Identity blocks are now treated consistently across the Provider - the complete list of resources can be found in the 3.0 Upgrade Guide [GH-15187]
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
+* `azurerm_iothub` - add support for `authentication_type` and `identity_id` properties in the `file_upload` block [GH-15874]
 * `azurerm_kubernetes_cluster` - the `kube_admin_config` block is now marked as sensitive in addition to all items within it [GH-4105]
 * `azurerm_kubernetes_cluster` - add support for `key_vault_secrets_provider` and `open_service_mesh_enabled` in Azure China and Azure Government [GH-15878]
 * `azurerm_linux_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
