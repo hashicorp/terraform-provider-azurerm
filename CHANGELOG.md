@@ -28,8 +28,11 @@ ENHANCEMENTS:
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
 * `azurerm_kubernetes_cluster` - the `kube_admin_config` block is now marked as sensitive in addition to all items within it [GH-4105]
+* `azurerm_linux_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_linux_function_app` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_linux_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* Data Source: `azurerm_linux_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_mssql_server` - `minimum_tls_version` now defaults to `1.2` [GH-10276]
 * `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now defaults to `1.2` [GH-10276]
@@ -41,7 +44,10 @@ ENHANCEMENTS:
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_storage_account` - `min_tls_version` now defaults to `1.2` [GH-10276]
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_windows_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_windows_function_app` - updating the read timeout to be 5m [GH-15867]
+* Data Source: `azurerm_windows_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
+* `azurerm_windows_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 
 BUG FIXES:
