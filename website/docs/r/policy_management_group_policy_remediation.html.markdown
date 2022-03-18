@@ -34,7 +34,7 @@ resource "azurerm_management_group_policy_assignment" "example" {
 
 resource "azurerm_management_group_policy_remediation" "example" {
   name                 = "exampleRemediation"
-  management_group_id      = azurerm_management_group.example.id
+  management_group_id  = azurerm_management_group.example.id
   policy_assignment_id = azurerm_management_group_policy_assignment.example.id
 }
 ```

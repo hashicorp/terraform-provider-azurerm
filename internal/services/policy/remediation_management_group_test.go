@@ -101,7 +101,7 @@ func (r ManagementGroupPolicyRemediationResource) basic(data acceptance.TestData
 
 resource "azurerm_management_group_policy_remediation" "test" {
   name                 = "acctestremediation-%[2]s"
-  management_group_id      = azurerm_management_group.test.id
+  management_group_id  = azurerm_management_group.test.id
   policy_assignment_id = azurerm_management_group_policy_assignment.test.id
 }
 `, r.template(data), data.RandomString)
@@ -113,10 +113,10 @@ func (r ManagementGroupPolicyRemediationResource) complete(data acceptance.TestD
 
 resource "azurerm_management_group_policy_remediation" "test" {
   name                 = "acctestremediation-%[2]s"
-  management_group_id      = azurerm_management_group.test.id
+  management_group_id  = azurerm_management_group.test.id
   policy_assignment_id = azurerm_management_group_policy_assignment.test.id
-  location_filters        = ["westus"]
-  policy_definition_id    = data.azurerm_policy_definition.test.id
+  location_filters     = ["westus"]
+  policy_definition_id = data.azurerm_policy_definition.test.id
 }
 `, r.template(data), data.RandomString)
 }
