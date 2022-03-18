@@ -7,6 +7,7 @@ import (
 
 type Registration struct{}
 
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -53,4 +54,14 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_key_vault_managed_storage_account":                      resourceKeyVaultManagedStorageAccount(),
 		"azurerm_key_vault_managed_storage_account_sas_token_definition": resourceKeyVaultManagedStorageAccountSasTokenDefinition(),
 	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		EncryptedValueDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
 }
