@@ -11,16 +11,25 @@ FEATURES:
 * **New Data Source**: `azurerm_managed_api` [GH-15797]
 * **New Resource**: `azurerm_api_connection` [GH-15797]
 * **New Resource**: `azurerm_healthcare_workspace` [GH-15759]
+* **New Resource**: `azurerm_stream_analytics_function_javascript_uda` [GH-15831]
 
 ENHANCEMENTS:
 
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
+* `azurerm_linux_function_app` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_windows_function_app` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_network_security_rule` - no longer locking on the network security group name [GH-15719]
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_mongo_collection` - the `default_ttl_seconds` can now be set to `-1` [GH-15736]
 
 ## 2.99.0 (March 11, 2022)
 

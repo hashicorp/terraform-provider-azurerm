@@ -477,7 +477,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 25 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
