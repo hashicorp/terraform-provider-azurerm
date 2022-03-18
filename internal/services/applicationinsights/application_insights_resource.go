@@ -268,11 +268,13 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	result.State = alertsmanagement.AlertRuleStateDisabled
-	updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
-	if err != nil {
-		if !utils.ResponseWasNotFound(updateRuleResult.Response) {
-			return fmt.Errorf("issuing delete request for %s: %+v", ruleId, err)
+	if result.AlertRuleProperties != nil {
+		result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
+		updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
+		if err != nil {
+			if !utils.ResponseWasNotFound(updateRuleResult.Response) {
+				return fmt.Errorf("issuing delete request for %s: %+v", ruleId, err)
+			}
 		}
 	}
 
@@ -284,11 +286,13 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	groupResult.Enabled = utils.Bool(false)
-	updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
-	if err != nil {
-		if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
-			return fmt.Errorf("issuing update request for %s: %+v", actionGroupId, err)
+	if groupResult.ActionGroup != nil {
+		groupResult.ActionGroup.Enabled = utils.Bool(false)
+		updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
+		if err != nil {
+			if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
+				return fmt.Errorf("issuing update request for %s: %+v", actionGroupId, err)
+			}
 		}
 	}
 
