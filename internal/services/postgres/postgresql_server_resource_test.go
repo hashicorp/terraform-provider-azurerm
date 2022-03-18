@@ -950,7 +950,7 @@ resource "azurerm_postgresql_server" "restore" {
 
   ssl_enforcement_enabled = true
 }
-`, r.basic(data, version), data.RandomInteger, restoreTime, version)
+`, r.gp(data, version), data.RandomInteger, restoreTime, version)
 }
 
 func (PostgreSQLServerResource) emptyAttrs(data acceptance.TestData, version string) string {
