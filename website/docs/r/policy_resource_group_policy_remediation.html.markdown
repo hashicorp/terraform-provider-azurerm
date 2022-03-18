@@ -1,14 +1,14 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_policy_remediation"
+page_title: "Azure Resource Manager: azurerm_resource_group_policy_remediation"
 description: |-
-  Manages an Azure Policy Remediation.
+  Manages an Azure Resource Group Policy Remediation.
 ---
 
-# azurerm_policy_insights_remediation
+# azurerm_resource_group_policy_remediation
 
-Manages an Azure Policy Remediation at the specified Scope.
+Manages an Azure Resource Group Policy Remediation.
 
 ## Example Usage
 
@@ -56,7 +56,6 @@ resource "azurerm_policy_assignment" "example" {
   name                 = "example-policy-assignment"
   scope                = azurerm_resource_group.example.id
   policy_definition_id = azurerm_policy_definition.example.id
-  description          = "Policy Assignment created via an Acceptance Test"
   display_name         = "My Example Policy Assignment"
 
   parameters = <<PARAMETERS
@@ -68,9 +67,9 @@ resource "azurerm_policy_assignment" "example" {
 PARAMETERS
 }
 
-resource "azurerm_policy_remediation" "example" {
+resource "azurerm_resource_group_policy_remediation" "example" {
   name                 = "example-policy-remediation"
-  scope                = azurerm_policy_assignment.example.scope
+  resource_group_id    = azurerm_resource_group.example.id
   policy_assignment_id = azurerm_policy_assignment.example.id
   location_filters     = ["West Europe"]
 }
@@ -82,12 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Remediation. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The Scope at which the Policy Remediation should be applied. Changing this forces a new resource to be created. A scope must be a Resource ID out of one of the following list:
-
-    1. A subscription, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`
-    1. A resource group, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup`
-    1. A resource, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Compute/virtualMachines/myVM`
-    1. A management group, e.g. `/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000`
+* `resource_group_id` - (Required) The Resource Group ID at which the Policy Remediation should be applied. Changing this forces a new resource to be created.
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
@@ -118,17 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Policy Remediations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/remediation1
-```
-or
-```shell
-terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PolicyInsights/remediations/remediation1
-```
-or
-```shell
-terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.PolicyInsights/remediations/remediation1
-```
-or
-```shell
-terraform import azurerm_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
+terraform import azurerm_resource_group_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```
