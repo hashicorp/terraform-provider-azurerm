@@ -142,10 +142,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `open_service_mesh_enabled` - (Optional) Is Open Service Mesh enabled? For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
 
--> **Note:** At this time Open Service Mesh is not supported in Azure US government or Azure China.
-
--> **Note:** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature).
-
 * `private_cluster_enabled` - (Optional) Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning. Changing this forces a new resource to be created.
@@ -396,8 +392,6 @@ A `key_vault_secrets_provider` block supports the following:
 * `secret_rotation_enabled` - (Required) Is secret rotation enabled?
 
 * `secret_rotation_interval` - (Required) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
-
-~> **Note:** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
