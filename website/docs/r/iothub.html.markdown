@@ -294,6 +294,14 @@ A `fallback_route` block supports the following:
 
 A `file_upload` block supports the following:
 
+* `authentication_type` - (Optional) The type used to authenticate against the storage account. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the storage account.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If `identity_id`is omitted when `authentication_type` is `identityBased`, then the System Assigned Managed Identity of the Iot Hub will be used.
+
+~> **NOTE:** An IoT Hub can only be updated to use the System Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
+
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 
 * `container_name` - (Required) The name of the root container where you upload files. The container need not exist but should be creatable using the connection_string specified.
