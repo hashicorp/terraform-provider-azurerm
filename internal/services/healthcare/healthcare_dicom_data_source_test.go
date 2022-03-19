@@ -28,8 +28,8 @@ func (r HealthCareDicomServiceDataSource) basic(data acceptance.TestData) string
 %s
 
 data "azurerm_healthcare_dicom_service" "test" {
-  name                = azurerm_healthcare_dicom_service.test.name
-  workspace_id        = azurerm_healthcare_dicom_service.test.workspace_id
+  name         = azurerm_healthcare_dicom_service.test.name
+  workspace_id = azurerm_healthcare_dicom_service.test.workspace_id
 }
 `, HealthCareDicomResource{}.complete(data))
 }
