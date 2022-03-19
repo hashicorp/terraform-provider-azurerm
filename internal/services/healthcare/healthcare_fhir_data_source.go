@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	fhirService "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/fhirservices"
-	workspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
@@ -29,18 +27,18 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsEmpty,
+				ValidateFunc: validate.FhirServiceName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: workspace.ValidateWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.LocationComputed(),
 
 			"kind": {
 				Type:     pluginsdk.TypeString,
@@ -48,7 +46,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 			},
 
 			"access_policy_object_ids": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -63,7 +61,6 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 						"authority": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
-							//todo: must follow https://login.microsoft.com/tenantid
 						},
 						"audience": {
 							Type:     pluginsdk.TypeString,
@@ -114,22 +111,20 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"allowed_headers": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
-						// todo check the order - subnet service endpoints
 						"allowed_methods": {
-							//check set or list via api call
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
@@ -163,45 +158,46 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := fhirService.ParseFhirServiceID(d.Id())
+	id, err := parse.FhirServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if !utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	d.Set("name", id.FhirServiceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	workSpaceId := workspace.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	workSpaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("workspace_id", workSpaceId.ID())
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("identity", flattenFhirServiceIdentity(model.Identity))
+	if resp.Location != nil {
+		d.Set("location", location.NormalizeNilable(resp.Location))
+	}
+	if err := d.Set("identity", flattenFhirManagedIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+	if err := d.Set("kind", resp.Kind); err != nil {
+		return fmt.Errorf("setting `kind`: %+v", err)
+	}
 
-		if model.Kind != nil {
-			d.Set("kind", model.Kind)
+	if props := resp.FhirServiceProperties; props != nil {
+		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
+		d.Set("authentication_configuration", flattenFhirAuthentication(props.AuthenticationConfiguration))
+		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
+		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
+		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
+			d.Set("export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
-
-		if props := model.Properties; props != nil {
-			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
-			d.Set("authentication_configuration", flattenFhirAuthentication(props.AuthenticationConfiguration))
-			d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
-			d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
-			if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
-				d.Set("export_storage_account_name", props.ExportConfiguration.StorageAccountName)
-			}
-		}
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
+	}
+	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
+		return err
 	}
 
 	return nil

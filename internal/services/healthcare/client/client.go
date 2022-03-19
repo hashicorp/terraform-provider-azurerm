@@ -6,8 +6,9 @@ import (
 )
 
 type Client struct {
-	HealthcareServiceClient   *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient *healthcareapis.WorkspacesClient
+	HealthcareServiceClient              *healthcareapis.ServicesClient
+	HealthcareWorkspaceClient            *healthcareapis.WorkspacesClient
+	HealthcareWorkspaceFhirServiceClient *healthcareapis.FhirServicesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	HealthcareWorkspaceClient := healthcareapis.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HealthcareWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
+	HealthcareWorkspaceFhirServiceClient := healthcareapis.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HealthcareWorkspaceFhirServiceClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		HealthcareServiceClient:   &HealthcareServiceClient,
-		HealthcareWorkspaceClient: &HealthcareWorkspaceClient,
+		HealthcareServiceClient:              &HealthcareServiceClient,
+		HealthcareWorkspaceClient:            &HealthcareWorkspaceClient,
+		HealthcareWorkspaceFhirServiceClient: &HealthcareWorkspaceFhirServiceClient,
 	}
 }

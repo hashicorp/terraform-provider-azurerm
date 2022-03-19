@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/sdk/2021-06-01-preview/fhirservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -119,33 +119,20 @@ func TestAccHealthcareApisService_requiresImport(t *testing.T) {
 }
 
 func (HealthcareApiFhirServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fhirservices.ParseFhirServiceID(state.ID)
+	id, err := parse.FhirServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, *id)
+	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Healthcare api fhir service %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.FhirServiceProperties != nil), nil
 }
 
-func (HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-healthcareapi-%d"
-  location = "%s"
-}
-
-resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acc%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%s
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
   name                = "fhir%d"
@@ -158,7 +145,7 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {
@@ -178,19 +165,12 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
 `, r.basic(data))
 }
 
-func (HealthcareApiFhirServiceResource) complete(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 data "azurerm_client_config" "current" {
 }
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-healthcareapi-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_container_registry" "test" {
   name                = "acc%d"
@@ -217,11 +197,6 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acc%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
   name                = "fhir%d"
@@ -252,19 +227,12 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
   }
   export_storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (HealthcareApiFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-healthcareapi-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "acc%d"
@@ -276,12 +244,6 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "staging"
   }
-}
-
-resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acc%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
@@ -310,19 +272,12 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
 
   export_storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (HealthcareApiFhirServiceResource) updateCors(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) updateCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-healthcareapi-%d"
-  location = "%s"
-}
+%s 
 
 resource "azurerm_container_registry" "test" {
   name                = "acc%d"
@@ -347,12 +302,6 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "staging"
   }
-}
-
-resource "azurerm_healthcareapis_workspace" "test" {
-  name                = "acc%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_healthcareapis_fhir_service" "test" {
@@ -381,5 +330,24 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
 
   export_storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (HealthcareApiFhirServiceResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-healthcareapi-%d"
+  location = "%s"
+}
+
+resource "azurerm_healthcareapis_workspace" "test" {
+  name                = "acc%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
