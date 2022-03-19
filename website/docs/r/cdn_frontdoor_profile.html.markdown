@@ -40,20 +40,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The pricing related information of current Frontdoor profile. Accepted values are `Custom_Verizon`, `Premium_AzureFrontDoor`, `Premium_Verizon`, `Standard_Akamai`, `Standard_AvgBandWidth_ChinaCdn`, `Standard_AzureFrontDoor`, `Standard_ChinaCdn`, `Standard_Microsoft`, `Standard_955BandWidth_ChinaCdn`, `StandardPlus_AvgBandWidth_ChinaCdn`, `StandardPlus_ChinaCdn`, `StandardPlus_955BandWidth_ChinaCdn` or `Standard_Verizon`.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 * `response_timeout_seconds` - Possible values are between `16` and `240` seconds(inclusive). Defaults to `120` seconds.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-An `identity` block supports the following:
-
-* `type` - (Required) The type of identity used for the Frontdoor Profile. Possible values are `None`, `UserAssigned`, `SystemAssigned` or `SystemAssigned, UserAssigned`. 
-
-* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Frontdoor Profile.
-
----
 
 ## Attributes Reference
 

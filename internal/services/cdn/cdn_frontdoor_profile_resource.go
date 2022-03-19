@@ -52,9 +52,6 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// Figure out how to deal with this later
-			// "identity": commonschema.SystemAssignedUserAssignedIdentity(),
-
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
 				ForceNew:     true,
@@ -113,20 +110,9 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	// Can only be Global for all Frontdoors
 	location := azure.NormalizeLocation("global")
 
-	// identity, err := expandSystemAndUserAssignedIdentity(d.Get("identity").([]interface{}))
-	// if err != nil {
-	// 	return fmt.Errorf("expanding `identity`: %+v", err)
-	// }
-
-	// TODO: Get Identity Working once service team fixes their bug
-	identity := &track1.ManagedServiceIdentity{
-		Type: track1.ManagedServiceIdentityTypeNone,
-	}
-
 	props := track1.Profile{
 		Location: utils.String(location),
 		ProfileProperties: &track1.ProfileProperties{
-			Identity:                     identity,
 			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku:  expandProfileSku(d.Get("sku_name").(string)),
@@ -171,7 +157,6 @@ func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if props := resp.ProfileProperties; props != nil {
 		d.Set("cdn_frontdoor_id", props.FrontDoorID)
-		// d.Set("identity", flattenSystemAndUserAssignedIdentity(props.Identity))
 		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
 	}
 
@@ -243,29 +228,6 @@ func expandProfileSku(input string) *track1.Sku {
 	}
 }
 
-// func expandSystemAndUserAssignedIdentity(input []interface{}) (*track1.ManagedServiceIdentity, error) {
-// 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	out := track1.ManagedServiceIdentity{
-// 		Type: track1.ManagedServiceIdentityType(expanded.Type),
-// 	}
-
-// 	if len(expanded.IdentityIds) > 0 {
-// 		for k := range expanded.IdentityIds {
-// 			// The user identity dictionary key references will be ARM resource ids in the form:
-// 			// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
-// 			out.UserAssignedIdentities[k] = &track1.UserAssignedIdentity{
-// 				// intentionally empty
-// 			}
-// 		}
-// 	}
-
-// 	return &out, nil
-// }
-
 func flattenProfileSku(input *track1.Sku) string {
 	result := ""
 	if input == nil {
@@ -278,28 +240,3 @@ func flattenProfileSku(input *track1.Sku) string {
 
 	return result
 }
-
-// func flattenSystemAndUserAssignedIdentity(input *track1.ManagedServiceIdentity) []interface{} {
-// 	if input == nil {
-// 		return []interface{}{}
-// 	}
-
-// 	identityIds := make([]string, 0)
-// 	for k, _ := range input.UserAssignedIdentities {
-// 		identityIds = append(identityIds, k)
-// 	}
-
-// 	// TODO: Not right fix this later
-// 	if string(input.Type) == string(track1.ManagedServiceIdentityTypeNone) {
-// 		return []interface{}{}
-// 	} else {
-// 		return []interface{}{
-// 			map[string]interface{}{
-// 				"type":         string(input.Type),
-// 				"identity_ids": identityIds,
-// 				"principal_id": input.PrincipalID,
-// 				"tenant_id":    input.TenantID,
-// 			},
-// 		}
-// 	}
-// }

@@ -16,6 +16,7 @@ import (
 
 // BaseClientAPI contains the set of methods on the BaseClient type.
 type BaseClientAPI interface {
+	CheckEndpointNameAvailability(ctx context.Context, checkEndpointNameAvailabilityInput cdn.CheckEndpointNameAvailabilityInput, resourceGroupName string) (result cdn.CheckEndpointNameAvailabilityOutput, err error)
 	CheckNameAvailability(ctx context.Context, checkNameAvailabilityInput cdn.CheckNameAvailabilityInput) (result cdn.CheckNameAvailabilityOutput, err error)
 	CheckNameAvailabilityWithSubscription(ctx context.Context, checkNameAvailabilityInput cdn.CheckNameAvailabilityInput) (result cdn.CheckNameAvailabilityOutput, err error)
 	ValidateProbe(ctx context.Context, validateProbeInput cdn.ValidateProbeInput) (result cdn.ValidateProbeOutput, err error)

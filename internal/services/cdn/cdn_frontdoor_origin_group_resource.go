@@ -132,59 +132,6 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"response_based_origin_error_detection": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"http_error_ranges": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-
-									"begin": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      300,
-										ValidateFunc: validation.IntBetween(100, 999),
-									},
-
-									"end": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      599,
-										ValidateFunc: validation.IntBetween(100, 999),
-									},
-								},
-							},
-						},
-
-						"detected_error_types": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(track1.ResponseBasedDetectedErrorTypesTCPAndHTTPErrors),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(track1.ResponseBasedDetectedErrorTypesNone),
-								string(track1.ResponseBasedDetectedErrorTypesTCPAndHTTPErrors),
-								string(track1.ResponseBasedDetectedErrorTypesTCPErrorsOnly),
-							}, false),
-						},
-
-						"failover_threshold_percentage": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      10,
-							ValidateFunc: validation.IntBetween(0, 100),
-						},
-					},
-				},
-			},
-
 			"session_affinity": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -228,10 +175,9 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 
 	props := track1.AFDOriginGroup{
 		AFDOriginGroupProperties: &track1.AFDOriginGroupProperties{
-			HealthProbeSettings:                                   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
-			LoadBalancingSettings:                                 expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			ResponseBasedAfdOriginErrorDetectionSettings:          expandCdnFrontdoorOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
+			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
+			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
@@ -280,10 +226,6 @@ func resourceCdnFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `load_balancing`: %+v", err)
 		}
 
-		if err := d.Set("response_based_origin_error_detection", flattenCdnFrontdoorOriginGroupResponseBasedOriginErrorDetectionParameters(props.ResponseBasedAfdOriginErrorDetectionSettings)); err != nil {
-			return fmt.Errorf("setting `response_based_origin_error_detection`: %+v", err)
-		}
-
 		// BUG: API does not return the profile name, pull it form the ID
 		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
 		d.Set("session_affinity", ConvertEnabledStateToBool(&props.SessionAffinityState))
@@ -305,10 +247,9 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 
 	props := track1.AFDOriginGroupUpdateParameters{
 		AFDOriginGroupUpdatePropertiesParameters: &track1.AFDOriginGroupUpdatePropertiesParameters{
-			HealthProbeSettings:                                   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
-			LoadBalancingSettings:                                 expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			ResponseBasedAfdOriginErrorDetectionSettings:          expandCdnFrontdoorOriginGroupResponseBasedOriginErrorDetectionParameters(d.Get("response_based_origin_error_detection").([]interface{})),
-			SessionAffinityState:                                  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
+			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
+			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_time").(int))),
 		},
 	}
@@ -377,21 +318,6 @@ func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interf
 	}
 }
 
-func expandCdnFrontdoorOriginGroupResponseBasedOriginErrorDetectionParameters(input []interface{}) *track1.ResponseBasedOriginErrorDetectionParameters {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	responseBasedDetectedErrorTypesValue := track1.ResponseBasedDetectedErrorTypes(v["detected_error_types"].(string))
-	return &track1.ResponseBasedOriginErrorDetectionParameters{
-		HTTPErrorRanges:                          expandOriginGroupHttpErrorRangeParametersArray(v["http_error_ranges"].([]interface{})),
-		ResponseBasedDetectedErrorTypes:          responseBasedDetectedErrorTypesValue,
-		ResponseBasedFailoverThresholdPercentage: utils.Int32(int32(v["failover_threshold_percentage"].(int))),
-	}
-}
-
 func expandOriginGroupHttpErrorRangeParametersArray(input []interface{}) *[]track1.HTTPErrorRangeParameters {
 	results := make([]track1.HTTPErrorRangeParameters, 0)
 	for _, item := range input {
@@ -423,25 +349,6 @@ func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1
 
 	if input.SuccessfulSamplesRequired != nil {
 		result["successful_samples_required"] = *input.SuccessfulSamplesRequired
-	}
-	return append(results, result)
-}
-
-func flattenCdnFrontdoorOriginGroupResponseBasedOriginErrorDetectionParameters(input *track1.ResponseBasedOriginErrorDetectionParameters) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	result := make(map[string]interface{})
-	result["http_error_ranges"] = flattenOriginGroupHttpErrorRangeParametersArray(input.HTTPErrorRanges)
-
-	if input.ResponseBasedDetectedErrorTypes != "" {
-		result["detected_error_types"] = input.ResponseBasedDetectedErrorTypes
-	}
-
-	if input.ResponseBasedFailoverThresholdPercentage != nil {
-		result["failover_threshold_percentage"] = *input.ResponseBasedFailoverThresholdPercentage
 	}
 	return append(results, result)
 }

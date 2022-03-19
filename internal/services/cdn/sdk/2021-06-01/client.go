@@ -45,6 +45,94 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 	}
 }
 
+// CheckEndpointNameAvailability check the availability of a resource name. This is needed for resources where name is
+// globally unique, such as a afdx endpoint.
+// Parameters:
+// checkEndpointNameAvailabilityInput - input to check.
+// resourceGroupName - name of the Resource group within the Azure subscription.
+func (client BaseClient) CheckEndpointNameAvailability(ctx context.Context, checkEndpointNameAvailabilityInput CheckEndpointNameAvailabilityInput, resourceGroupName string) (result CheckEndpointNameAvailabilityOutput, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckEndpointNameAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: checkEndpointNameAvailabilityInput,
+			Constraints: []validation.Constraint{{Target: "checkEndpointNameAvailabilityInput.Name", Name: validation.Null, Rule: true, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("cdn.BaseClient", "CheckEndpointNameAvailability", err.Error())
+	}
+
+	req, err := client.CheckEndpointNameAvailabilityPreparer(ctx, checkEndpointNameAvailabilityInput, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "CheckEndpointNameAvailability", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckEndpointNameAvailabilitySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "CheckEndpointNameAvailability", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckEndpointNameAvailabilityResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "CheckEndpointNameAvailability", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CheckEndpointNameAvailabilityPreparer prepares the CheckEndpointNameAvailability request.
+func (client BaseClient) CheckEndpointNameAvailabilityPreparer(ctx context.Context, checkEndpointNameAvailabilityInput CheckEndpointNameAvailabilityInput, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/checkEndpointNameAvailability", pathParameters),
+		autorest.WithJSON(checkEndpointNameAvailabilityInput),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckEndpointNameAvailabilitySender sends the CheckEndpointNameAvailability request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) CheckEndpointNameAvailabilitySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CheckEndpointNameAvailabilityResponder handles the response to the CheckEndpointNameAvailability request. The method always
+// closes the http.Response Body.
+func (client BaseClient) CheckEndpointNameAvailabilityResponder(resp *http.Response) (result CheckEndpointNameAvailabilityOutput, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // CheckNameAvailability check the availability of a resource name. This is needed for resources where name is globally
 // unique, such as a CDN endpoint.
 // Parameters:

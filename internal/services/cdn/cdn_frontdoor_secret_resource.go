@@ -6,10 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	cdnfrontdoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,20 +48,122 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
-			"parameters": {
+			"secret_parameters": {
 				Type:     pluginsdk.TypeList,
+				Required: true,
 				ForceNew: true,
-				Optional: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"type": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Required: true,
+						// NOTE: Not supported at GA
+						// "url_signing_key": {
+						// 	Type:     pluginsdk.TypeList,
+						// 	Optional: true,
+						// 	MaxItems: 1,
+
+						// 	Elem: &pluginsdk.Resource{
+						// 		Schema: map[string]*pluginsdk.Schema{
+
+						// 			"key_id": {
+						// 				Type:         pluginsdk.TypeString,
+						// 				Required:     true,
+						// 				ValidateFunc: validation.StringIsNotEmpty,
+						// 			},
+
+						// 			"secret_source_id": {
+						// 				Type:         pluginsdk.TypeString,
+						// 				Required:     true,
+						// 				ValidateFunc: validation.StringIsNotEmpty,
+						// 			},
+
+						// 			"secret_version": {
+						// 				Type:         pluginsdk.TypeString,
+						// 				Required:     true,
+						// 				ValidateFunc: validation.StringIsNotEmpty,
+						// 			},
+						// 		},
+						// 	},
+						// },
+
+						// NOTE: Not supported at GA
+						// "managed_certificate": {
+						// 	Type:     pluginsdk.TypeList,
+						// 	Optional: true,
+
+						// 	Elem: &pluginsdk.Resource{
+						// 		Schema: map[string]*pluginsdk.Schema{
+
+						// 			"certificate_type": {
+						// 				Type:     pluginsdk.TypeString,
+						// 				Optional: true,
+						// 				Default:  string(track1.TypeBasicSecretParametersTypeManagedCertificate),
+						// 				ValidateFunc: validation.StringInSlice([]string{
+						// 					string(track1.TypeBasicSecretParametersTypeManagedCertificate),
+						// 				}, false),
+						// 			},
+						// 		},
+						// 	},
+						// },
+
+						"customer_certificate": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									// TODO: Add validation: No Azure Key Vault name found in provided SecretSource id
+									"secret_source_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"secret_version": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"use_latest": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"subject_alternative_names": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 100,
+
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
 						},
+
+						// NOTE: Not supported at GA
+						// "azure_first_party_managed_certificate": {
+						// 	Type:     pluginsdk.TypeList,
+						// 	Optional: true,
+
+						// 	Elem: &pluginsdk.Resource{
+						// 		Schema: map[string]*pluginsdk.Schema{
+
+						// 			"certificate_type": {
+						// 				Type:     pluginsdk.TypeString,
+						// 				Optional: true,
+						// 				Default:  string(track1.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate),
+						// 				ValidateFunc: validation.StringInSlice([]string{
+						// 					string(track1.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate),
+						// 				}, false),
+						// 			},
+						// 		},
+						// 	},
+						// },
 					},
 				},
 			},
@@ -97,9 +201,14 @@ func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	secretParams, err := expandCdnFrontdoorBasicSecretParameters(d.Get("secret_parameters").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding %q: %+v", "secret_parameters", err)
+	}
+
 	props := track1.Secret{
 		SecretProperties: &track1.SecretProperties{
-			Parameters: expandSecretSecretParameters(d.Get("parameters").([]interface{})),
+			Parameters: secretParams,
 		},
 	}
 
@@ -171,20 +280,46 @@ func resourceCdnFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandSecretSecretParameters(input []interface{}) *track1.SecretParameters {
-	if len(input) == 0 || input[0] == nil {
-		return nil
+func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicSecretParameters, error) {
+	results := make([]track1.BasicSecretParameters, 0)
+
+	type expandfunc func(input []interface{}) (*track1.BasicSecretParameters, error)
+
+	m := *cdnfrontdoorsecretparams.InitializeCdnFrontdoorSecretMappings()
+
+	secrets := map[string]expandfunc{
+		m.UrlSigningKey.ConfigName:                     cdnfrontdoorsecretparams.ExpandCdnFrontdoorUrlSigningKeyParameters,
+		m.ManagedCertificate.ConfigName:                cdnfrontdoorsecretparams.ExpandCdnFrontdoorManagedCertificateParameters,
+		m.CustomerCertificate.ConfigName:               cdnfrontdoorsecretparams.ExpandCdnFrontdoorCustomerCertificateParameters,
+		m.AzureFirstPartyManagedCertificate.ConfigName: cdnfrontdoorsecretparams.ExpandCdnFrontdoorAzureFirstPartyManagedCertificateyParameters,
 	}
 
-	// TODO: Not returned pull from state if exists
-	// v := input[0].(map[string]interface{})
+	basicSecretParameters := input[0].(map[string]interface{})
 
-	// typeValue := secrets.SecretType(v["type"].(string))
-	// return &secrets.SecretParameters{
-	// 	Type: typeValue,
-	// }
+	for secretName, expand := range secrets {
+		if config := basicSecretParameters[secretName].([]interface{}); len(config) > 0 {
+			expanded, err := expand(config)
+			if err != nil {
+				return nil, err
+			}
 
-	return nil
+			if expanded != nil {
+				results = append(results, *expanded)
+			}
+		}
+	}
+
+	if len(results) > 1 {
+		return nil, fmt.Errorf("%q is invalid, you may only have one %q defined in the configuration file, got %d", "secret_parameters", "secret_parameter", len(results))
+	}
+
+	for _, basicSecretParameter := range results {
+		if basicSecretParameter != nil {
+			return basicSecretParameter, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unkown secret parameter type encountered")
 }
 
 func flattenSecretSecretParameters(input *track1.BasicSecretParameters) []interface{} {

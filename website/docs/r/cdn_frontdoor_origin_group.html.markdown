@@ -40,16 +40,6 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
     successful_samples_required        = 3
   }
 
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 300
-      end   = 599
-    }
-
-    detected_error_types          = "TcpAndHttpErrors"
-    failover_threshold_percentage = 10
-  }
-
   session_affinity                      = true
   restore_traffic_or_new_endpoints_time = 10
 }
@@ -66,8 +56,6 @@ The following arguments are supported:
 * `health_probe` - (Optional) A `health_probe` block as defined below.
 
 * `load_balancing` - (Optional) A `load_balancing` block as defined below.
-
-* `response_based_origin_error_detection` - (Optional) A `response_based_origin_error_detection` block as defined below.
 
 * `session_affinity` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
 
@@ -96,16 +84,6 @@ A `load_balancing` block supports the following:
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `16`.
 
 * `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed. Possible values are between `0` and `255`(inclusive). Defaults to `3`.
-
----
-
-A `response_based_origin_error_detection` block supports the following:
-
-* `http_error_ranges` - (Optional) A `http_error_ranges` block as defined below.
-
-* `detected_error_types` - (Optional) Type of response errors for real user requests for which origin will be deemed unhealthy. Possible values are `None`, `TcpAndHttpErrors` or `TcpErrorsOnly`. Defaults to `TcpAndHttpErrors`.
-
-* `failover_threshold_percentage` - (Optional) The percentage of failed requests in the sample where failover should trigger. Possible values are between `0` and `100`(inclusive). Defaults to `10`.
 
 ---
 

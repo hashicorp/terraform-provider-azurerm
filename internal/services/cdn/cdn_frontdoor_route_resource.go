@@ -521,17 +521,12 @@ func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfigur
 	}
 
 	if input.CompressionSettings != nil {
-		compressionSettings := input.CompressionSettings.(map[string]interface{})
-		compressionEnabled := compressionSettings["isCompressionEnabled"].(bool)
-		contentTypesToCompress := compressionSettings["contentTypesToCompress"].([]interface{})
-
-		contentTypes := make([]string, 0)
-		for _, contentType := range contentTypesToCompress {
-			contentTypes = append(contentTypes, contentType.(string))
-		}
+		compressionSettings := input.CompressionSettings
+		compressionEnabled := *compressionSettings.IsCompressionEnabled
+		contentTypesToCompress := utils.FlattenStringSlice(compressionSettings.ContentTypesToCompress)
 
 		result["compression_enabled"] = compressionEnabled
-		result["content_types_to_compress"] = utils.FlattenStringSlice(&contentTypes)
+		result["content_types_to_compress"] = contentTypesToCompress
 	}
 
 	return append(results, result)

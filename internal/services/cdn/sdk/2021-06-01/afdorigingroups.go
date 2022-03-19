@@ -66,12 +66,6 @@ func (client AFDOriginGroupsClient) Create(ctx context.Context, resourceGroupNam
 						Chain: []validation.Constraint{{Target: "originGroup.AFDOriginGroupProperties.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes", Name: validation.InclusiveMaximum, Rule: int64(50), Chain: nil},
 							{Target: "originGroup.AFDOriginGroupProperties.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
 						}},
-					{Target: "originGroup.AFDOriginGroupProperties.ResponseBasedAfdOriginErrorDetectionSettings", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "originGroup.AFDOriginGroupProperties.ResponseBasedAfdOriginErrorDetectionSettings.ResponseBasedFailoverThresholdPercentage", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "originGroup.AFDOriginGroupProperties.ResponseBasedAfdOriginErrorDetectionSettings.ResponseBasedFailoverThresholdPercentage", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-								{Target: "originGroup.AFDOriginGroupProperties.ResponseBasedAfdOriginErrorDetectionSettings.ResponseBasedFailoverThresholdPercentage", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
-							}},
-						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("cdn.AFDOriginGroupsClient", "Create", err.Error())
 	}
