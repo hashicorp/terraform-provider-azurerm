@@ -194,9 +194,9 @@ An `endpoint` block supports the following:
 
 * `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the endpoint.
 
--> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If `identity_id`is omitted when `authentication_type` is `identityBased`, then the System Assigned Managed Identity of the Iot Hub will be used.
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
 
-~> **NOTE:** An IoT Hub can only be updated to use the System Assigned Managed Identity for `endpoint` since it is not possible to grant access to the endpoint until after creation. The extracted resources `azurerm_iothub_endpoint_*` can be used to configure Endpoint with the IoT Hub's System Assigned Managed Identity without the need for an update.
+~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `endpoint` since it is not possible to grant access to the endpoint until after creation. The extracted resources `azurerm_iothub_endpoint_*` can be used to configure Endpoints with the IoT Hub's System-Assigned Managed Identity without the need for an update.
 
 * `endpoint_uri` - (Optional) URI of the Service Bus or Event Hubs Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
@@ -220,9 +220,9 @@ An `endpoint` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Iot Hub. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The type of Managed Identity which should be assigned to the IoT Hub. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Iot Hub.
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the IoT Hub.
 
 ---
 
@@ -274,7 +274,7 @@ An `enrichment` block supports the following:
 
 * `key` - (Required) The key of the enrichment.
 
-* `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
+* `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT Hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
 
 * `endpoint_names` - (Required) The list of endpoints which will be enriched.
 
@@ -298,9 +298,9 @@ A `file_upload` block supports the following:
 
 * `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the storage account.
 
--> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If `identity_id`is omitted when `authentication_type` is `identityBased`, then the System Assigned Managed Identity of the Iot Hub will be used.
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
 
-~> **NOTE:** An IoT Hub can only be updated to use the System Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
+~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
 
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 
@@ -314,7 +314,7 @@ A `file_upload` block supports the following:
 
 * `default_ttl` - (Optional) The period of time for which a file upload notification message is available to consume before it expires, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours. Defaults to `PT1H`.
 
-* `max_delivery_count` - (Optional) The number of times the IoT hub attempts to deliver a file upload notification message. Defaults to `10`.
+* `max_delivery_count` - (Optional) The number of times the IoT Hub attempts to deliver a file upload notification message. Defaults to `10`.
 
 ---
 
