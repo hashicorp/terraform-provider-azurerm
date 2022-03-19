@@ -2,7 +2,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -15,23 +14,6 @@ import (
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicAvailabilitySetConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
