@@ -92,6 +92,21 @@ func TestAccCosmosDbSQLRoleDefinition_update(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSQLRoleDefinition_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_definition", "test")
+	r := CosmosDbSQLRoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CosmosDbSQLRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SqlRoleDefinitionID(state.ID)
 	if err != nil {
@@ -211,4 +226,32 @@ resource "azurerm_cosmosdb_sql_role_definition" "test" {
   }
 }
 `, r.template(data), roleDefinitionId, data.RandomString)
+}
+
+func (r CosmosDbSQLRoleDefinitionResource) multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_sql_role_definition" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_cosmosdb_account.test.name
+  name                = "acctestsqlrole%s"
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
+
+  permissions {
+    data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
+  }
+}
+
+resource "azurerm_cosmosdb_sql_role_definition" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_cosmosdb_account.test.name
+  name                = "acctestsqlrole2%s"
+  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.test.name}/dbs/sales"]
+
+  permissions {
+    data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
+  }
+}
+`, r.template(data), data.RandomString, data.RandomString)
 }
