@@ -250,8 +250,12 @@ func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	if err != nil {
 		return fmt.Errorf("deleting Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	return nil
