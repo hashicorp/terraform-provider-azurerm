@@ -38,6 +38,8 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,

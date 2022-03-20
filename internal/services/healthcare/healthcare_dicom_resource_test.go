@@ -63,7 +63,7 @@ func TestAccHealthCareDicom_update(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_userAssignedIdentity(t *testing.T) {
+func TestAccHealthCareDicom_updateUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -119,6 +119,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "east us"
+  depends_on   = [azurerm_healthcare_workspace.test]
 }
 `, r.template(data), data.RandomIntOfLength(8))
 }
@@ -139,6 +140,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   tags = {
     environment = "None"
   }
+  depends_on = [azurerm_healthcare_workspace.test]
 }
 `, r.template(data), data.RandomIntOfLength(8))
 }
@@ -155,6 +157,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   tags = {
     environment = "Prod"
   }
+  depends_on = [azurerm_healthcare_workspace.test]
 }
 `, r.template(data), data.RandomIntOfLength(8))
 }
@@ -182,6 +185,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   tags = {
     environment = "None"
   }
+  depends_on = [azurerm_healthcare_workspace.test]
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
