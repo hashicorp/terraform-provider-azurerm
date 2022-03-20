@@ -203,10 +203,10 @@ func (ApiManagementCustomDomainResource) template(data acceptance.TestData, syst
 	if !systemAssignedIdentity {
 		identitySnippet = `
   identity {
-	type = "SystemAssigned, UserAssigned"
-	identity_ids = [
-	azurerm_user_assigned_identity.test.id,
-	]
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
   }
 `
 	}
