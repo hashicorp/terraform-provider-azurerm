@@ -53,6 +53,8 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_windows_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_container_registry` - validate the `georepliactions` property does not include the location of the Container Registry [GH-15847]
+
 
 BUG FIXES:
 
