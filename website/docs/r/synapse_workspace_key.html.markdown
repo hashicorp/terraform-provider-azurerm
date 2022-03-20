@@ -6,7 +6,7 @@ description: |-
   Manages Synapse Workspace Keys
 ---
 
-# azurerm_synapse_workspace_keys
+# azurerm_synapse_workspace_key
 
 Manages Synapse Workspace keys
 
