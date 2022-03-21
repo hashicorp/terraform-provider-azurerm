@@ -35,7 +35,6 @@ import (
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 	datafactory "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
-	datalake "github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/client"
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
@@ -145,7 +144,6 @@ type Client struct {
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
 	DataFactory           *datafactory.Client
-	Datalake              *datalake.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
 	DesktopVirtualization *desktopvirtualization.Client
@@ -257,7 +255,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
-	client.Datalake = datalake.NewClient(o)
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
