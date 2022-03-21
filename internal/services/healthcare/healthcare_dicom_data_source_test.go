@@ -31,5 +31,5 @@ data "azurerm_healthcare_dicom_service" "test" {
   name         = azurerm_healthcare_dicom_service.test.name
   workspace_id = azurerm_healthcare_dicom_service.test.workspace_id
 }
-`, HealthCareDicomResource{}.complete(data))
+`, HealthCareDicomResource{}.basic(data))
 }

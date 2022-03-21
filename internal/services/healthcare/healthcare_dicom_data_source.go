@@ -40,7 +40,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"authentication_configuration": {
+			"authentication": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -58,7 +58,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 				},
 			},
 
-			"private_endpoint_connection": {
+			"private_endpoint": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -117,8 +117,8 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	if props := resp.DicomServiceProperties; props != nil {
-		d.Set("authentication_configuration", flattenDicomAuthentication(props.AuthenticationConfiguration))
-		d.Set("private_endpoint_connection", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
+		d.Set("authentication", flattenDicomAuthentication(props.AuthenticationConfiguration))
+		d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 		d.Set("service_url", props.ServiceURL)
 	}
 

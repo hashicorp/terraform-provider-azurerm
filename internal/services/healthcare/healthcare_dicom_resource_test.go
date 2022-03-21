@@ -15,7 +15,7 @@ import (
 
 type HealthCareDicomResource struct{}
 
-func TestAccHealthCareDicom_basic(t *testing.T) {
+func TestAccHealthCareDicomResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -29,7 +29,7 @@ func TestAccHealthCareDicom_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_complete(t *testing.T) {
+func TestAccHealthCareDicomResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -43,7 +43,7 @@ func TestAccHealthCareDicom_complete(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_update(t *testing.T) {
+func TestAccHealthCareDicomResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -63,7 +63,7 @@ func TestAccHealthCareDicom_update(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_updateUserAssignedIdentity(t *testing.T) {
+func TestAccHealthCareDicomResource_updateUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -83,7 +83,7 @@ func TestAccHealthCareDicom_updateUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareDicom_requiresImport(t *testing.T) {
+func TestAccHealthCareDicomResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}
 
@@ -118,10 +118,10 @@ func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "east us"
+  location     = "%s"
   depends_on   = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8))
+`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
 }
 
 func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
@@ -131,7 +131,7 @@ func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "east us"
+  location     = "%s"
 
   identity {
     type = "SystemAssigned"
@@ -142,7 +142,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   }
   depends_on = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8))
+`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
 }
 
 func (r HealthCareDicomResource) update(data acceptance.TestData) string {
@@ -152,14 +152,14 @@ func (r HealthCareDicomResource) update(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "east us"
+  location     = "%s"
 
   tags = {
     environment = "Prod"
   }
   depends_on = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8))
+`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
 }
 
 func (r HealthCareDicomResource) userAssignedIdentity(data acceptance.TestData) string {
@@ -175,7 +175,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "acctest-dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "east us"
+  location     = "%s"
 
   identity {
     type         = "UserAssigned"
@@ -185,9 +185,9 @@ resource "azurerm_healthcare_dicom_service" "test" {
   tags = {
     environment = "None"
   }
-  depends_on = [azurerm_healthcare_workspace.test]
+  depends_on = [azurerm_healthcare_workspace.test, azurerm_user_assigned_identity.test]
 }
-`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8), data.Locations.Primary)
 }
 
 func (r HealthCareDicomResource) requiresImport(data acceptance.TestData) string {
