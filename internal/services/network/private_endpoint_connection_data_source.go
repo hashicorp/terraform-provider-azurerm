@@ -81,28 +81,24 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 
 func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Private Endpoint %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
 
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateEndpointProperties; props != nil {
@@ -117,7 +113,7 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if err := d.Set("network_interface", getNetworkInterface(networkInterfaceId)); err != nil {
+		if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
 			return fmt.Errorf("setting `network_interface`: %+v", err)
 		}
 
@@ -129,20 +125,18 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func getNetworkInterface(networkInterfaceId string) interface{} {
-	results := make([]interface{}, 0)
-
+func flattenNetworkInterface(networkInterfaceId string) interface{} {
 	id, err := parse.NetworkInterfaceID(networkInterfaceId)
 	if err != nil {
-		return results
+		return []interface{}{}
 	}
 
-	elem := map[string]string{}
-
-	elem["id"] = id.ID()
-	elem["name"] = id.Name
-
-	return append(results, elem)
+	return []interface{}{
+		map[string]interface{}{
+			"id":   id.ID(),
+			"name": id.Name,
+		},
+	}
 }
 
 func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
