@@ -652,6 +652,7 @@ resource "azurerm_eventhub_namespace" "test" {
     default_action = "Deny"
     ip_rule {
       ip_mask = "10.0.0.0/16"
+      action  = "Allow"
     }
   }
 }
