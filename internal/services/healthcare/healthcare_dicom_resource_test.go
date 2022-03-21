@@ -118,10 +118,10 @@ func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "%s"
+  location     = "east us"
   depends_on   = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
 func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
@@ -131,7 +131,7 @@ func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "%s"
+  location     = "east us"
 
   identity {
     type = "SystemAssigned"
@@ -142,7 +142,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   }
   depends_on = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
 func (r HealthCareDicomResource) update(data acceptance.TestData) string {
@@ -152,14 +152,14 @@ func (r HealthCareDicomResource) update(data acceptance.TestData) string {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "%s"
+  location     = "east us"
 
   tags = {
     environment = "Prod"
   }
   depends_on = [azurerm_healthcare_workspace.test]
 }
-`, r.template(data), data.RandomIntOfLength(8), data.Locations.Primary)
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
 func (r HealthCareDicomResource) userAssignedIdentity(data acceptance.TestData) string {
@@ -175,7 +175,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_healthcare_dicom_service" "test" {
   name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
-  location     = "%s"
+  location     = "east us"
 
   identity {
     type         = "UserAssigned"
@@ -187,7 +187,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   }
   depends_on = [azurerm_healthcare_workspace.test, azurerm_user_assigned_identity.test]
 }
-`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8), data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
 
 func (r HealthCareDicomResource) requiresImport(data acceptance.TestData) string {
@@ -209,7 +209,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-dicom-%d"
-  location = "%s"
+  location = "east us"
 }
 
 resource "azurerm_healthcare_workspace" "test" {
@@ -217,5 +217,5 @@ resource "azurerm_healthcare_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.RandomIntOfLength(8))
 }
