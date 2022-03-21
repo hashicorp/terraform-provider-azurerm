@@ -149,10 +149,13 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName)
+	if err != nil {
 		return err
 	}
-
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
 	d.SetId(id.ID())
 
 	return resourceWebPubSubHubRead(d, meta)
