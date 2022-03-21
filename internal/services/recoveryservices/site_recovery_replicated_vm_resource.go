@@ -305,16 +305,19 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.
-	return resourceSiteRecoveryReplicatedItemUpdate(d, meta)
+	return resourceSiteRecoveryReplicatedItemUpdateInternal(ctx, d, meta)
 }
 
 func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	return resourceSiteRecoveryReplicatedItemUpdateInternal(ctx, d, meta)
+}
+
+func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	// We are only allowed to update the configuration once the VM is fully protected
 	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
@@ -570,7 +573,11 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 		PollInterval: time.Minute,
 	}
 
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("context had no deadline")
+	}
+	stateConf.Timeout = time.Until(deadline)
 
 	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
