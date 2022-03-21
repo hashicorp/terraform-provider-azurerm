@@ -35,13 +35,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 		"DataSource": {
 			"basic": testAccDataSourceNetworkWatcher_basic,
 		},
-		"PacketCaptureOld": {
-			"localDisk":                  testAccPacketCapture_localDisk,
-			"storageAccount":             testAccPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccPacketCapture_withFilters,
-			"requiresImport":             testAccPacketCapture_requiresImport,
-		},
 		"ConnectionMonitor": {
 			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
 			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
