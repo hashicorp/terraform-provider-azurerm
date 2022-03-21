@@ -626,6 +626,10 @@ The deprecated block `eventhub_endpoint` will be removed in favour of the `event
 
 The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
 
+### Resource: `azurerm_eventhub_namespace`
+
+The behavior of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
 ### Resource: `azurerm_eventhub_namespace_customer_managed_key`
 
 Destroying this resource will become a noop (non-operation) rather than deleting and recreating the parent EventHub Namespace - instead to remove the Customer Managed Key the parent EventHub Namespace must be tainted and recreated.
