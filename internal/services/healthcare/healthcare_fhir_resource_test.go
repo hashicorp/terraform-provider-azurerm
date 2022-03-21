@@ -162,7 +162,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
@@ -180,7 +180,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
@@ -201,9 +201,9 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_healthcare_fhir_service.test.resource_group_name
   workspace_id        = azurerm_healthcare_fhir_service.test.workspace_id
   kind                = azurerm_healthcare_fhir_service.test.kind
-  authentication_configuration {
-    authority = azurerm_healthcare_fhir_service.test.authentication_configuration[0].authority
-    audience  = azurerm_healthcare_fhir_service.test.authentication_configuration[0].audience
+  authentication {
+    authority = azurerm_healthcare_fhir_service.test.authentication[0].authority
+    audience  = azurerm_healthcare_fhir_service.test.authentication[0].audience
   }
 }
 `, r.basic(data))
@@ -247,7 +247,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
@@ -297,7 +297,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
@@ -344,7 +344,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }

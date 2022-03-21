@@ -2,9 +2,10 @@ package healthcare_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"testing"
 )
 
 type HealthCareFhirServiceDataSource struct{}
@@ -28,7 +29,6 @@ func (HealthCareFhirServiceDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_healthcare_fhir_service" "test" {
   name                = azurerm_healthcare_fhir_service.test.name
-  resource_group_name = azurerm_healthcare_fhir_service.test.resource_group_name
   workspace_id        = azurerm_healthcare_fhir_service.test.workspace_id
 }
 `, HealthcareApiFhirServiceResource{}.basic(data))

@@ -75,11 +75,10 @@ The following arguments are supported:
 ---
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Healthcare Fhir service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, an `identity_ids` must be set as well.
-* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Healthcare Fhir service.
+* `type` - (Required) The type of identity used for the Healthcare Fhir service. Possible values are `SystemAssigned`.
 
 ---
-A `cors_configuration` block supports the following:
+A `cors_configuration` block supports the following:  
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
@@ -105,7 +104,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Fhir Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Fhir Service.
+* `update` - (Defaults to 30 minut es) Used when updating the Healthcare Fhir Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Fhir Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Fhir Service.
 

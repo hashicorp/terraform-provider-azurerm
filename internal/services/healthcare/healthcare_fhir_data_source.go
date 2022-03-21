@@ -30,8 +30,6 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				ValidateFunc: validate.FhirServiceName(),
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
-
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -53,7 +51,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"authentication_configuration": {
+			"authentication": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -96,7 +94,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 			},
 
 			"acr_login_servers": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -152,27 +150,29 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FhirServiceID(d.Id())
+	workspaceId, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing workspace id error: %+v", err)
 	}
+	id := parse.NewFhirServiceID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
-	workSpaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-	d.Set("workspace_id", workSpaceId.ID())
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+
+	d.Set("workspace_id", workspaceId.ID())
 
 	if resp.Location != nil {
 		d.Set("location", location.NormalizeNilable(resp.Location))
@@ -186,7 +186,7 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 
 	if props := resp.FhirServiceProperties; props != nil {
 		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
-		d.Set("authentication_configuration", flattenFhirAuthentication(props.AuthenticationConfiguration))
+		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
 		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
 		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {

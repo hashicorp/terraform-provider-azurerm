@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -81,7 +81,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"authentication_configuration": {
+			"authentication": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -189,7 +189,6 @@ func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Fhir Service creation.")
 
-	//todo check other resource about this ID to Name practice
 	workspace, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
@@ -220,7 +219,7 @@ func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, me
 		Kind:     healthcareapis.FhirServiceKind(d.Get("kind").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
-			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication_configuration").([]interface{})),
+			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
 			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
 		},
 	}
@@ -231,10 +230,6 @@ func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if v := d.Get("export_storage_account_name").(string); v != "" {
-		//storageAccount, err := storgaeAccountParse.StorageAccountID(v)
-		//if err != nil {
-		//	return err
-		//}
 		parameters.FhirServiceProperties.ExportConfiguration = &healthcareapis.FhirServiceExportConfiguration{
 			StorageAccountName: utils.String(v),
 		}
@@ -294,7 +289,7 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 
 	if props := resp.FhirServiceProperties; props != nil {
 		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
-		d.Set("authentication_configuration", flattenFhirAuthentication(props.AuthenticationConfiguration))
+		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
 		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
 		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
@@ -314,59 +309,47 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FhirServiceID(d.Id())
+ 	id, err := parse.FhirServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
-	}
-	return waitForFhirServiceToBeDeleted(ctx, client, *id)
-}
-
-func waitForFhirServiceToBeDeleted(ctx context.Context, client *healthcareapis.FhirServicesClient, id parse.FhirServiceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
-	}
-
-	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: fhirServiceStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: time.Until(deadline),
+		Pending:                   []string{"Pending"},
+		Target:                    []string{"Deleted"},
+		Refresh:                   fhirServiceStateStatusCodeRefreshFunc(ctx, client, *id),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		ContinuousTargetOccurence: 3,
+		PollInterval:              10 * time.Second,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
-
 	return nil
 }
 
 func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.FhirServicesClient, id parse.FhirServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if res.Response.Response != nil {
-			log.Printf("Retrieving %s returned Status %d", id, res.Response.StatusCode)
-		}
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.Response.StatusCode), nil
+				return res, "Deleted", nil
 			}
-			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.Response.StatusCode), nil
+		return res, "Pending", nil
 	}
 }
 
@@ -463,29 +446,6 @@ func expandFhirCorsConfiguration(input []interface{}) *healthcareapis.FhirServic
 
 	return cors
 }
-
-//func expandFhirAcrLoginServer(input []interface{}, meta interface{}, ctx context.Context) (*fhirService.FhirServiceAcrConfiguration, error) {
-//	acrLoginServers := make([]string, 0)
-//	acrClient := meta.(*clients.Client).Containers.RegistriesClient
-//
-//	for _, item := range input {
-//		acrId, err := acrParse.RegistryID(item.(string))
-//		if err != nil {
-//			return nil, err
-//		}
-//		acrItem, err := acrClient.Get(ctx, acrId.ResourceGroup, acrId.Name)
-//		if err != nil {
-//			return nil, fmt.Errorf("retrieving %s: %+v", acrId, err)
-//		}
-//		if loginServer := acrItem.LoginServer; loginServer != nil {
-//			acrLoginServers = append(acrLoginServers, *loginServer)
-//		}
-//	}
-//
-//	return &fhirService.FhirServiceAcrConfiguration{
-//		LoginServers: &acrLoginServers,
-//	}, nil
-//}
 
 func expandFhirAcrLoginServer(input []interface{}) *healthcareapis.FhirServiceAcrConfiguration {
 	acrLoginServers := make([]string, 0)
