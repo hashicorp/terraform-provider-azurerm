@@ -17,6 +17,10 @@ import (
 type AppServiceSlotCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceSlotCustomHostnameBinding_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 
@@ -32,6 +36,10 @@ func TestAccAppServiceSlotCustomHostnameBinding_basic(t *testing.T) {
 }
 
 func TestAccAppServiceSlotCustomHostnameBinding_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 
@@ -47,6 +55,10 @@ func TestAccAppServiceSlotCustomHostnameBinding_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServiceSlotCustomHostnameBinding_ssl(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 

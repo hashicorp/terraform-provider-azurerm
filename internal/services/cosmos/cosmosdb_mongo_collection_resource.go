@@ -79,9 +79,12 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(-1),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.IntAtLeast(-1),
+					validation.IntNotInSlice([]int{0}),
+				),
 			},
 
 			"analytical_storage_ttl": {
@@ -163,8 +166,8 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v := d.Get("default_ttl_seconds").(int); v > 0 {
-		ttl = utils.Int(v)
+	if v, ok := d.GetOk("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -232,8 +235,8 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v := d.Get("default_ttl_seconds").(int); v > 0 {
-		ttl = utils.Int(v)
+	if v, ok := d.GetOk("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)

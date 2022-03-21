@@ -98,7 +98,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -178,7 +178,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.LesserThanOrEqualTo),
 														string(security.NotEquals),
 														string(security.StartsWith),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"property_type": {
@@ -189,7 +189,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.String),
 														string(security.Boolean),
 														string(security.Number),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 											},

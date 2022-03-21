@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -284,7 +284,7 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 		// nilable since a user may not necessarily have access, and this is trying to be helpful
 		var clusterVersion *string
 		if props := cluster.ManagedClusterProperties; props != nil {
-			clusterVersion = props.KubernetesVersion
+			clusterVersion = props.CurrentKubernetesVersion
 		}
 
 		return clusterControlPlaneMustBeUpgradedError(defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)

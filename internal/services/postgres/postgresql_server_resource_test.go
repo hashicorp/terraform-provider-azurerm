@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +33,9 @@ func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicNinePointFiveDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -187,6 +192,9 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updatedDeprecated(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -250,6 +258,9 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This test is being deprecated and does not need to be ran for 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -763,6 +774,7 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
+  ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
 
   threat_detection_policy {
     enabled              = true
@@ -938,7 +950,7 @@ resource "azurerm_postgresql_server" "restore" {
 
   ssl_enforcement_enabled = true
 }
-`, r.basic(data, version), data.RandomInteger, restoreTime, version)
+`, r.gp(data, version), data.RandomInteger, restoreTime, version)
 }
 
 func (PostgreSQLServerResource) emptyAttrs(data acceptance.TestData, version string) string {

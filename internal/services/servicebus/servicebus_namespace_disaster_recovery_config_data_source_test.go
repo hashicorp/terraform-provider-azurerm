@@ -35,9 +35,8 @@ func (ServiceBusNamespaceDisasterRecoveryDataSource) basic(data acceptance.TestD
 %s
 
 data "azurerm_servicebus_namespace_disaster_recovery_config" "test" {
-  name                = azurerm_servicebus_namespace_disaster_recovery_config.pairing_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  name         = azurerm_servicebus_namespace_disaster_recovery_config.pairing_test.name
+  namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
 }
 `, ServiceBusNamespaceDisasterRecoveryConfigResource{}.basic(data))
 }

@@ -86,13 +86,17 @@ The following arguments are supported:
 
 * `not_scopes` - (Optional) Specifies a list of Resource Scopes (for example a Subscription, or a Resource Group) within this Management Group which are excluded from this Policy.
 
-* `parameters` - (Optional) A JSON mapping of any Parameters for this Policy. Changing this forces a new Management Group Policy Assignment to be created.
+* `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. The only possible value is `SystemAssigned`.
+* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Policy Definition.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

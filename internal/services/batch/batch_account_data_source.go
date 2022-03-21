@@ -6,10 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +32,7 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-			"location":            azure.SchemaLocationForDataSource(),
+			"location":            commonschema.LocationComputed(),
 			"storage_account_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -70,6 +71,22 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -95,11 +112,9 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_endpoint", resp.AccountEndpoint)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("account_endpoint", resp.AccountEndpoint)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AccountProperties; props != nil {
 		if autoStorage := props.AutoStorage; autoStorage != nil {
@@ -107,6 +122,10 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 		poolAllocationMode := d.Get("pool_allocation_mode").(string)
+
+		if encryption := props.Encryption; encryption != nil {
+			d.Set("encryption", flattenEncryption(encryption))
+		}
 
 		if poolAllocationMode == string(batch.PoolAllocationModeBatchService) {
 			keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)

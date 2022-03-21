@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
 
-* `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The administrator login name for the new server. Required unless `azuread_authentication_only` in the `azuread_administrator` block is `true`. When omitted, Azure will generate a default username which cannot be subsequently changed. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
+* `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx). Required unless `azuread_authentication_only` in the `azuread_administrator` block is `true`.
 
 * `azuread_administrator` - (Optional) An `azuread_administrator` block as defined below.
 
@@ -103,7 +103,7 @@ An `azuread_administrator` block supports the following:
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
 
-* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login or also local database users (like `administrator_login`).
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login, or also local database users (like `administrator_login`). When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted.
 
 ## Attributes Reference
 

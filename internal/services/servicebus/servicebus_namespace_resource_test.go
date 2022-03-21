@@ -80,26 +80,6 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.NonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:             r.NonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
@@ -220,7 +200,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -240,7 +220,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
   tags = {
     ENV = "Test"
   }
@@ -259,26 +239,6 @@ resource "azurerm_servicebus_namespace" "import" {
   sku                 = azurerm_servicebus_namespace.test.sku
 }
 `, r.basic(data))
-}
-
-func (ServiceBusNamespaceResource) NonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ServiceBusNamespaceResource) premium(data acceptance.TestData) string {
@@ -381,7 +341,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "SystemAssigned"
@@ -411,7 +371,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "UserAssigned"
@@ -444,7 +404,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 
   identity {
     type = "SystemAssigned, UserAssigned"

@@ -31,11 +31,15 @@ import (
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceKeyVaultKeyCreate,
-		Read:     resourceKeyVaultKeyRead,
-		Update:   resourceKeyVaultKeyUpdate,
-		Delete:   resourceKeyVaultKeyDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceKeyVaultKeyCreate,
+		Read:   resourceKeyVaultKeyRead,
+		Update: resourceKeyVaultKeyUpdate,
+		Delete: resourceKeyVaultKeyDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -519,17 +523,21 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving key vault %q properties: %+v", *keyVaultId, err)
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+	}
+
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeKey{
 		client:      client,

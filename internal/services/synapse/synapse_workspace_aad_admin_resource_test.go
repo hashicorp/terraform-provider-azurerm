@@ -67,7 +67,8 @@ func (r SynapseWorkspaceAADAdminResource) template(data acceptance.TestData) str
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

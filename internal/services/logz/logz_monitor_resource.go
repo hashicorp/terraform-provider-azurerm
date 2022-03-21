@@ -94,7 +94,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"MONTHLY",
 								"WEEKLY",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -112,7 +112,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"100gb14days",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -123,7 +123,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"PAYG",
 								"COMMITTED",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},

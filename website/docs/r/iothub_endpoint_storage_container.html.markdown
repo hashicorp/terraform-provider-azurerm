@@ -47,7 +47,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "acctest"
 
   container_name    = "acctestcont"

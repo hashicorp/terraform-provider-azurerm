@@ -683,8 +683,13 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    default_action             = "Deny"
-    virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
+    default_action = "Deny"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
@@ -702,9 +707,14 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    default_action             = "Allow"
-    ip_rules                   = ["123.0.0.101"]
-    virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
+    default_action = "Allow"
+    ip_rules       = ["123.0.0.101"]
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)

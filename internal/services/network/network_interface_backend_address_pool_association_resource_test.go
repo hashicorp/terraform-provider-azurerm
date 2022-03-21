@@ -205,9 +205,9 @@ func (r NetworkInterfaceBackendAddressPoolResource) requiresImport(data acceptan
 %s
 
 resource "azurerm_network_interface_backend_address_pool_association" "import" {
-  network_interface_id     = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
-  ip_configuration_name    = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
-  backend_address_pool_ids = [azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id]
+  network_interface_id    = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
+  ip_configuration_name   = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
+  backend_address_pool_id = azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id
 }
 `, r.basic(data))
 }
@@ -231,7 +231,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -287,9 +287,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctestpool"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctestpool"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

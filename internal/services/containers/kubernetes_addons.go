@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -37,21 +37,15 @@ const (
 // omitted from this list an addon/environment combination will be supported
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
-		aciConnectorKey,                 // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
-		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
-		openServiceMeshKey,              // Preview features are not supported in Azure China
-		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
+		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
+		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
 	azure.USGovernmentCloud.Name: {
-		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
-		openServiceMeshKey,              // Preview features are not supported in Azure Government
-		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
+		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
 }
 
-// TODO 3.0 - Remove this schema as it's deprecated
+// CLEANUP: 3.0 - Remove this schema as it's deprecated
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 	//lintignore:XS003
 	return &pluginsdk.Schema{
@@ -580,7 +574,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return out
 }
 
-// TODO 3.0 - Remove this function
+// CLEANUP: 3.0 - Remove this function
 func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 	disabled := containerservice.ManagedClusterAddonProfile{
 		Enabled: utils.Bool(false),
@@ -880,7 +874,7 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 	return &output, nil
 }
 
-// TODO 3.0 - Remove this function
+// CLEANUP: 3.0 - Remove this function
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	aciConnectors := make([]interface{}, 0)
 	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {

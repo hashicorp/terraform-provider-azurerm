@@ -36,16 +36,13 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "exampleservicebustopic"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name         = "exampleservicebustopic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "example-rule"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
+  name     = "example-rule"
+  topic_id = azurerm_servicebus_topic.example.id
 
   listen = false
   send   = true
