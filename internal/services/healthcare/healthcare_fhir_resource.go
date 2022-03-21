@@ -1,8 +1,10 @@
 package healthcare
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
@@ -42,9 +44,9 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.FhirServiceName(),
 			},
 
@@ -63,7 +65,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default: string(healthcareapis.KindFhirR4),
+				Default:  string(healthcareapis.KindFhirR4),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(healthcareapis.KindFhirR4),
 					string(healthcareapis.KindFhirStu3),
@@ -89,7 +91,6 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							//todo: must follow https://login.microsoft.com/tenantid
 						},
 						"audience": {
 							Type:     pluginsdk.TypeString,
@@ -103,30 +104,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(healthcareapis.ManagedServiceIdentityTypeSystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 			"acr_login_servers": {
@@ -349,7 +327,47 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
+	return waitForFhirServiceToBeDeleted(ctx, client, *id)
+}
+
+func waitForFhirServiceToBeDeleted(ctx context.Context, client *healthcareapis.FhirServicesClient, id parse.FhirServiceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context has no deadline")
+	}
+
+	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
+	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"200"},
+		Target:  []string{"404"},
+		Refresh: fhirServiceStateStatusCodeRefreshFunc(ctx, client, id),
+		Timeout: time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	}
+
 	return nil
+}
+
+func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.FhirServicesClient, id parse.FhirServiceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if res.Response.Response != nil {
+			log.Printf("Retrieving %s returned Status %d", id, res.Response.StatusCode)
+		}
+
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, strconv.Itoa(res.Response.StatusCode), nil
+			}
+			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
+		}
+
+		return res, strconv.Itoa(res.Response.StatusCode), nil
+	}
 }
 
 func expandFhirManagedIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {

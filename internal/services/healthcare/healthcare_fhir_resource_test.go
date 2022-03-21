@@ -16,7 +16,7 @@ import (
 type HealthcareApiFhirServiceResource struct{}
 
 func TestAccHealthcareApiFhirService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_fhir_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,7 +31,7 @@ func TestAccHealthcareApiFhirService_basic(t *testing.T) {
 }
 
 func TestAccHealthcareApiFhirService_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_fhir_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,8 +45,30 @@ func TestAccHealthcareApiFhirService_complete(t *testing.T) {
 	})
 }
 
+func TestAccHealthcareApiFhirService_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
+	r := HealthcareApiFhirServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccHealthcareApiFhirService_updateAcrLoginServer(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_fhir_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,7 +97,7 @@ func TestAccHealthcareApiFhirService_updateAcrLoginServer(t *testing.T) {
 }
 
 func TestAccHealthcareApiFhirService_updateCors(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_fhir_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -103,8 +125,8 @@ func TestAccHealthcareApiFhirService_updateCors(t *testing.T) {
 	})
 }
 
-func TestAccHealthcareApisService_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcareapis_fhir_service", "test")
+func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -134,16 +156,38 @@ func (r HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcareapis_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "test" {
   name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_healthcareapis_workspace.test.id
+  workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
   authentication_configuration {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
+  depends_on = [azurerm_healthcare_workspace.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HealthcareApiFhirServiceResource) updateIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_healthcare_fhir_service" "test" {
+  name                = "fhir%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_healthcare_workspace.test.id
+  kind                = "fhir-R4"
+  authentication_configuration {
+    authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+    audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  depends_on = [azurerm_healthcare_workspace.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -151,15 +195,15 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
 func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcareapis_fhir_service" "test" {
-  name                = azurerm_healthcareapis_fhir_service.test.name
-  location            = azurerm_healthcareapis_fhir_service.test.location
-  resource_group_name = azurerm_healthcareapis_fhir_service.test.resource_group_name
-  workspace_id        = azurerm_healthcareapis_fhir_service.test.workspace_id
-  kind                = azurerm_healthcareapis_fhir_service.test.kind
+resource "azurerm_healthcare_fhir_service" "test" {
+  name                = azurerm_healthcare_fhir_service.test.name
+  location            = azurerm_healthcare_fhir_service.test.location
+  resource_group_name = azurerm_healthcare_fhir_service.test.resource_group_name
+  workspace_id        = azurerm_healthcare_fhir_service.test.workspace_id
+  kind                = azurerm_healthcare_fhir_service.test.kind
   authentication_configuration {
-    authority = azurerm_healthcareapis_fhir_service.test.authentication_configuration[0].authority
-    audience  = azurerm_healthcareapis_fhir_service.test.authentication_configuration[0].audience
+    authority = azurerm_healthcare_fhir_service.test.authentication_configuration[0].authority
+    audience  = azurerm_healthcare_fhir_service.test.authentication_configuration[0].audience
   }
 }
 `, r.basic(data))
@@ -167,7 +211,6 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
 
 func (r HealthcareApiFhirServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 data "azurerm_client_config" "current" {
 }
 %s
@@ -175,7 +218,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_container_registry" "test" {
   name                = "acc%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  location            = "%s"
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
@@ -198,11 +241,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 
-resource "azurerm_healthcareapis_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "test" {
   name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_healthcareapis_workspace.test.id
+  workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
   authentication_configuration {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
@@ -226,8 +269,10 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
     allow_credentials  = true
   }
   export_storage_account_name = azurerm_storage_account.test.name
+  depends_on                  = [azurerm_healthcare_workspace.test, azurerm_storage_account.test]
+
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
@@ -246,11 +291,11 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_healthcareapis_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "test" {
   name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_healthcareapis_workspace.test.id
+  workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
   authentication_configuration {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
@@ -271,26 +316,15 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
   }
 
   export_storage_account_name = azurerm_storage_account.test.name
+  depends_on                  = [azurerm_healthcare_workspace.test]
+
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) updateCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s 
-
-resource "azurerm_container_registry" "test" {
-  name                = "acc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  admin_enabled       = false
-  georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
-    tags                    = {}
-  }
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "acc%d"
@@ -304,11 +338,11 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_healthcareapis_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "test" {
   name                = "fhir%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_healthcareapis_workspace.test.id
+  workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
   authentication_configuration {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
@@ -317,9 +351,7 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
   identity {
     type = "SystemAssigned"
   }
-
   acr_login_servers = []
-
   cors_configuration {
     allowed_origins    = ["https://acctest.com:123"]
     allowed_headers    = ["*"]
@@ -327,10 +359,9 @@ resource "azurerm_healthcareapis_fhir_service" "test" {
     max_age_in_seconds = 0
     allow_credentials  = false
   }
-
   export_storage_account_name = azurerm_storage_account.test.name
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+  depends_on                  = [azurerm_healthcare_workspace.test]
+}`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (HealthcareApiFhirServiceResource) template(data acceptance.TestData) string {
@@ -344,7 +375,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_healthcareapis_workspace" "test" {
+resource "azurerm_healthcare_workspace" "test" {
   name                = "acc%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name

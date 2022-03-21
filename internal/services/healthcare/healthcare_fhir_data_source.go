@@ -95,7 +95,6 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 			"acr_login_servers": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -104,7 +103,6 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			// todo: check Set:hashString func
 			"cors_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -128,8 +126,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type: pluginsdk.TypeString,
 							},
 						},
 						"max_age_in_seconds": {
