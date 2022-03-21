@@ -396,7 +396,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if ok := d.HasChange("identity"); ok {
+	if _, ok := d.GetOk("identity"); ok {
 		expandedIdentity, err := expandSqlServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)

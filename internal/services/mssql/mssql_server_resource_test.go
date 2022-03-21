@@ -216,6 +216,28 @@ func TestAccMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -934,4 +956,104 @@ resource "azurerm_mssql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+data "azuread_service_principal" "current" {
+  object_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_1"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  minimum_tls_version          = "1.2"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsAbc11"
+
+  azuread_administrator {
+    login_username              = data.azuread_service_principal.current.display_name
+    object_id                   = data.azuread_service_principal.current.object_id
+    azuread_authentication_only = %[3]t
+  }
+
+  identity {
+    type                       = "UserAssigned"
+    user_assigned_identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, enableAzureadAuthenticationOnly)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+data "azuread_service_principal" "current" {
+  object_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_1"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  minimum_tls_version          = "1.2"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsAbc11"
+
+  azuread_administrator {
+    login_username              = data.azuread_service_principal.current.display_name
+    object_id                   = data.azuread_service_principal.current.object_id
+    azuread_authentication_only = %[3]t
+  }
+
+  identity {
+    type                       = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, enableAzureadAuthenticationOnly)
 }
