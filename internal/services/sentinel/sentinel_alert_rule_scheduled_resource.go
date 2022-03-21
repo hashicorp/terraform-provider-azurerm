@@ -730,7 +730,7 @@ func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfigurat
 	var groupByCustomDetails []interface{}
 	if input.GroupByCustomDetails != nil {
 		for _, detail := range *input.GroupByCustomDetails {
-			groupByCustomDetails = append(groupByCustomDetails, string(detail))
+			groupByCustomDetails = append(groupByCustomDetails, detail)
 		}
 	}
 
