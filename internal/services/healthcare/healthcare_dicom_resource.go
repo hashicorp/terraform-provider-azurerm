@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
@@ -163,7 +162,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update %s: %+v", dicomServiceId, err)
+		return fmt.Errorf("waiting for creation %s: %+v", dicomServiceId, err)
 	}
 
 	d.SetId(dicomServiceId.ID())
@@ -274,54 +273,41 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("parsing Dicom service error: %+v", err)
 	}
-
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.WorkspaceName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return waitForDicomServiceToBeDeleted(ctx, client, *id)
-}
-
-func waitForDicomServiceToBeDeleted(ctx context.Context, client *healthcareapis.DicomServicesClient, id parse.DicomServiceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: dicomServiceStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: time.Until(deadline),
+		Pending:                   []string{"Pending"},
+		Target:                    []string{"Deleted"},
+		Refresh:                   dicomServiceStateStatusCodeRefreshFunc(ctx, client, *id),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		ContinuousTargetOccurence: 3,
+		PollInterval:              10 * time.Second,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
-
 	return nil
 }
 
 func dicomServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.DicomServicesClient, id parse.DicomServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if res.Response.Response != nil {
-			log.Printf("Retrieving %s returned Status %d", id, res.Response.StatusCode)
-		}
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.Response.StatusCode), nil
+				return res, "Deleted", nil
 			}
-			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.Response.StatusCode), nil
+		return res, "Pending", nil
 	}
 }
 

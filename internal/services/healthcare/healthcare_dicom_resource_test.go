@@ -116,7 +116,7 @@ func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "acctest-dicom%d"
+  name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "%s"
   depends_on   = [azurerm_healthcare_workspace.test]
@@ -129,7 +129,7 @@ func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "acctest-dicom%d"
+  name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "%s"
 
@@ -150,7 +150,7 @@ func (r HealthCareDicomResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "acctest-dicom%d"
+  name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "%s"
 
@@ -173,7 +173,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "acctest-dicom%d"
+  name         = "dicom%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = "%s"
 
@@ -213,7 +213,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_workspace" "test" {
-  name                = "acctestwk%d"
+  name                = "wk%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
