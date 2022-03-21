@@ -230,6 +230,14 @@ The deprecated field `primary_readonly_master_key` will be removed in favour of 
 
 The deprecated field `secondary_readonly_master_key` will be removed in favour of the `secondary_readonly_key` property.
 
+## Data Source: `azurerm_data_lake_store`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
+
+## Data Source: `azurerm_data_share_dataset_data_lake_gen1`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
+
 ### Data Source: `azurerm_function_app`
 
 The `azurerm_function_app` data source has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
@@ -598,9 +606,18 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
+
 ### Resource: `azurerm_data_factory`
 
 The field `customer_managed_key_identity_id` must be supplied if `customer_managed_key_id` is set.
+
+## Resource: `azurerm_data_lake_analytics_account`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+## Resource: `azurerm_data_lake_analytics_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store_file`
 
@@ -615,6 +632,10 @@ Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 -
 Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store_virtual_network_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+## Resource: `azurerm_data_share_dataset_data_lake_gen1`
 
 Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
