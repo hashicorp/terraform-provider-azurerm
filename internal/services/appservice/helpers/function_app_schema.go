@@ -2153,3 +2153,22 @@ func FlattenFunctionAppAppServiceLogs(input web.SiteLogsConfig) []FunctionAppApp
 
 	return []FunctionAppAppServiceLogs{}
 }
+
+func ParseContentSettings(input web.StringDictionary, existing map[string]string) map[string]string {
+	if input.Properties == nil {
+		return nil
+	}
+
+	out := existing
+	for k, v := range input.Properties {
+		switch k {
+		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			out[k] = utils.NormalizeNilableString(v)
+
+		case "WEBSITE_CONTENTSHARE":
+			out[k] = utils.NormalizeNilableString(v)
+		}
+	}
+
+	return out
+}

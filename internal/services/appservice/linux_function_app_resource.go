@@ -658,6 +658,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			if err != nil {
+				return err
+			}
+
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(*planSKU)
+
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
@@ -704,13 +712,28 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if sendContentSettings {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+				}
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
+			}
+
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings["AzureWebJobsDashboard"] = storageString
+				if !state.StorageUsesMSI {
+					state.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
+				}
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {

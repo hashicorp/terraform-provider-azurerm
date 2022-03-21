@@ -131,12 +131,17 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 	servicePlanClient := metadata.Client.AppService.ServicePlanClient
 	var rg, siteName string
 
-	if appId, ok := id.(parse.WebAppId); ok {
+	switch appId := id.(type) {
+	case parse.WebAppId:
 		rg = appId.ResourceGroup
 		siteName = appId.SiteName
-	}
-
-	if appId, ok := id.(parse.FunctionAppId); ok {
+	case parse.WebAppSlotId:
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
+	case parse.FunctionAppId:
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
+	case parse.FunctionAppSlotId:
 		rg = appId.ResourceGroup
 		siteName = appId.SiteName
 	}
