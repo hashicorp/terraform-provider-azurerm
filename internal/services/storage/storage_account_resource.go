@@ -3,12 +3,13 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"

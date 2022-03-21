@@ -2,11 +2,12 @@ package compute
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
