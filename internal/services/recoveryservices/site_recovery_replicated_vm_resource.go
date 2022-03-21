@@ -113,7 +113,16 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					"target_zone",
 				},
 			},
-			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
+			// extracted from commonschema.ZoneSingleOptionalForceNew() as conflictWith is required.
+			"target_zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ConflictsWith: []string{
+					"target_availability_set_id",
+				},
+			},
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
