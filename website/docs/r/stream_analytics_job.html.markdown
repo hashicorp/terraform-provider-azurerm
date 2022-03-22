@@ -28,6 +28,8 @@ resource "azurerm_stream_analytics_job" "example" {
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
+  output_start_mode                        = "CustomTime"
+  output_start_time                        = "2022-03-15T06:08:02+00:00"
   streaming_units                          = 3
 
   tags = {
@@ -70,6 +72,10 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `output_error_policy` - (Optional) Specifies the policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size). Possible values are `Drop` and `Stop`.  Default is `Drop`.
+
+* `output_start_mode` - (Optional) This property should only be utilized when it is desired that the job be started immediately upon creation. Value may be JobStartTime, CustomTime, or LastOutputEventTime to indicate whether the starting point of the output event stream should start whenever the job is started, start at a custom user time stamp specified via the outputStartTime property, or start from the last event output time. Possible values include: `JobStartTime`, `CustomTime`, `LastOutputEventTime`.
+
+* `output_start_time` - (Optional) Value is either an ISO-8601 formatted time stamp that indicates the starting point of the output event stream, or null to indicate that the output event stream will start whenever the streaming job is started. This property must have a value if `outputStartMode` is set to `CustomTime`.
 
 * `streaming_units` - (Required) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
 
