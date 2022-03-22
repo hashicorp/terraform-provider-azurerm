@@ -26,6 +26,18 @@ func FromStringSlice(slice []string) *schema.Set {
 	return set
 }
 
+func FromStringSliceNilable(slice *[]string) *schema.Set {
+	if slice == nil {
+		return nil
+	}
+
+	set := &schema.Set{F: schema.HashString}
+	for _, v := range *slice {
+		set.Add(v)
+	}
+	return set
+}
+
 // HashIPv6Address normalizes an IPv6 address and returns a hash for it
 func HashIPv6Address(ipv6 interface{}) int {
 	return schema.HashString(normalizeIPv6Address(ipv6))

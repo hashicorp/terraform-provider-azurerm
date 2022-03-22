@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TriggerTumblingWindowResource struct {
-}
+type TriggerTumblingWindowResource struct{}
 
 func TestAccDataFactoryTriggerTumblingWindow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
@@ -210,9 +209,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctestdfp%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctestdfp%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"

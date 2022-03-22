@@ -63,7 +63,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_eventhub" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string

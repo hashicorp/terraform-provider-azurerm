@@ -20,6 +20,7 @@ var services = mapOf(
         "cognitive" to "Cognitive Services",
         "communication" to "Communication",
         "compute" to "Compute",
+        "connections" to "Connections",
         "consumption" to "Consumption",
         "containers" to "Container Services",
         "cosmos" to "CosmosDB",
@@ -50,6 +51,7 @@ var services = mapOf(
         "iothub" to "IoT Hub",
         "keyvault" to "KeyVault",
         "kusto" to "Kusto",
+        "legacy" to "Legacy",
         "lighthouse" to "Lighthouse",
         "loadbalancer" to "Load Balancer",
         "loadtest" to "Load Test",
@@ -99,6 +101,5 @@ var services = mapOf(
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
-        "web" to "Web",
-        "webpubsub" to "Web Publishing Subscription"
+        "web" to "Web"
 )

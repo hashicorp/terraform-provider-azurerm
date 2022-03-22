@@ -1,9 +1,8 @@
 package eventgrid
 
 import (
-	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -13,46 +12,6 @@ import (
 func IdentitySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(eventgrid.IdentityTypeNone),
-						string(eventgrid.IdentityTypeSystemAssigned),
-						string(eventgrid.IdentityTypeUserAssigned),
-					}, false),
-				},
-
-				"identity_ids": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-
-				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func IdentitySchemaForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
@@ -185,63 +144,49 @@ func flattenInboundIPRules(in *[]eventgrid.InboundIPRule) []interface{} {
 }
 
 func expandIdentity(input []interface{}) (*eventgrid.IdentityInfo, error) {
-	if len(input) == 0 || input[0] == nil {
-		return &eventgrid.IdentityInfo{
-			Type: eventgrid.IdentityTypeNone,
-		}, nil
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	raw := input[0].(map[string]interface{})
-
-	identity := eventgrid.IdentityInfo{
-		Type: eventgrid.IdentityType(raw["type"].(string)),
+	out := eventgrid.IdentityInfo{
+		Type: eventgrid.IdentityType(string(expanded.Type)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
-	identityIds := make(map[string]*eventgrid.UserIdentityProperties)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &eventgrid.UserIdentityProperties{}
-	}
-
-	if len(identityIds) > 0 {
-		if identity.Type != eventgrid.IdentityTypeUserAssigned && identity.Type != eventgrid.IdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*eventgrid.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &eventgrid.UserIdentityProperties{
+				// intentionally empty
+			}
 		}
-
-		identity.UserAssignedIdentities = identityIds
 	}
 
-	return &identity, nil
+	return &out, nil
 }
 
-func flattenIdentity(input *eventgrid.IdentityInfo) []interface{} {
-	if input == nil || input.Type == eventgrid.IdentityTypeNone {
-		return []interface{}{}
-	}
+func flattenIdentity(input *eventgrid.IdentityInfo) (*[]interface{}, error) {
+	var transform *identity.SystemOrUserAssignedMap
 
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+	if input != nil {
+		transform = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
 		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemOrUserAssignedMap(transform)
 }

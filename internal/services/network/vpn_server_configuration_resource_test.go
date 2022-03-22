@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VPNServerConfigurationResource struct {
-}
+type VPNServerConfigurationResource struct{}
 
 func TestAccVPNServerConfiguration_azureAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")

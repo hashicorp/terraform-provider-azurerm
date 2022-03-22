@@ -132,8 +132,8 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_hub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub", id.ID())
 		}
 	}
 

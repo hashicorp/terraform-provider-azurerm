@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LogicAppActionHttpResource struct {
-}
+type LogicAppActionHttpResource struct{}
 
 func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
@@ -21,6 +20,21 @@ func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,6 +134,33 @@ resource "azurerm_logic_app_action_http" "test" {
   logic_app_id = azurerm_logic_app_workflow.test.id
   method       = "GET"
   uri          = "http://example.com/hello"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppActionHttpResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+  body         = <<BODY
+{
+    "description": "test description",
+    "inputs": {
+        "variables": [
+            {
+                "name": "test name",
+                "type": "Integer",
+                "value": 1
+            }
+        ]
+    }
+}
+BODY
 }
 `, r.template(data), data.RandomInteger)
 }

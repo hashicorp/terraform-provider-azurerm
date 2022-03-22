@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -43,9 +46,9 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -122,9 +125,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sort_versions_by_semver", sortBySemVer)
 
-	if location := image.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(image.Location))
 
 	if props := image.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {

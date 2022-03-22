@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MediaJobResource struct {
-}
+type MediaJobResource struct{}
 
 func TestAccMediaJob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_job", "test")

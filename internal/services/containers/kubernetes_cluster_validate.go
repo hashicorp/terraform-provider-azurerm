@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -250,11 +251,11 @@ details can be found at https://aka.ms/version-skew-policy.
 `, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
 }
 
-func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, resourceGroup, clusterName, nodePoolName, desiredNodePoolVersion string) error {
+func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, defaultNodePoolId parse.NodePoolId, desiredNodePoolVersion string) error {
 	// confirm the version being used is >= the version of the control plane
-	versions, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, resourceGroup, clusterName)
+	versions, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("retrieving Available Agent Pool Versions for Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+		return fmt.Errorf("retrieving Available Agent Pool Versions for %s: %+v", defaultNodePoolId, err)
 	}
 	versionExists := false
 	supportedVersions := make([]string, 0)
@@ -272,20 +273,21 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 	}
 
 	if !versionExists {
-		cluster, err := client.KubernetesClustersClient.Get(ctx, resourceGroup, clusterName)
+		clusterId := parse.NewClusterID(defaultNodePoolId.SubscriptionId, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName)
+		cluster, err := client.KubernetesClustersClient.Get(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName)
 		if err != nil {
 			if !utils.ResponseWasStatusCode(cluster.Response, http.StatusUnauthorized) {
-				return fmt.Errorf("retrieving Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+				return fmt.Errorf("retrieving %s: %+v", clusterId, err)
 			}
 		}
 
 		// nilable since a user may not necessarily have access, and this is trying to be helpful
 		var clusterVersion *string
 		if props := cluster.ManagedClusterProperties; props != nil {
-			clusterVersion = props.KubernetesVersion
+			clusterVersion = props.CurrentKubernetesVersion
 		}
 
-		return clusterControlPlaneMustBeUpgradedError(resourceGroup, clusterName, nodePoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
+		return clusterControlPlaneMustBeUpgradedError(defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
 	}
 
 	return nil

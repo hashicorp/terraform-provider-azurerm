@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TemplateDeploymentResource struct {
-}
+type TemplateDeploymentResource struct{}
 
 func TestAccTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
@@ -434,7 +433,6 @@ resource "azurerm_key_vault" "test" {
   location            = "%s"
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  soft_delete_enabled = true
   sku_name            = "standard"
 
   tenant_id                       = data.azurerm_client_config.current.tenant_id
@@ -445,11 +443,11 @@ resource "azurerm_key_vault" "test" {
     object_id       = data.azurerm_client_config.current.object_id
 
     secret_permissions = [
-      "delete",
-      "get",
-      "list",
-      "set",
-      "purge",
+      "Delete",
+      "Get",
+      "List",
+      "Set",
+      "Purge",
     ]
 
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"

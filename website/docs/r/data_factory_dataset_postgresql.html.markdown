@@ -25,15 +25,13 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_postgresql" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
-  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 
 resource "azurerm_data_factory_dataset_postgresql" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
   data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_postgresql.example.name
 }
@@ -45,15 +43,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Dataset PostgreSQL. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Dataset PostgreSQL. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
 

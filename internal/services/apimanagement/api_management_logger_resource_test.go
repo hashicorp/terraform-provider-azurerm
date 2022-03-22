@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementLoggerResource struct {
-}
+type ApiManagementLoggerResource struct{}
 
 func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")

@@ -26,11 +26,12 @@ func resourceKustoDatabasePrincipal() *pluginsdk.Resource {
 
 		DeprecationMessage: "This resource has been superseded by `azurerm_kusto_database_principal_assignment` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DatabasePrincipalID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			// TODO: confirm these
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudAppMysqlAssociationResource struct {
-}
+type SpringCloudAppMysqlAssociationResource struct{}
 
 func TestAccSpringCloudAppMysqlAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_mysql_association", "test")

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
@@ -29,9 +30,9 @@ func dataSourceDevTestLab() *pluginsdk.Resource {
 				ValidateFunc: validate.DevTestLabName(),
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"storage_type": {
 				Type:     pluginsdk.TypeString,
@@ -81,9 +82,9 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	id := parse.NewDevTestLabID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.LabName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -92,13 +93,11 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.SetId(id.ID())
 
-	d.Set("name", read.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := read.LabProperties; props != nil {
+	if props := resp.LabProperties; props != nil {
 		d.Set("storage_type", string(props.LabStorageType))
 
 		// Computed fields
@@ -110,5 +109,5 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	return tags.FlattenAndSet(d, read.Tags)
+	return tags.FlattenAndSet(d, resp.Tags)
 }

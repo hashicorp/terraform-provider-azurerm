@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,7 +36,7 @@ type WindowsWebAppModel struct {
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
-	Identity                      []helpers.Identity          `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
@@ -63,7 +65,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
@@ -121,7 +123,14 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+		},
 
 		"logs": helpers.LogsConfigSchema(),
 
@@ -266,10 +275,17 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
+
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
 				Tags:     tags.FromTypedObject(webApp.Tags),
-				Identity: helpers.ExpandIdentity(webApp.Identity),
+				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
 					Enabled:               utils.Bool(webApp.Enabled),
@@ -279,6 +295,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
+			}
+
+			if webApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -300,7 +320,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
@@ -430,70 +450,43 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
+			props := webApp.SiteProperties
+
 			state := WindowsWebAppModel{
-				Name:          id.SiteName,
-				ResourceGroup: id.ResourceGroup,
-				Location:      location.NormalizeNilable(webApp.Location),
-				Tags:          tags.ToTypedObject(webApp.Tags),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                    location.NormalizeNilable(webApp.Location),
+				AuthSettings:                helpers.FlattenAuthSettings(auth),
+				Backup:                      helpers.FlattenBackupConfig(backup),
+				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
+				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientCertMode:              string(props.ClientCertMode),
+				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
+				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				Kind:                        utils.NormalizeNilableString(webApp.Kind),
+				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
+				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
+				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
+				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
-			webAppProps := webApp.SiteProperties
-			if v := webAppProps.ServerFarmID; v != nil {
-				state.ServicePlanId = *v
-			}
-
-			if v := webAppProps.ClientAffinityEnabled; v != nil {
-				state.ClientAffinityEnabled = *v
-			}
-
-			if v := webAppProps.ClientCertEnabled; v != nil {
-				state.ClientCertEnabled = *v
-			}
-
-			if webAppProps.ClientCertMode != "" {
-				state.ClientCertMode = string(webAppProps.ClientCertMode)
-			}
-
-			if v := webAppProps.Enabled; v != nil {
-				state.Enabled = *v
-			}
-
-			if v := webAppProps.HTTPSOnly; v != nil {
-				state.HttpsOnly = *v
-			}
-
-			if v := webAppProps.CustomDomainVerificationID; v != nil {
-				state.CustomDomainVerificationId = *v
-			}
-
-			if v := webAppProps.DefaultHostName; v != nil {
-				state.DefaultHostname = *v
-			}
-
-			if v := webApp.Kind; v != nil {
-				state.Kind = *v
-			}
-
-			if v := webAppProps.OutboundIPAddresses; v != nil {
+			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+			if v := props.PossibleOutboundIPAddresses; v != nil {
 				state.PossibleOutboundIPAddresses = *v
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
-
-			state.AuthSettings = helpers.FlattenAuthSettings(auth)
-
-			state.Backup = helpers.FlattenBackupConfig(backup)
-
-			state.Identity = helpers.FlattenIdentity(webApp.Identity)
-
-			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			currentStack := ""
 			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
@@ -503,13 +496,19 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
-			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
 
-			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
 
-			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
-
-			return metadata.Encode(&state)
+			return nil
 		},
 	}
 }
@@ -583,7 +582,15 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -616,7 +623,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}

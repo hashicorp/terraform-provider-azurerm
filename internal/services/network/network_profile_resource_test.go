@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkProfileResource struct {
-}
+type NetworkProfileResource struct{}
 
 func TestAccNetworkProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")

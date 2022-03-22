@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Windows Function App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -90,6 +88,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
 * `storage_account_name` - The backend storage account name which is used by this Function App.
+
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.
 
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 

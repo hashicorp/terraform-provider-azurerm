@@ -845,7 +845,8 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 }
 
 func workspaceCustomParametersString() []string {
-	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
+	return []string{
+		"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
 		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
 		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id",
 		"custom_parameters.0.nat_gateway_name", "custom_parameters.0.public_ip_name", "custom_parameters.0.storage_account_name", "custom_parameters.0.storage_account_sku_name",

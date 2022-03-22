@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLServerKeyResource struct {
-}
+type PostgreSQLServerKeyResource struct{}
 
 func TestAccPostgreSQLServerKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
@@ -87,7 +86,8 @@ func (PostgreSQLServerKeyResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -105,7 +105,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -114,8 +113,8 @@ resource "azurerm_key_vault_access_policy" "server" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_postgresql_server.test.identity.0.principal_id
 
-  key_permissions    = ["get", "unwrapkey", "wrapkey"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -123,8 +122,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "first" {

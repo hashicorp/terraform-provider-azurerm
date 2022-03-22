@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkDDoSProtectionPlanResource struct {
-}
+type NetworkDDoSProtectionPlanResource struct{}
 
 // NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
 // Plan per region.

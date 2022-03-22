@@ -25,6 +25,7 @@ import (
 	cognitiveServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 	communication "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	compute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
+	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
@@ -38,7 +39,6 @@ import (
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
-	devspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
@@ -57,6 +57,7 @@ import (
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
+	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	loadtest "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/client"
@@ -95,7 +96,6 @@ import (
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
-	serviceFabricMesh "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	sql "github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/client"
@@ -107,7 +107,6 @@ import (
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
-	webPubsub "github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/client"
 )
 
 type Client struct {
@@ -136,6 +135,7 @@ type Client struct {
 	Cognitive             *cognitiveServices.Client
 	Communication         *communication.Client
 	Compute               *compute.Client
+	Connections           *connections.Client
 	Consumption           *consumption.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
@@ -149,7 +149,6 @@ type Client struct {
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
 	DesktopVirtualization *desktopvirtualization.Client
-	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
@@ -168,6 +167,7 @@ type Client struct {
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
+	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
 	LoadTest              *loadtest.Client
@@ -205,7 +205,6 @@ type Client struct {
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
 	ServiceFabric         *serviceFabric.Client
-	ServiceFabricMesh     *serviceFabricMesh.Client
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
@@ -217,7 +216,6 @@ type Client struct {
 	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
 	Web                   *web.Client
-	Webpubsub             *webPubsub.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -249,6 +247,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cognitive = cognitiveServices.NewClient(o)
 	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
+	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
@@ -262,7 +261,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
-	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
@@ -281,6 +279,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
@@ -319,7 +318,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
-	client.ServiceFabricMesh = serviceFabricMesh.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
@@ -330,7 +328,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
-	client.Webpubsub = webPubsub.NewClient(o)
 
 	return nil
 }

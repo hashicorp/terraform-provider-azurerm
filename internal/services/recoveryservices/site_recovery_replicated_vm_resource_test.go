@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SiteRecoveryReplicatedVmResource struct {
-}
+type SiteRecoveryReplicatedVmResource struct{}
 
 func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
@@ -274,7 +273,8 @@ func (SiteRecoveryReplicatedVmResource) des(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -309,17 +309,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -356,9 +356,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -578,17 +578,17 @@ resource "azurerm_key_vault_access_policy" "service-principal2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -625,9 +625,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
   key_vault_id = azurerm_key_vault.test2.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test2.identity.0.tenant_id

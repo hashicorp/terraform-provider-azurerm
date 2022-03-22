@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
@@ -20,8 +20,10 @@ import (
 
 type StorageDisksPoolResource struct{}
 
-var _ sdk.ResourceWithDeprecationReplacedBy = StorageDisksPoolResource{}
-var _ sdk.ResourceWithUpdate = StorageDisksPoolResource{}
+var (
+	_ sdk.ResourceWithDeprecationReplacedBy = StorageDisksPoolResource{}
+	_ sdk.ResourceWithUpdate                = StorageDisksPoolResource{}
+)
 
 type StorageDisksPoolJobModel struct {
 	Name              string                 `tfschema:"name"`
@@ -48,6 +50,7 @@ func (StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"availability_zones": {
+			// @tombuildsstuff: leaving since this resource is removed in 3.0
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,

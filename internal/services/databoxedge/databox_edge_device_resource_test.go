@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataboxEdgeDeviceResource struct {
-}
+type DataboxEdgeDeviceResource struct{}
 
 func TestAccDataboxEdgeDevice_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")

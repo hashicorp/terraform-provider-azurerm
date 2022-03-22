@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultCertificateIssuerResource struct {
-}
+type KeyVaultCertificateIssuerResource struct{}
 
 func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
@@ -188,19 +187,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -255,19 +254,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }

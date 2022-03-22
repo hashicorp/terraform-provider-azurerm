@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -451,6 +452,66 @@ func TestAccLinuxVirtualMachine_otherTags(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherTerminationNotification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// turn termination notification on
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification off
+		{
+			Config: r.otherTerminationNotification(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification on again
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherTerminationNotificationTimeout(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherTerminationNotificationTimeout(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -622,6 +683,86 @@ func TestAccLinuxVirtualMachine_otherVTpmEnabled(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r LinuxVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  patch_mode = "%s"
+}
+`, r.template(data), data.RandomInteger, patchMode)
 }
 
 func (r LinuxVirtualMachineResource) otherAllowExtensionOperationsDefault(data acceptance.TestData) string {
@@ -1355,8 +1496,9 @@ func (r LinuxVirtualMachineResource) otherSecretTemplate(data acceptance.TestDat
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults            = false
+      purge_soft_delete_on_destroy               = false
+      purge_soft_deleted_certificates_on_destroy = false
     }
   }
 }
@@ -1378,22 +1520,22 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
 
     storage_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -1686,6 +1828,83 @@ resource "azurerm_linux_virtual_machine" "test" {
   tags = {
     Hello     = "World"
     Dimension = "C-137"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  termination_notification {
+    enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LinuxVirtualMachineResource) otherTerminationNotificationTimeout(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  termination_notification {
+    enabled = true
+    timeout = "PT15M"
   }
 }
 `, r.template(data), data.RandomInteger)

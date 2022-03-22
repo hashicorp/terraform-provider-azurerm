@@ -22,8 +22,12 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Read:   resourceStorageShareRead,
 		Update: resourceStorageShareUpdate,
 		Delete: resourceStorageShareDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer:      pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.StorageShareDataPlaneID(id)
+			return err
+		}),
+
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},

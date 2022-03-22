@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
 )
 
 type SiteConfigLinuxFunctionApp struct {
@@ -952,17 +953,20 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 				"minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Computed: true},
+					Computed: true,
+				},
 
 				"scm_minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Computed: true},
+					Computed: true,
+				},
 
 				"cors": CorsSettingsSchemaComputed(),
 
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
-					Computed: true},
+					Computed: true,
+				},
 
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -1057,6 +1061,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"12",
 						"14",
+						"16", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1280,8 +1285,9 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"12",
-						"14",
+						"~12",
+						"~14",
+						"~16",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1395,11 +1401,13 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      35,
 					ValidateFunc: validation.IntBetween(25, 100),
+					Description:  "The amount of disk space to use for logs. Valid values are between `25` and `100`.",
 				},
 				"retention_period_days": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
+					Description:  "The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).",
 				},
 			},
 		},

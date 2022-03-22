@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -25,8 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-// TODO: confirm locking as appropriate
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -138,9 +138,25 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// same for `dedicated_host_group_id`
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_group_id",
+				},
 				// TODO: raise a GH issue for the broken API
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
+
+			},
+
+			"dedicated_host_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"dedicated_host_id",
+				},
 			},
 
 			"disable_password_authentication": {
@@ -173,7 +189,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -277,24 +293,32 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"termination_notification": virtualMachineTerminationNotificationSchema(),
+
 			"user_data": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsBase64,
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
-				// the VMO mode VMSS will assign a zone for each of its instance.
-				// and if the VMSS in not zonal, this value should be left empty
-				Computed: true,
-				ConflictsWith: []string{
-					"availability_set_id",
-				},
-			},
+			"zone": func() *pluginsdk.Schema {
+				if !features.ThreePointOhBeta() {
+					return &pluginsdk.Schema{
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
+						// the VMO mode VMSS will assign a zone for each of its instance.
+						// and if the VMSS in not zonal, this value should be left empty
+						Computed: true,
+						ConflictsWith: []string{
+							"availability_set_id",
+						},
+					}
+				}
+
+				return commonschema.ZoneSingleOptionalForceNew()
+			}(),
 
 			// Computed
 			"private_ip_address": {
@@ -335,8 +359,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -445,6 +469,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("patch_mode"); ok {
+		if v == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		}
+
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
 			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
 		}
@@ -469,6 +497,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
 		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+	}
+
+	if v, ok := d.GetOk("termination_notification"); ok {
+		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
 	}
 
 	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
@@ -498,6 +530,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
 		params.Host = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+		params.HostGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -606,7 +644,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -670,6 +708,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	dedicatedHostGroupId := ""
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		dedicatedHostGroupId = *props.HostGroup.ID
+	}
+	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
 
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
@@ -743,6 +787,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
+		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+	}
+
 	encryptionAtHostEnabled := false
 	vtpmEnabled := false
 	secureBootEnabled := false
@@ -798,8 +848,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
@@ -888,6 +938,21 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 		} else {
 			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("dedicated_host_group_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+			update.HostGroup = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.HostGroup = &compute.SubResource{}
 		}
 	}
 
@@ -1035,6 +1100,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("termination_notification") {
+		shouldUpdate = true
+
+		notificationRaw := d.Get("termination_notification").([]interface{})
+		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
 	}
 
 	if d.HasChange("tags") {
@@ -1241,8 +1313,8 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
@@ -1259,7 +1331,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
 			log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
 		} else {
-			//ISSUE: 4920
+			// ISSUE: 4920
 			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
 			// thus this can be a large cost-saving when deleting larger instances
 			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle

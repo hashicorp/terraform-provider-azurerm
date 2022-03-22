@@ -45,8 +45,7 @@ JSON
 
 resource "azurerm_data_factory_dataset_json" "example1" {
   name                = "dataset1"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_custom_service.example.name
 
   azure_blob_storage_location {
@@ -60,8 +59,7 @@ resource "azurerm_data_factory_dataset_json" "example1" {
 
 resource "azurerm_data_factory_dataset_json" "example2" {
   name                = "dataset2"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_custom_service.example.name
 
   azure_blob_storage_location {

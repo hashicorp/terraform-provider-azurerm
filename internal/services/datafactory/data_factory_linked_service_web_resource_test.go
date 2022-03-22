@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceWebResource struct {
-}
+type LinkedServiceWebResource struct{}
 
 func TestAccDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
@@ -117,7 +116,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
@@ -144,7 +142,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   url                 = "http://www.bing.com"
@@ -173,7 +170,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.google.com"
@@ -212,8 +208,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.yahoo.com"
   annotations         = ["test1", "test2"]

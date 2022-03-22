@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkConnectionMonitorResource struct {
-}
+type NetworkConnectionMonitorResource struct{}
 
 func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
@@ -483,7 +482,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-LAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_connection_monitor" "test" {

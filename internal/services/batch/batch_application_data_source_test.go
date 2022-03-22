@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BatchApplicationDataSource struct {
-}
+type BatchApplicationDataSource struct{}
 
 func TestAccBatchApplicationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_application", "test")

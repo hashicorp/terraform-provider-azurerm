@@ -10,8 +10,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = NotificationHubResourceV0ToV1{}
 
-type NotificationHubResourceV0ToV1 struct {
-}
+type NotificationHubResourceV0ToV1 struct{}
 
 func (NotificationHubResourceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
