@@ -20,6 +20,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"purge_soft_delete_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  true,
+					},
+
+					"recover_soft_deleted": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
 					},
 				},
 			},
@@ -250,6 +257,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			apimRaw := items[0].(map[string]interface{})
 			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+			if v, ok := apimRaw["recover_soft_deleted"]; ok {
+				featuresMap.ApiManagement.RecoverSoftDeleted = v.(bool)
 			}
 		}
 	}
