@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// FhirServiceName validates Dicom Service names
+// FhirServiceName validates Fhir Service names
 func FhirServiceName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z]{1,22}[0-9a-zA-Z]$`),

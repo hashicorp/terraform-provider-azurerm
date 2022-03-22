@@ -136,7 +136,7 @@ func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -195,7 +195,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcare_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "import" {
   name                = azurerm_healthcare_fhir_service.test.name
   location            = azurerm_healthcare_fhir_service.test.location
   resource_group_name = azurerm_healthcare_fhir_service.test.resource_group_name
@@ -316,7 +316,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   }
 
   export_storage_account_name = azurerm_storage_account.test.name
-  depends_on                  = [azurerm_healthcare_workspace.test]
+  depends_on                  = [azurerm_healthcare_workspace.test,azurerm_storage_account.test]
 
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -360,7 +360,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     allow_credentials  = false
   }
   export_storage_account_name = azurerm_storage_account.test.name
-  depends_on                  = [azurerm_healthcare_workspace.test]
+  depends_on                  = [azurerm_healthcare_workspace.test,azurerm_storage_account.test]
 }`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 

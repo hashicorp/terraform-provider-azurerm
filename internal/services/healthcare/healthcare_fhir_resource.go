@@ -25,9 +25,9 @@ import (
 
 func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisFhirServiceCreateUpdate,
+		Create: resourceHealthcareApisFhirServiceCreate,
 		Read:   resourceHealthcareApisFhirServiceRead,
-		Update: resourceHealthcareApisFhirServiceCreateUpdate,
+		Update: resourceHealthcareApisFhirServiceUpdate,
 		Delete: resourceHealthcareApisFhirServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -183,7 +183,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 }
 
-func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,9 +229,10 @@ func resourceHealthcareApisFhirServiceCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.FhirServiceProperties.AccessPolicies = expandAccessPolicy(accessPolicyObjectIds.(*pluginsdk.Set).List())
 	}
 
-	if v := d.Get("export_storage_account_name").(string); v != "" {
+	storageAcc, hasValues := d.GetOk("export_storage_account_name")
+	if hasValues {
 		parameters.FhirServiceProperties.ExportConfiguration = &healthcareapis.FhirServiceExportConfiguration{
-			StorageAccountName: utils.String(v),
+			StorageAccountName: utils.String(storageAcc.(string)),
 		}
 	}
 
@@ -304,12 +305,66 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
+func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	workspace, err := parse.WorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+	fhirServiceId := parse.NewFhirServiceID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
+
+	identity, err := expandFhirManagedIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	parameters := healthcareapis.FhirService{
+		Identity: identity,
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Kind:     healthcareapis.FhirServiceKind(d.Get("kind").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
+			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
+			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
+		},
+	}
+
+	storageAcc, hasValues := d.GetOk("export_storage_account_name")
+	if hasValues {
+		parameters.FhirServiceProperties.ExportConfiguration = &healthcareapis.FhirServiceExportConfiguration{
+			StorageAccountName: utils.String(storageAcc.(string)),
+		}
+	}
+
+	acrConfig, hasValues := d.GetOk("acr_login_servers")
+	if hasValues {
+		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
+		parameters.FhirServiceProperties.AcrConfiguration = result
+	}
+
+	future, err := client.CreateOrUpdate(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", fhirServiceId, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %s: %+v", fhirServiceId, err)
+	}
+
+	d.SetId(fhirServiceId.ID())
+	return resourceHealthcareApisFhirServiceRead(d, meta)
+}
+
 func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
- 	id, err := parse.FhirServiceID(d.Id())
+	id, err := parse.FhirServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -471,9 +526,7 @@ func flattenFhirAcrLoginServer(acrLoginServer *healthcareapis.FhirServiceAcrConf
 	}
 
 	if loginServer := acrLoginServer.LoginServers; loginServer != nil {
-		for _, serverId := range *loginServer {
-			result = append(result, serverId)
-		}
+		result = append(result, *loginServer...)
 	}
 	return result
 }
@@ -501,7 +554,7 @@ func flattenFhirCorsConfiguration(corsConfig *healthcareapis.FhirServiceCorsConf
 	if corsConfig.Origins != nil && len(*corsConfig.Origins) == 0 &&
 		corsConfig.Methods != nil && len(*corsConfig.Methods) == 0 &&
 		corsConfig.Headers != nil && len(*corsConfig.Headers) == 0 &&
-		corsConfig.AllowCredentials != nil && *corsConfig.AllowCredentials == false {
+		corsConfig.AllowCredentials != nil && !*corsConfig.AllowCredentials {
 		return []interface{}{}
 	}
 
