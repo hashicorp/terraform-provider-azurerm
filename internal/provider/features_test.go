@@ -21,9 +21,6 @@ func TestExpandFeatures(t *testing.T) {
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 				},
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: false,
-				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -68,11 +65,6 @@ func TestExpandFeatures(t *testing.T) {
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
-						},
-					},
-					"container": []interface{}{
-						map[string]interface{}{
-							"run_task_on_apply": true,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -132,9 +124,6 @@ func TestExpandFeatures(t *testing.T) {
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: true,
-				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -179,11 +168,6 @@ func TestExpandFeatures(t *testing.T) {
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
-						},
-					},
-					"container": []interface{}{
-						map[string]interface{}{
-							"run_task_on_apply": false,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -242,9 +226,6 @@ func TestExpandFeatures(t *testing.T) {
 			Expected: features.UserFeatures{
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
-				},
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: false,
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
@@ -420,71 +401,6 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.CognitiveAccount, testCase.Expected.CognitiveAccount) {
 			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccount, testCase.Expected.CognitiveAccount)
-		}
-	}
-}
-
-func TestExpandFeaturesContainer(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"container": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: false,
-				},
-			},
-		},
-		{
-			Name: "Run Task On Apply Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"container": []interface{}{
-						map[string]interface{}{
-							"run_task_on_apply": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: true,
-				},
-			},
-		},
-		{
-			Name: "Run Task On Apply Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"container": []interface{}{
-						map[string]interface{}{
-							"run_task_on_apply": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				Container: features.ContainerFeatures{
-					RunTaskOnApply: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.Container, testCase.Expected.Container) {
-			t.Fatalf("Expected %+v but got %+v", result.Container, testCase.Expected.Container)
 		}
 	}
 }

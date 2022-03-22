@@ -171,8 +171,6 @@ The `features` block supports the following:
 
 * `api_management` - (Optional) An `api_management` block as defined below.
 
-* `container` - (Optional) A `container` block as defined below.
-
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
@@ -192,12 +190,6 @@ The `features` block supports the following:
 The `api_management` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
-
----
-
-The `container` block supports the following:
-
-* `run_task_on_apply` - (Optional) Should the `azurerm_container_registry_task` resource run the task after create/update? Defaults to `false`.
 
 ---
 

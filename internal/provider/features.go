@@ -40,20 +40,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		"container": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"run_task_on_apply": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-				},
-			},
-		},
 		"key_vault": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -274,16 +260,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			cognitiveRaw := items[0].(map[string]interface{})
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["container"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 && items[0] != nil {
-			containerRaw := items[0].(map[string]interface{})
-			if v, ok := containerRaw["run_task_on_apply"]; ok {
-				featuresMap.Container.RunTaskOnApply = v.(bool)
 			}
 		}
 	}
