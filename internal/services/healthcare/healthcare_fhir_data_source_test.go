@@ -28,8 +28,8 @@ func (HealthCareFhirServiceDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_healthcare_fhir_service" "test" {
-  name                = azurerm_healthcare_fhir_service.test.name
-  workspace_id        = azurerm_healthcare_fhir_service.test.workspace_id
+  name         = azurerm_healthcare_fhir_service.test.name
+  workspace_id = azurerm_healthcare_fhir_service.test.workspace_id
 }
 `, HealthcareApiFhirServiceResource{}.basic(data))
 }

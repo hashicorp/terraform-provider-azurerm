@@ -316,7 +316,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   }
 
   export_storage_account_name = azurerm_storage_account.test.name
-  depends_on                  = [azurerm_healthcare_workspace.test,azurerm_storage_account.test]
+  depends_on                  = [azurerm_healthcare_workspace.test, azurerm_storage_account.test]
 
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -360,7 +360,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     allow_credentials  = false
   }
   export_storage_account_name = azurerm_storage_account.test.name
-  depends_on                  = [azurerm_healthcare_workspace.test,azurerm_storage_account.test]
+  depends_on                  = [azurerm_healthcare_workspace.test, azurerm_storage_account.test]
 }`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 

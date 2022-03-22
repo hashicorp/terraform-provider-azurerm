@@ -2,7 +2,8 @@
 subcategory: "Healthcare"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_healthcare_fhir_service"
-description: |- Get information about an existing Healthcare Fhir Service
+description: |-
+  Get information about an existing Healthcare Fhir Service
 ---
 
 # Data Source: azurerm_healthcare_fhir_service
@@ -13,8 +14,8 @@ Use this data source to access information about an existing Healthcare Fhir Ser
 
 ```hcl
 data "azurerm_healthcare_fhir_service" "example" {
-  name                = "example-healthcare_fhir_service"
-  workspace_id        = "example-workspace"
+  name         = "example-healthcare_fhir_service"
+  workspace_id = "example-workspace"
 }
 
 output "healthcare_fhir_service_id" {
