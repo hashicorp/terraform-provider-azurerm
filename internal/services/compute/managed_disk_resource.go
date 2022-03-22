@@ -84,6 +84,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					}, false),
 				},
 
+				"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 				"logical_sector_size": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
@@ -464,9 +466,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createDisk := compute.Disk{
-		Name:           &name,
-		Location:       &location,
-		DiskProperties: props,
+		Name:             &name,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
+		DiskProperties:   props,
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
@@ -823,8 +826,9 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+
 	if features.ThreePointOhBeta() {
 		zone := ""
 		if resp.Zones != nil && len(*resp.Zones) > 0 {
