@@ -220,6 +220,8 @@ A `site_config` block supports the following:
 
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
 
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
