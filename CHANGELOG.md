@@ -78,6 +78,7 @@ BUG FIXES:
 * `azurerm_application_gateway` - the `request_routing_rule` block is now a Set rather than a List [GH-6896]
 * `azurerm_application_gateway` - the `ssl_certificate` block is now a Set rather than a List [GH-6896]
 * `azurerm_cosmosdb_mongo_collection` - the `default_ttl_seconds` can now be set to `-1` [GH-15736]
+* `azurerm_eventhub` - prevent panic when the `capture_description` block is removed [GH-15930]
 
 ---
 
