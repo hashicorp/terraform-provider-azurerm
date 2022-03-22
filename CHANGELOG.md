@@ -36,6 +36,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - node version 16 preview support. [GH-15884]
 * `azurerm_linux_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_linux_virtual_machine|windows_virual_machine` -support for the `termination_notification` property [GH-14933]
 * Data Source: `azurerm_linux_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
 * Data Source: `azurerm_windows_function_app` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
@@ -56,6 +57,7 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` node version 16 preview support [GH-15884]
 * `azurerm_windows_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
+* `azurerm_windows_virual_machine` -support for the `termination_notification` property [GH-14933]
 * `azurerm_container_registry` - validate the `georepliactions` property does not include the location of the Container Registry [GH-15847]
 
 
