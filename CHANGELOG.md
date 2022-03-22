@@ -15,7 +15,6 @@ FEATURES:
 * **New Resource**: `azurerm_stream_analytics_function_javascript_uda` [GH-15831]
 
 ENHANCEMENTS:
-update spring cloud sdk to 2022-01-01-preview #15597
 
 * dependencies: updating to `v62.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15927]
 * dependencies: upgrading to `v0.26.0` of `github.com/hashicorp/go-azure-helpers` [GH-15889]
@@ -67,6 +66,7 @@ update spring cloud sdk to 2022-01-01-preview #15597
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_virtual_network` - support for the `edge_zone` property [GH-15890]
 * `azurerm_virtual_network_gateway` - support for the `edge_zone` property [GH-15890]
+* `azurerm_virtual_hub` - support for the `virtual_router_asn` and `virtual_router_ips` properties [GH-15741]
 * `azurerm_windows_function_app` - add support for `storage_key_vault_secret_id` property [GH-15793]
 * `azurerm_windows_function_app` - updating the read timeout to be `5m` [GH-15867]
 * `azurerm_windows_function_app` node version validation string can not be prefixed with `~` [GH-15884]
