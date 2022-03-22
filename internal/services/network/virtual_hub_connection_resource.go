@@ -155,13 +155,13 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 	if !features.ThreePointOhBeta() {
-		out["hub_to_vitual_network_traffic_allowed"] = &pluginsdk.Schema{
+		out["hub_to_virtual_network_traffic_allowed"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 		}
 
-		out["vitual_network_to_hub_gateways_traffic_allowed"] = &pluginsdk.Schema{
+		out["virtual_network_to_hub_gateways_traffic_allowed"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
@@ -274,8 +274,8 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		if !features.ThreePointOhBeta() {
 			// The following two attributes are deprecated by API (which will always return `true`).
 			// Hence, we explicitly set them to `false` (as false is the default value when users omit that property).
-			d.Set("hub_to_vitual_network_traffic_allowed", false)
-			d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
+			d.Set("hub_to_virtual_network_traffic_allowed", false)
+			d.Set("virtual_network_to_hub_gateways_traffic_allowed", false)
 		}
 
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)

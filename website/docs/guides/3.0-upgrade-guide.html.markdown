@@ -1260,9 +1260,9 @@ The resource `azurerm_traffic_manager_endpoint` will be removed in favour of the
 
 ### Resource: `azurerm_virtual_hub_connection`
 
-The deprecated field `hub_to_vitual_network_traffic_allowed` will be removed since it is no longer supported by the Azure API.
+The deprecated field `hub_to_virtual_network_traffic_allowed` will be removed since it is no longer supported by the Azure API.
 
-The deprecated field `vitual_network_to_hub_gateways_traffic_allowed` will be removed since it is no longer supported by the Azure API.
+The deprecated field `virtual_network_to_hub_gateways_traffic_allowed` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_virtual_hub_ip`
 
