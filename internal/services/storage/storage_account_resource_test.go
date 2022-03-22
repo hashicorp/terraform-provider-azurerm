@@ -229,7 +229,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -237,7 +237,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.allowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("true"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -245,7 +245,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.disallowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 	})
@@ -1436,10 +1436,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "production"
@@ -1464,10 +1464,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = false
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
 
   tags = {
     environment = "production"
@@ -2436,11 +2436,11 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
-  allow_blob_public_access  = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  enable_https_traffic_only       = true
+  allow_nested_items_to_be_public = true
 
   blob_properties {
     cors_rule {
