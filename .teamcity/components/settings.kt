@@ -72,5 +72,5 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2, 4, 6")
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6")
 )
