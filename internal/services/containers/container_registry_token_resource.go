@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,6 +76,9 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := parse.NewContainerRegistryTokenID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 		if err != nil {
@@ -127,6 +131,10 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	scopeMapID := d.Get("scope_map_id").(string)
 	enabled := d.Get("enabled").(bool)
 	status := containerregistry.TokenStatusEnabled
@@ -200,6 +208,9 @@ func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 	if err != nil {
