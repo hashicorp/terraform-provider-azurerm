@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -348,4 +349,70 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 			"write_accelerator_enabled": writeAcceleratorEnabled,
 		},
 	}, nil
+}
+
+func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					Default:      "PT5M",
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+	if len(input) == 0 {
+		return &compute.ScheduledEventsProfile{
+			TerminateNotificationProfile: &compute.TerminateNotificationProfile{
+				Enable: utils.Bool(false),
+			},
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	enabled := raw["enabled"].(bool)
+	timeout := raw["timeout"].(string)
+
+	return &compute.ScheduledEventsProfile{
+		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
+			Enable:           &enabled,
+			NotBeforeTimeout: &timeout,
+		},
+	}
+}
+
+func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
+		enabled = *input.TerminateNotificationProfile.Enable
+	}
+
+	timeout := "PT5M"
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
+		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": timeout,
+		},
+	}
 }
