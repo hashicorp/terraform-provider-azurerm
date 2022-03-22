@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
--> **NOTE:** This can only be `true` when `account_kind` is `StorageV2`.
+-> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
