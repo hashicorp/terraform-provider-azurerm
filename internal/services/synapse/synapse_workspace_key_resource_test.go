@@ -100,7 +100,9 @@ resource "azurerm_synapse_workspace" "test" {
     key_name           = "test_key"
 
   }
-
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 
