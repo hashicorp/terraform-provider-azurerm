@@ -255,47 +255,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
-	// Azure creates a rule and action group when creating this resource that are very noisy
-	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
-	// Instead, we'll opt to disable them here
-	ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
-	ruleId := monitorParse.NewSmartDetectorAlertRuleID(resourceId.SubscriptionId, resourceId.ResourceGroup, ruleName)
-	result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, utils.Bool(true))
-	if err != nil {
-		if !utils.ResponseWasNotFound(result.Response) {
-			return fmt.Errorf("making Read request for %s: %+v", ruleId, err)
-		}
-	}
-
-	if result.AlertRuleProperties != nil {
-		result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
-		updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
-		if err != nil {
-			if !utils.ResponseWasNotFound(updateRuleResult.Response) {
-				return fmt.Errorf("issuing delete request for %s: %+v", ruleId, err)
-			}
-		}
-	}
-
-	actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
-	groupResult, err := actionGroupClient.Get(ctx, actionGroupId.ResourceGroup, actionGroupId.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(result.Response) {
-			return fmt.Errorf("making Read request for %s: %+v", actionGroupId, err)
-		}
-	}
-
-	if groupResult.ActionGroup != nil {
-		groupResult.ActionGroup.Enabled = utils.Bool(false)
-		updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
-		if err != nil {
-			if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
-				return fmt.Errorf("issuing update request for %s: %+v", actionGroupId, err)
-			}
-		}
-	}
-
 	billingRead, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
@@ -316,6 +275,66 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if _, err = billingClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures); err != nil {
 		return fmt.Errorf("update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
+	// Azure creates a rule and action group when creating this resource that are very noisy
+	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
+	// Instead, we'll opt to disable them here
+	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			time.Sleep(30 * time.Second)
+			actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
+
+			groupResult, err := actionGroupClient.Get(ctx, actionGroupId.ResourceGroup, actionGroupId.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(groupResult.Response) {
+					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", actionGroupId))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", actionGroupId, err))
+			}
+
+			if groupResult.ActionGroup != nil {
+				groupResult.ActionGroup.Enabled = utils.Bool(false)
+				updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
+				if err != nil {
+					if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", actionGroupId, err))
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			time.Sleep(30 * time.Second)
+			ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
+			ruleId := monitorParse.NewSmartDetectorAlertRuleID(resourceId.SubscriptionId, resourceId.ResourceGroup, ruleName)
+			result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, utils.Bool(true))
+			if err != nil {
+				if utils.ResponseWasNotFound(result.Response) {
+					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", ruleId))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", ruleId, err))
+			}
+
+			if result.AlertRuleProperties != nil {
+				result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
+				updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
+				if err != nil {
+					if !utils.ResponseWasNotFound(updateRuleResult.Response) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	d.SetId(resourceId.ID())

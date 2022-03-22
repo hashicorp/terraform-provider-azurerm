@@ -6,6 +6,9 @@ func Default() UserFeatures {
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: false,
 		},
+		ApplicationInsights: ApplicationInsightFeatures{
+			DisableGeneratedRule: false,
+		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
