@@ -85,6 +85,9 @@ resource "azurerm_synapse_workspace" "test" {
     key_versionless_id = azurerm_key_vault_key.test.versionless_id
     key_name           = "test_key"
   }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "workspace_policy" {
