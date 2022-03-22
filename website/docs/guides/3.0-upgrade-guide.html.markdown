@@ -184,7 +184,11 @@ When the resource can be provisioned across multiple Zones, the following behavi
 
 **Fire Wall:** The behavior of the nested items will be changed to List instead of Sets where required, meaning that the order of these items now matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
+**Log Analytics:** The `tags` field has been removed from various resources.
+
 **Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behavior is configurable in the `features` block, but was previously disabled by default. In 3.0, this behavior will be enabled by default.
+
+**Recovery Services:** The `tags` field has been removed from various resources.
 
 **Storage:** The field `allow_blob_public_access` will be renamed to `allow_nested_items_to_be_public` to resolve confusion about what this field does. This field specifies whether items within the Storage Account (such as Containers and Blobs) can opt-in to being made public (for example at the Container or Blob level) - and not that all resources within this Storage Account are public by default.
 
