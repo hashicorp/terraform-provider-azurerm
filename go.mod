@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
-	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220316022247-5b7680ba3f79
+	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220322021042-cc5a7d155135
 	github.com/manicminer/hamilton v0.37.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect

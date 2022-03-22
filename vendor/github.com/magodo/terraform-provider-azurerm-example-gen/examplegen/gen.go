@@ -115,6 +115,20 @@ func (src ExampleSource) GenExample() (string, error) {
 	cmd := exec.Command("go", args...)
 	cmd.Dir = src.RootDir
 
+	// The acceptance.BuildTestData depends on the following environment variables:
+	// - ARM_TEST_LOCATION
+	// - ARM_TEST_LOCATION_ALT1
+	// - ARM_TEST_LOCATION_ALT2
+	if os.Getenv("ARM_TEST_LOCATION") == "" {
+		cmd.Env = append(os.Environ(), "ARM_TEST_LOCATION=WestEurope")
+	}
+	if os.Getenv("ARM_TEST_LOCATION_ALT1") == "" {
+		cmd.Env = append(os.Environ(), "ARM_TEST_LOCATION_ALT1=WestUS")
+	}
+	if os.Getenv("ARM_TEST_LOCATION_ALT2") == "" {
+		cmd.Env = append(os.Environ(), "ARM_TEST_LOCATION_ALT2=WestUS2")
+	}
+
 	var (
 		stdout = bytes.NewBuffer([]byte{})
 		stderr = bytes.NewBuffer([]byte{})

@@ -33,7 +33,7 @@ func main() {
 	genExample := f.Bool("example", false, "Wether to generate the Terraform configuration example from AccTest")
 	rootDir := f.String("root-dir", "", "The path to the project root")
 	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in")
-	testCase := f.String("test-case", "", "The name of the AccTest where the Terraform configuration derives from")
+	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from")
 
 	_ = f.Parse(os.Args[1:])
 
@@ -76,9 +76,9 @@ func main() {
 	var expsrc *examplegen.ExampleSource
 	if *genExample {
 		expsrc = &examplegen.ExampleSource{
-			RootDir:    *rootDir,
-			ServicePkg: *servicePkg,
-			TestCase:   *testCase,
+			RootDir:     *rootDir,
+			ServicePkgs: []string{*servicePkg},
+			TestCase:    *testCase,
 		}
 	}
 
