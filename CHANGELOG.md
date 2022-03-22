@@ -99,6 +99,9 @@ BUG FIXES:
 * `azurerm_synapse_workspace` - fixing a bug where workspaces created from a Dedicated SQL Pool / SQL Data Warehouse couldn't be retrieved [GH-15829]
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]
 
+* `azurerm_mssql_database_vulnerability_assessment_rule_baseline` - prevent the resource from being replaced every apply [GH-14759]
+
+
 ---
 
 For information on changes between the v2.99.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/CHANGELOG-v2.md).
