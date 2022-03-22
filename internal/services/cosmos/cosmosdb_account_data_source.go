@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -31,9 +32,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"tags": tags.SchemaDataSource(),
 
@@ -249,9 +250,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("kind", string(resp.Kind))
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
@@ -282,7 +281,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for i, l := range policies {
 				locations[i] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}
@@ -290,7 +289,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for _, l := range *props.FailoverPolicies {
 				locations[*l.FailoverPriority] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}

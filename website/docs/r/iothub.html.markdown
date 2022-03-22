@@ -156,6 +156,10 @@ The following arguments are supported:
 
 * `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
 
+~> **NOTE:** The `ip_filter_rule` property block has been deprecated in favour of the `network_rule_set` block and will be removed in version 3.0 of the provider.
+
+* `network_rule_set` - (Optional) A `network_rule_set` block as defined below.
+
 * `route` - (Optional) A `route` block as defined below.
 
 * `enrichment` - (Optional) A `enrichment` block as defined below.
@@ -232,6 +236,26 @@ An `ip_filter_rule` block supports the following:
 
 ---
 
+A `network_rule_set` block supports the following:
+
+* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `DefaultActionDeny`, `DefaultActionAllow`. Defaults to `DefaultActionDeny`.
+
+* `apply_to_builtin_eventhub_endpoint` - (Optional) Determines if Network Rule Set is also applied to the BuiltIn EventHub EndPoint of the IotHub. Defaults to `false`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+---
+
+A `ip_rule` block supports the following:
+
+* `name` - (Required) The name of the ip rule.
+
+* `ip_mask` - (Required) The IP address range in CIDR notation for the ip rule.
+
+* `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
+
+---
+
 A `route` block supports the following:
 
 * `name` - (Required) The name of the route.
@@ -269,6 +293,14 @@ A `fallback_route` block supports the following:
 ---
 
 A `file_upload` block supports the following:
+
+* `authentication_type` - (Optional) The type used to authenticate against the storage account. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the storage account.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If `identity_id`is omitted when `authentication_type` is `identityBased`, then the System Assigned Managed Identity of the Iot Hub will be used.
+
+~> **NOTE:** An IoT Hub can only be updated to use the System Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
 
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 

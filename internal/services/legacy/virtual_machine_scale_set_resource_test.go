@@ -7,8 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -541,7 +540,7 @@ func TestAccVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 	})
@@ -575,7 +574,7 @@ func TestAccVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 	})
@@ -2630,9 +2629,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2750,9 +2748,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2874,9 +2871,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2994,9 +2990,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3423,7 +3418,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       name                                         = "TestIPConfiguration"
       primary                                      = true
       subnet_id                                    = azurerm_subnet.test.id
-      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
+      application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
     }
   }
 
@@ -3609,9 +3604,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -4631,9 +4625,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -5021,9 +5014,8 @@ resource "azurerm_lb_probe" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbapool"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbapool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -5167,9 +5159,8 @@ resource "azurerm_lb_probe" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbapool"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbapool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {

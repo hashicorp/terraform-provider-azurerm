@@ -222,8 +222,10 @@ func (SnapshotResource) encryption(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
     }
   }
 }
@@ -245,10 +247,11 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  name                     = "acctestkv%s"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
+  purge_protection_enabled = true
 
   sku_name = "standard"
 
@@ -260,6 +263,7 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Delete",
       "Get",
+      "Purge",
     ]
 
     secret_permissions = [
@@ -279,12 +283,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
   ]
 }
 

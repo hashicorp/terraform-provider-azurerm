@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -717,7 +717,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1019,8 +1019,10 @@ func (ManagedDiskResource) encryption(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
     }
   }
 }
@@ -1133,7 +1135,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "101"
   disk_mbps_read_write = "10"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1193,7 +1195,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "102"
   disk_mbps_read_write = "11"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -1263,8 +1265,9 @@ func (ManagedDiskResource) diskEncryptionSetDependencies(data acceptance.TestDat
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -1283,7 +1286,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
@@ -1314,12 +1316,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -1557,7 +1559,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "DenyAll"
 
   tags = {
@@ -1615,7 +1617,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "DenyAll"
 
   tags = {
@@ -1683,7 +1685,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "AllowPrivate"
   disk_access_id        = azurerm_disk_access.test.id
 
@@ -1763,7 +1765,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type  = "Standard_LRS"
   create_option         = "Empty"
   disk_size_gb          = "4"
-  zones                 = ["1"]
+  zone                  = "1"
   network_access_policy = "AllowPrivate"
   disk_access_id        = azurerm_disk_access.test.id
 
@@ -1877,7 +1879,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "256"
   max_shares           = 2
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -1929,7 +1931,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "256"
   logical_sector_size  = 512
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -1981,7 +1983,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1024"
   max_shares           = 5
-  zones                = ["1"]
+  zone                 = "1"
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -2070,7 +2072,7 @@ resource "azurerm_managed_disk" "test" {
   disk_iops_read_only  = "101"
   disk_mbps_read_only  = "10"
   max_shares           = "2"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -2132,7 +2134,7 @@ resource "azurerm_managed_disk" "test" {
   disk_iops_read_only  = "102"
   disk_mbps_read_only  = "11"
   max_shares           = "2"
-  zones                = ["1"]
+  zone                 = "1"
 
   tags = {
     environment = "acctest"
@@ -2239,7 +2241,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1024"
-  zones                = ["1"]
+  zone                 = "1"
   hyper_v_generation   = "V2"
   tags = {
     environment = "acctest"

@@ -224,7 +224,6 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 
 		hostPoolIdStr := ""
 		if props.HostPoolArmPath != nil {
-			// TODO: raise an API bug
 			hostPoolId, err := parse.HostPoolIDInsensitively(*props.HostPoolArmPath)
 			if err != nil {
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)

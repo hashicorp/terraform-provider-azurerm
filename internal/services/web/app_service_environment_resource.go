@@ -279,7 +279,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		if !features.ThreePointOhBeta() {
+			d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		}
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
@@ -312,7 +314,6 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", id.HostingEnvironmentName, id.ResourceGroup)
 
-	// TODO: should this behaviour be added to the `features` block?
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {

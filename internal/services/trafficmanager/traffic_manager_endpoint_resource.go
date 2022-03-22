@@ -5,13 +5,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -20,16 +22,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: split and deprecate this resource prior to 3.0
-
 func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		DeprecationMessage: "The resource 'azurerm_traffic_manager_endpoint' has been deprecated in favour of 'azurerm_traffic_manager_azure_endpoint', 'azurerm_traffic_manager_external_endpoint', and 'azurerm_traffic_manager_nested_endpoint' and will be removed in version 3.0 of the Azure Provider.",
 
@@ -65,7 +67,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 					string(endpoints.EndpointTypeAzureEndpoints),
 					string(endpoints.EndpointTypeNestedEndpoints),
 					string(endpoints.EndpointTypeExternalEndpoints),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -88,7 +90,7 @@ func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(endpoints.EndpointStatusDisabled),
 					string(endpoints.EndpointStatusEnabled),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

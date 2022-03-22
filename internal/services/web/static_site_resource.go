@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -77,7 +77,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,
@@ -235,7 +235,7 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	config, err := identity.ExpandSystemOrUserAssignedMap(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -259,10 +259,10 @@ func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity,
 }
 
 func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemOrUserAssignedMap
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemOrUserAssignedMap{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
@@ -281,5 +281,5 @@ func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{
 		}
 	}
 
-	return identity.FlattenSystemOrUserAssignedMap(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

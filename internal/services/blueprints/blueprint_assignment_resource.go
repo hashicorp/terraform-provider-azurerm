@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,8 +26,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 		Read:   resourceBlueprintAssignmentRead,
 		Delete: resourceBlueprintAssignmentDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -52,7 +53,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"identity": commonschema.UserAssignedIdentityRequired(),
 

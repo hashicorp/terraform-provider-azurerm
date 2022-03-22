@@ -650,7 +650,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-// TODO 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
+// CLEANUP: 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
 func (KubernetesClusterResource) addonProfileKubeDashboardConfig(data acceptance.TestData) string {
 	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
@@ -939,7 +939,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 3.0 - Remove this since OMS Agent can only be disabled by omitting the config
+// CLEANUP: 3.0 - Remove this since OMS Agent can only be disabled by omitting the config
 func (KubernetesClusterResource) addonProfileOMSScaleWithoutBlockConfig(data acceptance.TestData) string {
 	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
@@ -1263,8 +1263,8 @@ resource "azurerm_application_gateway" "test" {
   location            = azurerm_resource_group.test.location
 
   sku {
-    name     = "Standard_V2"
-    tier     = "Standard_V2"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 

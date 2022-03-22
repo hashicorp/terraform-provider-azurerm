@@ -91,6 +91,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account_name` - The backend storage account name which is used by this Function App.
 
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.
+
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 
 * `tags` - A mapping of tags assigned to the Windows Function App.

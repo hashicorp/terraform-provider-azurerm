@@ -280,8 +280,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
-// (@jackofallops) - This test spans 2 subscriptions to check that it's possible to use a CMK stored in a vault in a non-local subscription. This is temporarily making use of an extra providerfactory which will need to be removed after the move to plugin-sdk-go
-// TODO - review this config when plugin-sdk-go is implemented in the provider / test framework.
 func (r StorageAccountCustomerManagedKeyResource) remoteKeyVault(data acceptance.TestData) string {
 	clientData := data.Client()
 	if !features.ThreePointOhBeta() {
@@ -295,7 +293,8 @@ provider "azurerm-alt" {
   tenant_id       = "%s"
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -349,7 +348,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -453,7 +452,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -503,7 +502,8 @@ func (r StorageAccountCustomerManagedKeyResource) userAssignedIdentityTemplate(d
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -527,7 +527,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -554,7 +553,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -631,7 +630,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -664,7 +663,8 @@ func (r StorageAccountCustomerManagedKeyResource) template(data acceptance.TestD
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -682,7 +682,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -709,7 +708,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -779,7 +778,7 @@ resource "azurerm_key_vault_key" "first" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,

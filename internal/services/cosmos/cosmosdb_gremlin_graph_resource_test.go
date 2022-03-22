@@ -230,7 +230,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
@@ -257,7 +257,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = false
-    indexing_mode = "None"
+    indexing_mode = "none"
   }
 
   conflict_resolution_policy {
@@ -282,27 +282,27 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = true
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
 
@@ -337,27 +337,27 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = true
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -385,7 +385,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
@@ -414,7 +414,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }

@@ -24,8 +24,8 @@ func resourceApiManagementIdentityProviderGoogle() *pluginsdk.Resource {
 		Read:   resourceApiManagementIdentityProviderGoogleRead,
 		Update: resourceApiManagementIdentityProviderGoogleCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderGoogleDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeGoogle),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

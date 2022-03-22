@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	validateNetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -43,92 +44,103 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			// TODO 3.0 - Make it required
-			"namespace_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceID,
-				ConflictsWith: []string{"namespace_name", "resource_group_name"},
-			},
+		Schema: resourceServicebusNamespaceNetworkRuleSetSchema(),
+	}
+}
 
-			// TODO 3.0 - Remove in favor of namespace_id
-			"namespace_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
+func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		//lintignore: S013
+		"namespace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			Computed:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.NamespaceID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"namespace_name", "resource_group_name"}
+				}
+				return []string{}
+			}(),
+		},
 
-			// TODO 3.0 - Remove in favor of namespace_id
-			"resource_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
+		"default_action": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicebus.DefaultActionAllow),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicebus.DefaultActionAllow),
+				string(servicebus.DefaultActionDeny),
+			}, false),
+		},
 
-			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servicebus.DefaultActionAllow),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.DefaultActionAllow),
-					string(servicebus.DefaultActionDeny),
-				}, false),
-			},
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+		"ip_rules": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
+		},
 
-			"ip_rules": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+		"trusted_services_allowed": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			"trusted_services_allowed": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"network_rules": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Set:      networkRuleHash,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"subnet_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validateNetwork.SubnetID,
-							// The subnet ID returned from the service will have `resourceGroup/{resourceGroupName}` all in lower cases...
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-						"ignore_missing_vnet_service_endpoint": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
+		"network_rules": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Set:      networkRuleHash,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validateNetwork.SubnetID,
+						// The subnet ID returned from the service will have `resourceGroup/{resourceGroupName}` all in lower cases...
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+					"ignore_missing_vnet_service_endpoint": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
 		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		s["namespace_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validate.NamespaceName,
+			Deprecated:    `Deprecated in favor of "namespace_id"`,
+			ConflictsWith: []string{"namespace_id"},
+		}
+
+		s["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			Deprecated:    `Deprecated in favor of "namespace_id"`,
+			ConflictsWith: []string{"namespace_id"},
+		}
+	}
+	return s
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -141,7 +153,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
 		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
 		resourceId = parse.NewNamespaceNetworkRuleSetID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, namespaceNetworkRuleSetName)
-	} else {
+	} else if !features.ThreePointOhBeta() {
 		resourceId = parse.NewNamespaceNetworkRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), namespaceNetworkRuleSetName)
 	}
 
@@ -169,7 +181,6 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 	}
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
-	// TODO: The check won't be needed when 2021-11-01 API is released since service team will fail the update with bad request in that version
 	if defaultAction == servicebus.DefaultActionDeny && vnetRule == nil && ipRule == nil {
 		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", resourceId)
 	}
@@ -212,8 +223,10 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	if !features.ThreePointOhBeta() {
+		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
 	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if props := resp.NetworkRuleSetProperties; props != nil {

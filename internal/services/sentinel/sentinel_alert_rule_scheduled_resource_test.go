@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,7 +133,7 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
 	}
@@ -183,7 +183,7 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
       enabled                 = true
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
-      entity_matching_method  = "Custom"
+      entity_matching_method  = "Selected"
       group_by                = ["Account", "Host"]
     }
   }

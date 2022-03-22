@@ -132,7 +132,6 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                       = "acctestDatabricksLinkedService%d"
-  resource_group_name        = azurerm_resource_group.test.name
   data_factory_id            = azurerm_data_factory.test.id
   msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
@@ -166,7 +165,6 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   access_token        = "SomeFakeAccessToken"
   description         = "Initial description"
@@ -208,17 +206,15 @@ resource "azurerm_key_vault" "test" {
 
 // Create the KV linked service so we can test out integration the Databricks linked service
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 // Create a databricks linked service that leveraged the KV linked service for password management
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "acctestDatabricksLinkedService%d"
+  data_factory_id = azurerm_data_factory.test.id
   key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
@@ -257,7 +253,6 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                       = "acctestDatabricksLinkedService%d"
-  resource_group_name        = azurerm_resource_group.test.name
   data_factory_id            = azurerm_data_factory.test.id
   msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
@@ -310,11 +305,10 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  description         = "Initial Description"
-  annotations         = ["a1", "a2"]
+  name            = "acctestDatabricksLinkedService%d"
+  data_factory_id = azurerm_data_factory.test.id
+  description     = "Initial Description"
+  annotations     = ["a1", "a2"]
   parameters = {
     key1 = "u1k1"
     key2 = "u1k2"
@@ -371,11 +365,10 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  description         = "Updated Description"
-  annotations         = ["b1", "b2"]
+  name            = "acctestDatabricksLinkedService%d"
+  data_factory_id = azurerm_data_factory.test.id
+  description     = "Updated Description"
+  annotations     = ["b1", "b2"]
   parameters = {
     key1 = "u2k1"
     key2 = "u2k2"

@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -439,26 +438,6 @@ func TestAccStorageAccount_storageV1ToV2Update(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	r := StorageAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-	})
-}
-
 func TestAccStorageAccount_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -469,8 +448,8 @@ func TestAccStorageAccount_systemAssignedIdentity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -499,8 +478,8 @@ func TestAccStorageAccount_systemAssignedUserAssignedIdentity(t *testing.T) {
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -521,8 +500,8 @@ func TestAccStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		{
@@ -535,8 +514,8 @@ func TestAccStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 	})
@@ -1856,31 +1835,6 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageAccountResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "standard"
-  account_replication_type = "lrs"
 
   tags = {
     environment = "production"
@@ -3346,7 +3300,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3373,7 +3326,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3437,7 +3390,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3515,7 +3468,7 @@ resource "azurerm_key_vault_key" "update" {
   key_vault_id = azurerm_key_vault.update.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.clientupdate,
@@ -3580,8 +3533,6 @@ resource "azurerm_storage_account" "test" {
 `, r.cmkTemplate(data), data.RandomString)
 }
 
-// This test spans 2 subscriptions to check that it's possible to use a CMK stored in a vault in a non-local subscription. This is temporarily making use of an extra providerfactory which will need to be removed after the move to plugin-sdk-go
-// TODO - review this config when plugin-sdk-go is implemented in the provider / test framework.
 func (r StorageAccountResource) customerManagedKeyRemoteKeyVault(data acceptance.TestData) string {
 	clientData := data.Client()
 	if !features.ThreePointOhBeta() {
@@ -3595,7 +3546,8 @@ provider "azurerm-alt" {
   tenant_id       = "%s"
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -3622,7 +3574,6 @@ resource "azurerm_key_vault" "remotetest" {
   resource_group_name      = azurerm_resource_group.remotetest.name
   tenant_id                = "%s"
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3650,7 +3601,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3751,7 +3702,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
