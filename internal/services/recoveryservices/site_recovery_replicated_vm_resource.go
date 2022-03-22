@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,6 +49,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
@@ -69,6 +71,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_recovery_fabric_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -76,6 +79,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"recovery_replication_policy_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -83,12 +87,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"source_recovery_protection_container_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_recovery_protection_container_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -96,6 +102,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_resource_group_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -103,6 +110,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_availability_set_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -112,16 +120,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					"target_zone",
 				},
 			},
-			// extracted from commonschema.ZoneSingleOptionalForceNew() as conflictWith is required.
-			"target_zone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				ConflictsWith: []string{
-					"target_availability_set_id",
-				},
-			},
+
+			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
+
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
