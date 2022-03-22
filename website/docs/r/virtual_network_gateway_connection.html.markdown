@@ -269,7 +269,7 @@ Changing this value will force a resource to be created.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `traffic_selector_policy` (Optional) One or more `traffic_selector_policy` which is documented below. 
+* `traffic_selector_policy` (Optional) One or more `traffic_selector_policy` blocks which are documented below. 
     A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
     For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
