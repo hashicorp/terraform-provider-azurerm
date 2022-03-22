@@ -7012,7 +7012,7 @@ type RunbookCreateOrUpdateDraftProperties struct {
 	LogVerbose *bool `json:"logVerbose,omitempty"`
 	// LogProgress - Gets or sets progress log option.
 	LogProgress *bool `json:"logProgress,omitempty"`
-	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
+	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumPowerShellSeven', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
 	RunbookType RunbookTypeEnum `json:"runbookType,omitempty"`
 	// Draft - Gets or sets the draft runbook properties.
 	Draft *RunbookDraft `json:"draft,omitempty"`
@@ -7109,7 +7109,7 @@ type RunbookCreateOrUpdateProperties struct {
 	LogVerbose *bool `json:"logVerbose,omitempty"`
 	// LogProgress - Gets or sets progress log option.
 	LogProgress *bool `json:"logProgress,omitempty"`
-	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
+	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumPowerShellSeven', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
 	RunbookType RunbookTypeEnum `json:"runbookType,omitempty"`
 	// Draft - Gets or sets the draft runbook properties.
 	Draft *RunbookDraft `json:"draft,omitempty"`
@@ -7386,7 +7386,7 @@ type RunbookParameter struct {
 
 // RunbookProperties definition of the runbook property type.
 type RunbookProperties struct {
-	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
+	// RunbookType - Gets or sets the type of the runbook. Possible values include: 'RunbookTypeEnumScript', 'RunbookTypeEnumGraph', 'RunbookTypeEnumPowerShellWorkflow', 'RunbookTypeEnumPowerShell', 'RunbookTypeEnumPowerShellSeven', 'RunbookTypeEnumGraphPowerShellWorkflow', 'RunbookTypeEnumGraphPowerShell'
 	RunbookType RunbookTypeEnum `json:"runbookType,omitempty"`
 	// PublishContentLink - Gets or sets the published runbook content link.
 	PublishContentLink *ContentLink `json:"publishContentLink,omitempty"`
