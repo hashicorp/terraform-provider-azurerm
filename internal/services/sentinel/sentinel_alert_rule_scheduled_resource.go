@@ -19,14 +19,6 @@ import (
 	"github.com/rickb777/date/period"
 )
 
-// entityMatchingMethodMap maps the entity matching method used in old API version (prior to 2021-09-01-preview) to the new ones.
-// TODO 3.0 - Remove this mapping
-var entityMatchingMethodMap = map[string]string{
-	"All":    string(securityinsight.MatchingMethodAnyAlert),
-	"Custom": string(securityinsight.MatchingMethodSelected),
-	"None":   string(securityinsight.MatchingMethodAllEntities),
-}
-
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 	var entityMappingTypes = []string{
 		string(securityinsight.EntityMappingTypeAccount),
@@ -186,28 +178,11 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Default:  securityinsight.MatchingMethodAnyAlert,
-										// TODO 3.0 - remove the hardcoded string literals
-										ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-											v, ok := i.(string)
-											if !ok {
-												return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
-											}
-											valid := []string{
-												string(securityinsight.MatchingMethodAnyAlert),
-												string(securityinsight.MatchingMethodSelected),
-												string(securityinsight.MatchingMethodAllEntities),
-											}
-											for _, str := range valid {
-												if str == v {
-													return nil, nil
-												}
-											}
-											if mm, ok := entityMatchingMethodMap[v]; ok {
-												return []string{fmt.Sprintf("%q is deprecated in favor of %q", v, mm)}, nil
-											}
-
-											return nil, []error{fmt.Errorf("expected %s to be one of %v, got %s", k, valid, v)}
-										},
+										ValidateFunc: validation.StringInSlice([]string{
+											string(securityinsight.MatchingMethodAnyAlert),
+											string(securityinsight.MatchingMethodSelected),
+											string(securityinsight.MatchingMethodAllEntities),
+										}, false),
 									},
 									"group_by": {
 										Type:     pluginsdk.TypeList,
@@ -648,15 +623,11 @@ func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.Grou
 
 	raw := input[0].(map[string]interface{})
 
-	mm := raw["entity_matching_method"].(string)
-	if nmm, ok := entityMatchingMethodMap[mm]; ok {
-		mm = nmm
-	}
 	output := &securityinsight.GroupingConfiguration{
 		Enabled:              utils.Bool(raw["enabled"].(bool)),
 		ReopenClosedIncident: utils.Bool(raw["reopen_closed_incidents"].(bool)),
 		LookbackDuration:     utils.String(raw["lookback_duration"].(string)),
-		MatchingMethod:       securityinsight.MatchingMethod(mm),
+		MatchingMethod:       securityinsight.MatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
 	groupByEntitiesList := raw["group_by"].([]interface{})
