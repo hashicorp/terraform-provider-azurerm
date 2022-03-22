@@ -129,7 +129,7 @@ The `storage_configuration` block supports the following:
 
 * `log_settings` - (Optional) An `storage_settings` as defined below.
 
-* `temp_db_settings` - (Optional) An `storage_settings` as defined below.
+* `temp_db_settings` - (Optional) An `sqltempdb_storage_settings` as defined below.
 
 ---
 
@@ -138,6 +138,24 @@ The `storage_settings` block supports the following:
 * `default_file_path` - (Required) The SQL Server default path
 
 * `luns` - (Required) A list of Logical Unit Numbers for the disks. 
+
+---
+
+The `sqltempdb_storage_settings` block supports the following:
+
+* `default_file_path` - (Required) The SQL Server default path
+
+* `luns` - (Required) A list of Logical Unit Numbers for the disks. 
+
+* `data_file_count` - (Optional) SQL Server default file count - Default 8
+
+* `data_file_size` - (Optional) SQL Server default file size - Default 256
+
+* `data_growth` - (Optional) SQL Server default file size - Default 512
+
+* `log_file_size` - (Optional) SQL Server default file size - Default 256
+
+* `log_growth` - (Optional) SQL Server default file size - Default 512
 
 ## Attributes Reference
 
