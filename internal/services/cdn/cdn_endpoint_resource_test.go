@@ -730,19 +730,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
+  name                = "acctestcdnprof%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%d"
+  name                = "acctestcdnend%[1]d"
   profile_name        = azurerm_cdn_profile.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -767,7 +767,7 @@ resource "azurerm_cdn_endpoint" "test" {
     }
     modify_request_header_action {
       action = "Append"
-      name   = "www.contoso.com1"
+      name   = "www.contoso1.com"
       value  = "test value"
     }
     url_redirect_action {
@@ -780,7 +780,7 @@ resource "azurerm_cdn_endpoint" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnEndpointResource) globalDeliveryRuleUpdate(data acceptance.TestData) string {
@@ -821,14 +821,15 @@ resource "azurerm_cdn_endpoint" "test" {
       behavior = "SetIfMissing"
       duration = "12.04:11:22"
     }
+
     modify_response_header_action {
       action = "Overwrite"
       name   = "Content-Type"
       value  = "application/json"
     }
     url_rewrite_action {
-      source_pattern          = "/test source pattern"
-      destination             = "/test destination"
+      source_pattern          = "/test_source_pattern"
+      destination             = "/test_destination"
       preserve_unmatched_path = false
     }
   }
