@@ -77,9 +77,6 @@ service/custom-resource-provider:
 service/data-factory:
   - internal/services/datafactory/**/*
 
-service/data-lake:
-  - internal/services/datalake/**/*
-
 service/data-protection:
   - internal/services/dataprotection/**/*
 
