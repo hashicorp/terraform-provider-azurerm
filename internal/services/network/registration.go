@@ -90,6 +90,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_application_gateway":                      resourceApplicationGateway(),
 		"azurerm_application_security_group":               resourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                             resourceBastionHost(),
+		"azurerm_custom_ip_prefix":                         resourceCustomIpPrefix(),
 		"azurerm_express_route_circuit_connection":         resourceExpressRouteCircuitConnection(),
 		"azurerm_express_route_circuit_authorization":      resourceExpressRouteCircuitAuthorization(),
 		"azurerm_express_route_circuit_peering":            resourceExpressRouteCircuitPeering(),
