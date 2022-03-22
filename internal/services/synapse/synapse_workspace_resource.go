@@ -484,7 +484,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		// Sql AAD admin is not supported in a synapse workspace created from a Dedicated SQL pool (formerly SQL DW)
+		// NOTE: SQL Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
 		if !utils.ResponseWasNotFound(sqlAdmin.Response) && !utils.ResponseWasConflict(sqlAdmin.Response) {
 			return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
 		}
