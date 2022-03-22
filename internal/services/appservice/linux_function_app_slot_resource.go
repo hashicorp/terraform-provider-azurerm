@@ -660,7 +660,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			sendContentSettings := !helpers.PlanIsElastic(*planSKU)
+			sendContentSettings := !helpers.PlanIsElastic(planSKU)
 
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)

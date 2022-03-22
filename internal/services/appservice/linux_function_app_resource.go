@@ -664,7 +664,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(*planSKU)
+			sendContentSettings := helpers.PlanIsElastic(planSKU)
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {

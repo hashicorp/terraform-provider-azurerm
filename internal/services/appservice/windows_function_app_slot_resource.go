@@ -665,7 +665,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			sendContentSettings := !helpers.PlanIsAppPlan(*planSKU)
+			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("enabled") {
