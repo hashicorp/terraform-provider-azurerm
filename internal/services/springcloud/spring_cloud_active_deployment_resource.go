@@ -17,9 +17,9 @@ import (
 
 func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpringCloudActiveDeploymentCreateUpdate,
+		Create: resourceSpringCloudActiveDeploymentCreate,
 		Read:   resourceSpringCloudActiveDeploymentRead,
-		Update: resourceSpringCloudActiveDeploymentCreateUpdate,
+		Update: resourceSpringCloudActiveDeploymentUpdate,
 		Delete: resourceSpringCloudActiveDeploymentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -51,7 +51,7 @@ func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudActiveDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	deploymentClient := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -63,14 +63,38 @@ func resourceSpringCloudActiveDeploymentCreateUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	if d.IsNewResource() {
-		activeDeployments, err := listSpringCloudActiveDeployments(ctx, deploymentClient, appId)
-		if err != nil {
-			return err
-		}
-		if len(activeDeployments) != 0 {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", appId.ID())
-		}
+	activeDeployments, err := listSpringCloudActiveDeployments(ctx, deploymentClient, appId)
+	if err != nil {
+		return err
+	}
+	if len(activeDeployments) != 0 {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", appId.ID())
+	}
+
+	parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{deploymentName}}
+	future, err := client.SetActiveDeployments(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, parameter)
+	if err != nil {
+		return fmt.Errorf("setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+	}
+
+	d.SetId(appId.ID())
+
+	return resourceSpringCloudActiveDeploymentRead(d, meta)
+}
+
+func resourceSpringCloudActiveDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppPlatform.AppsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	deploymentName := d.Get("deployment_name").(string)
+	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
+	if err != nil {
+		return err
 	}
 
 	parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{deploymentName}}
