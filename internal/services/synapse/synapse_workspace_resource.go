@@ -416,6 +416,10 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
+	if err := waitSynapseWorkspaceCMKState(ctx, client, &id); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
+
 	aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 	if aadAdmin != nil {
 		future, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
@@ -602,23 +606,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("waiting on updating future for Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{
-				"Updating",
-				"ActivatingWorkspace",
-			},
-			Target: []string{
-				"Succeeded",
-				"Consistent",
-				"AwaitingUserAction",
-			},
-			Refresh:                   synapseWorkspaceCMKUpdateStateRefreshFunc(ctx, client, id),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
 	}
@@ -701,6 +689,33 @@ func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	return nil
+}
+
+func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			"Updating",
+			"ActivatingWorkspace",
+		},
+		Target: []string{
+			"Succeeded",
+			"Consistent",
+			"AwaitingUserAction",
+		},
+		Refresh:                   synapseWorkspaceCMKUpdateStateRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
 	return nil
 }
 
