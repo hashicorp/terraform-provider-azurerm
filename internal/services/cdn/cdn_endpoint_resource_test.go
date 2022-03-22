@@ -761,6 +761,23 @@ resource "azurerm_cdn_endpoint" "test" {
       behavior = "Override"
       duration = "5.04:44:23"
     }
+    cache_key_query_string_action {
+      behavior   = "IncludeAll"
+      parameters = "test"
+    }
+    modify_request_header_action {
+      action = "Append"
+      name   = "www.contoso.com1"
+      value  = "test value"
+    }
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+      hostname      = "www.contoso.com"
+      fragment      = "5fgdfg"
+      path          = "/article.aspx"
+      query_string  = "id={var_uri_path_1}&title={var_uri_path_2}"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -804,11 +821,15 @@ resource "azurerm_cdn_endpoint" "test" {
       behavior = "SetIfMissing"
       duration = "12.04:11:22"
     }
-
     modify_response_header_action {
       action = "Overwrite"
       name   = "Content-Type"
       value  = "application/json"
+    }
+    url_rewrite_action {
+      source_pattern          = "/test source pattern"
+      destination             = "/test destination"
+      preserve_unmatched_path = false
     }
   }
 }
