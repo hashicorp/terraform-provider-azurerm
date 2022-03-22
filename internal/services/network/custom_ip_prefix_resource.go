@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -41,9 +42,9 @@ const (
 
 func resourceCustomIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCustomIpPrefixCreateUpdate,
+		Create: resourceCustomIpPrefixCreate,
 		Read:   resourceCustomIpPrefixRead,
-		Update: resourceCustomIpPrefixCreateUpdate,
+		Update: resourceCustomIpPrefixUpdate,
 		Delete: resourceCustomIpPrefixDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -54,8 +55,8 @@ func resourceCustomIpPrefix() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(1020 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(1020 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -77,16 +78,16 @@ func resourceCustomIpPrefix() *pluginsdk.Resource {
 				ValidateFunc: validation.IsCIDR,
 			},
 
-			"zones": commonschema.ZonesMultipleRequiredForceNew(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			"authorization_message": {
+			"roa_expiration_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"signed_message": {
+			"wan_validation_signed_message": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -95,8 +96,26 @@ func resourceCustomIpPrefix() *pluginsdk.Resource {
 
 			"action": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
 				Default:  string(commissionedActionProvision),
+				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					// When the operation is successful, the possible values of `CommissionedState` are :`Provisioned`,`Commissioned`,`Deprovisioned`.
+					// The value of action is set as `Provision`, the commissionState returned `Provisioned` by API.
+					// The value of action is set as `Decommission`, the commissionState returned `Provisioned` by API.
+					// The value of action is set as `Commission`, the commissionState returned `Commissioned` by API.
+					// The value of action is set as `Deprovision`, the commissionState returned `Deprovisioned` by API.
+					// so we should suppress diff when the commissionState maps the action in the configuration.
+					if old == string(network.CommissionedStateProvisioned) && (new == string(commissionedActionProvision) || new == string(commissionedActionDecommission)) {
+						return true
+					}
+					if old == string(network.CommissionedStateCommissioned) && new == string(commissionedActionCommission) {
+						return true
+					}
+					if old == string(commissionedStateDeprovisioned) && new == string(commissionedActionDeprovision) {
+						return true
+					}
+					return false
+				},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(commissionedActionProvision),
 					string(commissionedActionCommission),
@@ -110,7 +129,7 @@ func resourceCustomIpPrefix() *pluginsdk.Resource {
 	}
 }
 
-func resourceCustomIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCustomIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.CustomIPPrefixesClient
 	subscriptionId := meta.(*clients.Client).Network.CustomIPPrefixesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -118,75 +137,108 @@ func resourceCustomIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	id := parse.NewCustomIpPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	state := commissionedAction(d.Get("action").(string))
-
 	existing, err := client.Get(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), "")
-	if d.IsNewResource() {
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_custom_ip_prefix", id.ID())
-		}
-	} else {
-		switch string(existing.CommissionedState) {
-		case string(network.CommissionedStateProvisioned):
-			if state != commissionedActionCommission && state != commissionedActionDeprovision {
-				return fmt.Errorf("%s can do `Commission` or `Deprovision` when the commissioned state is `Provisioned`", id)
-			}
-		case string(network.CommissionedStateCommissioned):
-			if state != commissionedActionDecommission {
-				return fmt.Errorf("%s can do `Decommission` when the commissioned state is `Commissioned`", id)
-			}
-		case string(commissionedStateDeprovisioned):
-			if state != commissionedActionProvision {
-				return fmt.Errorf("%s can do delete or `Provision` when the commissioned state is `Deprovisioned`", id)
-			}
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_custom_ip_prefix", id.ID())
+	}
+
+	// The `CommissionedState` can only be `Provisioning` when creating a resource.
 	parameters := network.CustomIPPrefix{
 		CustomIPPrefixPropertiesFormat: &network.CustomIPPrefixPropertiesFormat{
-			Cidr: utils.String(d.Get("cidr").(string)),
+			Cidr:              utils.String(d.Get("cidr").(string)),
+			CommissionedState: network.CommissionedStateProvisioning,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("action"); ok {
-		var state network.CommissionedState
-		switch commissionedAction(v.(string)) {
-		case commissionedActionProvision:
-			state = network.CommissionedStateProvisioning
-		case commissionedActionCommission:
-			state = network.CommissionedStateCommissioning
-		case commissionedActionDecommission:
-			state = network.CommissionedStateDecommissioning
-		case commissionedActionDeprovision:
-			state = network.CommissionedStateDeprovisioning
-		}
-		parameters.CommissionedState = state
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = &zones
 	}
 
-	if v, ok := d.GetOk("authorization_message"); ok {
-		parameters.AuthorizationMessage = utils.String(v.(string))
+	if v, ok := d.GetOk("roa_expiration_date"); ok {
+		parameters.AuthorizationMessage = utils.String(subscriptionId + "|" + d.Get("cidr").(string) + "|" + v.(string))
 	}
 
-	if v, ok := d.GetOk("signed_message"); ok {
+	if v, ok := d.GetOk("wan_validation_signed_message"); ok {
 		parameters.SignedMessage = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("zones"); ok {
-		zones := zones.Expand(v.(*schema.Set).List())
-		if len(zones) > 0 {
-			parameters.Zones = &zones
+	future, err := client.CreateOrUpdate(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), parameters)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{string(network.CommissionedStateProvisioning)},
+		Target:                    []string{string(network.CommissionedStateProvisioned)},
+		Refresh:                   customIpPrefixCreateRefreshFunc(ctx, client, id),
+		PollInterval:              1 * time.Minute,
+		ContinuousTargetOccurence: 3,
+	}
+
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceCustomIpPrefixRead(d, meta)
+}
+
+func resourceCustomIpPrefixUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.CustomIPPrefixesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.CustomIpPrefixID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), parameters)
+	// Since the "Provisioning", "Commissioning", "Decommissioning" or `Deprovisioning` commissioned state of custom ip prefix can do nothing, it could not be updated.
+	if existing.CommissionedState == network.CommissionedStateProvisioning || existing.CommissionedState == network.CommissionedStateCommissioning || existing.CommissionedState == network.CommissionedStateDecommissioning || existing.CommissionedState == network.CommissionedStateDeprovisioning {
+		return fmt.Errorf("the commissioned state of %s is %s, it doesn't allow to be updated", id, string(existing.CommissionedState))
+	}
+
+	if existing.CustomIPPrefixPropertiesFormat == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	props := existing.CustomIPPrefixPropertiesFormat
+
+	if d.HasChange("action") {
+		if err := prepareUpdate(ctx, d, meta, *id, props); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), existing)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -204,20 +256,16 @@ func resourceCustomIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{string(network.CommissionedStateProvisioning), string(network.CommissionedStateCommissioning), string(network.CommissionedStateDecommissioning), string(network.CommissionedStateDeprovisioning)},
 		Target:                    []string{string(network.CommissionedStateCommissioned), string(network.CommissionedStateProvisioned), string(commissionedStateDeprovisioned)},
-		Refresh:                   customIpPrefixCreateRefreshFunc(ctx, client, id),
+		Refresh:                   customIpPrefixCreateRefreshFunc(ctx, client, *id),
 		PollInterval:              1 * time.Minute,
 		ContinuousTargetOccurence: 3,
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -268,16 +316,19 @@ func resourceCustomIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.CustomIPPrefixPropertiesFormat; props != nil {
 		d.Set("cidr", props.Cidr)
-		d.Set("authorization_message", props.AuthorizationMessage)
-		d.Set("signed_message", props.SignedMessage)
+		if v := props.AuthorizationMessage; v != nil {
+			authMessage := strings.Split(*v, "|")
+			if len(authMessage) == 3 {
+				d.Set("roa_expiration_date", authMessage[1])
+			}
+		}
+		d.Set("wan_validation_signed_message", props.SignedMessage)
+		d.Set("action", props.CommissionedState)
 	}
 
 	if v := resp.Zones; v != nil {
 		d.Set("zones", zones.Flatten(v))
 	}
-
-	// The "action" will be changed by API automatically, hence setting it from config.
-	d.Set("action", d.Get("action").(string))
 
 	if err := d.Set("tags", tags.Flatten(resp.Tags)); err != nil {
 		return fmt.Errorf("setting `tags`: %+v", err)
@@ -296,7 +347,7 @@ func resourceCustomIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if err := prepareDelete(d, meta, *id); err != nil {
+	if err := prepareDelete(ctx, d, meta, *id); err != nil {
 		return err
 	}
 
@@ -317,10 +368,75 @@ func resourceCustomIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func prepareDelete(d *pluginsdk.ResourceData, meta interface{}, id parse.CustomIpPrefixId) error {
+func prepareUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, id parse.CustomIpPrefixId, props *network.CustomIPPrefixPropertiesFormat) error {
 	client := meta.(*clients.Client).Network.CustomIPPrefixesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+
+	existing, err := client.Get(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), "")
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	currentState := existing.CommissionedState
+
+	// Since the "Provisioning", "Commissioning", "Decommissioning" or `Deprovisioning` commissioned state of custom ip prefix can do nothing, it could not be updated.
+	if currentState == network.CommissionedStateProvisioning || currentState == network.CommissionedStateCommissioning || currentState == network.CommissionedStateDecommissioning || currentState == network.CommissionedStateDeprovisioning {
+		return fmt.Errorf("the commissioned state of %s is %s, it doesn't allow to be updated", id, string(existing.CommissionedState))
+	}
+
+	action := commissionedAction(d.Get("action").(string))
+
+	if (currentState == network.CommissionedStateProvisioned && action == commissionedActionProvision) ||
+		(currentState == network.CommissionedStateCommissioned && action == commissionedActionCommission) ||
+		(currentState == network.CommissionedStateProvisioned && action == commissionedActionDecommission) ||
+		(string(currentState) == string(commissionedStateDeprovisioned) && action == commissionedActionDeprovision) {
+		return fmt.Errorf("the current commissioned state of %s is %s, no need to update", id, string(existing.CommissionedState))
+	}
+
+	switch action {
+	case commissionedActionProvision:
+		if string(currentState) == string(network.CommissionedStateCommissioned) {
+			// When the CommissionedState of existed resource is `Commissioned`, the CommissionedState can do `Decommission`.
+			// After `Decommission` is done, the CommissionedState changes back to `Provisioned`.
+			// So, when current CommissionedState is Commissioned, Decommission is executed instead of Provision.
+			props.CommissionedState = network.CommissionedStateDecommissioning
+		} else {
+			props.CommissionedState = network.CommissionedStateProvisioning
+		}
+	case commissionedActionCommission:
+		if string(currentState) == string(commissionedStateDeprovisioned) {
+			// When the CommissionedState of existed resource is `Deprovisioned`, the CommissionedState can do `Provision`.
+			// Since `Provisioned` of CommissionedState can do `Commission`, when current CommissionedState is Deprovisioned, do Provision first, then do Commission.
+			if updateCommissionedState(d, meta, id, existing, network.CommissionedStateProvisioning) != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+		}
+		props.CommissionedState = network.CommissionedStateCommissioning
+
+	case commissionedActionDecommission:
+		if string(currentState) == string(commissionedStateDeprovisioned) {
+			// 	Since the commissionState changes back to `Provisioned` once the `Decommission` is done, `Provision` is executed instead of `Decommission` when current state is `Deprovisioned`.
+			props.CommissionedState = network.CommissionedStateProvisioning
+		} else {
+			props.CommissionedState = network.CommissionedStateDecommissioning
+		}
+	case commissionedActionDeprovision:
+		if string(currentState) == string(network.CommissionedStateCommissioned) {
+			// 	Since the commissionState changes back to `Provisioned` once the `Decommission` is done and `Provisioned` of CommissionedState can do `Deprovision`, `Decommission` is executed first and then do `Deprovision`.
+			if updateCommissionedState(d, meta, id, existing, network.CommissionedStateDecommissioning) != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+		}
+		props.CommissionedState = network.CommissionedStateDeprovisioning
+	}
+	return nil
+}
+
+func prepareDelete(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, id parse.CustomIpPrefixId) error {
+	client := meta.(*clients.Client).Network.CustomIPPrefixesClient
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
 	if err != nil {
@@ -331,17 +447,17 @@ func prepareDelete(d *pluginsdk.ResourceData, meta interface{}, id parse.CustomI
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	state := existing.CommissionedState
+	currentState := existing.CommissionedState
 
 	// Since the "Provisioning", "Commissioning", "Decommissioning" or `Deprovisioning` commissioned state of custom ip prefix can do nothing, should wait for the operation to complete.
-	if state == network.CommissionedStateProvisioning || state == network.CommissionedStateCommissioning || state == network.CommissionedStateDecommissioning || state == network.CommissionedStateDeprovisioning {
+	if currentState == network.CommissionedStateProvisioning || currentState == network.CommissionedStateCommissioning || currentState == network.CommissionedStateDecommissioning || currentState == network.CommissionedStateDeprovisioning {
 		return fmt.Errorf("the commissioned state of %s in %s, it doesn't allow to be deleted", id, string(existing.CommissionedState))
 	}
 
 	// Since the custom ip prefix can be deleted when the commisionedstate is `Deprovisioned` or `ValidationFailed`, it is needed to update `commisionedstate` before deleting if the state does not allow.
-	if string(state) != string(commissionedStateDeprovisioned) && string(state) != string(commissionedStateValidationFailed) {
+	if string(currentState) != string(commissionedStateDeprovisioned) && string(currentState) != string(commissionedStateValidationFailed) {
 		// For the `Commissioned` state should `Decommission` first, then update to `Deprovisioned` after the state changed to `Provided`.
-		if state == network.CommissionedStateCommissioned {
+		if currentState == network.CommissionedStateCommissioned {
 			if updateCommissionedState(d, meta, id, existing, network.CommissionedStateDecommissioning) != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -384,7 +500,7 @@ func updateCommissionedState(d *pluginsdk.ResourceData, meta interface{}, id par
 		parameters.SignedMessage = v
 	}
 
-	future, err := client.CreateOrUpdate(ctx, d.Get("resource_group_name").(string), d.Get("name").(string), parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CustomIpPrefixeName, parameters)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -406,9 +522,6 @@ func updateCommissionedState(d *pluginsdk.ResourceData, meta interface{}, id par
 	if err != nil {
 		return fmt.Errorf("waiting for %s to become ready for updating: %+v", id, err)
 	}
-
-	// The "action" will be changed by API automatically, hence setting it from config.
-	d.Set("action", d.Get("action").(string))
 
 	return nil
 }

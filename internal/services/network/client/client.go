@@ -92,7 +92,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
 
-	CustomIPPrefixesClient := network.NewCustomIPPrefixesClient(o.SubscriptionId)
+	CustomIPPrefixesClient := network.NewCustomIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&CustomIPPrefixesClient.Client, o.ResourceManagerAuthorizer)
 
 	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

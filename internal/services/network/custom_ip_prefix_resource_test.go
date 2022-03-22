@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,11 +20,7 @@ func TestAccCustomIpPrefix_withIpv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
-	if location.NormalizeNilable(utils.String(data.Locations.Primary)) != "eastus2euap" {
-		t.Skip("skip as the test ip range is only available in `eastus2euap` region")
-	}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,7 +28,7 @@ func TestAccCustomIpPrefix_withIpv4(t *testing.T) {
 			),
 		},
 
-		data.ImportStep("action"),
+		data.ImportStep(),
 	})
 }
 
@@ -41,32 +36,151 @@ func TestAccCustomIpPrefix_ipv4Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
-	if location.NormalizeNilable(utils.String(data.Locations.Primary)) != "eastus2euap" {
-		t.Skip("skip as the test ip range is only available in `eastus2euap` region")
-	}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv4(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Commission"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Decommission"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Deprovision"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("action"),
+		data.ImportStep(),
 		{
-			Config: r.ipv4Update(data),
+			Config: r.ipv4UpdateCommissionedState(data, "Commission"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("action"),
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Provision"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("action"),
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Deprovision"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Commission"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv4(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Deprovision"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Decommission"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv4(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Commission"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv4UpdateCommissionedState(data, "Deprovision"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -74,18 +188,14 @@ func TestAccCustomIpPrefix_ipv4Complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
-	if location.NormalizeNilable(utils.String(data.Locations.Primary)) != "eastus2euap" {
-		t.Skip("skip as the test ip range is only available in `eastus2euap` region")
-	}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4Complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("action"),
+		data.ImportStep(),
 	})
 }
 
@@ -93,7 +203,7 @@ func TestAccCustomIpPrefix_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -151,13 +261,13 @@ resource "azurerm_custom_ip_prefix" "test" {
   name                = "acctest-CustomIpPrefix-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  cidr                = "194.41.19.0/24"
+  cidr                = "194.41.20.0/24"
   zones               = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CustomIpPrefixResource) ipv4Update(data acceptance.TestData) string {
+func (r CustomIpPrefixResource) ipv4UpdateCommissionedState(data acceptance.TestData, state string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,15 +282,15 @@ resource "azurerm_custom_ip_prefix" "test" {
   name                = "acctest-CustomIpPrefix-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  cidr                = "194.41.19.0/24"
-  action              = "Deprovision"
+  cidr                = "194.41.20.0/24"
+  action              = "%[3]s"
   zones               = ["1"]
 
   tags = {
     env = "prod"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, state)
 }
 
 func (r CustomIpPrefixResource) ipv4Complete(data acceptance.TestData) string {
@@ -195,14 +305,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_custom_ip_prefix" "test" {
-  name                  = "acctest-CustomIpPrefix-%[1]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  cidr                  = "194.41.19.0/24"
-  zones                 = ["1","2","3"]
-  action                = "Provision"
-  authorization_message = "00000000-0000-0000-0000-000000000000|194.41.19.0/24|20991212"
-  signed_message        = "singed message for WAN validation"
+  name                          = "acctest-CustomIpPrefix-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  cidr                          = "194.41.20.0/24"
+  zones                         = ["1", "2", "3"]
+  action                        = "Provision"
+  roa_expiration_date           = "20991212"
+  wan_validation_signed_message = "singed message for WAN validation"
 
   tags = {
     env = "test"

@@ -20,14 +20,14 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_custom_ip_prefix" "example" {
-  name                  = "example-CustomIpPrefix"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  cidr                  = "0.0.0.0/24"
-  action                = "Provision"
-  authorization_message = "00000000-0000-0000-0000-000000000000|0.0.0.0/24|20991212"
-  signed_message        = "singed message for WAN validation"
-  zones                 = ["1","2","3"]
+  name                          = "example-CustomIpPrefix"
+  location                      = azurerm_resource_group.example.location
+  resource_group_name           = azurerm_resource_group.example.name
+  cidr                          = "0.0.0.0/24"
+  action                        = "Provision"
+  roa_expiration_date           = "20991212"
+  wan_validation_signed_message = "singed message for WAN validation"
+  zones                         = ["1", "2", "3"]
 
   tags = {
     env = "test"
@@ -47,15 +47,15 @@ The following arguments are supported:
 
 * `cidr` - (Required) The `cidr` of the Custom Ip Prefix. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently, the `cidr` only supports IPv4.
+-> **NOTE:** Currently, the `cidr` only supports IPv4.
 
-* `zones` - (Required) A list of availability zones which the Custom Ip Prefix should be allocated. Possible values are `1`, `2`, `3`. Changing this forces a new resource to be created.
+* `zones` - (Required) Specifies a list of Availability Zones in which this Custom IP Prefix should be located. Changing this forces a new resource to be created.
+  
+-> **NOTE:** In regions with [availability zones](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview), the Custom IP Prefix must be specified as either `Zone-redundant` or assigned to a specific zone. It can't be created with no zone specified in these regions. All IPs from the prefix must have the same zonal properties.
 
-* `authorization_message` - (Optional) The authorization message for WAN validation. Changing this forces a new resource to be created.
+* `roa_expiration_date` - (Optional) The  route origin authorization (ROA) expiration date. Expected format is `yyyymmdd`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `authorization_message` should be formatted as "<subscriptionId>|<cidr>|<yyyMMdd>", such as "00000000-0000-0000-0000-00000000|0.0.0.0/24|20221231".
-
-* `signed_message` - (Optional) The signed message for WAN validation. Changing this forces a new resource to be created.
+* `wan_validation_signed_message` - (Optional) The signed base 64 encoded authorization message generated for WAN verification. Changing this forces a new resource to be created.
 
 * `action` - (Optional) The commission action of the Custom Ip Prefix. Possible values are `Provision`,`Commission`,`Decommission` or `Deprovision`. The default is `Provision`.
 
@@ -72,9 +72,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Custom Ip Prefix.
-* `update` - (Defaults to 30 minutes) Used when updating the Custom Ip Prefix.
+* `update` - (Defaults to 300 minutes) Used when updating the Custom Ip Prefix.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom Ip Prefix.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Ip Prefix.
+* `delete` - (Defaults to 300 minutes) Used when deleting the Custom Ip Prefix.
 
 ## Import
 
