@@ -182,7 +182,13 @@ When the resource can be provisioned across multiple Zones, the following behavi
 
 **API Management:** Terraform will now remove the Default API and Products for API Management when creating a new API Management instance, which is consistent with the behavior for other Terraform Providers.
 
+**Fire Wall:** The behavior of the nested items will be changed to List instead of Sets where required, meaning that the order of these items now matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+**Log Analytics:** The `tags` field has been removed from various resources.
+
 **Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behavior is configurable in the `features` block, but was previously disabled by default. In 3.0, this behavior will be enabled by default.
+
+**Recovery Services:** The `tags` field has been removed from various resources.
 
 **Storage:** The field `allow_blob_public_access` will be renamed to `allow_nested_items_to_be_public` to resolve confusion about what this field does. This field specifies whether items within the Storage Account (such as Containers and Blobs) can opt-in to being made public (for example at the Container or Blob level) - and not that all resources within this Storage Account are public by default.
 
@@ -229,6 +235,14 @@ The deprecated field `secondary_master_key` will be removed in favour of the `se
 The deprecated field `primary_readonly_master_key` will be removed in favour of the `primary_readonly_key` property.
 
 The deprecated field `secondary_readonly_master_key` will be removed in favour of the `secondary_readonly_key` property.
+
+## Data Source: `azurerm_data_lake_store`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
+
+## Data Source: `azurerm_data_share_dataset_data_lake_gen1`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
 
 ### Data Source: `azurerm_function_app`
 
@@ -598,6 +612,19 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
+
+### Resource: `azurerm_data_factory`
+
+The field `customer_managed_key_identity_id` must be supplied if `customer_managed_key_id` is set.
+
+## Resource: `azurerm_data_lake_analytics_account`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+## Resource: `azurerm_data_lake_analytics_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
 ### Resource `azurerm_data_lake_store_file`
 
 Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
@@ -614,6 +641,10 @@ Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 -
 
 Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
+## Resource: `azurerm_data_share_dataset_data_lake_gen1`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
 ### Resource: `azurerm_devspace_controller`
 
 The `azurerm_devspace_controller` resource will be removed since DevSpace Controllers are deprecated and new Controllers cannot be provisioned. 
@@ -625,6 +656,10 @@ The deprecated field `topic_name` will be removed since it is a read-only field 
 The deprecated block `eventhub_endpoint` will be removed in favour of the `eventhub_endpoint_id` property.
 
 The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
+
+### Resource: `azurerm_eventhub_namespace`
+
+The behavior of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 ### Resource: `azurerm_eventhub_namespace_customer_managed_key`
 
@@ -1000,6 +1035,11 @@ The `azurerm_policy_assignment` resource will be removed in favour of the `azure
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
 
+### Resource: `azurerm_policy_remediation`
+
+The `azurerm_policy_remediation` resource will be removed in favour of the `azurerm_management_group_policy_remediation`, `azurerm_resource_policy_remediation`, `azurerm_resource_group_policy_remediation` and `azurerm_subscription_policy_remediation` resources.
+
+
 ### Resource: `azurerm_policy_set_definition`
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
@@ -1199,6 +1239,8 @@ This resource will be removed in favour of the `azurerm_disk_pool` resource.
 ### Resource: `azurerm_subnet`
 
 The deprecated field `address_prefix` will be removed in favour of the `address_prefixes` property.
+
+The field `service_endpoints` will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 ### Resource: `azurerm_synapse_role_assignment`
 

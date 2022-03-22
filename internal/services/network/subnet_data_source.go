@@ -125,7 +125,8 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("route_table_id", routeTableId)
 
-		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
+		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 	}

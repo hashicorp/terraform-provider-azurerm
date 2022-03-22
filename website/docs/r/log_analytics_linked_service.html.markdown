@@ -64,8 +64,6 @@ The following arguments are supported:
 
 ~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id`/`resouce_id` or `write_access_resource_id`).
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ## Attributes Reference
 
 The following attributes are exported:

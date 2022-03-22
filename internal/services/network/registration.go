@@ -81,7 +81,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 		"azurerm_network_packet_capture":                    resourceNetworkPacketCapture(),
 		"azurerm_network_profile":                           resourceNetworkProfile(),
-		"azurerm_packet_capture":                            resourcePacketCapture(),
 		"azurerm_point_to_site_vpn_gateway":                 resourcePointToSiteVPNGateway(),
 		"azurerm_private_endpoint":                          resourcePrivateEndpoint(),
 		"azurerm_private_link_service":                      resourcePrivateLinkService(),

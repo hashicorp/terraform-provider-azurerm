@@ -3,6 +3,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -475,31 +476,6 @@ func TestAccApiManagement_minApiVersion(t *testing.T) {
 	})
 }
 
-func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	r := ApiManagementResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.consumptionPurgeSoftDelete(data),
-		},
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccApiManagement_removeSamples(t *testing.T) {
 	if !features.ThreePointOh() {
 		t.Skip("Skipping since 3.0 mode is disabled")
@@ -517,6 +493,53 @@ func TestAccApiManagement_removeSamples(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config:      r.consumptionRecoveryDisabled(data),
+			ExpectError: regexp.MustCompile(`An existing soft-deleted API Management exists with the Name "[^"]+" in the location "[^"]+"`),
+		},
 	})
 }
 
@@ -2129,10 +2152,14 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
+func (ApiManagementResource) consumptionRecoveryDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    api_management {
+      recover_soft_deleted = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2151,12 +2178,12 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
+func (ApiManagementResource) softDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy = false
     }
   }
 }

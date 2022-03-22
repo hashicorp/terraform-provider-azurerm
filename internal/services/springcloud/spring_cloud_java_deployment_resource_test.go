@@ -166,8 +166,8 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
   runtime_version     = "Java_11"
 
   quota {
-    cpu    = "500m"
-    memory = "4Gi"
+    cpu    = "2"
+    memory = "2Gi"
   }
 
   environment_variables = {

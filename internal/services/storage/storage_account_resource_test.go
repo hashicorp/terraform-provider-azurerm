@@ -229,7 +229,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -237,7 +237,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.allowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("true"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -245,7 +245,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.disallowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 	})
@@ -1175,6 +1175,21 @@ func TestAccStorageAccount_customerManagedKeyRemoteKeyVault(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StorageAccountID(state.ID)
 	if err != nil {
@@ -1436,10 +1451,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "production"
@@ -1464,10 +1479,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = false
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
 
   tags = {
     environment = "production"
@@ -2436,11 +2451,11 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
-  allow_blob_public_access  = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  enable_https_traffic_only       = true
+  allow_nested_items_to_be_public = true
 
   blob_properties {
     cors_rule {
@@ -3737,4 +3752,33 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, clientData.SubscriptionIDAlt, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  edge_zone                = data.azurerm_extended_locations.test.extended_locations[0]
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
