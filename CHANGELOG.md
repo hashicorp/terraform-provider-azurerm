@@ -15,9 +15,11 @@ FEATURES:
 * **New Resource**: `azurerm_stream_analytics_function_javascript_uda` [GH-15831]
 
 ENHANCEMENTS:
+update spring cloud sdk to 2022-01-01-preview #15597
 
 * dependencies: updating to `v62.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15927]
 * dependencies: upgrading to `v0.26.0` of `github.com/hashicorp/go-azure-helpers` [GH-15889]
+* dependencies: upgrading `appplatform` of `2022-01-01-preview` [GH-15597]
 * provider: MSAL (and Microsoft Graph) is now used for authentication instead of ADAL (and Azure Active Directory Graph) [GH-12443]
 * provider: added a new feature flag within the `api_management` block for `recover_soft_deleted`, for configuring whether a soft-deleted `azurerm_api_management` should be recovered during creation [GH-15871]
 * provider: added a new feature flag within the `key_vault` block for `recover_soft_deleted_certificates`, for configuring whether a soft-deleted `azurerm_key_vault_certificate` should be recovered during creation [GH-10273]
