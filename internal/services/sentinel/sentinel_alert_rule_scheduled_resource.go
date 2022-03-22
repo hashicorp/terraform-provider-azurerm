@@ -184,7 +184,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											string(securityinsight.MatchingMethodAllEntities),
 										}, false),
 									},
-									"group_by": {
+									"group_by_entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -630,7 +630,7 @@ func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.Grou
 		MatchingMethod:       securityinsight.MatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
-	groupByEntitiesList := raw["group_by"].([]interface{})
+	groupByEntitiesList := raw["group_by_entities"].([]interface{})
 	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesList))
 	for idx, t := range groupByEntitiesList {
 		groupByEntities[idx] = securityinsight.EntityMappingType(t.(string))
@@ -711,7 +711,7 @@ func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfigurat
 			"lookback_duration":       lookbackDuration,
 			"reopen_closed_incidents": reopenClosedIncidents,
 			"entity_matching_method":  string(input.MatchingMethod),
-			"group_by":                groupByEntities,
+			"group_by_entities":       groupByEntities,
 			"group_by_alert_details":  groupByAlertDetails,
 			"group_by_custom_details": groupByCustomDetails,
 		},
