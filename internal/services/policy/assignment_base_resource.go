@@ -463,3 +463,15 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 
 	return &output
 }
+func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
+	notScopesRes := make([]string, 0)
+
+	for _, notScope := range input {
+		s, ok := notScope.(string)
+		if ok {
+			notScopesRes = append(notScopesRes, s)
+		}
+	}
+
+	return &notScopesRes
+}
