@@ -73,7 +73,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"permanently_delete_on_destroy": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Optional: true,
 						Default:  true,
 					},
 				},
