@@ -52,7 +52,7 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
-							//string(containerregistry.PasswordNamePassword),
+							// string(containerregistry.PasswordNamePassword),
 							"password1",
 							string(containerregistry.PasswordNamePassword2),
 						}, false),
