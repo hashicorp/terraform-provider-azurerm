@@ -210,7 +210,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										},
 									},
 									"group_by": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -218,7 +218,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										},
 									},
 									"group_by_alert_details": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -230,7 +230,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										},
 									},
 									"group_by_custom_details": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -659,21 +659,21 @@ func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.Grou
 		MatchingMethod:       securityinsight.MatchingMethod(mm),
 	}
 
-	groupByEntitiesSet := raw["group_by"].(*pluginsdk.Set).List()
-	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesSet))
-	for idx, t := range groupByEntitiesSet {
+	groupByEntitiesList := raw["group_by"].([]interface{})
+	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesList))
+	for idx, t := range groupByEntitiesList {
 		groupByEntities[idx] = securityinsight.EntityMappingType(t.(string))
 	}
 	output.GroupByEntities = &groupByEntities
 
-	groupByAlertDetailsSet := raw["group_by_alert_details"].(*pluginsdk.Set).List()
-	groupByAlertDetails := make([]securityinsight.AlertDetail, len(groupByAlertDetailsSet))
-	for idx, t := range groupByAlertDetailsSet {
+	groupByAlertDetailsList := raw["group_by_alert_details"].([]interface{})
+	groupByAlertDetails := make([]securityinsight.AlertDetail, len(groupByAlertDetailsList))
+	for idx, t := range groupByAlertDetailsList {
 		groupByAlertDetails[idx] = securityinsight.AlertDetail(t.(string))
 	}
 	output.GroupByAlertDetails = &groupByAlertDetails
 
-	output.GroupByCustomDetails = utils.ExpandStringSlice(raw["group_by_custom_details"].(*pluginsdk.Set).List())
+	output.GroupByCustomDetails = utils.ExpandStringSlice(raw["group_by_custom_details"].([]interface{}))
 
 	return output
 }
