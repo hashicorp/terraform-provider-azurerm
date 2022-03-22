@@ -26,7 +26,6 @@ func TestAccSynapseWorkspaceKeys_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// CMK takes a while to activate, so validation against the plan tends to fail.
 		data.ImportStep(),
 	})
 }
@@ -42,7 +41,6 @@ func TestAccSynapseWorkspaceKeys_basicUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// CMK takes a while to activate, so validation against the plan tends to fail.
 		data.ImportStep(),
 		{
 			Config: r.basicUpdate(data),
@@ -50,7 +48,6 @@ func TestAccSynapseWorkspaceKeys_basicUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// CMK takes a while to activate, so validation against the plan tends to fail.
 		data.ImportStep(),
 	})
 }
