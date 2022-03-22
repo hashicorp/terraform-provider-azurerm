@@ -28,6 +28,10 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 		data.ImportStep("user_info",
 			"user_info.0.name",
 			"user_info.0.email_address",
+			"datadog_organization_properties",
+			"datadog_organization_properties.0",
+			"datadog_organization_properties.0.id",
+			"datadog_organization_properties.0.name",
 			"datadog_organization_properties.0.api_key",
 			"datadog_organization_properties.0.application_key",
 			"datadog_organization_properties.0.enterprise_app_id",
@@ -37,61 +41,109 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 	})
 }
 
-// func TestAccDatadogMonitor_requiresImport(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
-// 	r := DatadogMonitorResource{}
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.RequiresImportErrorStep(r.requiresImport),
-// 	})
-// }
+func TestAccDatadogMonitor_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
+	r := DatadogMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
 
-// func TestAccDatadogMonitor_complete(t *testing.T) {
-// data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
-// r := DatadogMonitorResource{}
-// data.ResourceTest(t, r, []acceptance.TestStep{
-// 	{
-// 		Config: r.complete(data),
-// 		Check: acceptance.ComposeTestCheckFunc(
-// 			check.That(data.ResourceName).ExistsInAzure(r),
-// 		),
-// 	},
-// 	data.ImportStep(),
-// })
-// }
+func TestAccDatadogMonitor_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
+	r := DatadogMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_info",
+			"user_info.0.name",
+			"user_info.0.email_address",
+			"datadog_organization_properties",
+			"datadog_organization_properties.0",
+			"datadog_organization_properties.0.id",
+			"datadog_organization_properties.0.name",
+			"datadog_organization_properties.0.api_key",
+			"datadog_organization_properties.0.application_key",
+			"datadog_organization_properties.0.enterprise_app_id",
+			"datadog_organization_properties.0.linking_auth_code",
+			"datadog_organization_properties.0.linking_client_id",
+			"datadog_organization_properties.0.redirect_uri"),
+	})
+}
 
-// func TestAccDatadogMonitor_update(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
-// 	r := DatadogMonitorResource{}
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.update(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+func TestAccDatadogMonitor_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
+	r := DatadogMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_info",
+			"user_info.0.name",
+			"user_info.0.email_address",
+			"datadog_organization_properties",
+			"datadog_organization_properties.0",
+			"datadog_organization_properties.0.id",
+			"datadog_organization_properties.0.name",
+			"datadog_organization_properties.0.api_key",
+			"datadog_organization_properties.0.application_key",
+			"datadog_organization_properties.0.enterprise_app_id",
+			"datadog_organization_properties.0.linking_auth_code",
+			"datadog_organization_properties.0.linking_client_id",
+			"datadog_organization_properties.0.redirect_uri"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_info",
+			"user_info.0.name",
+			"user_info.0.email_address",
+			"datadog_organization_properties",
+			"datadog_organization_properties.0",
+			"datadog_organization_properties.0.id",
+			"datadog_organization_properties.0.name",
+			"datadog_organization_properties.0.api_key",
+			"datadog_organization_properties.0.application_key",
+			"datadog_organization_properties.0.enterprise_app_id",
+			"datadog_organization_properties.0.linking_auth_code",
+			"datadog_organization_properties.0.linking_client_id",
+			"datadog_organization_properties.0.redirect_uri"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_info",
+			"user_info.0.name",
+			"user_info.0.email_address",
+			"datadog_organization_properties",
+			"datadog_organization_properties.0",
+			"datadog_organization_properties.0.id",
+			"datadog_organization_properties.0.name",
+			"datadog_organization_properties.0.api_key",
+			"datadog_organization_properties.0.application_key",
+			"datadog_organization_properties.0.enterprise_app_id",
+			"datadog_organization_properties.0.linking_auth_code",
+			"datadog_organization_properties.0.linking_client_id",
+			"datadog_organization_properties.0.redirect_uri"),
+	})
+}
 
 func (r DatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatadogMonitorID(state.ID)
@@ -128,7 +180,7 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 	resource "azurerm_datadog_monitor" "test" {
 		name = "test-terraform-%d"
 		resource_group_name = azurerm_resource_group.test.name
-		location = "WEST US 2"
+		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
 			api_key = ""
 			application_key = ""
@@ -144,7 +196,7 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 			type = "SystemAssigned"
 		}
 	}
-`, r.template(data), data.RandomInteger%10)
+`, r.template(data), data.RandomInteger%100)
 }
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {
@@ -160,8 +212,8 @@ func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 			application_key = ""
 		}
 		user_info {
-			name          = "vidhi"
-			email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+			name          = "Vidhi Kothari"
+			email_address = "vidhi.kothari@microsoft.com"
 		}
 		sku {
 			name = "Linked"
@@ -183,22 +235,8 @@ func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string 
 
 	resource "azurerm_datadog_monitor" "import" {
 	name                = azurerm_datadog_monitor.test.name
-	resource_group_name = azurerm_datadog_monitor.test.resource_group_name
+	resource_group_name =  azurerm_resource_group.test.name
 	location            = azurerm_datadog_monitor.test.location
-	datadog_organization_properties {
-		api_key = ""
-		application_key = ""
-	}
-	sku {
-		name = "Linked"
-	}
-	user_info {
-		name          = "vidhi"
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
-	}
-	identity {
-		type = "SystemAssigned"
-	}
 	}
 `, r.template(data))
 }
@@ -212,8 +250,8 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	resource_group_name = azurerm_resource_group.test.name
 	location            = azurerm_resource_group.test.location
 	datadog_organization_properties {
-		api_key           = ""
-		application_key   = ""
+		api_key = ""
+		application_key = ""
 		enterprise_app_id = ""
 		linking_auth_code = ""
 		linking_client_id = ""
@@ -226,8 +264,8 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 		name = "Linked"
 	}
 	user_info {
-		name          = "vidhi"
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+		name          = "Vidhi Kothari"
+		email_address = "vidhi.kothari@microsoft.com"
 		phone_number  = ""
 	}
 	monitoring_status = true
@@ -235,5 +273,5 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 		ENV = "Test"
 	}
 	}
-`, r.template(data), data.RandomInteger%1000)
+`, r.template(data), data.RandomInteger%100)
 }

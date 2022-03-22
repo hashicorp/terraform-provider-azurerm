@@ -76,10 +76,9 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						},
 
 						"enterprise_app_id": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							ForceNew:  true,
-							Sensitive: true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
 						},
 
 						"linking_auth_code": {
@@ -97,10 +96,9 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 						},
 
 						"redirect_uri": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							ForceNew:  true,
-							Sensitive: true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
 						},
 
 						"id": {
@@ -290,7 +288,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("datadog_organization_properties", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties)); err != nil {
+		if err := d.Set("datadog_organization_properties", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties, d)); err != nil {
 			return fmt.Errorf("setting `datadog_organization_properties`: %+v", err)
 		}
 		if err := d.Set("user_info", flattenMonitorUserInfo(props.UserInfo, d)); err != nil {
@@ -430,10 +428,13 @@ func flattenMonitorIdentityProperties(input *datadog.IdentityProperties) []inter
 	}
 }
 
-func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties) []interface{} {
-	if input == nil {
+func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties, d *pluginsdk.ResourceData) []interface{} {
+
+	organisationProperties := d.Get("datadog_organization_properties").([]interface{})
+	if len(organisationProperties) == 0 {
 		return make([]interface{}, 0)
 	}
+	v := organisationProperties[0].(map[string]interface{})
 
 	var name string
 	if input.Name != nil {
@@ -443,23 +444,36 @@ func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties)
 	if input.ID != nil {
 		id = *input.ID
 	}
-
+	var redirectUri string
+	if input.RedirectURI != nil {
+		redirectUri = *input.RedirectURI
+	}
+	var enterpriseAppID string
+	if input.EnterpriseAppID != nil {
+		enterpriseAppID = *input.EnterpriseAppID
+	}
 	return []interface{}{
 		map[string]interface{}{
-			"name": name,
-			"id":   id,
+			"name":              name,
+			"api_key":           utils.String(v["api_key"].(string)),
+			"application_key":   utils.String(v["application_key"].(string)),
+			"enterprise_app_id": enterpriseAppID,
+			"linking_auth_code": utils.String(v["linking_auth_code"].(string)),
+			"linking_client_id": utils.String(v["linking_client_id"].(string)),
+			"redirect_uri":      redirectUri,
+			"id":                id,
 		},
 	}
 }
 
 func flattenMonitorUserInfo(input *datadog.UserInfo, d *pluginsdk.ResourceData) []interface{} {
-	if input == nil {
+
+	userInfo := d.Get("user_info").([]interface{})
+	if len(userInfo) == 0 {
 		return make([]interface{}, 0)
 	}
 
-	userInfo := d.Get("user_info").([]interface{})
 	v := userInfo[0].(map[string]interface{})
-
 	return []interface{}{
 		map[string]interface{}{
 			"name":          utils.String(v["name"].(string)),
