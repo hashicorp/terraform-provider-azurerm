@@ -663,18 +663,22 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 
     source_addresses = [
       "10.0.0.0/16",
+      "192.0.0.0/16",
     ]
 
     destination_ports = [
       "53",
+      "64",
     ]
 
     destination_addresses = [
       "8.8.8.8",
+      "1.1.1.1",
     ]
 
     protocols = [
-      "Any",
+      "UDP",
+      "TCP",
     ]
   }
 
@@ -683,18 +687,22 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 
     source_addresses = [
       "192.168.0.1",
+      "10.0.0.0/16",
     ]
 
     destination_ports = [
       "8888",
+      "9999",
     ]
 
     destination_addresses = [
       "1.1.1.1",
+      "8.8.8.8",
     ]
 
     protocols = [
       "TCP",
+      "UDP",
     ]
   }
 }
@@ -773,15 +781,28 @@ func (FirewallNetworkRuleCollectionResource) ipGroup(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ip_group" "test_source" {
-  name                = "acctestIpGroupForFirewallNetworkRulesSource"
+resource "azurerm_ip_group" "test_source1" {
+  name                = "acctestIpGroupForFirewallNetworkRulesSource1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
 }
+resource "azurerm_ip_group" "test_source2" {
+  name                = "acctestIpGroupForFirewallNetworkRulesSource2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["4.3.2.1/32", "65.43.21.0/24"]
+}
 
-resource "azurerm_ip_group" "test_destination" {
-  name                = "acctestIpGroupForFirewallNetworkRulesDestination"
+resource "azurerm_ip_group" "test_destination1" {
+  name                = "acctestIpGroupForFirewallNetworkRulesDestination1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_ip_group" "test_destination2" {
+  name                = "acctestIpGroupForFirewallNetworkRulesDestination2"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
@@ -798,7 +819,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     name = "rule1"
 
     source_ip_groups = [
-      azurerm_ip_group.test_source.id,
+      azurerm_ip_group.test_source1.id,
+      azurerm_ip_group.test_source2.id,
     ]
 
     destination_ports = [
@@ -806,7 +828,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
 
     destination_ip_groups = [
-      azurerm_ip_group.test_destination.id,
+      azurerm_ip_group.test_destination1.id,
+      azurerm_ip_group.test_destination2.id,
     ]
 
     protocols = [
@@ -836,7 +859,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
 
     destination_fqdns = [
-      "time.windows.com"
+      "time.windows.com",
+      "time.linux.com"
     ]
 
     destination_ports = [

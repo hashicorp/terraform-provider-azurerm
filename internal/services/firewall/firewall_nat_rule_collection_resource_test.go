@@ -568,10 +568,12 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     source_addresses = [
       "10.0.0.0/16",
+      "192.168.0.1",
     ]
 
     destination_ports = [
       "53",
+      "64",
     ]
 
     destination_addresses = [
@@ -580,6 +582,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
+      "UDP",
     ]
 
     translated_port    = 53
@@ -591,10 +594,12 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     source_addresses = [
       "192.168.0.1",
+      "10.0.0.0/16",
     ]
 
     destination_ports = [
       "8888",
+      "9999",
     ]
 
     destination_addresses = [
@@ -602,6 +607,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
+      "UDP",
       "TCP",
     ]
 
@@ -653,11 +659,18 @@ func (FirewallNatRuleCollectionResource) ipGroup(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ip_group" "test" {
-  name                = "acctestIpGroupForFirewallNatRules"
+resource "azurerm_ip_group" "test1" {
+  name                = "acctestIpGroupForFirewallNatRules1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_ip_group" "test2" {
+  name                = "acctestIpGroupForFirewallNatRules2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["193.168.0.0/25", "193.168.0.192/26"]
 }
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
@@ -671,7 +684,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     name = "rule1"
 
     source_ip_groups = [
-      azurerm_ip_group.test.id,
+      azurerm_ip_group.test1.id,
+      azurerm_ip_group.test2.id,
     ]
 
     destination_ports = [
