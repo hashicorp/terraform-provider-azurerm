@@ -13,10 +13,15 @@ Manages a Firewall Policy.
 ## Example Usage
 
 ```hcl
-resource "azurerm_firewall_policy" "example" {
-  name                = "example"
-  resource_group_name = "example"
+resource "azurerm_resource_group" "example" {
+  name                = "example-resources"
   location            = "West Europe"
+}
+
+resource "azurerm_firewall_policy" "example" {
+  name                = "example-policy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -66,9 +71,9 @@ A `dns` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Type of the identity. At the moment only "UserAssigned" is supported. Changing this forces a new Firewall Policy to be created.
+* `type` - (Required) The Type of Identity which should be assigned to this Firewall Policy. At this time the only supported value is `UserAssigned`. Changing this forces a new Firewall Policy to be created.
 
-* `user_assigned_identity_ids` - (Optional) Specifies a list of user assigned managed identities.
+* `identity_ids` - (Optional) Specifies a list of Managed Identity IDs which should be assigned to this Firewall Policy.
 
 ---
 
@@ -94,7 +99,7 @@ A `intrusion_detection` block supports the following:
 
 ---
 
-A `log_analytisc_workspace` block supports the following:
+A `log_analytics_workspace` block supports the following:
 
 * `id` - (Required) The ID of the Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to when their locations match the `firewall_location`.
 
