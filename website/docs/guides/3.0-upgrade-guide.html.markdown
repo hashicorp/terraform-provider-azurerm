@@ -352,6 +352,8 @@ The `azurerm_app_service_hybrid_connection` resource has been superseded by the 
 
 The `azurerm_app_service_slot` resource has been superseded by the `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
 
 ### Resource: `azurerm_app_service_source_control_token`
@@ -615,7 +617,6 @@ The field `resource_group_name` will be removed since it can be inferred from th
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
-
 
 ### Resource: `azurerm_data_factory`
 
