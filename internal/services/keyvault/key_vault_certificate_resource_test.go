@@ -82,7 +82,7 @@ func TestAccKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T
 	})
 }
 
-func TestAccKeyVaultCertificate_basicGenerate(t *testing.T) {
+func TestAccKeyVaultCertificate_basicGenerate1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateResource{}
 
@@ -573,8 +573,8 @@ resource "azurerm_key_vault_certificate" "test" {
         "dataEncipherment",
         "digitalSignature",
         "keyAgreement",
-        "keyCertSign",
         "keyEncipherment",
+        "keyCertSign",
       ]
 
       subject            = "CN=hello-world"
