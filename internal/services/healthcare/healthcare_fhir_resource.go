@@ -204,7 +204,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthcareapis_fhir_service", fhirServiceId.ID())
+			return tf.ImportAsExistsError("azurerm_healthcare_fhir_service", fhirServiceId.ID())
 		}
 	}
 
@@ -248,7 +248,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", fhirServiceId, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", fhirServiceId, err)
 	}
 
 	d.SetId(fhirServiceId.ID())

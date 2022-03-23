@@ -21,7 +21,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = "tfex-resource_group"
   workspace_id        = "tfex-workspace_id"
   kind                = "fhir-R4"
-  authentication_configuration {
+  authentication {
     authority = "https://login.microsoftonline.com/tenantId"
     audience  = "https://tfexfhir.fhir.azurehealthcareapis.com"
   }
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `acr_login_servers` - - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
-* `authentication_configuration` - (Required) An `authentication_configuration` block as defined below.
+* `authentication` - (Required) An `authentication` block as defined below.
 
 * `export_storage_account_name` - (Optional) specifies the name of the export storage account which accepts the operation configuration information
 
@@ -87,7 +87,7 @@ A `cors_configuration` block supports the following:
 * `allow_credentials` - (Boolean) If credentials are allowed via CORS.
 
 ---
-An `authentication_configuration` supports the following:
+An `authentication` supports the following:
 
 * `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
@@ -103,7 +103,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Fhir Service.
-* `update` - (Defaults to 30 minut es) Used when updating the Healthcare Fhir Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Fhir Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Fhir Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Fhir Service.
 

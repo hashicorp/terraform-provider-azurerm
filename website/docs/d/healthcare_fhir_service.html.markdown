@@ -37,8 +37,6 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the Healthcare Fhir Service is located.
 
-* `authentication` - The `authentication` block as defined below.
-
 * `kind` - The kind of the Healthcare Fhir Service. 
 
 * `identity` - The `identity` block as defined below.
@@ -58,9 +56,13 @@ The following attributes are exported:
 * `tags` - The map of tags assigned to the Healthcare Fhir Service.
 
 ---
-An `identity` block supports the following:
+An `identity` block exports the following:
 
-* `type` The type of identity used for the Healthcare Fhir service. Possible values are `SystemAssigned`.
+* `type` The type of identity used for the Healthcare Fhir service.
+
+* `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ---
 A `cors_configuration` block supports the following:
