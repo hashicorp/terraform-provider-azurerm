@@ -117,7 +117,7 @@ A `application_logs` block supports the following:
 
 ---
 
-A `application_stack` block supports the following:
+An `application_stack` block supports the following:
 
 * `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
 
@@ -129,7 +129,7 @@ A `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`, `v3.0`, `v4.0`, and `v5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
@@ -139,11 +139,11 @@ A `application_stack` block supports the following:
 
 ~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, and `16-LTS`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v5.6`, `v7.3`, and `v7.4`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v7.4`.
 
 * `python_version` - (Optional) The version of Python to use when `current_stack` is set to `python`. Possible values include `2.7` and `3.4.0`.
 
