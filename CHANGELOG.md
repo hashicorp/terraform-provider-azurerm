@@ -36,6 +36,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_linux_function_app` - support for the `storage_key_vault_secret_id` property [GH-15793]
 * Data Source: `azurerm_storage_account_sas` - now exports the `tag` and `filter` attributes [GH-15863]
 * Data Source: `azurerm_windows_function_app` - support for `storage_key_vault_secret_id` property [GH-15793]
+* `azurerm_application_insights` - can now disable Rule and Action Groups that are automatically created [GH-15892]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_property` property [GH-15559]
 * `azurerm_iothub` - add support for the `authentication_type` and `identity_id` properties in the `file_upload` block [GH-15874]
 * `azurerm_kubernetes_cluster` - the `kube_admin_config` block is now marked as sensitive in addition to all items within it [GH-4105]
