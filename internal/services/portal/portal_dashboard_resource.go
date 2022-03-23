@@ -44,6 +44,7 @@ func resourceDashboard() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.DashboardName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),

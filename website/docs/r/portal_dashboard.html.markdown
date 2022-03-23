@@ -1,7 +1,7 @@
 ---
 subcategory: "Portal"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dashboard"
+page_title: "Azure Resource Manager: azurerm_portal_dashboard"
 description: |-
   Manages a shared dashboard in the Azure Portal.
 ---
@@ -30,7 +30,7 @@ resource "azurerm_resource_group" "my-group" {
   location = "West Europe"
 }
 
-resource "azurerm_dashboard" "my-board" {
+resource "azurerm_portal_dashboard" "my-board" {
   name                = "my-cool-dashboard"
   resource_group_name = azurerm_resource_group.my-group.name
   location            = azurerm_resource_group.my-group.location
@@ -241,10 +241,11 @@ resource "azurerm_dashboard" "my-board" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Shared Dashboard. This should be be 64 chars max, only alphanumeric and hyphens (no spaces). For a more friendly display name, add the `hidden-title` tag.
+* `name` - (Required) Specifies the name of the Shared Dashboard. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the dashboard.
+-> **Note**: You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.  
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the dashboard. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -272,7 +273,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Dashboards can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
+terraform import azurerm_portal_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
 ```
 
 Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal.
