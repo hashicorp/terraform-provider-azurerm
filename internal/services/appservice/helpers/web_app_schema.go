@@ -1085,6 +1085,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"2.1",
 						"3.1",
 						"5.0",
+						"6.0",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.php_version",
