@@ -3,13 +3,14 @@ package healthcare_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"testing"
 )
 
 type HealthCareIotConnectorFhirDestinationResource struct{}
@@ -116,8 +117,8 @@ resource "azurerm_healthcare_iot_fhir_destination" "test" {
 "template": []
 }
 JSON
-depends_on = [azurerm_healthcare_fhir_service.test]
-}                              
+  depends_on                           = [azurerm_healthcare_fhir_service.test]
+}
 `, r.template(data), data.RandomInteger)
 }
 

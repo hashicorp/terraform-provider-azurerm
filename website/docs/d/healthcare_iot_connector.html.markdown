@@ -14,7 +14,7 @@ Use this data source to access information about an existing Healthcare Iot Conn
 
 ```hcl
 data "azurerm_healthcare_iot_connector" "example" {
-  name = "tfexiot"
+  name         = "tfexiot"
   workspace_id = "tfexwks"
 }
 

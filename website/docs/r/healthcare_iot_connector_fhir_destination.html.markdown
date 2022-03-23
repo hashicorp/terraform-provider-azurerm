@@ -1,23 +1,23 @@
 ---
 subcategory: "Healthcare"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_healthcare_iot_fhir_Destination"
+page_title: "Azure Resource Manager: azurerm_healthcare_iot_fhir_destination"
 description: |-
   Manages a Healthcare Iot Connector Fhir Destination.
 ---
 
 # azurerm_healthcare_iot_fhir_Destination
 
-Manages a Healthcare Iot Connector Fhir Destination
+Manages a Healthcare Iot Connector Fhir Destination.
 
 ```hcl
-resource "azurerm_healthcare_iot_fhir_Destination" "test" {
-  name = "tfexiotdes"
-  location = "east us"
-  iot_connector_id = "iotconnector_id"
-  destination_fhir_service_id = "fhir_service_id"
+resource "azurerm_healthcare_iot_fhir_destination" "test" {
+  name                                 = "tfexiotdes"
+  location                             = "east us"
+  iot_connector_id                     = "iotconnector_id"
+  destination_fhir_service_id          = "fhir_service_id"
   destination_identity_resolution_type = "Create"
-  destination_fhir_mapping = <<JSON
+  destination_fhir_mapping             = <<JSON
   {
     "content": {
               "templateType": "CollectionFhirTemplate",

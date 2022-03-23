@@ -8,13 +8,15 @@ description: |-
 
 # azurerm_healthcare_iot_connector
 
-Manages a Healthcare Iot Connector
+Manages a Healthcare Iot Connector.
+
+## Example Usage
 
 ```hcl
 resource "azurerm_healthcare_iot_connector" "test" {
-  name                         = "tftest"
-  workspace_id                 = "tfex-workspace_id"
-  location                     = "east us"
+  name         = "tftest"
+  workspace_id = "tfex-workspace_id"
+  location     = "east us"
   identity {
     type = "SystemAssigned"
   }

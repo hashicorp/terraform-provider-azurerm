@@ -139,7 +139,7 @@ func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta in
 	deviceContentMap := healthcareapis.IotMappingProperties{}
 	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
 	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
-		return err //todo fmt
+		return err
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
@@ -276,7 +276,7 @@ func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta in
 	deviceContentMap := healthcareapis.IotMappingProperties{}
 	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
 	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
-		return err //todo fmt
+		return err
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
