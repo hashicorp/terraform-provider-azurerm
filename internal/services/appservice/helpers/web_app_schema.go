@@ -8,9 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1115,10 +1117,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7", // TODO - Remove? 2.7 is available, but deprecated in the service
-						"3.6",
+						"2.7",
 						"3.7",
 						"3.8",
+						"3.9",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -2411,8 +2413,9 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 						string(web.ConnectionStringTypeServiceBus),
 						string(web.ConnectionStringTypeSQLAzure),
 						string(web.ConnectionStringTypeSQLServer),
-					}, true),
-					Description: "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
+					}, !features.ThreePointOhBeta()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					Description:      "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
 				},
 
 				"value": {

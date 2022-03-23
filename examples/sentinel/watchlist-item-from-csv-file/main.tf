@@ -2,6 +2,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "random" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "West Europe"
@@ -45,5 +47,5 @@ resource "azurerm_sentinel_watchlist_item" "example" {
 
   name         = random_uuid.item[count.index].id
   watchlist_id = azurerm_sentinel_watchlist.example.id
-  fields       = local.csv_data[count.index]
+  properties   = local.csv_data[count.index]
 }

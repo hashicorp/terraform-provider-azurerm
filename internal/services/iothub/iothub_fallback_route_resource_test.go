@@ -111,7 +111,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string          = azurerm_storage_account.test.primary_blob_connection_string
@@ -176,7 +176,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string          = azurerm_storage_account.test.primary_blob_connection_string

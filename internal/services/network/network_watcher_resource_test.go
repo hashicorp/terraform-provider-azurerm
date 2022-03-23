@@ -35,13 +35,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 		"DataSource": {
 			"basic": testAccDataSourceNetworkWatcher_basic,
 		},
-		"PacketCaptureOld": {
-			"localDisk":                  testAccPacketCapture_localDisk,
-			"storageAccount":             testAccPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccPacketCapture_withFilters,
-			"requiresImport":             testAccPacketCapture_requiresImport,
-		},
 		"ConnectionMonitor": {
 			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
 			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
@@ -67,17 +60,16 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
 		},
 		"FlowLog": {
-			"basic":                 testAccNetworkWatcherFlowLog_basic,
-			"disabled":              testAccNetworkWatcherFlowLog_disabled,
-			"reenabled":             testAccNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":       testAccNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount":  testAccNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics":      testAccNetworkWatcherFlowLog_trafficAnalytics,
-			"long_name":             testAccNetworkWatcherFlowLog_longName,
-			"long_name_with_hyphen": testAccNetworkWatcherFlowLog_longName_end_hyphen,
-			"version":               testAccNetworkWatcherFlowLog_version,
-			"location":              testAccNetworkWatcherFlowLog_location,
-			"tags":                  testAccNetworkWatcherFlowLog_tags,
+			"basic":                testAccNetworkWatcherFlowLog_basic,
+			"requiresImport":       testAccNetworkWatcherFlowLog_requiresImport,
+			"disabled":             testAccNetworkWatcherFlowLog_disabled,
+			"reenabled":            testAccNetworkWatcherFlowLog_reenabled,
+			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
+			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
+			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccNetworkWatcherFlowLog_version,
+			"location":             testAccNetworkWatcherFlowLog_location,
+			"tags":                 testAccNetworkWatcherFlowLog_tags,
 		},
 	}
 

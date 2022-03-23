@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -169,7 +171,47 @@ func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpPrefix_zonesSingle(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("not applicable until 3.0 mode")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccPublicIpPrefix_zonesMultiple(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("not applicable until 3.0 mode")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPublicIpPrefix_availabilityZoneRedundant(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("Test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
@@ -181,6 +223,9 @@ func TestAccPublicIpPrefix_availabilityZoneRedundant(t *testing.T) {
 }
 
 func TestAccPublicIpPrefix_availabilityZoneSingle(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("Test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
@@ -192,6 +237,9 @@ func TestAccPublicIpPrefix_availabilityZoneSingle(t *testing.T) {
 }
 
 func TestAccPublicIpPrefix_availabilityZoneSNoZone(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("Test not applicable in 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
@@ -342,6 +390,45 @@ resource "azurerm_public_ip_prefix" "test" {
   prefix_length = 24
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPPrefixResource) zonesSingle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zones               = ["1"]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+func (PublicIPPrefixResource) zonesMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zones               = ["1", "2", "3"]
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PublicIPPrefixResource) withAvailabilityZone(data acceptance.TestData, availabilityZone string) string {

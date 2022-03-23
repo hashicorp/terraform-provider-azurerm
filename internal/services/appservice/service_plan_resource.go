@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -18,10 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-/*
- TODO - Should this resource be split into the O/S variants for clarity of purpose?
-*/
 
 type ServicePlanResource struct{}
 
@@ -48,8 +46,6 @@ type ServicePlanModel struct {
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
 	Tags                      map[string]string `tfschema:"tags"`
-	// TODO properties
-	// KubernetesID string `tfschema:"kubernetes_id"` // AKS Cluster resource ID?
 }
 
 func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
@@ -63,26 +59,14 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"B1", "B2", "B3",
-				"D1",
-				"F1",
-				"FREE",
-				"I1", "I2", "I3", // Isolated V1 - ASEV2
-				"I1v2", "I2v2", "I3v2", // Isolated v2 - ASEv3
-				"P1v2", "P2v2", "P3v2",
-				"P1v3", "P2v3", "P3v3",
-				"S1", "S2", "S3",
-				"SHARED",
-				"PC2", "PC3", "PC4", "Y1", // Consumption Plans - Function Apps
-				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
-				"WS1", "WS2", "WS3", // Workflow plans - Logic Apps
-			}, false),
+			ValidateFunc: validation.StringInSlice(
+				helpers.AllKnownServicePlanSkus(),
+				false),
 		},
 
 		"os_type": {
@@ -99,7 +83,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_service_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: webValidate.AppServiceEnvironmentID, // TODO - Bring over to this service
+			ValidateFunc: webValidate.AppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {

@@ -10,8 +10,9 @@ description: |-
 
 Manages a SQL Azure Managed Instance.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** The `azurerm_sql_managed_instance` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_instance) resource instead.
+
+~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](https://www.terraform.io/language/state/sensitive-data).
 
 ## Example Usage
 
@@ -217,7 +218,7 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for your instance. It should be a multiple of 32GB.
 
-* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
+* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `LicenseIncluded` or `BasePrice`.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 

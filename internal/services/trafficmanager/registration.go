@@ -39,7 +39,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_traffic_manager_azure_endpoint":    resourceAzureEndpoint(),
 		"azurerm_traffic_manager_external_endpoint": resourceExternalEndpoint(),
 		"azurerm_traffic_manager_nested_endpoint":   resourceNestedEndpoint(),
-		"azurerm_traffic_manager_endpoint":          resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":           resourceArmTrafficManagerProfile(),
 	}
 }

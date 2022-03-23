@@ -9,6 +9,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -65,44 +66,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(datafactory.FactoryIdentityTypeSystemAssigned),
-								string(datafactory.FactoryIdentityTypeUserAssigned),
-								string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"github_configuration": {
 				Type:          pluginsdk.TypeList,
@@ -229,7 +193,13 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
-				RequiredWith: []string{"identity.0.identity_ids"},
+			},
+
+			"customer_managed_key_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
 			"tags": tags.Schema(),
@@ -258,37 +228,25 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dataFactory := datafactory.Factory{
-		Location:          &location,
-		FactoryProperties: &datafactory.FactoryProperties{},
-		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	dataFactory.PublicNetworkAccess = datafactory.PublicNetworkAccessEnabled
+	publicNetworkAccess := datafactory.PublicNetworkAccessEnabled
 	enabled := d.Get("public_network_enabled").(bool)
 	if !enabled {
-		dataFactory.FactoryProperties.PublicNetworkAccess = datafactory.PublicNetworkAccessDisabled
+		publicNetworkAccess = datafactory.PublicNetworkAccessDisabled
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		identityType := v.(string)
-		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type: datafactory.FactoryIdentityType(identityType),
-		}
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
-		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
-		if len(identityIdsRaw) > 0 {
-			if !(identityType == string(datafactory.FactoryIdentityTypeUserAssigned) || identityType == string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned)) {
-				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s` or `%s`", string(datafactory.FactoryIdentityTypeUserAssigned), string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned))
-			}
-
-			identityIds := make(map[string]interface{})
-			for _, v := range identityIdsRaw {
-				identityIds[v.(string)] = make(map[string]string)
-			}
-			dataFactory.Identity.UserAssignedIdentities = identityIds
-		}
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	dataFactory := datafactory.Factory{
+		Location: utils.String(location),
+		FactoryProperties: &datafactory.FactoryProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		},
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
@@ -297,14 +255,12 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
-		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
-
 		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
 			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      &keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &datafactory.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(identityIdsRaw[0].(string)),
+				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
 			},
 		}
 	}
@@ -380,14 +336,25 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if factoryProps := resp.FactoryProperties; factoryProps != nil {
+		customerManagedKeyId := ""
+		customerManagedKeyIdentityId := ""
+
 		if enc := factoryProps.Encryption; enc != nil {
 			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
-				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
-				if err := d.Set("customer_managed_key_id", versionedKey); err != nil {
-					return fmt.Errorf("setting `customer_managed_key_id`: %+v", err)
+				customerManagedKeyId = fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
+			}
+
+			if enc.Identity != nil && enc.Identity.UserAssignedIdentity != nil {
+				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*enc.Identity.UserAssignedIdentity)
+				if err != nil {
+					return fmt.Errorf("parsing %q: %+v", *enc.Identity.UserAssignedIdentity, err)
 				}
+				customerManagedKeyIdentityId = parsed.ID()
 			}
 		}
+
+		d.Set("customer_managed_key_id", customerManagedKeyId)
+		d.Set("customer_managed_key_identity_id", customerManagedKeyIdentityId)
 
 		if err := d.Set("global_parameter", flattenDataFactoryGlobalParameters(factoryProps.GlobalParameters)); err != nil {
 			return fmt.Errorf("setting `global_parameter`: %+v", err)
@@ -412,7 +379,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("github_configuration", repo)
 	}
 
-	identity, err := flattenDataFactoryIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -571,38 +538,66 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 	return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration, result
 }
 
-func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interface{}, error) {
-	if identity == nil {
-		return []interface{}{}, nil
+func expandIdentity(input []interface{}) (*datafactory.FactoryIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = identity.PrincipalID.String()
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
 	}
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = identity.TenantID.String()
+
+	out := datafactory.FactoryIdentity{
+		Type: datafactory.FactoryIdentityType(string(expanded.Type)),
 	}
-	var identityIds []string
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			id, err := msiParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, id.ID())
+
+	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
+	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.Type = datafactory.FactoryIdentityTypeSystemAssignedUserAssigned
+	}
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]interface{})
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = make(map[string]interface{})
 		}
+		out.UserAssignedIdentities = userAssignedIdentities
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-			"identity_ids": identityIds,
-		},
-	}, nil
+	return &out, nil
+}
+
+func flattenIdentity(input *datafactory.FactoryIdentity) (interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: nil,
+		}
+
+		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
+		if input.Type == datafactory.FactoryIdentityTypeSystemAssignedUserAssigned {
+			transform.Type = identity.TypeSystemAssignedUserAssigned
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		for k := range input.UserAssignedIdentities {
+			identityIds[k] = identity.UserAssignedIdentityDetails{
+				// since v is an `interface{}` there's no guarantee this is returned
+			}
+		}
+
+		transform.IdentityIds = identityIds
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalParameterSpecification) []interface{} {

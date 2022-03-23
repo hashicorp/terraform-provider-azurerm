@@ -36,6 +36,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Automation Account. Changing this forces a new resource to be created.
 
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+
 * `resource_group_name` - (Required) The name of the resource group in which the Automation Account is created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.

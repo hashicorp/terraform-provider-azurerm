@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -114,8 +115,9 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		maxTaskRetryCount = *startTask.MaxTaskRetryCount
 	}
 
-	// TODO: Remove in 3.0
-	result["max_task_retry_count"] = maxTaskRetryCount
+	if !features.ThreePointOhBeta() {
+		result["max_task_retry_count"] = maxTaskRetryCount
+	}
 	result["task_retry_maximum"] = maxTaskRetryCount
 
 	if startTask.UserIdentity != nil {
@@ -169,8 +171,10 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 			environment[*envSetting.Name] = *envSetting.Value
 		}
 	}
-	// TODO: Remove in 3.0
-	result["environment"] = environment
+
+	if !features.ThreePointOhBeta() {
+		result["environment"] = environment
+	}
 	result["common_environment_properties"] = environment
 
 	result["resource_file"] = resourceFiles
@@ -425,9 +429,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	startTaskCmdLine := startTaskValue["command_line"].(string)
 
 	maxTaskRetryCount := int32(1)
-	// TODO: Remove in 3.0
-	if v := startTaskValue["max_task_retry_count"].(int); v > 0 {
-		maxTaskRetryCount = int32(v)
+
+	if !features.ThreePointOhBeta() {
+		if v, ok := startTaskValue["max_task_retry_count"]; ok && v.(int) > 0 {
+			maxTaskRetryCount = int32(v.(int))
+		}
 	}
 
 	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
@@ -515,11 +521,12 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		ResourceFiles:     &resourceFiles,
 	}
 
-	// populate environment settings, if defined
-	// TODO: Remove in 3.0
-	if v := startTaskValue["environment"].(map[string]interface{}); len(v) > 0 {
-		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
+	if !features.ThreePointOhBeta() {
+		if v, ok := startTaskValue["environment"]; ok && len(v.(map[string]interface{})) > 0 {
+			startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v.(map[string]interface{}))
+		}
 	}
+
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
 	}

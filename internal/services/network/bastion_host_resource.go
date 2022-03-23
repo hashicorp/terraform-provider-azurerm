@@ -79,7 +79,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.BastionSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,

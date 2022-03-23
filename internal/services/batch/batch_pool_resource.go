@@ -10,21 +10,20 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type batchPoolIdentity = identity.UserAssigned
 
 func resourceBatchPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -285,150 +284,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": batchPoolIdentity{}.Schema(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"start_task": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"command_line": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// TODO: Remove in 3.0
-						"max_task_retry_count": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							// Need to default this in the expand function for this block for the deprecation
-							Deprecated: "Deprecated in favour of `task_retry_maximum`",
-							ConflictsWith: []string{
-								"start_task.0.task_retry_maximum",
-							},
-						},
-
-						"task_retry_maximum": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							ConflictsWith: []string{
-								"start_task.0.max_task_retry_count",
-							},
-						},
-
-						"wait_for_success": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						// TODO: Remove in 3.0
-						"environment": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Deprecated: "Deprecated in favour of `common_environment_properties`",
-							ConflictsWith: []string{
-								"start_task.0.common_environment_properties",
-							},
-						},
-
-						"common_environment_properties": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true, // Remove in 3.0
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							ConflictsWith: []string{
-								"start_task.0.environment",
-							},
-						},
-
-						"user_identity": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"user_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
-									},
-									"auto_user": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"elevation_level": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  string(batch.ElevationLevelNonAdmin),
-													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.ElevationLevelNonAdmin),
-														string(batch.ElevationLevelAdmin),
-													}, false),
-												},
-												"scope": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  string(batch.AutoUserScopeTask),
-													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.AutoUserScopeTask),
-														string(batch.AutoUserScopePool),
-													}, false),
-												},
-											},
-										},
-										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
-									},
-								},
-							},
-						},
-
-						//lintignore:XS003
-						"resource_file": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"auto_storage_container_name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"blob_prefix": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"file_mode": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"file_path": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"http_url": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-									"storage_container_url": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
+					Schema: startTaskSchema(),
 				},
 			},
 			"metadata": {
@@ -544,12 +407,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 
-		// TODO: Remove in 3.0
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
-				_, newMax := d.GetChange("start_task.0.task_retry_maximum")
-				d.SetNew("start_task.0.max_task_retry_count", newMax)
-				d.SetNew("start_task.0.task_retry_maximum", newMax)
+			if !features.ThreePointOhBeta() {
+				if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
+					_, newMax := d.GetChange("start_task.0.task_retry_maximum")
+					d.SetNew("start_task.0.max_task_retry_count", newMax)
+					d.SetNew("start_task.0.task_retry_maximum", newMax)
+				}
 			}
 
 			return nil
@@ -813,7 +677,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	identity, err := flattenBatchPoolIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -1015,44 +879,188 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 }
 
 func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
-	config, err := batchPoolIdentity{}.Expand(input)
+	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	var identityMaps map[string]*batch.UserAssignedIdentities
-	if len(config.UserAssignedIdentityIds) != 0 {
-		identityMaps = make(map[string]*batch.UserAssignedIdentities, len(config.UserAssignedIdentityIds))
-		for _, id := range config.UserAssignedIdentityIds {
-			identityMaps[id] = &batch.UserAssignedIdentities{}
+	out := batch.PoolIdentity{
+		Type: batch.PoolIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*batch.UserAssignedIdentities)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &batch.UserAssignedIdentities{
+				// intentionally empty
+			}
 		}
 	}
 
-	return &batch.PoolIdentity{
-		Type:                   batch.PoolIdentityType(config.Type),
-		UserAssignedIdentities: identityMaps,
-	}, nil
+	return &out, nil
 }
 
-func flattenBatchPoolIdentity(input *batch.PoolIdentity) ([]interface{}, error) {
-	var config *identity.ExpandedConfig
+func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
 
-	if input == nil {
-		return []interface{}{}, nil
-	}
-
-	var identityIds []string
-	for id := range input.UserAssignedIdentities {
-		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-		if err != nil {
-			return nil, err
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		identityIds = append(identityIds, parsedId.ID())
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	config = &identity.ExpandedConfig{
-		Type:                    identity.Type(string(input.Type)),
-		UserAssignedIdentityIds: identityIds,
+	return identity.FlattenUserAssignedMap(transform)
+}
+
+func startTaskSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"command_line": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"task_retry_maximum": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"start_task.0.max_task_retry_count"}
+				}
+				return nil
+			}(),
+		},
+
+		"wait_for_success": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"common_environment_properties": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"start_task.0.environment"}
+				}
+				return nil
+			}(),
+		},
+
+		"user_identity": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"user_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
+					},
+					"auto_user": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"elevation_level": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(batch.ElevationLevelNonAdmin),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(batch.ElevationLevelNonAdmin),
+										string(batch.ElevationLevelAdmin),
+									}, false),
+								},
+								"scope": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(batch.AutoUserScopeTask),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(batch.AutoUserScopeTask),
+										string(batch.AutoUserScopePool),
+									}, false),
+								},
+							},
+						},
+						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
+					},
+				},
+			},
+		},
+		//lintignore:XS003
+		"resource_file": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"auto_storage_container_name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"blob_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"file_mode": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"file_path": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"http_url": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"storage_container_url": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
 	}
-	return batchPoolIdentity{}.Flatten(config), nil
+
+	if !features.ThreePointOhBeta() {
+		out["max_task_retry_count"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			// Need to default this in the expand function for this block for the deprecation
+			Deprecated: "Deprecated in favour of `task_retry_maximum`",
+			ConflictsWith: []string{
+				"start_task.0.task_retry_maximum",
+			},
+		}
+
+		out["environment"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: !features.ThreePointOhBeta(),
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Deprecated: "Deprecated in favour of `common_environment_properties`",
+			ConflictsWith: []string{
+				"start_task.0.common_environment_properties",
+			},
+		}
+	}
+	return out
+
 }

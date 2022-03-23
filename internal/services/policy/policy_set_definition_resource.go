@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,169 +42,188 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: resourcePolicySetDefinitionSchema(),
+	}
+}
 
-			"policy_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.TypeBuiltIn),
-					string(policy.TypeCustom),
-					string(policy.TypeNotSpecified),
-					string(policy.TypeStatic),
-				}, false),
-			},
+func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO 3.0 - remove this when deprecation resolves
-				ConflictsWith: []string{"management_group_name"},
-			},
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(policy.TypeBuiltIn),
+				string(policy.TypeCustom),
+				string(policy.TypeNotSpecified),
+				string(policy.TypeStatic),
+			}, false),
+		},
 
-			// TODO 3.0 - Remove this
-			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"management_group_id"},
-				Deprecated:    "Deprecated in favour of `management_group_name`",
-			},
+		"management_group_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Computed: !features.ThreePointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"management_group_name"}
+				}
+				return []string{}
+			}(),
+		},
 
-			"display_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
-			},
+		"metadata": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
+		},
 
-			"parameters": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
+		"parameters": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
 
-			"policy_definitions": { // TODO -- remove in the next major version
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
-				ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
-				Deprecated:       "Deprecated in favour of `policy_definition_reference`",
-			},
-
-			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
-				Type:         pluginsdk.TypeList,
-				Optional:     true,                                                          // TODO -- change this to Required after the deprecation
-				Computed:     true,                                                          // TODO -- remove Computed after the deprecation
-				ExactlyOneOf: []string{"policy_definitions", "policy_definition_reference"}, // TODO -- remove after the deprecation
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"policy_definition_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.PolicyDefinitionID,
-						},
-
-						"parameters": { // TODO -- remove this attribute after the deprecation
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Deprecated: "Deprecated in favour of `parameter_values`",
-						},
-
-						"parameter_values": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true, // TODO -- remove Computed after the deprecation
-							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-						},
-
-						"reference_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-
-						"policy_group_names": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
+		//lintignore: S013
+		"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
+			Type:     pluginsdk.TypeList,
+			Required: features.ThreePointOhBeta(),
+			Optional: !features.ThreePointOhBeta(),
+			Computed: !features.ThreePointOhBeta(),
+			ExactlyOneOf: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"policy_definitions", "policy_definition_reference"}
+				}
+				return []string{}
+			}(),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"policy_definition_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.PolicyDefinitionID,
 					},
-				},
-			},
 
-			"policy_definition_group": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"parameter_values": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         !features.ThreePointOhBeta(),
+						ValidateFunc:     validation.StringIsJSON,
+						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+					},
 
-						"display_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"reference_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+					},
 
-						"category": {
+					"policy_group_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"additional_metadata_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
-				Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
 			},
 		},
+
+		"policy_definition_group": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"display_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"category": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"additional_metadata_resource_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+			Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
+		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		out["management_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"management_group_id"},
+			Deprecated:    "Deprecated in favour of `management_group_id`",
+		}
+		out["policy_definitions"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
+			ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
+			Deprecated:       "Deprecated in favour of `policy_definition_reference`",
+		}
+
+		s := out["policy_definition_reference"].Elem.(*pluginsdk.Resource)
+		s.Schema["parameters"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Deprecated: "Deprecated in favour of `parameter_values`",
+		}
+	}
+
+	return out
 }
 
 func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -262,9 +282,12 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	managementGroupName := ""
-	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("management_group_name"); ok {
+			managementGroupName = v.(string)
+		}
 	}
+
 	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupName = v.(string)
 	}
@@ -302,14 +325,17 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		properties.Parameters = parameters
 	}
 
-	if v, ok := d.GetOk("policy_definitions"); ok {
-		var policyDefinitions []policy.DefinitionReference
-		err := json.Unmarshal([]byte(v.(string)), &policyDefinitions)
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
+	if !features.ThreePointOhBeta() {
+		if v, ok := d.GetOk("policy_definitions"); ok {
+			var policyDefinitions []policy.DefinitionReference
+			err := json.Unmarshal([]byte(v.(string)), &policyDefinitions)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
+			}
+			properties.PolicyDefinitions = &policyDefinitions
 		}
-		properties.PolicyDefinitions = &policyDefinitions
 	}
+
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
 		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
 		if err != nil {
@@ -438,7 +464,7 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
 	}
 
-	if d.HasChange("policy_definitions") {
+	if !features.ThreePointOhBeta() && d.HasChange("policy_definitions") {
 		var policyDefinitions []policy.DefinitionReference
 		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
 		if err != nil {
@@ -509,7 +535,9 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("management_group_id", managementGroupName)
-	d.Set("management_group_name", managementGroupName)
+	if !features.ThreePointOhBeta() {
+		d.Set("management_group_name", managementGroupName)
+	}
 
 	if props := resp.SetDefinitionProperties; props != nil {
 		d.Set("policy_type", string(props.PolicyType))
@@ -535,14 +563,14 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("parameters", parametersStr)
 		}
 
-		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil {
+		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil && !features.ThreePointOhBeta() {
 			policyDefinitionsRes, err := json.Marshal(policyDefinitions)
 			if err != nil {
 				return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
 			}
-
 			d.Set("policy_definitions", string(policyDefinitionsRes))
 		}
+
 		references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)
 		if err != nil {
 			return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)

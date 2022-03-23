@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
+	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2021-10-15/iothub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,7 +146,7 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
-	if _, err := client.Delete(ctx, id.ResourceGroup, *resp.Etag, id.ProvisioningServiceName, id.CertificateName, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, *resp.Etag, id.ProvisioningServiceName, id.CertificateName, "", nil, nil, iothub.CertificatePurposeServerAuthentication, nil, nil, nil, ""); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil

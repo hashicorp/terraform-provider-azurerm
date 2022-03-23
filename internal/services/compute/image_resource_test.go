@@ -423,7 +423,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "%s"
-  allow_blob_public_access = true
+
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {

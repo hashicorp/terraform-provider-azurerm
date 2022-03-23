@@ -10,8 +10,6 @@ description: |-
 
 Manages an App Service Source Control Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -60,7 +58,9 @@ resource "azurerm_app_service_source_control_slot" "example" {
 
 The following arguments are supported:
 
-* `slot_id` - (Required) The ID of the Web App Slot or Function App Slot. Changing this forces a new resource to be created.
+* `slot_id` - (Required) The ID of the Linux or Windows Web App Slot. Changing this forces a new resource to be created.
+
+~> **NOTE:** Function App Slots are not supported at this time.
 
 ---
 

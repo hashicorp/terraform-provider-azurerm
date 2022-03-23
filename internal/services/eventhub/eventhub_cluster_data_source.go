@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,9 +27,9 @@ func dataSourceEventHubCluster() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -62,8 +62,8 @@ func dataSourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 	}
 
 	return nil

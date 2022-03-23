@@ -3,8 +3,8 @@ package validate
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 )
 
 // RedisEnterpriseClusterLocation - validates that the passed interface contains a valid Redis Enterprist Cluster location or not

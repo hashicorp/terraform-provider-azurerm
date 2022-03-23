@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -134,10 +135,11 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 		result["repo_url"] = *input.RepoURL
 	}
 
+	result["branch"] = "main"
 	if input.Branch != nil && *input.Branch != "" {
 		result["branch"] = *input.Branch
-	} else {
-		result["branch"] = "master" // todo 3.0 change this to default to main
+	} else if !features.ThreePointOhBeta() {
+		result["branch"] = "master"
 	}
 
 	result["use_mercurial"] = *input.IsMercurial

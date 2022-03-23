@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,9 +24,9 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("client_id").IsUUID(),
+				check.That(data.ResourceName).Key("tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -58,9 +57,9 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("client_id").IsUUID(),
+				check.That(data.ResourceName).Key("tenant_id").IsUUID(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),

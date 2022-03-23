@@ -124,9 +124,9 @@ A `grouping` block supports the following:
 
 * `reopen_closed_incidents` - (Optional) Whether to re-open closed matching incidents? Defaults to `false`.
 
-* `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
+* `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `AnyAlert`, `Selected` and `AllEntities`. Defaults to `AnyAlert`.
 
-* `group_by` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Custom`. Possible values are `Account`, `Host`, `Url`, `Ip`.
+* `group_by` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
 ## Attributes Reference
 

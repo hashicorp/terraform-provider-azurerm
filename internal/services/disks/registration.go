@@ -26,6 +26,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DiskPoolResource{},
 		DiskPoolManagedDiskAttachmentResource{},
 		DisksPoolIscsiTargetResource{},
+		DiskPoolIscsiTargetLunModel{},
 	}
 
 	if !features.ThreePointOhBeta() {

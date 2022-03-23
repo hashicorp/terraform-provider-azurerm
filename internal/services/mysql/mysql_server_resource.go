@@ -10,11 +10,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -77,9 +79,15 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
@@ -170,32 +178,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mysql.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"ssl_enforcement": {
 				Type:         pluginsdk.TypeString,
@@ -206,8 +189,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"ssl_enforcement_enabled": {
@@ -258,11 +241,11 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Computed:         true,
 							ConflictsWith:    []string{"auto_grow_enabled"},
 							Deprecated:       "this has been moved to the top level boolean attribute `auto_grow_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
-							}, false),
+							}, !features.ThreePointOhBeta()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"backup_retention_days": {
@@ -280,11 +263,11 @@ func resourceMySqlServer() *pluginsdk.Resource {
 							Computed:         true,
 							ConflictsWith:    []string{"geo_redundant_backup_enabled"},
 							Deprecated:       "this has been moved to the top level boolean attribute `geo_redundant_backup_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
-							}, true),
+							}, !features.ThreePointOhBeta()),
 							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"storage_mb": {
@@ -410,8 +393,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 					string(mysql.FiveFullStopSix), // todo remove in 3.0? We can't create it but maybe we can still manage it
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ForceNew:         true,
 			},
 		},
@@ -563,8 +546,12 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	server := mysql.ServerForCreate{
-		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity:   expandedIdentity,
 		Location:   &location,
 		Properties: props,
 		Sku:        sku,
@@ -631,8 +618,12 @@ func resourceMySqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	storageProfile := expandMySQLStorageProfile(d)
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	properties := mysql.ServerUpdateParameters{
-		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
@@ -953,38 +944,35 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 	return []interface{}{block}
 }
 
-func expandServerIdentity(input []interface{}) *mysql.ResourceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandServerIdentity(input []interface{}) (*mysql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
 
 	return &mysql.ResourceIdentity{
-		Type: mysql.IdentityType(v["type"].(string)),
-	}
+		Type: mysql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenServerIdentity(input *mysql.ResourceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transition.TenantId = input.TenantID.String()
+		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = input.PrincipalID.String()
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = input.TenantID.String()
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }

@@ -271,6 +271,9 @@ resource "azurerm_monitor_metric_alert" "test" {
 
   action {
     action_group_id = azurerm_monitor_action_group.test1.id
+    webhook_properties = {
+      from = "terraform"
+    }
   }
 
   action {

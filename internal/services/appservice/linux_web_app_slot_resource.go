@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -32,7 +34,6 @@ type LinuxWebAppSlotModel struct {
 	ClientCertMode                string                              `tfschema:"client_certificate_mode"`
 	Enabled                       bool                                `tfschema:"enabled"`
 	HttpsOnly                     bool                                `tfschema:"https_only"`
-	Identity                      []helpers.Identity                  `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                              `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig                `tfschema:"logs"`
 	MetaData                      map[string]string                   `tfschema:"app_metadata"`
@@ -129,7 +130,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -249,9 +250,14 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: webApp.Location,
-				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
+				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          siteProps.ServerFarmID,
@@ -439,10 +445,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
-			if identity := helpers.FlattenIdentity(webApp.Identity); identity != nil {
-				state.Identity = identity
-			}
-
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount)
@@ -453,7 +455,19 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -520,7 +534,11 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {

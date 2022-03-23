@@ -75,6 +75,20 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 
 			"properties": MetaDataSchema(),
 
+			"owner": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"group": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"ace": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -168,15 +182,28 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("creating File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
 	}
 
-	if acl != nil {
-		log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, fileSystemName, storageID.Name)
+	var owner *string
+	if v, ok := d.GetOk("owner"); ok {
+		sv := v.(string)
+		owner = &sv
+	}
+	var group *string
+	if v, ok := d.GetOk("group"); ok {
+		sv := v.(string)
+		group = &sv
+	}
+
+	if acl != nil || owner != nil || group != nil {
 		var aclString *string
-		v := acl.String()
-		aclString = &v
+		if acl != nil {
+			log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, fileSystemName, storageID.Name)
+			v := acl.String()
+			aclString = &v
+		}
 		accessControlInput := paths.SetAccessControlInput{
 			ACL:   aclString,
-			Owner: nil,
-			Group: nil,
+			Owner: owner,
+			Group: group,
 		}
 		if _, err := pathClient.SetAccessControl(ctx, storageID.Name, fileSystemName, "/", accessControlInput); err != nil {
 			return fmt.Errorf("setting access control for root path in File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
@@ -237,15 +264,28 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
 	}
 
-	if acl != nil {
-		log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, id.DirectoryName, id.AccountName)
+	var owner *string
+	if v, ok := d.GetOk("owner"); ok {
+		sv := v.(string)
+		owner = &sv
+	}
+	var group *string
+	if v, ok := d.GetOk("group"); ok {
+		sv := v.(string)
+		group = &sv
+	}
+
+	if acl != nil || owner != nil || group != nil {
 		var aclString *string
-		v := acl.String()
-		aclString = &v
+		if acl != nil {
+			log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, id.DirectoryName, id.AccountName)
+			v := acl.String()
+			aclString = &v
+		}
 		accessControlInput := paths.SetAccessControlInput{
 			ACL:   aclString,
-			Owner: nil,
-			Group: nil,
+			Owner: owner,
+			Group: group,
 		}
 		if _, err := pathClient.SetAccessControl(ctx, id.AccountName, id.DirectoryName, "/", accessControlInput); err != nil {
 			return fmt.Errorf("setting access control for root path in File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
@@ -303,6 +343,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	var ace []interface{}
+	var owner, group string
 	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
 	if storageAccount.AccountProperties != nil && storageAccount.AccountProperties.IsHnsEnabled != nil &&
 		*storageAccount.AccountProperties.IsHnsEnabled {
@@ -315,9 +356,13 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("parsing response ACL %q: %s", pathResponse.ACL, err)
 			}
 			ace = FlattenDataLakeGen2AceList(acl)
+			owner = pathResponse.Owner
+			group = pathResponse.Group
 		}
 	}
 	d.Set("ace", ace)
+	d.Set("owner", owner)
+	d.Set("group", group)
 
 	return nil
 }

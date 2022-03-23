@@ -40,7 +40,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppSlotID,
-			Description:  "The ID of the Web App Slot or Function App Slot.",
+			Description:  "The ID of the Linux or Windows Web App Slot.",
 		},
 
 		"repo_url": {

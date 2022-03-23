@@ -493,7 +493,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -544,7 +543,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -652,7 +650,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -718,7 +715,6 @@ resource "azurerm_hdinsight_hbase_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_hbase_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -793,7 +789,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -844,7 +839,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -913,7 +907,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -984,7 +977,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1335,7 +1327,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1425,7 +1416,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     hbase = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1436,7 +1426,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1447,7 +1437,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1513,7 +1503,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     hbase = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1524,7 +1513,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1535,7 +1524,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1575,7 +1564,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1631,7 +1619,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1697,7 +1684,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }

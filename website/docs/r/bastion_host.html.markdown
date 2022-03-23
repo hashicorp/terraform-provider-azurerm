@@ -102,6 +102,8 @@ A `ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created.
 
+~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
+
 * `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
 
 ## Attributes Reference

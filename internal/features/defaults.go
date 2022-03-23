@@ -4,7 +4,8 @@ func Default() UserFeatures {
 	return UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
 		ApiManagement: ApiManagementFeatures{
-			PurgeSoftDeleteOnDestroy: false,
+			PurgeSoftDeleteOnDestroy: true,
+			RecoverSoftDeleted:       true,
 		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
@@ -21,9 +22,6 @@ func Default() UserFeatures {
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: false,
-		},
-		Network: NetworkFeatures{
-			RelaxedLocking: false,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: false,

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,8 +26,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 		Read:   resourceBlueprintAssignmentRead,
 		Delete: resourceBlueprintAssignmentDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -51,9 +53,9 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
-			"identity": ManagedIdentitySchema(),
+			"identity": commonschema.UserAssignedIdentityRequired(),
 
 			"version_id": {
 				Type:         pluginsdk.TypeString,
@@ -181,7 +183,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	identity, err := expandArmBlueprintAssignmentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	assignment.Identity = identity
 
@@ -261,12 +263,12 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	if resp.Identity != nil {
-		identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
-		if err != nil {
-			return err
-		}
-		d.Set("identity", identity)
+	identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if resp.AssignmentProperties != nil {

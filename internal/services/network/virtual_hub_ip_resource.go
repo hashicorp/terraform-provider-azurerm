@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -74,10 +75,11 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 				}, false),
 			},
 
+			//lintignore: S013
 			"public_ip_address_id": {
-				// TODO: make this Required in 3.0
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Optional:     !features.ThreePointOhBeta(),
+				Required:     features.ThreePointOhBeta(),
 				ForceNew:     true,
 				ValidateFunc: networkValidate.PublicIpAddressID,
 			},

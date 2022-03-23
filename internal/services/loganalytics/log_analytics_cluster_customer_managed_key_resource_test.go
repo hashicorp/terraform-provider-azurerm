@@ -86,7 +86,6 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 }
@@ -96,18 +95,18 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id
@@ -136,9 +135,9 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "unwrapkey",
-    "wrapkey"
+    "Get",
+    "UnwrapKey",
+    "WrapKey"
   ]
 
   tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id

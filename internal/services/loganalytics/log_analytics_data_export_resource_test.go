@@ -21,8 +21,7 @@ func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basic(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -37,16 +36,14 @@ func TestAccLogAnalyticsDataExportRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basicLower(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:             r.requiresImport(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-			ExpectError:        acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
 		},
 	})
 }
@@ -57,16 +54,14 @@ func TestAccLogAnalyticsDataExportRule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basic(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:             r.update(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,8 +76,7 @@ func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.complete(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -99,7 +93,7 @@ func (t LogAnalyticsDataExportRuleResource) Exists(ctx context.Context, clients 
 
 	resp, err := clients.LogAnalytics.DataExportClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Data Export (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -148,21 +142,6 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// I have to make this a lower case to get the requiresImport test to pass since the RP lowercases everything when it sends the data back to you
-func (r LogAnalyticsDataExportRuleResource) basicLower(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_data_export_rule" "test" {
-  name                    = "acctest-der-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  workspace_resource_id   = azurerm_log_analytics_workspace.test.id
-  destination_resource_id = azurerm_storage_account.test.id
-  table_names             = ["Heartbeat"]
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LogAnalyticsDataExportRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -174,7 +153,7 @@ resource "azurerm_log_analytics_data_export_rule" "import" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat"]
 }
-`, r.basicLower(data))
+`, r.basic(data))
 }
 
 func (r LogAnalyticsDataExportRuleResource) update(data acceptance.TestData) string {

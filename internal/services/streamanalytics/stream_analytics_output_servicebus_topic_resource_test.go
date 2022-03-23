@@ -234,8 +234,7 @@ resource "azurerm_servicebus_namespace" "updated" {
 
 resource "azurerm_servicebus_topic" "updated" {
   name                = "acctest2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.updated.name
+  namespace_id        = azurerm_servicebus_namespace.updated.id
   enable_partitioning = true
 }
 
@@ -300,8 +299,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  namespace_id        = azurerm_servicebus_namespace.test.id
   enable_partitioning = true
 }
 

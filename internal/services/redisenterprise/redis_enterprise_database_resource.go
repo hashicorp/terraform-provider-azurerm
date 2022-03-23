@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
@@ -39,157 +40,164 @@ func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 
 		// Since update is not currently supported all attribute have to be marked as FORCE NEW
 		// until support for Update comes online in the near future
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "default",
-				ValidateFunc: validate.RedisEnterpriseDatabaseName,
-			},
+		Schema: redisEnterpriseDatabaseSchema(),
+	}
+}
 
-			// TODO: deprecate/remove this
-			"resource_group_name": azure.SchemaResourceGroupName(),
+func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "default",
+			ValidateFunc: validate.RedisEnterpriseDatabaseName,
+		},
 
-			"cluster_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
-			},
+		"cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
+		},
 
-			"client_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(redisenterprise.ProtocolEncrypted),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.ProtocolEncrypted),
-					string(redisenterprise.ProtocolPlaintext),
-				}, false),
-			},
+		"client_protocol": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.ProtocolEncrypted),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.ProtocolEncrypted),
+				string(redisenterprise.ProtocolPlaintext),
+			}, false),
+		},
 
-			"clustering_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(redisenterprise.ClusteringPolicyOSSCluster),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.ClusteringPolicyEnterpriseCluster),
-					string(redisenterprise.ClusteringPolicyOSSCluster),
-				}, false),
-			},
+		"clustering_policy": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.ClusteringPolicyOSSCluster),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.ClusteringPolicyEnterpriseCluster),
+				string(redisenterprise.ClusteringPolicyOSSCluster),
+			}, false),
+		},
 
-			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(redisenterprise.EvictionPolicyVolatileLRU),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.EvictionPolicyAllKeysLFU),
-					string(redisenterprise.EvictionPolicyAllKeysLRU),
-					string(redisenterprise.EvictionPolicyAllKeysRandom),
-					string(redisenterprise.EvictionPolicyVolatileLRU),
-					string(redisenterprise.EvictionPolicyVolatileLFU),
-					string(redisenterprise.EvictionPolicyVolatileTTL),
-					string(redisenterprise.EvictionPolicyVolatileRandom),
-					string(redisenterprise.EvictionPolicyNoEviction),
-				}, false),
-			},
+		"eviction_policy": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.EvictionPolicyVolatileLRU),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.EvictionPolicyAllKeysLFU),
+				string(redisenterprise.EvictionPolicyAllKeysLRU),
+				string(redisenterprise.EvictionPolicyAllKeysRandom),
+				string(redisenterprise.EvictionPolicyVolatileLRU),
+				string(redisenterprise.EvictionPolicyVolatileLFU),
+				string(redisenterprise.EvictionPolicyVolatileTTL),
+				string(redisenterprise.EvictionPolicyVolatileRandom),
+				string(redisenterprise.EvictionPolicyNoEviction),
+			}, false),
+		},
 
-			"module": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 3,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"RedisBloom",
-								"RedisTimeSeries",
-								"RediSearch",
-							}, false),
-						},
+		"module": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 3,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"RedisBloom",
+							"RedisTimeSeries",
+							"RediSearch",
+						}, false),
+					},
 
-						"args": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
-						},
+					"args": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  "",
+					},
 
-						"version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+					"version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
+		},
 
-			// This attribute is currently in preview and is not returned by the RP
-			// "persistence": {
-			// 	Type:     pluginsdk.TypeList,
-			// 	Optional: true,
-			// 	MaxItems: 1,
-			// 	Elem: &pluginsdk.Resource{
-			// 		Schema: map[string]*pluginsdk.Schema{
-			// 			"aof_enabled": {
-			// 				Type:     pluginsdk.TypeBool,
-			// 				Optional: true,
-			// 			},
+		// This attribute is currently in preview and is not returned by the RP
+		// "persistence": {
+		// 	Type:     pluginsdk.TypeList,
+		// 	Optional: true,
+		// 	MaxItems: 1,
+		// 	Elem: &pluginsdk.Resource{
+		// 		Schema: map[string]*pluginsdk.Schema{
+		// 			"aof_enabled": {
+		// 				Type:     pluginsdk.TypeBool,
+		// 				Optional: true,
+		// 			},
 
-			// 			"aof_frequency": {
-			// 				Type:     pluginsdk.TypeString,
-			// 				Optional: true,
-			// 				ValidateFunc: validation.StringInSlice([]string{
-			// 					string(redisenterprise.Ones),
-			// 					string(redisenterprise.Always),
-			// 				}, false),
-			// 			},
+		// 			"aof_frequency": {
+		// 				Type:     pluginsdk.TypeString,
+		// 				Optional: true,
+		// 				ValidateFunc: validation.StringInSlice([]string{
+		// 					string(redisenterprise.Ones),
+		// 					string(redisenterprise.Always),
+		// 				}, false),
+		// 			},
 
-			// 			"rdb_enabled": {
-			// 				Type:     pluginsdk.TypeBool,
-			// 				Optional: true,
-			// 			},
+		// 			"rdb_enabled": {
+		// 				Type:     pluginsdk.TypeBool,
+		// 				Optional: true,
+		// 			},
 
-			// 			"rdb_frequency": {
-			// 				Type:     pluginsdk.TypeString,
-			// 				Optional: true,
-			// 				ValidateFunc: validation.StringInSlice([]string{
-			// 					string(redisenterprise.Oneh),
-			// 					string(redisenterprise.Sixh),
-			// 					string(redisenterprise.OneTwoh),
-			// 				}, false),
-			// 			},
-			// 		},
-			// 	},
-			// },
+		// 			"rdb_frequency": {
+		// 				Type:     pluginsdk.TypeString,
+		// 				Optional: true,
+		// 				ValidateFunc: validation.StringInSlice([]string{
+		// 					string(redisenterprise.Oneh),
+		// 					string(redisenterprise.Sixh),
+		// 					string(redisenterprise.OneTwoh),
+		// 				}, false),
+		// 			},
+		// 		},
+		// 	},
+		// },
 
-			"port": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      10000,
-				ValidateFunc: validation.IntBetween(0, 65353),
-			},
+		"port": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      10000,
+			ValidateFunc: validation.IntBetween(0, 65353),
+		},
 
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
 
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+	}
+
+	return s
 }
 
 func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -283,9 +291,12 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
 	d.Set("cluster_id", clusterId.ID())
+
+	if !features.FourPointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroupName)
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,6 +14,35 @@ import (
 )
 
 func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
+	s := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
+		"cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
+		},
+
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+	}
+
 	return &pluginsdk.Resource{
 		Read: dataSourceRedisEnterpriseDatabaseRead,
 
@@ -20,33 +50,7 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			// TODO: deprecate me
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"cluster_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
-			},
-
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-		},
+		Schema: s,
 	}
 }
 
@@ -71,12 +75,15 @@ func dataSourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta inter
 	d.SetId(id.ID())
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_id", clusterId.ID())
 
 	if model := keysResp.Model; model != nil {
 		d.Set("primary_access_key", model.PrimaryKey)
 		d.Set("secondary_access_key", model.SecondaryKey)
+	}
+
+	if !features.FourPointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroupName)
 	}
 
 	return nil

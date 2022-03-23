@@ -10,6 +10,8 @@ description: |-
 
 Create a failover group of databases on a collection of Azure SQL servers.
 
+-> **Note:** The `azurerm_sql_failover_group` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_failover_group`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_failover_group) resource instead.
+
 ## Example Usage
 
 ```hcl

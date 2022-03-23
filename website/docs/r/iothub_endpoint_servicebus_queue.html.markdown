@@ -36,10 +36,8 @@ resource "azurerm_servicebus_queue" "example" {
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "example" {
-  name                = "exampleRule"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  queue_name          = azurerm_servicebus_queue.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name     = "exampleRule"
+  queue_id = azurerm_servicebus_queue.example.id
 
   listen = false
   send   = true
@@ -63,7 +61,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string = azurerm_servicebus_queue_authorization_rule.example.primary_connection_string

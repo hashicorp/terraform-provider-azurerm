@@ -130,6 +130,8 @@ The following arguments are supported:
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Windows Virtual Machine Scale Set should exist. Changing this forces a new Windows Virtual Machine Scale Set to be created.
+
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
@@ -514,9 +516,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Windows Virtual Machine Scale Set.
+* `create` - (Defaults to 60 minutes) Used when creating the Windows Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when reading the Windows Virtual Machine Scale Set.
 * `update` - (Defaults to 60 minutes) Used when updating (and rolling the instances of) the Windows Virtual Machine Scale Set (e.g. when changing SKU).
-* `delete` - (Defaults to 30 minutes) Used when deleting the Windows Virtual Machine Scale Set.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Windows Virtual Machine Scale Set.
 
 ## Import
 

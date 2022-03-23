@@ -22,7 +22,7 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	if features.ThreePointOhAppServiceResources() {
+	if features.ThreePointOhBeta() {
 		return []sdk.DataSource{
 			AppServiceSourceControlTokenDataSource{},
 			LinuxFunctionAppDataSource{},
@@ -36,9 +36,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if features.ThreePointOhAppServiceResources() {
+	if features.ThreePointOhBeta() {
 		return []sdk.Resource{
 			AppServiceSourceControlTokenResource{},
+			FunctionAppActiveSlotResource{},
+			FunctionAppFunctionResource{},
+			FunctionAppHybridConnectionResource{},
 			LinuxFunctionAppResource{},
 			LinuxFunctionAppSlotResource{},
 			LinuxWebAppResource{},
@@ -46,10 +49,12 @@ func (r Registration) Resources() []sdk.Resource {
 			ServicePlanResource{},
 			SourceControlResource{},
 			SourceControlSlotResource{},
-			WindowsWebAppResource{},
+			WebAppActiveSlotResource{},
+			WebAppHybridConnectionResource{},
 			WindowsFunctionAppResource{},
-			WindowsWebAppSlotResource{},
 			WindowsFunctionAppSlotResource{},
+			WindowsWebAppResource{},
+			WindowsWebAppSlotResource{},
 		}
 	}
 	return []sdk.Resource{}

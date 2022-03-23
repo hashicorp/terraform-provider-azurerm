@@ -4,67 +4,58 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func eventHubAuthorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
-	authSchema := map[string]*pluginsdk.Schema{
-		"listen": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"manage": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"send": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
 	}
-	return azure.MergeSchema(s, authSchema)
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["primary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_connection_string_alias"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string_alias"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	s["secondary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	return s
 }
 
 func eventHubAuthorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {

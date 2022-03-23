@@ -77,9 +77,9 @@ func TestAccNetAppPool_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
 		},
 		data.ImportStep(),
@@ -87,13 +87,23 @@ func TestAccNetAppPool_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.completeQosChange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("qos_type").HasValue("Manual"),
+			),
+		},
 	})
 }
 
@@ -178,6 +188,39 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Standard"
   size_in_tb          = 15
   qos_type            = "Auto"
+
+  tags = {
+    "FoO" = "BaR"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) completeQosChange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_level       = "Standard"
+  size_in_tb          = 15
+  qos_type            = "Manual"
 
   tags = {
     "FoO" = "BaR"

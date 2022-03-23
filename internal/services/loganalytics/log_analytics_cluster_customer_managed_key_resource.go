@@ -32,8 +32,12 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		// TODO: 3.0 - state migration to remove `/CMK` from the ID?
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LogAnalyticsClusterID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"log_analytics_cluster_id": {
@@ -110,8 +114,10 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
-	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), clusterId.ResourceGroup, clusterId.ClusterName)
-
+	updateWait, err := logAnalyticsClusterWaitForState(ctx, meta, clusterId.ResourceGroup, clusterId.ClusterName)
+	if err != nil {
+		return err
+	}
 	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
@@ -194,8 +200,10 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.ClusterName, clusterId.ResourceGroup)
 	}
 
-	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), clusterId.ResourceGroup, clusterId.ClusterName)
-
+	deleteWait, err := logAnalyticsClusterWaitForState(ctx, meta, clusterId.ResourceGroup, clusterId.ClusterName)
+	if err != nil {
+		return err
+	}
 	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}

@@ -63,6 +63,9 @@ The following arguments are supported:
 * `weight` - (Required) Specifies how much traffic should be distributed to this
   endpoint. Valid values are between `1` and `1000`.
 
+* `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint,
+    this must be specified for Profiles using the `Performance` routing method.
+
 ---
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below.

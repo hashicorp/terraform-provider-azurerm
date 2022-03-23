@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -115,6 +116,8 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 		actualKeyName = keyNameTypoed
 	}
 
+	locks.ByName(workspaceId.Name, "azurerm_synapse_workspace")
+	defer locks.UnlockByName(workspaceId.Name, "azurerm_synapse_workspace")
 	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
@@ -185,13 +188,9 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 
 	// Azure only lets you delete keys that are not active
 	if !*keyresult.KeyProperties.IsActiveCMK {
-		keyresult, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
+		_, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
 		if err != nil {
-			return fmt.Errorf("Unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
-		}
-
-		if keyresult.ID == nil || *keyresult.ID == "" {
-			return fmt.Errorf("empty or nil ID returned for Synapse Key %q during delete", id.KeyName)
+			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}
 
