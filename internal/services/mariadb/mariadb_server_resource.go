@@ -488,7 +488,6 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == mariadb.PublicNetworkAccessEnumEnabled)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_enforcement_enabled", props.SslEnforcement == mariadb.SslEnforcementEnumEnabled)
 		d.Set("version", string(props.Version))
 
