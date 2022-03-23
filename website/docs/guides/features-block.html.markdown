@@ -32,7 +32,7 @@ provider "azurerm" {
     }
 
     application_insights {
-      disable_generated_rule = true
+      disable_generated_rule = false
     }
 
     cognitive_account {
