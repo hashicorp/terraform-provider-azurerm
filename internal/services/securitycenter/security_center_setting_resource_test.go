@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,14 +22,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	r := SecurityCenterSettingResource{}
 
 	//lintignore:AT001
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		/*
-			{
-				Config:        r.cfg("MCAS", true),
-				ResourceName:  data.ResourceName,
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Security/settings/MCAS", os.Getenv("ARM_SUBSCRIPTION_ID")),
-			},*/
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -73,7 +64,7 @@ func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -149,7 +140,7 @@ func (r SecurityCenterSettingResource) requiresImport(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_security_center_setting" "test" {
+resource "azurerm_security_center_setting" "import" {
   setting_name = azurerm_security_center_setting.test.setting_name
   enabled     = azurerm_security_center_setting.test.enabled
 }

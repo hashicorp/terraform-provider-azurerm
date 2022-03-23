@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
@@ -40,6 +42,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 			"setting_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
@@ -61,19 +64,18 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewSettingID(subscriptionId, d.Get("setting_name").(string))
 
-	/*
-		if d.IsNewResource() {
-			// TODO: switch back when Swagger/API bug has been fixed:
-			// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-			existing, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
-			if err != nil {
-				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-			}
+	if d.IsNewResource() {
+		// TODO: switch back when Swagger/API bug has been fixed:
+		// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
+		existing, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+		}
 
-			if existing.DataExportSettingProperties != nil && existing.DataExportSettingProperties.Enabled != nil && *existing.DataExportSettingProperties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
-			}
-		}*/
+		if existing.DataExportSettingProperties != nil && existing.DataExportSettingProperties.Enabled != nil && *existing.DataExportSettingProperties.Enabled {
+			return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		}
+	}
 
 	enabled := d.Get("enabled").(bool)
 	setting := security.DataExportSettings{
