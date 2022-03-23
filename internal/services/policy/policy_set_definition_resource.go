@@ -107,7 +107,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		//lintignore: S013
-		"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
+		"policy_definition_reference": {
 			Type:     pluginsdk.TypeList,
 			Required: features.ThreePointOhBeta(),
 			Optional: !features.ThreePointOhBeta(),

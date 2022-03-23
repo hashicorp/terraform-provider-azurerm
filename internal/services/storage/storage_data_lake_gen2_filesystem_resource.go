@@ -324,7 +324,6 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("checking for existence of Storage Account %q for File System %q (Resource Group %q): %+v", storageID.Name, id.DirectoryName, storageID.ResourceGroup, err)
 	}
 
-	// TODO: what about when this has been removed?
 	resp, err := client.GetProperties(ctx, id.AccountName, id.DirectoryName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

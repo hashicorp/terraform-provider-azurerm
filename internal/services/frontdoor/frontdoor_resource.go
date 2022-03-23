@@ -1230,10 +1230,6 @@ func flattenSingleFrontEndEndpoints(input frontdoors.FrontendEndpoint, frontDoor
 		id = parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, *input.Name).ID()
 		name = *input.Name
 	}
-	// TODO: I may have to include the customHTTPSConfiguration as returned from the frontendEndpoint due to an issue in
-	// portal. Still investigating this.
-	// customHTTPSConfiguration := make([]interface{}, 0)
-	// customHttpsProvisioningEnabled := false
 	hostName := ""
 	sessionAffinityEnabled := false
 	sessionAffinityTlsSeconds := 0

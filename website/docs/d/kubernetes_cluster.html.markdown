@@ -305,11 +305,11 @@ The `identity` block exports the following:
 
 * `type` - The type of identity used for the managed cluster.
 
-* `principal_id` - The principal id of the system assigned identity which is used by primary components.
+* `principal_id` - The principal id of the system assigned identity assigned to this Kubernetes Cluster.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
+* `tenant_id` - The tenant id of the system assigned identity assigned to this Kubernetes Cluster.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
+* `identity_ids` - A list of User Assigned Identity IDs assigned to this Kubernetes Cluster.
 
 ---
 
