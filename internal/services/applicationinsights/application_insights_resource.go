@@ -310,6 +310,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return err
 		}
 
+		// TODO: replace this with a StateWait func
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
 			ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
