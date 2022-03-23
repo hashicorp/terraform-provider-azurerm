@@ -59,6 +59,7 @@ ENHANCEMENTS:
 * `azurerm_resource_group` - Terraform now checks during the deletion of a Resource Group if there's any items remaining and will raise an error if so by default (to avoid deleting items unintentionally). This behaviour can be controlled using the `prevent_deletion_if_contains_resources` feature-flag within the `resource_group` block within the `features` block. [GH-13777]
 * `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_site_recovery_replicated_vm` - support for the `target_availability_zone` property [GH-15617]
 * `azurerm_shared_image` - support for the `support_accelerated_network` property [GH-15562]
 * `azurerm_static_site` - the `identity` property now supports `SystemAssigned` and `UserAssigned` [GH-15834]
 * `azurerm_storage_account` - support for the `edge_zone` property [GH-15890]
