@@ -1820,6 +1820,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
