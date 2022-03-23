@@ -42,6 +42,8 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - add support for the `storage_key_vault_secret_id` property [GH-15793]
 * `azurerm_linux_function_app` - updating the read timeout to be `5m` [GH-15867]
 * `azurerm_linux_function_app` - support for node version `16` preview [GH-15884]
+* `azurerm_linux_function_app` - add support for `use_dotnet_isolated_runtime` [GH-15969]
+* `azurerm_linux_function_app_slot` - add support for `use_dotnet_isolated_runtime` [GH-15969]
 * `azurerm_linux_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_linux_virtual_machine` - support for the `termination_notification` property [GH-14933]
@@ -73,11 +75,14 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` - updating the read timeout to be `5m` [GH-15867]
 * `azurerm_windows_function_app` node version validation string can not be prefixed with `~` [GH-15884]
 * `azurerm_windows_function_app` support for node version `16` preview support [GH-15884]
+* `azurerm_windows_function_app` - add support for `use_dotnet_isolated_runtime` [GH-15969]
+* `azurerm_windows_function_app_slot` - add support for `use_dotnet_isolated_runtime` [GH-15969]
 * `azurerm_windows_function_app_slot` - add support for the `storage_key_vault_secret_id` property [GH-15793]
 * `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_windows_virtual_machine` - support for the `termination_notification` property [GH-14933]
 * `azurerm_windows_virtual_machine` - support for the `edge_zone` property [GH-15890]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `edge_zone` property [GH-15890]
+
 
 BUG FIXES:
 
