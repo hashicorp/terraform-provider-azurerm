@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.26.0` of `github.com/hashicorp/go-azure-helpers` [GH-15889]
 * dependencies: updating `appplatform` to API Version `2022-01-01-preview` [GH-15597]
 * provider: MSAL (and Microsoft Graph) is now used for authentication instead of ADAL (and Azure Active Directory Graph) [GH-12443]
+* provider: all (non-deprecated) resources now validate the Resource ID during import [GH-15989]
 * provider: added a new feature flag within the `api_management` block for `recover_soft_deleted`, for configuring whether a soft-deleted `azurerm_api_management` should be recovered during creation [GH-15871]
 * provider: added a new feature flag within the `key_vault` block for `recover_soft_deleted_certificates`, for configuring whether a soft-deleted `azurerm_key_vault_certificate` should be recovered during creation [GH-10273]
 * provider: added a new feature flag within the `key_vault` block for `purge_soft_deleted_certificates_on_destroy`, for configuring whether a deleted `azurerm_key_vault_certificate` should be purged during deletion [GH-10273]
@@ -112,15 +113,18 @@ BUG FIXES:
 * `azurerm_container_registry` - validate the `georepliactions` property does not include the location of the Container Registry [GH-15847]
 * `azurerm_cosmosdb_mongo_collection` - the `default_ttl_seconds` property can now be set to `-1` [GH-15736]
 * `azurerm_eventhub` - prevent panic when the `capture_description` block is removed [GH-15930]
+* `azurerm_key_vault_access_policy` - validating the Resource ID during import [GH-15989]
 * `azurerm_linux_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_linux_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_local_network_gateway` - fix for `address_space` cannot be updated [GH-15159]
 * `azurerm_log_analytics_cluster_customer_managed_key` - detecting when the Customer Managed Key has been removed [GH-15973]
 * `azurerm_mssql_database_vulnerability_assessment_rule_baseline` - prevent the resource from being replaced every apply [GH-14759]
+* `azurerm_security_center_auto_provisioning ` - validating the Resource ID during import [GH-15989] 
 * `azurerm_synapse_workspace` - fixing a bug where workspaces created from a Dedicated SQL Pool / SQL Data Warehouse couldn't be retrieved [GH-15829]
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]
 * `azurerm_windows_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_windows_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
+
 
 ---
 
