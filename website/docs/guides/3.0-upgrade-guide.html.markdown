@@ -791,7 +791,7 @@ The deprecated field `access_rule.root_squash_enabled` will be removed in favour
 
 ### Resource: `azurerm_iothub_dps`
 
-The default value for the field `linked_hub.allocation_weight` will change from `0` to `1`.
+The default value for the field `allocation_weight` within the `linked_hub` block will change from `0` to `1`.
 
 ### Resource: `azurerm_iothub_endpoint_eventhub`
 
