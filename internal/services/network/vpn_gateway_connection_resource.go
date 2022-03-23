@@ -719,6 +719,29 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 	}
 }
 
+func flattenVpnGatewayConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	labels := make([]interface{}, 0)
+	if input.Labels != nil {
+		labels = utils.FlattenStringSlice(input.Labels)
+	}
+
+	routeTableIds := make([]interface{}, 0)
+	if input.Ids != nil {
+		routeTableIds = flattenSubResourcesToIDs(input.Ids)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"labels":          labels,
+			"route_table_ids": routeTableIds,
+		},
+	}
+}
+
 func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]network.TrafficSelectorPolicy {
 	results := make([]network.TrafficSelectorPolicy, 0)
 
