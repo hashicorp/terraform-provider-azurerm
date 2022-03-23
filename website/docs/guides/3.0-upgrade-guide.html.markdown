@@ -152,6 +152,8 @@ provider "azurerm" {
 }
 ```
 
+The default value is `true` for each of the above feature flags, and they can be toggled off by explicitly setting them to `false`. For more information, please refer to the [Features Block](https://registry.terraform.io/providers/hashicorp/Azurerm/latest/docs/guides/features-block) documentation.
+
 ## Switching to MSAL
 
 Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
