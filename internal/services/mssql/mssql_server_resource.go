@@ -225,8 +225,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 			"fully_qualified_domain_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

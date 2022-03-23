@@ -711,21 +711,9 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 		associateRouteTable = *input.AssociatedRouteTable.ID
 	}
 
-	propagatedRouteTables := []interface{}{}
-	if input.PropagatedRouteTables != nil && input.PropagatedRouteTables.Ids != nil {
-		for _, routeTableId := range *input.PropagatedRouteTables.Ids {
-			id := ""
-			if routeTableId.ID != nil {
-				id = *routeTableId.ID
-			}
-			propagatedRouteTables = append(propagatedRouteTables, id)
-		}
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"associated_route_table": associateRouteTable,
-			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 		},
 	}
 }
@@ -777,29 +765,6 @@ func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *networ
 	}
 
 	return &result
-}
-
-func flattenVpnGatewayConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	labels := make([]interface{}, 0)
-	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
-	}
-
-	routeTableIds := make([]interface{}, 0)
-	if input.Ids != nil {
-		routeTableIds = flattenSubResourcesToIDs(input.Ids)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"labels":          labels,
-			"route_table_ids": routeTableIds,
-		},
-	}
 }
 
 func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]network.SubResource {

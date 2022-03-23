@@ -83,10 +83,10 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"create_mode": {
@@ -113,9 +113,9 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true,
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -153,14 +153,14 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Required:     true,
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"storage_mb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
 					validation.IntDivisibleBy(1024),
