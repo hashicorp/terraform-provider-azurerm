@@ -17,8 +17,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v62.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-15927]
-* dependencies: upgrading to `v0.26.0` of `github.com/hashicorp/go-azure-helpers` [GH-15889]
-* dependencies: upgrading `appplatform` of `2022-01-01-preview` [GH-15597]
+* dependencies: updating to `v0.26.0` of `github.com/hashicorp/go-azure-helpers` [GH-15889]
+* dependencies: updating `appplatform` to API Version `2022-01-01-preview` [GH-15597]
 * provider: MSAL (and Microsoft Graph) is now used for authentication instead of ADAL (and Azure Active Directory Graph) [GH-12443]
 * provider: added a new feature flag within the `api_management` block for `recover_soft_deleted`, for configuring whether a soft-deleted `azurerm_api_management` should be recovered during creation [GH-15871]
 * provider: added a new feature flag within the `key_vault` block for `recover_soft_deleted_certificates`, for configuring whether a soft-deleted `azurerm_key_vault_certificate` should be recovered during creation [GH-10273]
@@ -63,6 +63,11 @@ ENHANCEMENTS:
 * `azurerm_resource_group` - Terraform now checks during the deletion of a Resource Group if there's any items remaining and will raise an error if so by default (to avoid deleting items unintentionally). This behaviour can be controlled using the `prevent_deletion_if_contains_resources` feature-flag within the `resource_group` block within the `features` block. [GH-13777]
 * `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_sentinel_alert_rule_scheduled` - support for `alert_details_override` [GH-15901]
+* `azurerm_sentinel_alert_rule_scheduled` - support for `entity_mapping` [GH-15901] 
+* `azurerm_sentinel_alert_rule_scheduled` - support for `custom_details` [GH-15901]
+* `azurerm_sentinel_alert_rule_scheduled` - support for `group_by_alert_details` [GH-15901]
+* `azurerm_sentinel_alert_rule_scheduled` - support for `group_by_custom_details` [GH-15901]
 * `azurerm_site_recovery_replicated_vm` - support for the `target_availability_zone` property [GH-15617]
 * `azurerm_shared_image` - support for the `support_accelerated_network` property [GH-15562]
 * `azurerm_static_site` - the `identity` property now supports `SystemAssigned` and `UserAssigned` [GH-15834]
