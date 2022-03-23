@@ -408,6 +408,10 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
+### Resource: `azurerm_dashboard`
+
+This resource has been renamed to `azurerm_portal_dashboard`.
+
 ### Resource: `azurerm_data_factory_dataset_binary`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
