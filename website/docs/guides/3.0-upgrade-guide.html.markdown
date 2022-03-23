@@ -381,6 +381,10 @@ The deprecated field `environment` will be removed in favour of the `common_envi
 
 The deprecated field `max_task_retry_count` will be removed in favour of the `task_retry_maximum` property.
 
+### Resource: `azurerm_cdn_endpoint`
+
+The `host_name` field is being renamed to `fqdn` to better reflect the information held in that field.
+
 ### Resource: `azurerm_cognitive_account`
 
 The deprecated field `network_acls.virtual_network_subnet_ids` will be removed in favour of the `network_acls.virtual_network_rules` property.
