@@ -629,10 +629,6 @@ func resourceMySqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
 		d.Set("version", string(props.Version))
 
-		if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
-		}
-
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("auto_grow_enabled", storage.StorageAutogrow == mysql.StorageAutogrowEnabled)
 			d.Set("backup_retention_days", storage.BackupRetentionDays)
@@ -742,26 +738,6 @@ func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *mysql.StorageProfile 
 	}
 
 	return &storage
-}
-
-func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	values["auto_grow"] = string(resp.StorageAutogrow)
-
-	values["backup_retention_days"] = nil
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-
-	values["storage_mb"] = nil
-	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	return []interface{}{values}
 }
 
 func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -271,9 +270,7 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating/updating Connection Policy for %s: %+v", id, err)
 	}
 
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
-	}
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
 		return fmt.Errorf("creating/updating Auditing Policy for %s: %+v", id, err)
