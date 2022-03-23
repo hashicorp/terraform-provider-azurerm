@@ -15,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -88,6 +91,32 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: msiValidate.UserAssignedIdentityID,
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
 			},
 
 			"default_primary_connection_string": {
@@ -165,6 +194,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		SBNamespaceProperties: &servicebus.SBNamespaceProperties{
 			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
+			Encryption:    expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -238,6 +268,9 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if properties := resp.SBNamespaceProperties; properties != nil {
 		d.Set("zone_redundant", properties.ZoneRedundant)
+		if customerManagedKey, err := flattenServiceBusNamespaceEncryption(properties.Encryption); err == nil {
+			d.Set("customer_managed_key", customerManagedKey)
+		}
 	}
 
 	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
@@ -298,6 +331,28 @@ func expandServiceBusNamespaceIdentity(input []interface{}) (*servicebus.Identit
 	return &out, nil
 }
 
+func expandServiceBusNamespaceEncryption(input []interface{}) *servicebus.Encryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	return &servicebus.Encryption{
+		KeyVaultProperties: &[]servicebus.KeyVaultProperties{
+			{
+				KeyName:     utils.String(keyId.Name),
+				KeyVersion:  utils.String(keyId.Version),
+				KeyVaultURI: utils.String(keyId.KeyVaultBaseUrl),
+				Identity: &servicebus.UserAssignedIdentityProperties{
+					UserAssignedIdentity: utils.String(v["identity_id"].(string)),
+				},
+			},
+		},
+		KeySource:                       servicebus.KeySourceMicrosoftKeyVault,
+		RequireInfrastructureEncryption: utils.Bool(v["infrastructure_encryption_enabled"].(bool)),
+	}
+}
+
 func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
@@ -321,4 +376,32 @@ func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interfac
 	}
 
 	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func flattenServiceBusNamespaceEncryption(encryption *servicebus.Encryption) ([]interface{}, error) {
+	if encryption == nil {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityId string
+	if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) != 0 {
+		props := (*keyVaultProperties)[0]
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultURI, "keys", *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
+			identityId = *props.Identity.UserAssignedIdentity
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"infrastructure_encryption_enabled": encryption.RequireInfrastructureEncryption,
+			"key_vault_key_id":                  keyId,
+			"identity_id":                       identityId,
+		},
+	}, nil
 }
