@@ -197,34 +197,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
 		},
 	}
 }
@@ -343,8 +315,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		d.Set("primary_key", keys.PrimaryMasterKey)
 		d.Set("secondary_key", keys.SecondaryMasterKey)
-		d.Set("primary_master_key", keys.PrimaryMasterKey)
-		d.Set("secondary_master_key", keys.SecondaryMasterKey)
 	}
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
@@ -353,8 +323,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-		d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

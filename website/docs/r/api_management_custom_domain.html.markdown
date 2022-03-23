@@ -113,9 +113,7 @@ The following arguments are supported:
 
 * `portal` - (Optional) One or more `portal` blocks as defined below.
 
-* `proxy` - (Optional) One or more `proxy` blocks as defined below.
-
-~> **Note:** This property has been deprecated and will be renamed to `gateway` in version 3.0 of the provider.
+* `gateway` - (Optional) One or more `gateway` blocks as defined below.
 
 * `scm` - (Optional) One or more `scm` blocks as defined below.
 
@@ -135,7 +133,7 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 ---
 
-A `proxy` block supports the following:
+A `gateway` block supports the following:
 
 -> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
 

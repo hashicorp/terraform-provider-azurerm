@@ -99,6 +99,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 
 			// RP currently does not return this value, but will in the near future
 			// https://github.com/Azure/azure-sdk-for-go/issues/14420
+			// TODO 3.0 remove or keep?
 			"version": {
 				Type:       pluginsdk.TypeString,
 				Computed:   true,

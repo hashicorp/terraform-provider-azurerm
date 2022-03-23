@@ -192,7 +192,7 @@ func TestAccLogAnalyticsWorkspace_withCapacityReservation(t *testing.T) {
 			Config: r.withCapacityReservationTypo(data, 2300),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reservation_capcity_in_gb_per_day").HasValue("2300"),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2300"),
 			),
 		},
 		data.ImportStep(),
@@ -506,7 +506,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name               = azurerm_resource_group.test.name
   internet_query_enabled            = false
   sku                               = "CapacityReservation"
-  reservation_capcity_in_gb_per_day = %d
+  reservation_capacity_in_gb_per_day = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
 }

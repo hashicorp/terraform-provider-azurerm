@@ -78,17 +78,6 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validate.HubRouteTableID,
 						},
-						"propagated_route_tables": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.HubRouteTableID,
-							},
-							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
-							Deprecated:   "Deprecated in favour of `propagated_route_table`",
-						},
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -115,7 +104,6 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									},
 								},
 							},
-							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
 						},
 					},
 				},
@@ -706,12 +694,6 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *networ
 		AssociatedRouteTable: &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
 	}
 
-	if v := raw["propagated_route_tables"].([]interface{}); len(v) != 0 {
-		output.PropagatedRouteTables = &network.PropagatedRouteTable{
-			Ids: expandNetworkSubResourceID(v),
-		}
-	}
-
 	if v := raw["propagated_route_table"].([]interface{}); len(v) != 0 {
 		output.PropagatedRouteTables = expandVpnGatewayConnectionPropagatedRouteTable(v)
 	}
@@ -742,9 +724,8 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table":  associateRouteTable,
-			"propagated_route_tables": propagatedRouteTables,
-			"propagated_route_table":  flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"associated_route_table": associateRouteTable,
+			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 		},
 	}
 }

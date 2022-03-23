@@ -6,59 +6,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func ExtendedAuditingSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
-		MaxItems:   1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"storage_account_access_key": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"storage_endpoint": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.IsURLWithHTTPS,
-				},
-
-				"storage_account_access_key_is_secondary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
-
-				"retention_in_days": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 3285),
-				},
-
-				"log_monitoring_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-				"storage_account_subscription_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.IsUUID,
-				},
-			},
-		},
-	}
-}
 
 func ExpandSqlServerBlobAuditingPolicies(input []interface{}) (*sql.ExtendedServerBlobAuditingPolicyProperties, error) {
 	if len(input) == 0 || input[0] == nil {
