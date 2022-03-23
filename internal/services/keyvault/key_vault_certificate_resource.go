@@ -30,7 +30,7 @@ import (
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		// TODO: support Updating once we have more information about what can be updated
+		// TODO: support Updating additional properties once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,

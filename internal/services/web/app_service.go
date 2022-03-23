@@ -9,7 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -1614,29 +1613,6 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 }
 
 func expandAppServiceIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 {
-			return nil, nil
-		}
-		identity := input[0].(map[string]interface{})
-		identityType := web.ManagedServiceIdentityType(identity["type"].(string))
-
-		identityIds := make(map[string]*web.UserAssignedIdentity)
-		for _, id := range identity["identity_ids"].([]interface{}) {
-			identityIds[id.(string)] = &web.UserAssignedIdentity{}
-		}
-
-		managedServiceIdentity := web.ManagedServiceIdentity{
-			Type: identityType,
-		}
-
-		if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-			managedServiceIdentity.UserAssignedIdentities = identityIds
-		}
-
-		return &managedServiceIdentity, nil
-	}
-
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -1657,42 +1633,6 @@ func expandAppServiceIdentity(input []interface{}) (*web.ManagedServiceIdentity,
 }
 
 func flattenAppServiceIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		if input == nil {
-			return &[]interface{}{}, nil
-		}
-
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
-		}
-
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		identityIds := make([]string, 0)
-		if input.UserAssignedIdentities != nil {
-			for key := range input.UserAssignedIdentities {
-				parsedId, err := parse.UserAssignedIdentityIDInsensitively(key)
-				if err != nil {
-					return nil, err
-				}
-				identityIds = append(identityIds, parsedId.ID())
-			}
-		}
-
-		return &[]interface{}{
-			map[string]interface{}{
-				"identity_ids": identityIds,
-				"principal_id": principalId,
-				"tenant_id":    tenantId,
-				"type":         string(input.Type),
-			},
-		}, nil
-	}
-
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {

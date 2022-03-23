@@ -30,8 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: confirm locking as appropriate
-
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWindowsVirtualMachineCreate,

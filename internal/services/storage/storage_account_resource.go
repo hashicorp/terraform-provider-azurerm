@@ -15,11 +15,9 @@ import (
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -390,54 +388,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": func() *schema.Schema {
-				// TODO: 3.0 - document this in the upgrade guide
-				if features.ThreePointOhBeta() {
-					return commonschema.SystemAssignedUserAssignedIdentityOptional()
-				}
-
-				return &schema.Schema{
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"type": {
-								Type:     schema.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(identity.TypeUserAssigned),
-									string(identity.TypeSystemAssigned),
-									string(identity.TypeSystemAssignedUserAssigned),
-									"SystemAssigned,UserAssigned", // defined in the Swagger but should be normalized as above
-								}, false),
-								DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-									// handle `SystemAssigned, UserAssigned` with and without the spaces being the same
-									oldWithoutSpaces := strings.ReplaceAll(old, " ", "")
-									newWithoutSpaces := strings.ReplaceAll(new, " ", "")
-									return oldWithoutSpaces == newWithoutSpaces
-								},
-							},
-							"identity_ids": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type:         schema.TypeString,
-									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-								},
-							},
-							"principal_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"tenant_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				}
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"blob_properties": {
 				Type:     pluginsdk.TypeList,
@@ -3120,17 +3071,6 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 }
 
 func expandAzureRmStorageAccountIdentity(input []interface{}) (*storage.Identity, error) {
-	if !features.ThreePointOhBeta() {
-		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if len(input) > 0 {
-			raw := input[0].(map[string]interface{})
-			if identityType := raw["type"].(string); strings.EqualFold("SystemAssigned,UserAssigned", identityType) {
-				raw["type"] = "SystemAssigned, UserAssigned"
-			}
-			input[0] = raw
-		}
-	}
-
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err

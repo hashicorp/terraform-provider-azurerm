@@ -37,9 +37,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	}
 }
 
-// todo - this package should probably be split into backup, recovery, and site recovery?
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	// todo - this package should probably be split into backup, recovery, and site recovery?
 	return map[string]*pluginsdk.Resource{
 		"azurerm_backup_container_storage_account":           resourceBackupProtectionContainerStorageAccount(),
 		"azurerm_backup_policy_file_share":                   resourceBackupProtectionPolicyFileShare(),

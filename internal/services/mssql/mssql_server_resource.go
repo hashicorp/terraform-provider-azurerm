@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -134,52 +132,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"foo": commonschema.SystemOrUserAssignedIdentityOptional(),
-
-			"identity": func() *schema.Schema {
-				// TODO: document this change is coming in 3.0 (user_assigned_identity_ids -> identity_ids)
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(sql.IdentityTypeSystemAssigned),
-										string(sql.IdentityTypeUserAssigned),
-									}, false),
-								},
-								"user_assigned_identity_ids": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: msivalidate.UserAssignedIdentityID,
-									},
-									RequiredWith: []string{
-										"primary_user_assigned_identity_id",
-									},
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.SystemOrUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"primary_user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
@@ -187,13 +140,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 				RequiredWith: []string{
-					func() string {
-						if !features.ThreePointOhBeta() {
-							return "identity.0.user_assigned_identity_ids"
-						}
-
-						return "identity.0.identity_ids"
-					}(),
+					"identity.0.identity_ids",
 				},
 			},
 
@@ -624,30 +571,6 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func expandSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 {
-			return &sql.ResourceIdentity{}, nil
-		}
-		identity := input[0].(map[string]interface{})
-		identityType := sql.IdentityType(identity["type"].(string))
-
-		userAssignedIdentityIds := make(map[string]*sql.UserIdentity)
-		for _, id := range identity["user_assigned_identity_ids"].(*pluginsdk.Set).List() {
-			userAssignedIdentityIds[id.(string)] = &sql.UserIdentity{}
-		}
-
-		managedServiceIdentity := sql.ResourceIdentity{
-			Type: identityType,
-		}
-
-		if identityType == sql.IdentityTypeUserAssigned {
-			managedServiceIdentity.UserAssignedIdentities = userAssignedIdentityIds
-		}
-
-		return &managedServiceIdentity, nil
-
-	}
-
 	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -669,34 +592,6 @@ func expandSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error)
 }
 
 func flattenSqlServerIdentity(input *sql.ResourceIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		if input == nil {
-			return &[]interface{}{}, nil
-		}
-		result := make(map[string]interface{})
-		result["type"] = input.Type
-		if input.PrincipalID != nil {
-			result["principal_id"] = input.PrincipalID.String()
-		}
-		if input.TenantID != nil {
-			result["tenant_id"] = input.TenantID.String()
-		}
-
-		identityIds := make([]string, 0)
-		if input.UserAssignedIdentities != nil {
-			for key := range input.UserAssignedIdentities {
-				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-				if err != nil {
-					return nil, err
-				}
-				identityIds = append(identityIds, parsedId.ID())
-			}
-		}
-		result["user_assigned_identity_ids"] = identityIds
-
-		return &[]interface{}{result}, nil
-	}
-
 	var transform *identity.SystemOrUserAssignedMap
 
 	if input != nil {
