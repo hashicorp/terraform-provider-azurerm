@@ -4,12 +4,18 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: read
+
 jobs:
   issue_triage:
+    permissions:
+      contents: read  # for github/issue-labeler to get repo contents
+      issues: write  # for github/issue-labeler to create or remove labels
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: github/issue-labeler@v2.4
+    - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+    - uses: github/issue-labeler@829a8bf1b184f74cc575b5435093a92c7b846983 # v2.4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         configuration-path: .github/labeler-issue-triage.yml

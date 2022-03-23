@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2
         with:
           go-version: '1.17.5'
       - run: |

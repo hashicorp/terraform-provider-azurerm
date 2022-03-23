@@ -6,7 +6,7 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/labeler@v3
+    - uses: actions/labeler@472c5d3aaacde439785e94966eb2e545627f4935 # v3
       with:
         configuration-path: .github/labeler-pull-request-triage.yml
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

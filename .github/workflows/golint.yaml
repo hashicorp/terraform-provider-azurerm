@@ -13,15 +13,21 @@ concurrency:
   group: 'golint-${{ github.head_ref }}'
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   golint:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: read  # for golangci/golangci-lint-action to fetch pull requests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@629c2de402a417ea7690ca6ce3f33229e27606a5 # v2
+      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2
         with:
           go-version: '1.17.5'
-      - uses: golangci/golangci-lint-action@v2
+      - uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # v2
         with:
           version: 'v1.41.1'
           args: -v
