@@ -81,7 +81,7 @@ func (client BuildServiceAgentPoolClient) GetPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client BuildServiceAgentPoolClient) ListPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -240,8 +240,8 @@ func (client BuildServiceAgentPoolClient) ListComplete(ctx context.Context, reso
 // serviceName - the name of the Service resource.
 // buildServiceName - the name of the build service resource.
 // agentPoolName - the name of the build service agent pool resource.
-// poolSize - parameters for the update operation
-func (client BuildServiceAgentPoolClient) UpdatePut(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, agentPoolName string, poolSize BuildServiceAgentPoolSizeProperties) (result BuildServiceAgentPoolUpdatePutFuture, err error) {
+// agentPoolResource - parameters for the update operation
+func (client BuildServiceAgentPoolClient) UpdatePut(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, agentPoolName string, agentPoolResource BuildServiceAgentPoolResource) (result BuildServiceAgentPoolUpdatePutFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceAgentPoolClient.UpdatePut")
 		defer func() {
@@ -252,7 +252,7 @@ func (client BuildServiceAgentPoolClient) UpdatePut(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePutPreparer(ctx, resourceGroupName, serviceName, buildServiceName, agentPoolName, poolSize)
+	req, err := client.UpdatePutPreparer(ctx, resourceGroupName, serviceName, buildServiceName, agentPoolName, agentPoolResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceAgentPoolClient", "UpdatePut", nil, "Failure preparing request")
 		return
@@ -268,7 +268,7 @@ func (client BuildServiceAgentPoolClient) UpdatePut(ctx context.Context, resourc
 }
 
 // UpdatePutPreparer prepares the UpdatePut request.
-func (client BuildServiceAgentPoolClient) UpdatePutPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, agentPoolName string, poolSize BuildServiceAgentPoolSizeProperties) (*http.Request, error) {
+func (client BuildServiceAgentPoolClient) UpdatePutPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, agentPoolName string, agentPoolResource BuildServiceAgentPoolResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agentPoolName":     autorest.Encode("path", agentPoolName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
@@ -277,19 +277,17 @@ func (client BuildServiceAgentPoolClient) UpdatePutPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	poolSize.CPU = nil
-	poolSize.Memory = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/buildServices/{buildServiceName}/agentPools/{agentPoolName}", pathParameters),
-		autorest.WithJSON(poolSize),
+		autorest.WithJSON(agentPoolResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
