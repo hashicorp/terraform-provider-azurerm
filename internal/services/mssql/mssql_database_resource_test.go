@@ -161,6 +161,9 @@ func TestAccMsSqlDatabase_BC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
+	// Limited regional availability for BC
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bc(data),
@@ -244,7 +247,7 @@ func TestAccMsSqlDatabase_createPITRMode(t *testing.T) {
 
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			Config:    r.createPITRMode(data),
+			Config:    r.createPITRMode(data, time.Now().Add(time.Duration(9)*time.Minute).UTC().Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mssql_database.pitr").ExistsInAzure(r),
 			),
@@ -1014,7 +1017,7 @@ resource "azurerm_mssql_database" "copy" {
 `, r.complete(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData, restorePointInTime string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1026,7 +1029,7 @@ resource "azurerm_mssql_database" "pitr" {
   creation_source_database_id = azurerm_mssql_database.test.id
 
 }
-`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
+`, r.basic(data), data.RandomInteger, restorePointInTime)
 }
 
 func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData, tag string) string {
