@@ -276,6 +276,10 @@ The deprecated field `portal_url` will be removed since it no longer exists in t
 
 The deprecated field `group_id` will be removed in favour of the `name` property.
 
+### Data Source: `azurerm_mssql_server`
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 ### Data Source: `azurerm_netapp_volume`
 
 The deprecated field `data_protection_replication.replication_schedule` will be removed as it no longer exists in the Azure API. The property `data_protection_replication.replication_frequency` can be used instead.
@@ -974,6 +978,8 @@ The deprecated block `extended_auditing_policy` will be removed and replaced by 
 The deprecated block `extended_auditing_policy` will be removed and replaced by the `azurerm_mssql_server_extended_auditing_policy` resource.
 
 The default value of the field `minimum_tls_version` will be set to `1.2`.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). 
 
 ### Resource: `azurerm_mysql_server`
 
