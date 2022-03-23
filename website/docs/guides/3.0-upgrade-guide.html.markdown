@@ -262,6 +262,8 @@ The deprecated block `addon_profile` will be removed in favour of the `azure_pol
 
 The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
 
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 The deprecated block `role_based_access_control` will be removed in favour of the `role_based_access_control_enabled` property and the `azure_active_directory_role_based_access_control` block.
 
 ### Data Source: `azurerm_kubernetes_cluster_node_pool`
@@ -279,6 +281,10 @@ The deprecated field `portal_url` will be removed since it no longer exists in t
 ### Data Source: `azurerm_management_group`
 
 The deprecated field `group_id` will be removed in favour of the `name` property.
+
+### Data Source: `azurerm_mssql_server`
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 ### Data Source: `azurerm_netapp_volume`
 
@@ -326,6 +332,8 @@ The deprecated field `security.enabled_triple_des_ciphers` will be removed in fa
 
 The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
 
 ### Resource: `azurerm_app_service_active_slot`
@@ -351,6 +359,8 @@ The `azurerm_app_service_hybrid_connection` resource has been superseded by the 
 ### Resource: `azurerm_app_service_slot`
 
 The `azurerm_app_service_slot` resource has been superseded by the `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
 
@@ -407,6 +417,10 @@ The deprecated field `secondary_readonly_master_key` will be removed in favour o
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_dashboard`
+
+This resource is now deprecated and has been replaced by the `azurerm_portal_dashboard` resource - the `azurerm_dashboard` resource will be removed in v4.0 of the AzureRM Provider.
 
 ### Resource: `azurerm_data_factory_dataset_binary`
 
@@ -612,7 +626,6 @@ The deprecated field `data_factory_name` will be removed in favour of the `data_
 
 The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
-
 ### Resource: `azurerm_data_factory`
 
 The field `customer_managed_key_identity_id` must be supplied if `customer_managed_key_id` is set.
@@ -705,6 +718,8 @@ The default value for the field `negate_condition` will change from `true` to `f
 
 The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 The deprecated field `client_affinity_enabled` will be removed since it is no longer configurable.
 
 The deprecated field `storage_connection_string` will be removed in favour of the `storage_account_name` and `storage_account_access_key` properties.
@@ -716,6 +731,8 @@ The deprecated field `master_key` will be removed in favour of the `primary_key`
 ### Resource: `azurerm_function_app_slot`
 
 The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 The deprecated field `client_affinity_enabled` will be removed since it is no longer configurable.
 
@@ -791,7 +808,7 @@ The deprecated field `access_rule.root_squash_enabled` will be removed in favour
 
 ### Resource: `azurerm_iothub_dps`
 
-The default value for the field `linked_hub.allocation_weight` will change from `0` to `1`.
+The default value for the field `allocation_weight` within the `linked_hub` block will change from `0` to `1`.
 
 ### Resource: `azurerm_iothub_endpoint_eventhub`
 
@@ -867,6 +884,8 @@ The deprecated field `private_link_enabled` will be removed in favour of the `pr
 
 The deprecated block `role_based_access_control` will be removed in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control`.
 
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 ### Resource: `azurerm_kubernetes_cluster_node_pool`
 
 The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
@@ -931,17 +950,25 @@ The field `sku_name` no longer accepts the value `Enterprise` ([more information
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource `azurerm_machine_learning_compute_instance`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
 
 ### Resource `azurerm_machine_learning_inference_cluster`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource `azurerm_machine_learning_synapse_spark`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
 
 ### Resource `azurerm_machine_learning_workspace`
 
@@ -978,6 +1005,8 @@ The deprecated block `extended_auditing_policy` will be removed and replaced by 
 The deprecated block `extended_auditing_policy` will be removed and replaced by the `azurerm_mssql_server_extended_auditing_policy` resource.
 
 The default value of the field `minimum_tls_version` will be set to `1.2`.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). 
 
 ### Resource: `azurerm_mysql_server`
 
@@ -1087,6 +1116,18 @@ The fields `availability_zone` and `zones` will be consolidated into `zones`.
 ### Resource: `azurerm_purview_account`
 
 The deprecated field `sku_name` will be removed since this property can no longer be specified on create/update.
+
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_purview_account" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
 
 ### Resource: `azurerm_redis_cache`
 
@@ -1216,6 +1257,10 @@ The default value for the field `min_tls_version` will change from `TLS1_0` to `
 
 The field `allow_blob_public_access` will be removed in favour of the `allow_nested_items_to_be_public` property.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource: `azurerm_storage_account_network_rules`
 
 The deprecated field `storage_account_name` will be removed in favour of the `storage_account_id` property.
@@ -1249,6 +1294,20 @@ The field `role_name` will no longer accept the values `Workspace Admin`, `Apach
 ### Resource: `azurerm_synapse_spark_pool`
 
 The field `spark_version` will no longer accept the value `3.0`.
+
+### Resource: `azurerm_synapse_workspace_key`
+
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_synapse_workspace" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
 
 ### Resource: `azurerm_synapse_workspace_key`
 

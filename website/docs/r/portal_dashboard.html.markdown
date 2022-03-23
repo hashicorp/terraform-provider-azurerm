@@ -1,16 +1,14 @@
 ---
 subcategory: "Portal"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dashboard"
+page_title: "Azure Resource Manager: azurerm_portal_dashboard"
 description: |-
   Manages a shared dashboard in the Azure Portal.
 ---
 
-# azurerm_dashboard
+# azurerm_portal_dashboard
 
 Manages a shared dashboard in the Azure Portal.
-
-!> **Note:** The `azurerm_dashboard` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_portal_dashboard`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/portal_dashboard) resource instead.
 
 ## Example Usage
 
@@ -32,7 +30,7 @@ resource "azurerm_resource_group" "my-group" {
   location = "West Europe"
 }
 
-resource "azurerm_dashboard" "my-board" {
+resource "azurerm_portal_dashboard" "my-board" {
   name                = "my-cool-dashboard"
   resource_group_name = azurerm_resource_group.my-group.name
   location            = azurerm_resource_group.my-group.location
@@ -275,7 +273,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Dashboards can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
+terraform import azurerm_portal_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
 ```
 
 Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal.

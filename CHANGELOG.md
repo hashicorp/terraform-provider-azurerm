@@ -86,6 +86,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_configuration_feature` - detecting that the key is gone when the App Configuration has been deleted [GH-15973]
+* `azurerm_app_configuration_key` - detecting that the key is gone when the App Configuration has been deleted [GH-15973]
 * `azurerm_application_gateway` - the `backend_address_pool` block is now a Set rather than a List [GH-6896]
 * `azurerm_application_gateway` - the field `fqdns` within the `backend_address_pool` block is now a Set rather than a List [GH-6896]
 * `azurerm_application_gateway` - the field `ip_addresses` within the `backend_address_pool` block is now a Set rather than a List [GH-6896]
@@ -105,6 +107,7 @@ BUG FIXES:
 * `azurerm_linux_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_linux_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_local_network_gateway` - fix for `address_space` cannot be updated [GH-15159]
+* `azurerm_log_analytics_cluster_customer_managed_key` - detecting when the Customer Managed Key has been removed [GH-15973]
 * `azurerm_mssql_database_vulnerability_assessment_rule_baseline` - prevent the resource from being replaced every apply [GH-14759]
 * `azurerm_synapse_workspace` - fixing a bug where workspaces created from a Dedicated SQL Pool / SQL Data Warehouse couldn't be retrieved [GH-15829]
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]

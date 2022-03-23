@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PortalDashboardResource struct{}
+type LegacyDashboardResource struct{}
 
-func TestAccPortalDashboard_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_portal_dashboard", "test")
-	r := PortalDashboardResource{}
+func TestAccLegacyDashboard_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	r := LegacyDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccPortalDashboard_basic(t *testing.T) {
 	})
 }
 
-func TestAccPortalDashboard_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_portal_dashboard", "test")
-	r := PortalDashboardResource{}
+func TestAccLegacyDashboard_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	r := LegacyDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -43,7 +43,7 @@ func TestAccPortalDashboard_complete(t *testing.T) {
 	})
 }
 
-func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (LegacyDashboardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DashboardID(state.ID)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.DashboardProperties != nil), nil
 }
 
-func (PortalDashboardResource) basic(data acceptance.TestData) string {
+func (LegacyDashboardResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -68,7 +68,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_portal_dashboard" "test" {
+resource "azurerm_dashboard" "test" {
   name                 = "my-test-dashboard"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
@@ -108,7 +108,7 @@ DASH
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PortalDashboardResource) complete(data acceptance.TestData) string {
+func (LegacyDashboardResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_portal_dashboard" "test" {
+resource "azurerm_dashboard" "test" {
   name                = "my-test-dashboard"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

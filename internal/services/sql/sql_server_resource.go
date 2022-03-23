@@ -152,7 +152,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
+								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO investigate if we can remove this in 4.0
 							}, !features.ThreePointOhBeta()),
 						},
 

@@ -382,7 +382,6 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	delimited_textTableset := datafactory.DelimitedTextDataset{
 		DelimitedTextDatasetTypeProperties: &delimited_textDatasetProperties,
 		LinkedServiceName:                  linkedService,
