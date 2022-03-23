@@ -8,6 +8,7 @@ import (
 type Client struct {
 	HealthcareServiceClient                              *healthcareapis.ServicesClient
 	HealthcareWorkspaceClient                            *healthcareapis.WorkspacesClient
+	HealthcareWorkspaceFhirServiceClient                 *healthcareapis.FhirServicesClient
 	HealthcareWorkspaceIotConnectorClient                *healthcareapis.IotConnectorsClient
 	HealthcareWorkspaceIotConnectorFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
 }
@@ -19,6 +20,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	HealthcareWorkspaceClient := healthcareapis.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HealthcareWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
+	HealthcareWorkspaceFhirServiceClient := healthcareapis.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HealthcareWorkspaceFhirServiceClient.Client, o.ResourceManagerAuthorizer)
+
 	HealthcareWorkspaceIotConnectorClient := healthcareapis.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HealthcareWorkspaceIotConnectorClient.Client, o.ResourceManagerAuthorizer)
 
@@ -28,6 +32,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		HealthcareServiceClient:                              &HealthcareServiceClient,
 		HealthcareWorkspaceClient:                            &HealthcareWorkspaceClient,
+		HealthcareWorkspaceFhirServiceClient:                 &HealthcareWorkspaceFhirServiceClient,
 		HealthcareWorkspaceIotConnectorClient:                &HealthcareWorkspaceIotConnectorClient,
 		HealthcareWorkspaceIotConnectorFhirDestinationClient: &HealthcareWorkspaceIotConnectorFhirDestinationClient,
 	}

@@ -21,16 +21,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisIotConnectorCreateUpdate,
+		Create: resourceHealthcareApisIotConnectorCreate,
 		Read:   resourceHealthcareApisIotConnectorRead,
-		Update: resourceHealthcareApisIotConnectorCreateUpdate,
+		Update: resourceHealthcareApisIotConnectorUpdate,
 		Delete: resourceHealthcareApisIotConnectorDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -47,9 +46,9 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.IotConnectorName(),
 			},
 
@@ -62,30 +61,7 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(healthcareapis.ManagedServiceIdentityTypeSystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"eventhub_namespace_name": {
 				Type:         pluginsdk.TypeString,
@@ -117,7 +93,7 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisIotConnectorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +149,7 @@ func resourceHealthcareApisIotConnectorCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", iotConnectorId, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", iotConnectorId, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
@@ -182,7 +158,7 @@ func resourceHealthcareApisIotConnectorCreateUpdate(d *pluginsdk.ResourceData, m
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"Creating", "Updating"},
 		Target:                    []string{"Succeeded"},
-		Refresh:                   iotConnectorStateRefreshFunc(ctx, client, iotConnectorId),
+		Refresh:                   iotConnectorCreateStateRefreshFunc(ctx, client, iotConnectorId),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -191,7 +167,7 @@ func resourceHealthcareApisIotConnectorCreateUpdate(d *pluginsdk.ResourceData, m
 
 	d.SetId(iotConnectorId.ID())
 
-	return resourceHealthcareServiceRead(d, meta)
+	return resourceHealthcareApisIotConnectorRead(d, meta)
 }
 
 func resourceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -266,6 +242,71 @@ func resourceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta inte
 	}
 	return nil
 }
+
+func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	workspace, err := parse.WorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing healthcare api workspace error: %+v", err)
+	}
+	iotConnectorId := parse.NewIotConnectorID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
+
+	namespaceName := d.Get("eventhub_namespace_name").(string) + ".servicebus.windows.net"
+	identity, err := expandIotConnectorIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	parameters := healthcareapis.IotConnector{
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Identity: identity,
+		IotConnectorProperties: &healthcareapis.IotConnectorProperties{
+			IngestionEndpointConfiguration: &healthcareapis.IotEventHubIngestionEndpointConfiguration{
+				EventHubName:                    utils.String(d.Get("eventhub_name").(string)),
+				ConsumerGroup:                   utils.String(d.Get("eventhub_consumer_group_name").(string)),
+				FullyQualifiedEventHubNamespace: &namespaceName,
+			},
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	deviceContentMap := healthcareapis.IotMappingProperties{}
+	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
+	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
+		return err //todo fmt
+	}
+	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
+
+	future, err := client.CreateOrUpdate(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", iotConnectorId, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", iotConnectorId, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 12,
+		Delay:                     60 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"Creating", "Updating"},
+		Target:                    []string{"Succeeded"},
+		Refresh:                   iotConnectorCreateStateRefreshFunc(ctx, client, iotConnectorId),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Iot Connetcor %s to settle down: %+v", iotConnectorId, err)
+	}
+
+	d.SetId(iotConnectorId.ID())
+
+	return resourceHealthcareApisIotConnectorRead(d, meta)
+}
+
 func resourceHealthcareApisIotConnectorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -349,13 +390,14 @@ func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceDat
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func iotConnectorStateRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, iotConnectorId parse.IotConnectorId) pluginsdk.StateRefreshFunc {
+func iotConnectorCreateStateRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, iotConnectorId parse.IotConnectorId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", iotConnectorId, err)
 			}
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", iotConnectorId, err)
 		}
 
 		return resp, string(resp.ProvisioningState), nil

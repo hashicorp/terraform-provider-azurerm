@@ -14,4 +14,3 @@ func FhirServiceName() pluginsdk.SchemaValidateFunc {
 		`The service name must start with a letter or number.  The account name can contain letters, numbers, and dashes. The final character must be a letter or a number. The service name length must be from 3 to 24 characters.`,
 	)
 }
-
