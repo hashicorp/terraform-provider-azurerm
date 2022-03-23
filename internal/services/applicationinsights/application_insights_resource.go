@@ -282,7 +282,8 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
 	// Instead, we'll opt to disable them here
 	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
-		err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		// TODO: replace this with a StateWait func
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
 			actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
 
