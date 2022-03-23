@@ -1257,10 +1257,6 @@ resource "azurerm_managed_disk" "import" {
 }
 
 func (ManagedDiskResource) diskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	location := "westus2"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1356,7 +1352,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r ManagedDiskResource) diskEncryptionSetEncrypted(data acceptance.TestData) string {
