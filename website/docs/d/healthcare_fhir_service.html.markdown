@@ -65,7 +65,7 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ---
-A `cors_configuration` block supports the following:
+A `cors_configuration` block exports the following:
 
 * `allowed_origins` The set of origins to be allowed via CORS.
 * `allowed_headers` The set of headers to be allowed via CORS.
@@ -74,7 +74,7 @@ A `cors_configuration` block supports the following:
 * `allow_credentials`  The credentials are allowed via CORS.
 
 ---
-An `authentication` supports the following:
+An `authentication` block exports the following:
 
 * `authority` The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.

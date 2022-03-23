@@ -250,6 +250,18 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", fhirServiceId, err)
 	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 12,
+		Delay:                     60 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"Creating", "Updating", "Verifying"},
+		Target:                    []string{"Succeeded"},
+		Refresh:                   fhirServiceCreateStateRefreshFunc(ctx, client, fhirServiceId),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Fhir Service %s to settle down: %+v", fhirServiceId, err)
+	}
 
 	d.SetId(fhirServiceId.ID())
 	return resourceHealthcareApisFhirServiceRead(d, meta)
@@ -605,5 +617,19 @@ func flattenFhirAuthentication(authConfig *healthcareapis.FhirServiceAuthenticat
 			"authority":           authority,
 			"smart_proxy_enabled": smartProxyEnabled,
 		},
+	}
+}
+
+func fhirServiceCreateStateRefreshFunc(ctx context.Context, client *healthcareapis.FhirServicesClient, fhirServiceId parse.FhirServiceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", fhirServiceId, err)
+			}
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", fhirServiceId, err)
+		}
+
+		return resp, string(resp.ProvisioningState), nil
 	}
 }
