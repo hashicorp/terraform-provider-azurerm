@@ -104,7 +104,7 @@ resource "azurerm_synapse_workspace_key" "test" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.test.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
   active                              = true
-  cusomter_managed_key_name           = "test_key"
+  customer_managed_key_name           = "test_key"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
 }
 
@@ -112,7 +112,7 @@ resource "azurerm_synapse_workspace_key" "test2" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.test2.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
   active                              = false
-  cusomter_managed_key_name           = "test_key2"
+  customer_managed_key_name           = "test_key2"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy, azurerm_synapse_workspace_key.test]
 }
 `, template, data.RandomInteger)
@@ -153,7 +153,7 @@ resource "azurerm_synapse_workspace_key" "test" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.test.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
   active                              = false
-  cusomter_managed_key_name           = "test_key"
+  customer_managed_key_name           = "test_key"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
 }
 
@@ -161,7 +161,7 @@ resource "azurerm_synapse_workspace_key" "test2" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.test2.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
   active                              = true
-  cusomter_managed_key_name           = "test_key2"
+  customer_managed_key_name           = "test_key2"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy, azurerm_synapse_workspace_key.test]
 }
 `, template, data.RandomInteger)

@@ -266,11 +266,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
-	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) && len(auditingPolicies) > 0 {
-		return fmt.Errorf("cannot configure `extended_auditing_policy` in secondary create mode for %s", id)
-	}
-
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
 		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
@@ -401,9 +396,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandMsSqlDBBlobAuditingPolicies(auditingPolicies),
-		}
+		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{}
 		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
 			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
 		}
@@ -458,7 +451,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
@@ -516,17 +509,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
-
-	extendedAuditingPolicy := []interface{}{}
-	if createMode, ok := d.GetOk("create_mode"); !ok || (createMode.(string) != "Secondary" && createMode.(string) != "OnlineSecondary") {
-		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
-		}
-
-		extendedAuditingPolicy = helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
-	}
-	d.Set("extended_auditing_policy", extendedAuditingPolicy)
 
 	geoBackupPolicy := true
 
@@ -797,8 +779,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validate.ElasticPoolID,
 		},
-
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 		"license_type": {
 			Type:     pluginsdk.TypeString,

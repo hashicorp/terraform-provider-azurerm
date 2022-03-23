@@ -64,13 +64,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"topic_name": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
-			},
-
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),

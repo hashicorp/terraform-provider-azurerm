@@ -746,8 +746,6 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 		"tags": tags.Schema(),
 	}
 

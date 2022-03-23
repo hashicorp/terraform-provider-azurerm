@@ -202,18 +202,9 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"instrumentation_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Deprecated:   "This property is due to be removed from this service's API and thus has been deprecated and will be removed in v3.0 of the provider. Please switch to using the `connection_string` property with the connection string for the Application Insights instance to use.",
-							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
-							ValidateFunc: validation.IsUUID,
-						},
-
 						"connection_string": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -661,17 +652,11 @@ func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingP
 			TraceEnabled: utils.Bool(false),
 		}
 	}
+
 	v := input[0].(map[string]interface{})
-	instrumentationKey := ""
-	if value := v["instrumentation_key"]; len(value.(string)) > 0 {
-		instrumentationKey = value.(string)
-	}
-	if value := v["connection_string"]; len(value.(string)) > 0 {
-		instrumentationKey = value.(string)
-	}
 	return &appplatform.MonitoringSettingProperties{
 		TraceEnabled:                  utils.Bool(true),
-		AppInsightsInstrumentationKey: utils.String(instrumentationKey),
+		AppInsightsInstrumentationKey: utils.String(v["connection_string"].(string)),
 		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
 	}
 }
@@ -886,7 +871,6 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 	}
 
 	enabled := false
-	instrumentationKey := ""
 	connectionString := ""
 	samplingRate := 0.0
 	if input.TraceEnabled != nil {
@@ -894,8 +878,6 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 	}
 	if input.AppInsightsInstrumentationKey != nil {
 		if _, err := uuid.FromString(*input.AppInsightsInstrumentationKey); err == nil {
-			instrumentationKey = *input.AppInsightsInstrumentationKey
-		} else {
 			connectionString = *input.AppInsightsInstrumentationKey
 		}
 	}
@@ -909,9 +891,8 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 
 	return []interface{}{
 		map[string]interface{}{
-			"instrumentation_key": instrumentationKey,
-			"connection_string":   connectionString,
-			"sample_rate":         samplingRate,
+			"connection_string": connectionString,
+			"sample_rate":       samplingRate,
 		},
 	}
 }
