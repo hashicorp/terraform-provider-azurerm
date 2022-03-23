@@ -213,7 +213,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
-		parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(d.Get("reservation_capacity_in_gb_per_day").(int))))
+		parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32(int32(d.Get("reservation_capacity_in_gb_per_day").(int)))
 	} else {
 		return fmt.Errorf("`reservation_capacity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
 	}
