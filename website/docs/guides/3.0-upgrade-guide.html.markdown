@@ -1158,6 +1158,12 @@ The `azurerm_security_center_assessment_metadata` resource will be removed in fa
 
 The deprecated field `text_whitelist` will be removed in favour of the `display_name_filter` property.
 
+### Resource: `azurerm_sentinel_alert_rule_scheduled`
+
+The field `entity_matching_method` can no longer be set to the legacy values `All`, `Custom` or `None` - use `AnyAlert`, `Selected` and `AllEntities` instead.
+
+The field `group_by` will be renamed to `group_by_entities`.
+
 ### Resource: `azurerm_servicebus_queue`
 
 The deprecated field `namespace_name` will be removed in favour of the `namespace_id`.
