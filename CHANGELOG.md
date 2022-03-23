@@ -13,6 +13,7 @@ FEATURES:
 * **New Resource**: `azurerm_api_connection` [GH-15797]
 * **New Resource**: `azurerm_healthcare_workspace` [GH-15759]
 * **New Resource**: `azurerm_stream_analytics_function_javascript_uda` [GH-15831]
+* **New Resource**: `azurerm_security_center_server_vulnerability_assessment_virtual_machine` [GH-15747]
 
 ENHANCEMENTS:
 
