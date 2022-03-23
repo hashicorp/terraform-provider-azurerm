@@ -72,26 +72,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityComputed(),
 
 			"acr_login_servers": {
 				Type:     pluginsdk.TypeList,
@@ -143,6 +124,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
 			"tags": commonschema.Tags(),
 		},
 	}

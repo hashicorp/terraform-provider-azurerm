@@ -348,11 +348,11 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", fhirServiceId, err)
+		return fmt.Errorf("updating %s: %+v", fhirServiceId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", fhirServiceId, err)
+		return fmt.Errorf("waiting for update of %s: %+v", fhirServiceId, err)
 	}
 
 	d.SetId(fhirServiceId.ID())
