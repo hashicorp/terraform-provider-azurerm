@@ -80,7 +80,7 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_update(t *testing.T) {
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
+	id, err := parse.VirtualMachineConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
