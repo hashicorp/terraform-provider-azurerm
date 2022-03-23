@@ -92,6 +92,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: the `recover_soft_deleted_key_vaults` feature flag within the `key_vault` block now defaults to `true` [GH-15984]
+* provider: the `purge_soft_delete_on_destroy ` feature flag within the `key_vault` block now defaults to `true` [GH-15984] 
 * `azurerm_app_configuration_feature` - detecting that the key is gone when the App Configuration has been deleted [GH-15973]
 * `azurerm_app_configuration_key` - detecting that the key is gone when the App Configuration has been deleted [GH-15973]
 * `azurerm_application_gateway` - the `backend_address_pool` block is now a Set rather than a List [GH-6896]
