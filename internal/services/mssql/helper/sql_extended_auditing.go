@@ -9,37 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func ExpandSqlServerBlobAuditingPolicies(input []interface{}) (*sql.ExtendedServerBlobAuditingPolicyProperties, error) {
-	if len(input) == 0 || input[0] == nil {
-		return &sql.ExtendedServerBlobAuditingPolicyProperties{
-			State: sql.BlobAuditingPolicyStateDisabled,
-		}, nil
-	}
-	serverBlobAuditingPolicies := input[0].(map[string]interface{})
-
-	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
-		State:                       sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
-		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
-	}
-	if v, ok := serverBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
-		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
-	}
-	if v, ok := serverBlobAuditingPolicies["retention_in_days"]; ok {
-		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
-	}
-	if v, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok && v.(string) != "" {
-		u, err := uuid.FromString(v.(string))
-		if err != nil {
-			return nil, fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
-		}
-		ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
-	}
-
-	return &ExtendedServerBlobAuditingPolicyProperties, nil
-}
-
 func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if extendedServerBlobAuditingPolicy == nil || extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -293,13 +292,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
-	}
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
-	}
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
@@ -442,13 +435,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
-	}
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
-	}
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
@@ -464,7 +451,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -528,15 +514,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
 		d.Set("connection_policy", string(props.ConnectionType))
-	}
-
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", id.Name, err)
-	}
-
-	if err := d.Set("extended_auditing_policy", helper.FlattenSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
 	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
