@@ -28,7 +28,7 @@ type WatchlistModel struct {
 	Description             string   `tfschema:"description"`
 	Labels                  []string `tfschema:"labels"`
 	DefaultDuration         string   `tfschema:"default_duration"`
-	ItemsSearchKey          string   `tfschema:"items_search_key"`
+	ItemSearchKey           string   `tfschema:"item_search_key"`
 }
 
 func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
@@ -51,7 +51,7 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"items_search_key": {
+		"item_search_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -135,7 +135,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					// Setting them here is merely to make the API happy.
 					Source: securityinsight.Source("a.csv"),
 
-					ItemsSearchKey: utils.String(model.ItemsSearchKey),
+					ItemsSearchKey: utils.String(model.ItemSearchKey),
 				},
 			}
 
@@ -198,7 +198,7 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 					model.DefaultDuration = *props.DefaultDuration
 				}
 				if props.ItemsSearchKey != nil {
-					model.ItemsSearchKey = *props.ItemsSearchKey
+					model.ItemSearchKey = *props.ItemsSearchKey
 				}
 			}
 

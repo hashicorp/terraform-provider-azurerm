@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of this Sentinel Watchlist. Changing this forces a new Sentinel Watchlist to be created.
 
-* `items_search_key` - (Required) The key used to optimize query performance when using Watchlist for joins with other data. Changing this forces a new Sentinel Watchlist to be created.
+* `item_search_key` - (Required) The key used to optimize query performance when using Watchlist for joins with other data. Changing this forces a new Sentinel Watchlist to be created.
 
 ---
 
