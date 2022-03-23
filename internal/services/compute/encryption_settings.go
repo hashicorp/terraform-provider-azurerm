@@ -2,29 +2,79 @@ package compute
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func encryptionSettingsSchema() *pluginsdk.Schema {
+	if !features.ThreePointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+
+						// Azure can change enabled from false to true, but not the other way around, so
+						//   to keep idempotency, we'll conservatively set this to ForceNew=true
+						ForceNew:   true,
+						Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block",
+					},
+					"disk_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"secret_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"key_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"key_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO: remove in 3.0
-				"enabled": {
-					Type:       pluginsdk.TypeBool,
-					Optional:   true,
-					Default:    true,
-					Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block",
-				},
-
-				// TODO: make this Required in 3.0
 				"disk_encryption_key": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -70,8 +120,11 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *compute.En
 	settings := settingsList[0].(map[string]interface{})
 
 	config := &compute.EncryptionSettingsCollection{
-		// TODO: update to `Enabled: utils.Bool(true),` in 3.0
-		Enabled: utils.Bool(settings["enabled"].(bool)),
+		Enabled: utils.Bool(true),
+	}
+
+	if !features.ThreePointOhBeta() {
+		config.Enabled = utils.Bool(settings["enabled"].(bool))
 	}
 
 	var diskEncryptionKey *compute.KeyVaultAndSecretReference
@@ -159,10 +212,18 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 	}
 
 	if len(diskEncryptionKeys) > 0 {
+		if !features.ThreePointOhBeta() {
+			return []interface{}{
+				map[string]interface{}{
+					"enabled":             true,
+					"disk_encryption_key": diskEncryptionKeys,
+					"key_encryption_key":  keyEncryptionKeys,
+				},
+			}
+		}
+
 		return []interface{}{
 			map[string]interface{}{
-				// TODO: remove `enabled` assignment in 3.0
-				"enabled":             true,
 				"disk_encryption_key": diskEncryptionKeys,
 				"key_encryption_key":  keyEncryptionKeys,
 			},

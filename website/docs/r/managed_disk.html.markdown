@@ -113,6 +113,8 @@ The following arguments are supported:
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
+~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified.

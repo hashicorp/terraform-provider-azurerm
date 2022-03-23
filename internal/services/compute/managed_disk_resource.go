@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -257,6 +258,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			return s
 		}(),
+
+		// Encryption Settings cannot be disabled once enabled
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.ThreePointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 

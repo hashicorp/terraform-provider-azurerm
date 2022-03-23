@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
+~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
