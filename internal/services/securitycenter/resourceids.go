@@ -10,4 +10,3 @@ package securitycenter
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IotSecuritySolution -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/IoTSecuritySolutions/solution1
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VulnerabilityAssessmentVm -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm-name1/providers/Microsoft.Security/serverVulnerabilityAssessments/default1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VulnerabilityAssessmentArcVm -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine-name/providers/Microsoft.Security/serverVulnerabilityAssessments/Default
