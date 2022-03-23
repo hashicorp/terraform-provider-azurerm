@@ -28,7 +28,8 @@ Each of the blocks defined below can be optionally specified to configure the be
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy         = true
+      recover_soft_deleted_api_managements = true
     }
 
     cognitive_account {
@@ -91,7 +92,9 @@ The `features` block supports the following:
 
 The `api_management` block supports the following:
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted_api_managements` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
 
 ---
 
@@ -115,7 +118,7 @@ The `key_vault` block supports the following:
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 

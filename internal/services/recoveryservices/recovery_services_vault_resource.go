@@ -355,7 +355,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if props := storageCfg.Properties; props != nil {
 		d.Set("storage_mode_type", string(props.StorageModelType))
-		d.Set("cross_region_restore_enabled", *props.CrossRegionRestoreFlag)
+		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
 	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {

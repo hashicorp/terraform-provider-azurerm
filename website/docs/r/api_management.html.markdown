@@ -200,6 +200,8 @@ A `proxy` block supports the following:
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
+* `ssl_keyvault_identity_client_id` - (Optional) The Managed Identity Client ID to use to access the Key Vault. This Identity must be specified in the `identity` block to be used.
+
 ---
 
 A `protocols` block supports the following:

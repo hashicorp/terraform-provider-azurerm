@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
@@ -258,6 +261,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_https_traffic_only": {
@@ -1031,7 +1036,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 
 	parameters := storage.AccountCreateParameters{
-		Location: &location,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
@@ -1186,8 +1192,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
 
 	if infrastructureEncryption {
-		if accountKind != string(storage.KindStorageV2) {
-			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`")
+		if !((accountTier == string(storage.SkuTierPremium) && accountKind == string(storage.KindBlockBlobStorage)) ||
+			(accountKind == string(storage.KindStorageV2))) {
+			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
@@ -1750,9 +1757,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
@@ -3301,4 +3307,23 @@ func getDefaultAllowBlobPublicAccessName() string {
 		return "allow_nested_items_to_be_public"
 	}
 	return "allow_blob_public_access"
+}
+
+func expandEdgeZone(input string) *storage.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &storage.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: storage.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *storage.ExtendedLocation) string {
+	if input == nil || input.Type != storage.ExtendedLocationTypesEdgeZone || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }
