@@ -35,7 +35,7 @@ var sharedSkus = []string{
 }
 
 var consumptionSkus = []string{
-	"PC2", "PC3", "PC4", "Y1",
+	"Y1",
 }
 
 var elasticSkus = []string{
