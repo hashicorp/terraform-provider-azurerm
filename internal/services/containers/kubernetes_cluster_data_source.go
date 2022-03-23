@@ -381,36 +381,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.SystemOrUserAssignedIdentityComputed()
-			}(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
@@ -1777,44 +1748,6 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 }
 
 func flattenClusterDataSourceIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		// if it's none, omit the block
-		if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-			return &[]interface{}{}, nil
-		}
-
-		identity := make(map[string]interface{})
-
-		identity["principal_id"] = ""
-		if input.PrincipalID != nil {
-			identity["principal_id"] = *input.PrincipalID
-		}
-
-		identity["tenant_id"] = ""
-		if input.TenantID != nil {
-			identity["tenant_id"] = *input.TenantID
-		}
-
-		identity["user_assigned_identity_id"] = ""
-		if input.UserAssignedIdentities != nil {
-			keys := []string{}
-			for key := range input.UserAssignedIdentities {
-				keys = append(keys, key)
-			}
-			if len(keys) > 0 {
-				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
-				if err != nil {
-					return nil, err
-				}
-				identity["user_assigned_identity_id"] = parsedId.ID()
-			}
-		}
-
-		identity["type"] = string(input.Type)
-
-		return &[]interface{}{identity}, nil
-	}
-
 	var transform *identity.SystemOrUserAssignedMap
 
 	if input != nil {
