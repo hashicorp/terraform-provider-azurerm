@@ -1271,6 +1271,20 @@ The field `spark_version` will no longer accept the value `3.0`.
 
 ### Resource: `azurerm_synapse_workspace_key`
 
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_synapse_workspace" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
+### Resource: `azurerm_synapse_workspace_key`
+
 The deprecated field `cusomter_managed_key_name` will be removed in favour of the `customer_managed_key_name` property.
 
 ### Resource: `azurerm_traffic_manager_endpoint`
