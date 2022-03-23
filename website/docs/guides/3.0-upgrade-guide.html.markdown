@@ -420,7 +420,7 @@ The field `resource_group_name` will be removed since it can be inferred from th
 
 ### Resource: `azurerm_dashboard`
 
-This resource has been renamed to `azurerm_portal_dashboard`.
+This resource is now deprecated and has been replaced by the `azurerm_portal_dashboard` resource - the `azurerm_dashboard` resource will be removed in v4.0 of the AzureRM Provider.
 
 ### Resource: `azurerm_data_factory_dataset_binary`
 
