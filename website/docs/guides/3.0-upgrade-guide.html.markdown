@@ -709,6 +709,8 @@ The default value for the field `negate_condition` will change from `true` to `f
 
 The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 The deprecated field `client_affinity_enabled` will be removed since it is no longer configurable.
 
 The deprecated field `storage_connection_string` will be removed in favour of the `storage_account_name` and `storage_account_access_key` properties.
