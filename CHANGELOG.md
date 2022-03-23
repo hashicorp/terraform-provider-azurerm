@@ -121,6 +121,7 @@ BUG FIXES:
 * `azurerm_log_analytics_cluster_customer_managed_key` - detecting when the Customer Managed Key has been removed [GH-15973]
 * `azurerm_mssql_database_vulnerability_assessment_rule_baseline` - prevent the resource from being replaced every apply [GH-14759]
 * `azurerm_security_center_auto_provisioning ` - validating the Resource ID during import [GH-15989] 
+* `azurerm_security_center_setting` - changing the `setting_name` property now forces a new resource [GH-15983]
 * `azurerm_synapse_workspace` - fixing a bug where workspaces created from a Dedicated SQL Pool / SQL Data Warehouse couldn't be retrieved [GH-15829]
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]
 * `azurerm_windows_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
