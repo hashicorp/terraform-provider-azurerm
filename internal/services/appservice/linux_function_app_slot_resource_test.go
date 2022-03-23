@@ -592,7 +592,7 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuStandardPlan, "6"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -608,7 +608,7 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet6Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "6"),
+			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
