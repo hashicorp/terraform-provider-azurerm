@@ -297,6 +297,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			privatedns.Registration{},
 			purview.Registration{},
 			recoveryservices.Registration{},
+			redhatopenshift.Registration{},
 			redis.Registration{},
 			redisenterprise.Registration{},
 			relay.Registration{},
