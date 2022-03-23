@@ -94,6 +94,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

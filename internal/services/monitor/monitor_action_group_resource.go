@@ -6,14 +6,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
 	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -103,7 +104,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"workspace_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.IsUUID,
+							ValidateFunc: validate.WorkspaceID,
 						},
 						"connection_id": {
 							Type:         pluginsdk.TypeString,
@@ -735,7 +736,6 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		val := receiverValue.(map[string]interface{})
 
 		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-
 		if err != nil {
 			return nil, err
 		}

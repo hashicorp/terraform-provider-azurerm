@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AttestationProviderDataSource struct {
-}
+type AttestationProviderDataSource struct{}
 
 func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")

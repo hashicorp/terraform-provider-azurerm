@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SubnetDataSource struct {
-}
+type SubnetDataSource struct{}
 
 func TestAccDataSourceSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")

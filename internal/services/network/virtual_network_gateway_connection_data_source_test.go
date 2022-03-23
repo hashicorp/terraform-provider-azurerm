@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualNetworkGatewayConnectionDataSource struct {
-}
+type VirtualNetworkGatewayConnectionDataSource struct{}
 
 func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")

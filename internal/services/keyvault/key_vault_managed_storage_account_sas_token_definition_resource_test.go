@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct {
-}
+type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct{}
 
 func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")

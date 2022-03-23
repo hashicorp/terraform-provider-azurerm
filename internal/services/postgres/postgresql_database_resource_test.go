@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLDatabaseResource struct {
-}
+type PostgreSQLDatabaseResource struct{}
 
 func TestAccPostgreSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")

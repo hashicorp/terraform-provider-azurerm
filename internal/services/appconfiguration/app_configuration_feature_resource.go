@@ -25,8 +25,7 @@ const (
 	FeatureKeyPrefix      = ".appconfig.featureflag"
 )
 
-type FeatureResource struct {
-}
+type FeatureResource struct{}
 
 var _ sdk.ResourceWithUpdate = FeatureResource{}
 

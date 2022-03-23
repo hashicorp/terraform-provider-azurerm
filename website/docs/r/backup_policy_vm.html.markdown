@@ -85,8 +85,6 @@ The following arguments are supported:
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ---
 
 The `backup` block supports:

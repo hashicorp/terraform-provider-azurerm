@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyDataSource struct {
-}
+type KeyDataSource struct{}
 
 var _ sdk.DataSource = KeyDataSource{}
 

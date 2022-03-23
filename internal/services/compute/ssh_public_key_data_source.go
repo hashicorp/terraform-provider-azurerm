@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -24,7 +24,6 @@ func dataSourceSshPublicKey() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -34,7 +33,7 @@ func dataSourceSshPublicKey() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"public_key": {
 				Type:     pluginsdk.TypeString,
@@ -69,7 +68,7 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	var publicKey *string
 	if props := resp.SSHPublicKeyResourceProperties; props.PublicKey != nil {
-		publicKey, err = utils.NormalizeSSHKey(*props.PublicKey)
+		publicKey, err = NormalizeSSHKey(*props.PublicKey)
 		if err != nil {
 			return fmt.Errorf("normalising public key: %+v", err)
 		}

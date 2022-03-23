@@ -168,7 +168,6 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	}
 
 	read, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
-
 	if err != nil {
 		return err
 	}

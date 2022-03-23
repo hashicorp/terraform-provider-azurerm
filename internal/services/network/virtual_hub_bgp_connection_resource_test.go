@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubBGPConnectionResource struct {
-}
+type VirtualHubBGPConnectionResource struct{}
 
 func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")

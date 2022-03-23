@@ -22,7 +22,6 @@ func TestManagementGroupAssignmentID(t *testing.T) {
 		Error    bool
 		Expected *ManagementGroupAssignmentId
 	}{
-
 		{
 			// empty
 			Input: "",

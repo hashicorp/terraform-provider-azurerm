@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceAssignmentVirtualMachineResource struct {
-}
+type MaintenanceAssignmentVirtualMachineResource struct{}
 
 func TestAccMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")

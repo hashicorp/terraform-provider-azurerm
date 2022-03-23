@@ -102,6 +102,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 
 	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
+	var existingAPIKeyId *parse.ApiKeyId
 	var keyId string
 	existingAPIKeyList, err = client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name)
 	if err != nil {
@@ -111,7 +112,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err := parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+		existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
 		if err != nil {
 			return err
 		}
@@ -131,8 +132,8 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_application_insights_api_key", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) && existingAPIKeyId != nil {
+		return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
 	}
 
 	apiKeyProperties := insights.APIKeyRequest{

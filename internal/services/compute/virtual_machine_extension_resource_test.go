@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualMachineExtensionResource struct {
-}
+type VirtualMachineExtensionResource struct{}
 
 func TestAccVirtualMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")

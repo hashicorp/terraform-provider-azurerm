@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualMachineScaleSetDataSource struct {
-}
+type VirtualMachineScaleSetDataSource struct{}
 
 func TestAccDataSourceVirtualMachineScaleSet_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")

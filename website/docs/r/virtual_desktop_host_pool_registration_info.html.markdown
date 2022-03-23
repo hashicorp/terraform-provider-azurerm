@@ -8,11 +8,7 @@ description: |-
 
 # azurerm_virtual_desktop_host_pool_registration_info
 
-Manages a Virtual Desktop Host Pool Registration Info.
-
-~> **NOTE on Host Pools and Registration Info:** Terraform currently provides both a standalone [Virtual Desktop Host Pool Registration Info resource](virtual_desktop_host_pool_registration_info.html), and allows for a Registration_Info block to be defined in-line within the [Virtual Desktop Host Pool resource](virtual_desktop_host_pool.html).
-At this time you cannot use a Host Pool with an in-line `registration_info` in conjunction with a Virtual Desktop Host Pool Registration Info resource. Doing so will cause a conflict of Host Pool configurations and will overwrite in-line registration info settings. 
-Use of the [Virtual Desktop Host Pool Registration Info resource](virtual_desktop_host_pool_registration_info.html) is recommended as the token value will become inconsistent when using the in-line `registration_info` block in the [Virtual Desktop Host Pool resource](virtual_desktop_host_pool.html).
+Manages the Registration Info for a Virtual Desktop Host Pool.
 
 ## Example Usage
 

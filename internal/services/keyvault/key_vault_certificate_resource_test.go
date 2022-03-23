@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultCertificateResource struct {
-}
+type KeyVaultCertificateResource struct{}
 
 func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
@@ -672,7 +671,7 @@ resource "azurerm_key_vault_certificate" "test" {
       }
 
       trigger {
-        days_before_expiry = 30
+        lifetime_percentage = 30
       }
     }
 

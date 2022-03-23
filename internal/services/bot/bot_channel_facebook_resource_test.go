@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotChannelFacebookResource struct {
-}
+type BotChannelFacebookResource struct{}
 
 func testAccBotChannelFacebook_basic(t *testing.T) {
 	skipFacebookChannel(t)

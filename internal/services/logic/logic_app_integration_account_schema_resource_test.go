@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogicAppIntegrationAccountSchemaResource struct {
-}
+type LogicAppIntegrationAccountSchemaResource struct{}
 
 func TestAccLogicAppIntegrationAccountSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_schema", "test")

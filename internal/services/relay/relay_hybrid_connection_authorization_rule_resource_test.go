@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RelayHybridConnectionAuthorizationRuleResource struct {
-}
+type RelayHybridConnectionAuthorizationRuleResource struct{}
 
 func TestAccRelayHybridConnectionAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection_authorization_rule", "test")

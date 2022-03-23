@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightHadoopClusterResource struct {
-}
+type HDInsightHadoopClusterResource struct{}
 
 func TestAccHDInsightHadoopCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
@@ -660,7 +659,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -673,7 +672,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -701,7 +700,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_hadoop_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -792,7 +790,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -805,20 +802,20 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
 
     worker_node {
-      vm_size               = "Standard_D4_v2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       ssh_keys              = [var.ssh_key]
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
@@ -843,7 +840,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -856,20 +852,20 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4_v2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -912,7 +908,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -925,7 +920,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -933,7 +928,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D4_v2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -942,7 +937,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -983,7 +978,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1001,7 +995,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1009,7 +1003,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D4_v2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -1018,7 +1012,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1049,7 +1043,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1062,7 +1055,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1075,7 +1068,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1108,7 +1101,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1120,7 +1112,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1131,7 +1123,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1169,7 +1161,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1186,7 +1177,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1197,7 +1188,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1621,7 +1612,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1632,7 +1622,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1643,7 +1633,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1707,7 +1697,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1718,7 +1707,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1729,7 +1718,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1795,7 +1784,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1806,7 +1794,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1817,7 +1805,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1857,7 +1845,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1870,7 +1857,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1883,7 +1870,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1920,7 +1907,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1931,7 +1918,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1963,7 +1950,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1980,7 +1967,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       }
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2012,7 +1999,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2038,7 +2025,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       }
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2092,7 +2079,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_v2"
+      vm_size            = "Standard_D3_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id

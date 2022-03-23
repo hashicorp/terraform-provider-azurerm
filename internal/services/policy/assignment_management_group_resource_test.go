@@ -107,6 +107,28 @@ func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicySet(t *testing
 	})
 }
 
+func TestAccManagementGroupPolicyAssignment_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
+	r := ManagementGroupAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagementGroupPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_assignment", "test")
 	r := ManagementGroupAssignmentTestResource{}
@@ -720,4 +742,68 @@ resource "azurerm_management_group" "test" {
   display_name = "Acceptance Test MgmtGroup %[1]d"
 }
 `, data.RandomInteger)
+}
+
+func (r ManagementGroupAssignmentTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomString, data.Locations.Primary)
+}
+
+func (r ManagementGroupAssignmentTestResource) userAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-pa-%[2]s"
+  location = %[3]q
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestua%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_management_group_policy_assignment" "test" {
+  name                 = "acctestpol-%[2]s"
+  management_group_id  = azurerm_management_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomString, data.Locations.Primary)
 }

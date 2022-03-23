@@ -181,7 +181,6 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName).ID())
 
 	if props := resp.Properties; props != nil {
-
 		if err := d.Set("event_handler", flattenEventHandler(props.EventHandlers)); err != nil {
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}

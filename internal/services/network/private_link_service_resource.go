@@ -60,6 +60,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_proxy_protocol": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -441,6 +442,7 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 		return res, "Pending", nil
 	}
 }
+
 func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

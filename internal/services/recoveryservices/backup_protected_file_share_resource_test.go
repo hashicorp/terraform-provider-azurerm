@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectedFileShareResource struct {
-}
+type BackupProtectedFileShareResource struct{}
 
 // TODO: These tests fail because enabling backup on file shares with no content
 func TestAccBackupProtectedFileShare_basic(t *testing.T) {

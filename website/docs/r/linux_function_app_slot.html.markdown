@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Function App Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -70,8 +68,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App Slot.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -100,11 +96,21 @@ The following arguments are supported:
 
 * `identity` - (Optional) an `identity` block as detailed below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
+
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified. 
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -501,7 +507,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App Slot.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App Slot.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App Slot.
 
 ## Import

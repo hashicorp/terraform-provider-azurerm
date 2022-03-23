@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbVirtualNetworkRuleResource struct {
-}
+type MariaDbVirtualNetworkRuleResource struct{}
 
 func TestAccMariaDbVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")

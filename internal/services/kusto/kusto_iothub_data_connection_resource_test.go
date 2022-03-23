@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoIotHubDataConnectionResource struct {
-}
+type KustoIotHubDataConnectionResource struct{}
 
 func TestAccKustoIotHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_iothub_data_connection", "test")

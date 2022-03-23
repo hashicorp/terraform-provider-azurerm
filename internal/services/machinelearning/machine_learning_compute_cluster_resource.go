@@ -5,9 +5,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,7 +64,14 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningservices.VMPriorityDedicated), string(machinelearningservices.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": SystemAssignedUserAssigned{}.Schema(),
+			"identity": func() *schema.Schema {
+				// TODO: 3.0 - document this in the upgrade guide
+				if features.ThreePointOhBeta() {
+					return commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew()
+				}
+
+				return identityLegacySchema()
+			}(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
@@ -202,9 +212,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Expand(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	computeClusterParameters := machinelearningservices.ComputeResource{
@@ -291,11 +301,13 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Flatten(computeResource.Identity)
+	identity, err := flattenIdentity(computeResource.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
-	d.Set("identity", identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, computeResource.Tags)
 }

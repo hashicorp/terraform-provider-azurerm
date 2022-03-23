@@ -160,6 +160,64 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
 						//lintignore:XS003
+						"resource_health": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"current": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Available",
+												"Degraded",
+												"Unavailable",
+												"Unknown",
+											},
+												false,
+											),
+										},
+										Set: pluginsdk.HashString,
+									},
+									"previous": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Available",
+												"Degraded",
+												"Unavailable",
+												"Unknown",
+											},
+												false,
+											),
+										},
+										Set: pluginsdk.HashString,
+									},
+									"reason": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"PlatformInitiated",
+												"UserInitiated",
+												"Unknown",
+											},
+												false,
+											),
+										},
+										Set: pluginsdk.HashString,
+									},
+								},
+							},
+							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.service_health"},
+						},
+						//lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -203,7 +261,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 									},
 								},
 							},
-							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name"},
+							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.resource_health"},
 						},
 					},
 				},
@@ -440,6 +498,10 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 		})
 	}
 
+	if resourceHealth := v["resource_health"].([]interface{}); len(resourceHealth) > 0 {
+		conditions = expandResourceHealth(resourceHealth, conditions)
+	}
+
 	if serviceHealth := v["service_health"].([]interface{}); len(serviceHealth) > 0 {
 		conditions = expandServiceHealth(serviceHealth, conditions)
 	}
@@ -447,6 +509,61 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 	return &insights.AlertRuleAllOfCondition{
 		AllOf: &conditions,
 	}
+}
+
+func expandResourceHealth(resourceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
+	for _, serviceItem := range resourceHealth {
+		if serviceItem == nil {
+			continue
+		}
+		vs := serviceItem.(map[string]interface{})
+
+		cv := vs["current"].(*pluginsdk.Set)
+		if len(cv.List()) > 0 {
+			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
+			for _, e := range cv.List() {
+				event := e.(string)
+				ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
+					Field:  utils.String("properties.currentHealthStatus"),
+					Equals: utils.String(event),
+				})
+			}
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				AnyOf: &ruleLeafCondition,
+			})
+		}
+
+		pv := vs["previous"].(*pluginsdk.Set)
+		if len(pv.List()) > 0 {
+			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
+			for _, e := range pv.List() {
+				event := e.(string)
+				ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
+					Field:  utils.String("properties.previousHealthStatus"),
+					Equals: utils.String(event),
+				})
+			}
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				AnyOf: &ruleLeafCondition,
+			})
+		}
+
+		rv := vs["reason"].(*pluginsdk.Set)
+		if len(rv.List()) > 0 {
+			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
+			for _, e := range rv.List() {
+				event := e.(string)
+				ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
+					Field:  utils.String("properties.cause"),
+					Equals: utils.String(event),
+				})
+			}
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				AnyOf: &ruleLeafCondition,
+			})
+		}
+	}
+	return conditions
 }
 
 func expandServiceHealth(serviceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
@@ -544,11 +661,39 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.AlertRuleAllOfCondit
 		}
 	}
 
+	if result["category"] == "ResourceHealth" {
+		flattenMonitorActivityLogAlertResourceHealth(input, result)
+	}
+
 	if result["category"] == "ServiceHealth" {
 		flattenMonitorActivityLogAlertServiceHealth(input, result)
 	}
 
 	return []interface{}{result}
+}
+
+func flattenMonitorActivityLogAlertResourceHealth(input *insights.AlertRuleAllOfCondition, result map[string]interface{}) {
+	rhResult := make(map[string]interface{})
+	for _, condition := range *input.AllOf {
+		if condition.Field == nil && len(*condition.AnyOf) > 0 {
+			values := []string{}
+			for _, cond := range *condition.AnyOf {
+				if cond.Field != nil && cond.Equals != nil {
+					values = append(values, *cond.Equals)
+				}
+				switch strings.ToLower(*cond.Field) {
+				case "properties.currenthealthstatus":
+					rhResult["current"] = values
+				case "properties.previoushealthstatus":
+					rhResult["previous"] = values
+				case "properties.cause":
+					rhResult["reason"] = values
+				}
+			}
+		}
+	}
+
+	result["resource_health"] = []interface{}{rhResult}
 }
 
 func flattenMonitorActivityLogAlertServiceHealth(input *insights.AlertRuleAllOfCondition, result map[string]interface{}) {

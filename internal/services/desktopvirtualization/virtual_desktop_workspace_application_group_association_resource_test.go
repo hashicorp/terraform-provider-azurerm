@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct {
-}
+type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct{}
 
 func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")

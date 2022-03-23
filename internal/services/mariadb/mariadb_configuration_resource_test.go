@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbConfigurationResource struct {
-}
+type MariaDbConfigurationResource struct{}
 
 func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")

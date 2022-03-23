@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubnetNetworkSecurityGroupAssociationResource struct {
-}
+type SubnetNetworkSecurityGroupAssociationResource struct{}
 
 func TestAccSubnetNetworkSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_network_security_group_association", "test")

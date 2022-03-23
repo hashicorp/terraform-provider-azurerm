@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -28,19 +29,40 @@ func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
+			"topic_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.TopicID,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "queue_name"},
+			},
+
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "queue_name"},
+			},
+
+			"queue_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.QueueName(),
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "queue_name"},
+			},
+
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "queue_name"},
 			},
 
 			"topic_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.TopicName(),
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"listen": {
 				Type:     pluginsdk.TypeBool,
@@ -102,7 +124,24 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewTopicAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var rgName string
+	var nsName string
+	var topicName string
+	if v, ok := d.Get("topic_id").(string); ok && v != "" {
+		topicId, err := parse.TopicID(v)
+		if err != nil {
+			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+		}
+		rgName = topicId.ResourceGroup
+		nsName = topicId.NamespaceName
+		topicName = topicId.Name
+	} else {
+		rgName = d.Get("resource_group_name").(string)
+		nsName = d.Get("namespace_name").(string)
+		topicName = d.Get("topic_name").(string)
+	}
+
+	id := parse.NewTopicAuthorizationRuleID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
 	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.AuthorizationRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

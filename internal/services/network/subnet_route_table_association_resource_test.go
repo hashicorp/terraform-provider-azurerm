@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubnetRouteTableAssociationResource struct {
-}
+type SubnetRouteTableAssociationResource struct{}
 
 func TestAccSubnetRouteTableAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")

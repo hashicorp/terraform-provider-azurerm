@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubSecurityPartnerProviderResource struct {
-}
+type VirtualHubSecurityPartnerProviderResource struct{}
 
 func TestAccVirtualHubSecurityPartnerProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_security_partner_provider", "test")

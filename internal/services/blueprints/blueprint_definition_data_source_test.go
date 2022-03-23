@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BlueprintDefinitionDataSource struct {
-}
+type BlueprintDefinitionDataSource struct{}
 
 //lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type LogicAppIntegrationAccountDataSource struct {
-}
+type LogicAppIntegrationAccountDataSource struct{}
 
 func TestAccLogicAppIntegrationAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_integration_account", "test")

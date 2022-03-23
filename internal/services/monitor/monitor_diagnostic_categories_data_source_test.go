@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorDiagnosticCategoriesDataSource struct {
-}
+type MonitorDiagnosticCategoriesDataSource struct{}
 
 func TestAccDataSourceMonitorDiagnosticCategories_appService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")

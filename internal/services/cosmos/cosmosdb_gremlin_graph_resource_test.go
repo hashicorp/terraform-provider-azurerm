@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosGremlinGraphResource struct {
-}
+type CosmosGremlinGraphResource struct{}
 
 func TestAccCosmosDbGremlinGraph_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
@@ -164,7 +163,6 @@ func TestAccCosmosDbGremlinGraph_partition_key_version(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.partition_key_version(data, 2),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -232,7 +230,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
@@ -259,7 +257,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = false
-    indexing_mode = "None"
+    indexing_mode = "none"
   }
 
   conflict_resolution_policy {
@@ -284,27 +282,27 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = true
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
 
@@ -339,27 +337,27 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic     = true
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -387,7 +385,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
@@ -416,7 +414,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }

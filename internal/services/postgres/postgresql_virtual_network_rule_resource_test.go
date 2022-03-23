@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLVirtualNetworkRuleResource struct {
-}
+type PostgreSQLVirtualNetworkRuleResource struct{}
 
 func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")

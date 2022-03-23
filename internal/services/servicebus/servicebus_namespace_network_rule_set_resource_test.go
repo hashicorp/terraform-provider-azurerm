@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceNetworkRuleSetResource struct {
-}
+type ServiceBusNamespaceNetworkRuleSetResource struct{}
 
 func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")

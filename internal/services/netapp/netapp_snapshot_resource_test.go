@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppSnapshotResource struct {
-}
+type NetAppSnapshotResource struct{}
 
 func TestAccNetAppSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")

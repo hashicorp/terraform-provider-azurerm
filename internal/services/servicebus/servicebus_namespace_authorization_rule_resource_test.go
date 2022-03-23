@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceAuthorizationRuleResource struct {
-}
+type ServiceBusNamespaceAuthorizationRuleResource struct{}
 
 func TestAccServiceBusNamespaceAuthorizationRule_listen(t *testing.T) {
 	testAccServiceBusNamespaceAuthorizationRule(t, true, false, false)

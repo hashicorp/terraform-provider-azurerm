@@ -51,6 +51,21 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the Web Pubsub service.
 
+* `identity` - An `identity` block as documented below.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The type of identity used for the web pubsub.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity. This value will be empty when using system assigned identity.
+
+* `principal_id` - The principal id of the system assigned identity.
+
+* `tenant_id` - The tenant id of the system assigned identity.
+
+---
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

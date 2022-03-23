@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceResource struct {
-}
+type EventHubNamespaceResource struct{}
 
 func TestAccEventHubNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
@@ -285,25 +284,6 @@ func TestAccEventHubNamespace_dedicatedClusterID(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccEventHubNamespace_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	r := EventHubNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
 	})
 }
 
@@ -672,6 +652,7 @@ resource "azurerm_eventhub_namespace" "test" {
     default_action = "Deny"
     ip_rule {
       ip_mask = "10.0.0.0/16"
+      action  = "Allow"
     }
   }
 }
@@ -820,26 +801,6 @@ resource "azurerm_eventhub_namespace" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (EventHubNamespaceResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventHubNamespaceResource) maximumThroughputUnits(data acceptance.TestData) string {

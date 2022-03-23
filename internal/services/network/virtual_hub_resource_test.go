@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubResource struct {
-}
+type VirtualHubResource struct{}
 
 func TestAccVirtualHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
@@ -25,6 +24,8 @@ func TestAccVirtualHub_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_router_asn").Exists(),
+				check.That(data.ResourceName).Key("virtual_router_ips").Exists(),
 			),
 		},
 		data.ImportStep(),

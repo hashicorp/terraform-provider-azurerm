@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectedVmResource struct {
-}
+type BackupProtectedVmResource struct{}
 
 func TestAccBackupProtectedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")

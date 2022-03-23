@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Data Share Account should exist. Changing this forces a new Data Share Account to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identity` - (Required) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Share Account. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Share Account. At this time the only allowed value is `SystemAssigned`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Data Share Account has been created. More details are available below.
 
@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Data Share Account.
 

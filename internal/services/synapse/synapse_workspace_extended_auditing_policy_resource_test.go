@@ -73,7 +73,6 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -81,7 +80,6 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -213,6 +211,9 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -305,8 +306,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name        = azurerm_resource_group.test.name
-  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_id         = azurerm_storage_account.test.id
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = [azurerm_subnet.test.id]

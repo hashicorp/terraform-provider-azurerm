@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HPCCacheResource struct {
-}
+type HPCCacheResource struct{}
 
 type HPCCacheDirectoryADInfo struct {
 	SubnetID networkParse.SubnetId

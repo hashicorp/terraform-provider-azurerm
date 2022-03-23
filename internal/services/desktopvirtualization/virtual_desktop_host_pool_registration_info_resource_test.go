@@ -14,15 +14,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolRegistrationInfoResource struct {
-}
+type VirtualDesktopHostPoolRegistrationInfoResource struct{}
 
 func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
 	// Set the expiration times
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	expirationTime := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -40,7 +39,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}
 
 	// Set the expiration times
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	expirationTimeBasic := timeNow.AddDate(0, 0, 1).Format(time.RFC3339)
 	expirationTimeComplete := timeNow.AddDate(0, 0, 2).Format(time.RFC3339)
 
@@ -67,7 +66,6 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 }
 
 func (VirtualDesktopHostPoolRegistrationInfoResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	id, err := parse.HostPoolRegistrationInfoID(state.ID)
 	if err != nil {
 		return nil, err

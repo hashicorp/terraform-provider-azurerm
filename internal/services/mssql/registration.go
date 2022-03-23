@@ -7,8 +7,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/mssql"
@@ -45,6 +47,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mssql_job_agent":                                       resourceMsSqlJobAgent(),
 		"azurerm_mssql_job_credential":                                  resourceMsSqlJobCredential(),
 		"azurerm_mssql_firewall_rule":                                   resourceMsSqlFirewallRule(),
+		"azurerm_mssql_outbound_firewall_rule":                          resourceMsSqlOutboundFirewallRule(),
 		"azurerm_mssql_server":                                          resourceMsSqlServer(),
 		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
 		"azurerm_mssql_server_security_alert_policy":                    resourceMsSqlServerSecurityAlertPolicy(),
@@ -57,12 +60,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		MsSqlManagedInstanceDataSource{},
+	}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		MsSqlFailoverGroupResource{},
+		MsSqlManagedDatabaseResource{},
+		MsSqlManagedInstanceActiveDirectoryAdministratorResource{},
+		MsSqlManagedInstanceFailoverGroupResource{},
+		MsSqlManagedInstanceResource{},
 	}
 }

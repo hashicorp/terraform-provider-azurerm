@@ -62,7 +62,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Geo"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -454,10 +454,10 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccountTypeLRS(data),
+			Config: r.storageAccountTypeLocal(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 			),
 		},
 		data.ImportStep("sample_name"),
@@ -1289,7 +1289,7 @@ resource "azurerm_mssql_database" "restore" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) storageAccountTypeLocal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1297,7 +1297,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_mssql_server.test.id
 
-  storage_account_type = "LRS"
+  storage_account_type = "Local"
 }
 `, r.template(data), data.RandomInteger)
 }

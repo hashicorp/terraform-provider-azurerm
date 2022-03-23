@@ -22,7 +22,7 @@ func (r ResourceAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"resource_id": {
-			//TODO: tests for this
+			// TODO: tests for this
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

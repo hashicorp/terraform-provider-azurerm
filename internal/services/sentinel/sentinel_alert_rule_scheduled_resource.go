@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/rickb777/date/period"
 )
+
+// entityMatchingMethodMap maps the entity matching method used in old API version (prior to 2021-09-01-preview) to the new ones.
+// TODO 3.0 - Remove this mapping
+var entityMatchingMethodMap = map[string]string{
+	"All":    string(securityinsight.MatchingMethodAnyAlert),
+	"Custom": string(securityinsight.MatchingMethodSelected),
+	"None":   string(securityinsight.MatchingMethodAllEntities),
+}
 
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -151,12 +159,29 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									"entity_matching_method": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  securityinsight.EntitiesMatchingMethodNone,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(securityinsight.EntitiesMatchingMethodAll),
-											string(securityinsight.EntitiesMatchingMethodCustom),
-											string(securityinsight.EntitiesMatchingMethodNone),
-										}, false),
+										Default:  securityinsight.MatchingMethodAnyAlert,
+										// TODO 3.0 - remove the hardcoded string literals
+										ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+											v, ok := i.(string)
+											if !ok {
+												return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
+											}
+											valid := []string{
+												string(securityinsight.MatchingMethodAnyAlert),
+												string(securityinsight.MatchingMethodSelected),
+												string(securityinsight.MatchingMethodAllEntities),
+											}
+											for _, str := range valid {
+												if str == v {
+													return nil, nil
+												}
+											}
+											if mm, ok := entityMatchingMethodMap[v]; ok {
+												return []string{fmt.Sprintf("%q is deprecated in favor of %q", v, mm)}, nil
+											}
+
+											return nil, []error{fmt.Errorf("expected %s to be one of %v, got %s", k, valid, v)}
+										},
 									},
 									"group_by": {
 										Type:     pluginsdk.TypeSet,
@@ -164,10 +189,24 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(securityinsight.GroupingEntityTypeAccount),
-												string(securityinsight.GroupingEntityTypeHost),
-												string(securityinsight.GroupingEntityTypeIP),
-												string(securityinsight.GroupingEntityTypeURL),
+												string(securityinsight.EntityMappingTypeAccount),
+												string(securityinsight.EntityMappingTypeAzureResource),
+												string(securityinsight.EntityMappingTypeCloudApplication),
+												string(securityinsight.EntityMappingTypeDNS),
+												string(securityinsight.EntityMappingTypeFile),
+												string(securityinsight.EntityMappingTypeFileHash),
+												string(securityinsight.EntityMappingTypeHost),
+												string(securityinsight.EntityMappingTypeIP),
+												string(securityinsight.EntityMappingTypeMailbox),
+												string(securityinsight.EntityMappingTypeMailCluster),
+												string(securityinsight.EntityMappingTypeMailMessage),
+												string(securityinsight.EntityMappingTypeMalware),
+												string(securityinsight.EntityMappingTypeProcess),
+												string(securityinsight.EntityMappingTypeRegistryKey),
+												string(securityinsight.EntityMappingTypeRegistryValue),
+												string(securityinsight.EntityMappingTypeSecurityGroup),
+												string(securityinsight.EntityMappingTypeSubmissionMail),
+												string(securityinsight.EntityMappingTypeURL),
 											}, false),
 										},
 									},
@@ -262,7 +301,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q: %+v", id, err)
@@ -326,7 +365,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q: %+v", id, err)
 		}
@@ -337,7 +376,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Etag = resp.Value.(securityinsight.ScheduledAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name, param); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Scheduled %q: %+v", id, err)
 	}
 
@@ -356,7 +395,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Scheduled %q was not found - removing from state!", id)
@@ -421,7 +460,7 @@ func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Scheduled %q: %+v", id, err)
 	}
 
@@ -492,17 +531,21 @@ func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.Grou
 
 	raw := input[0].(map[string]interface{})
 
+	mm := raw["entity_matching_method"].(string)
+	if nmm, ok := entityMatchingMethodMap[mm]; ok {
+		mm = nmm
+	}
 	output := &securityinsight.GroupingConfiguration{
-		Enabled:                utils.Bool(raw["enabled"].(bool)),
-		ReopenClosedIncident:   utils.Bool(raw["reopen_closed_incidents"].(bool)),
-		LookbackDuration:       utils.String(raw["lookback_duration"].(string)),
-		EntitiesMatchingMethod: securityinsight.EntitiesMatchingMethod(raw["entity_matching_method"].(string)),
+		Enabled:              utils.Bool(raw["enabled"].(bool)),
+		ReopenClosedIncident: utils.Bool(raw["reopen_closed_incidents"].(bool)),
+		LookbackDuration:     utils.String(raw["lookback_duration"].(string)),
+		MatchingMethod:       securityinsight.MatchingMethod(mm),
 	}
 
 	groupByEntitiesSet := raw["group_by"].(*pluginsdk.Set).List()
-	groupByEntities := make([]securityinsight.GroupingEntityType, len(groupByEntitiesSet))
+	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesSet))
 	for idx, t := range groupByEntitiesSet {
-		groupByEntities[idx] = securityinsight.GroupingEntityType(t.(string))
+		groupByEntities[idx] = securityinsight.EntityMappingType(t.(string))
 	}
 	output.GroupByEntities = &groupByEntities
 
@@ -556,7 +599,7 @@ func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfigurat
 			"enabled":                 enabled,
 			"lookback_duration":       lookbackDuration,
 			"reopen_closed_incidents": reopenClosedIncidents,
-			"entity_matching_method":  string(input.EntitiesMatchingMethod),
+			"entity_matching_method":  string(input.MatchingMethod),
 			"group_by":                groupByEntities,
 		},
 	}

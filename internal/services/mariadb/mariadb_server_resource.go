@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -71,9 +72,15 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
 				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
@@ -198,7 +205,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								string(mariadb.StorageAutogrowEnabled),
 								string(mariadb.StorageAutogrowDisabled),
 							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -210,7 +218,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -227,7 +236,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
 							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},
@@ -241,7 +251,8 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 								validation.IntBetween(5120, 4096000),
 								validation.IntDivisibleBy(1024),
 							),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
+							AtLeastOneOf: []string{
+								"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
 								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
 							},
 						},

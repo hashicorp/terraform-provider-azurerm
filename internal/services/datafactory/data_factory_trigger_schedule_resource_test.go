@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TriggerScheduleResource struct {
-}
+type TriggerScheduleResource struct{}
 
 func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
@@ -115,9 +114,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -125,10 +123,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "acctestdf%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  pipeline_name       = azurerm_data_factory_pipeline.test.name
+  name            = "acctestdf%d"
+  data_factory_id = azurerm_data_factory.test.id
+  pipeline_name   = azurerm_data_factory_pipeline.test.name
 
   annotations = ["test1", "test2", "test3"]
 }
@@ -153,9 +150,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -164,8 +160,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   pipeline_name       = azurerm_data_factory_pipeline.test.name
   description         = "test"
   pipeline_parameters = azurerm_data_factory_pipeline.test.parameters
@@ -197,9 +192,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -207,10 +201,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "acctestdf%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  pipeline_name       = azurerm_data_factory_pipeline.test.name
+  name            = "acctestdf%d"
+  data_factory_id = azurerm_data_factory.test.id
+  pipeline_name   = azurerm_data_factory_pipeline.test.name
 
   annotations = ["test1", "test2", "test3"]
   activated   = true
@@ -243,9 +236,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -253,10 +245,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "acctestdf%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  pipeline_name       = azurerm_data_factory_pipeline.test.name
+  name            = "acctestdf%d"
+  data_factory_id = azurerm_data_factory.test.id
+  pipeline_name   = azurerm_data_factory_pipeline.test.name
 
   annotations = ["test1", "test2", "test3"]
   frequency   = "Month"

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +29,7 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
-			"location": location.SchemaWithoutForceNew(),
+			"location": commonschema.LocationWithoutForceNew(),
 
 			"accounts": {
 				Type:     pluginsdk.TypeList,

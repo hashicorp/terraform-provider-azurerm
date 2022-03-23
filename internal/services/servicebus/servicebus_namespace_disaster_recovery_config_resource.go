@@ -19,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceDisasterRecoveryConfigResource struct {
-}
+type ServiceBusNamespaceDisasterRecoveryConfigResource struct{}
 
 func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -42,7 +41,6 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,

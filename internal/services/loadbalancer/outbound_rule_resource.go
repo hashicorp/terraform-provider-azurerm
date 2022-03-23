@@ -94,6 +94,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_tcp_reset": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

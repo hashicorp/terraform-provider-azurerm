@@ -10,8 +10,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = ApiVersionSetV0ToV1{}
 
-type ApiVersionSetV0ToV1 struct {
-}
+type ApiVersionSetV0ToV1 struct{}
 
 func (ApiVersionSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

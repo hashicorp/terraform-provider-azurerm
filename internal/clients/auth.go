@@ -41,9 +41,7 @@ func NewResourceManagerAccount(ctx context.Context, config authentication.Config
 		TenantId:                         config.TenantID,
 		SkipResourceProviderRegistration: skipResourceProviderRegistration,
 		SubscriptionId:                   config.SubscriptionID,
-
-		// TODO: default to `true` in v3.0
-		UseMSAL: config.UseMicrosoftGraph,
+		UseMSAL:                          config.UseMicrosoftGraph,
 	}
 	return &account, nil
 }

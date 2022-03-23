@@ -55,7 +55,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string          = azurerm_storage_account.example.primary_blob_connection_string

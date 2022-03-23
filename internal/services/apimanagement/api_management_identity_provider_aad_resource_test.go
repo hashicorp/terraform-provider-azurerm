@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementIdentityProviderAADResource struct {
-}
+type ApiManagementIdentityProviderAADResource struct{}
 
 func TestAccApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")

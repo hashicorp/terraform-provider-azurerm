@@ -22,7 +22,6 @@ func TestTenantTemplateDeploymentID(t *testing.T) {
 		Error    bool
 		Expected *TenantTemplateDeploymentId
 	}{
-
 		{
 			// empty
 			Input: "",

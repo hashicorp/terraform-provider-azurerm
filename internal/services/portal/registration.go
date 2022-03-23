@@ -1,6 +1,7 @@
 package portal
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,13 +28,19 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_portal_dashboard": dataSourcePortalDashboard(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	dashboardName := "azurerm_portal_dashboard"
+	if !features.ThreePointOhBeta() {
+		dashboardName = "azurerm_dashboard"
+	}
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dashboard":                   resourceDashboard(), // TODO 3.0 rename to azurerm_portal_dashboard
+		dashboardName:                         resourceDashboard(),
 		"azurerm_portal_tenant_configuration": resourcePortalTenantConfiguration(),
 	}
 }

@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PolicyVirtualMachineConfigurationAssignmentDataSource struct {
-}
+type PolicyVirtualMachineConfigurationAssignmentDataSource struct{}
 
 func TestAccPolicyVirtualMachineConfigurationAssignmentDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_virtual_machine_configuration_assignment", "test")

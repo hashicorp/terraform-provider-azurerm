@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// NOTE: we intentionally don't have an Optional & Computed here for behavioural consistency.
+
 // NOTE: there's two different types of SystemOrUserAssignedIdentity supported by Azure:
 // The first (List) represents the IdentityIDs as a List of Strings
 // The other (Map) represents the IdentityIDs as a Map of String : Object (containing Client/PrincipalID)
@@ -50,6 +52,46 @@ func SystemOrUserAssignedIdentityRequired() *schema.Schema {
 	}
 }
 
+// SystemOrUserAssignedIdentityRequiredForceNew returns the System or User Assigned Identity schema where this is Required and ForceNew
+func SystemOrUserAssignedIdentityRequiredForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 // SystemOrUserAssignedIdentityOptional returns the System or User Assigned Identity schema where this is Optional
 func SystemOrUserAssignedIdentityOptional() *schema.Schema {
 	return &schema.Schema{
@@ -69,6 +111,46 @@ func SystemOrUserAssignedIdentityOptional() *schema.Schema {
 				"identity_ids": {
 					Type:     schema.TypeSet,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+// SystemOrUserAssignedIdentityOptionalForceNew returns the System or User Assigned Identity schema where this is Optional and ForceNew
+func SystemOrUserAssignedIdentityOptionalForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(identity.TypeUserAssigned),
+						string(identity.TypeSystemAssigned),
+					}, false),
+				},
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualMachineScaleSetExtensionResource struct {
-}
+type VirtualMachineScaleSetExtensionResource struct{}
 
 func TestAccVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")

@@ -33,6 +33,7 @@ resource "azurerm_vpn_site" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   virtual_wan_id      = azurerm_virtual_wan.example.id
+  address_cidrs       = ["10.0.0.0/24"]
 
   link {
     name       = "link1"
@@ -59,6 +60,8 @@ The following arguments are supported:
 
 * `address_cidrs` - (Optional) Specifies a list of IP address CIDRs that are located on your on-premises site. Traffic destined for these address spaces is routed to your local site.
 
+-> **NOTE:** The `address_cidrs` has to be set when the `link.bgp` isn't specified.
+
 * `device_model` - (Optional) The model of the VPN device.
 
 * `device_vendor` - (Optional) The name of the VPN device vendor.
@@ -80,6 +83,8 @@ A `link` block supports the following:
 * `name` - (Required) The name which should be used for this VPN Site Link.
 
 * `bgp` - (Optional) A `bgp` block as defined above.
+
+-> **NOTE:** The `link.bgp` has to be set when the `address_cidrs` isn't specified.
 
 * `fqdn` - (Optional) The FQDN of this VPN Site Link.
 

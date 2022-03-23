@@ -12,8 +12,10 @@ type ResourceGroupConsumptionBudget struct {
 	base consumptionBudgetBaseResource
 }
 
-var _ sdk.Resource = ResourceGroupConsumptionBudget{}
-var _ sdk.ResourceWithCustomImporter = ResourceGroupConsumptionBudget{}
+var (
+	_ sdk.Resource                   = ResourceGroupConsumptionBudget{}
+	_ sdk.ResourceWithCustomImporter = ResourceGroupConsumptionBudget{}
+)
 
 func (r ResourceGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{

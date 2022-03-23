@@ -22,7 +22,6 @@ func TestMicrosoftCustomerAccountBillingScopeID(t *testing.T) {
 		Error    bool
 		Expected *MicrosoftCustomerAccountBillingScopeId
 	}{
-
 		{
 			// empty
 			Input: "",

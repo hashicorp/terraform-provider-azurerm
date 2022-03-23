@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
+  
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
@@ -58,6 +60,19 @@ The following arguments are supported:
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
 * `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
+
+---
+An `custom_persistent_disk` block exports the following:
+
+* `storage_name` - (Required) The name of the Spring Cloud Storage.
+
+* `mount_path` - (Required) The mount path of the persistent disk.
+
+* `share_name` - (Required) The share name of the Azure File share.
+
+* `mount_options` - (Optional) These are the mount options for a persistent disk.
+
+* `read_only_enabled` - (Optional) Indicates whether the persistent disk is a readOnly one.
 
 ---
 

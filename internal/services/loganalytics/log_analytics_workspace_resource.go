@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -85,7 +86,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
-				}, true),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 
@@ -291,8 +292,13 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")
+	skuName := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
+		for _, v := range operationalinsights.PossibleSkuNameEnumValues() {
+			if strings.EqualFold(string(v), string(sku.Name)) {
+				skuName = string(v)
+			}
+		}
 
 		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 			d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
@@ -300,6 +306,8 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
 		}
 	}
+	d.Set("sku", skuName)
+
 	d.Set("retention_in_days", resp.RetentionInDays)
 	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		// Special case for "Free" tier
@@ -361,5 +369,5 @@ func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *plu
 		old = new
 	}
 
-	return suppress.CaseDifference(k, old, new, d)
+	return suppress.CaseDifferenceV2Only(k, old, new, d)
 }

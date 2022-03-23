@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -25,8 +27,11 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 		Read:   resourceKeyVaultAccessPolicyRead,
 		Update: resourceKeyVaultAccessPolicyUpdate,
 		Delete: resourceKeyVaultAccessPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		// TODO: switch below to using an ID Parser and then replace this with an importer which validates the ID during import
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -102,6 +102,8 @@ The following arguments are supported:
 
 * `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
 
+* `force_customer_storage_for_profiler` - (Optional) Should the Application Insights component force users to create their own storage account for profiling? Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:

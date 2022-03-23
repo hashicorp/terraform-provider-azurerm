@@ -20,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyResource struct {
-}
+type KeyResource struct{}
 
 var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
 
@@ -378,6 +377,7 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 	}
 }
+
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
 }

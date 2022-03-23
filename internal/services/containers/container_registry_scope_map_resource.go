@@ -19,11 +19,15 @@ import (
 
 func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryScopeMapCreate,
-		Read:     resourceContainerRegistryScopeMapRead,
-		Update:   resourceContainerRegistryScopeMapUpdate,
-		Delete:   resourceContainerRegistryScopeMapDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceContainerRegistryScopeMapCreate,
+		Read:   resourceContainerRegistryScopeMapRead,
+		Update: resourceContainerRegistryScopeMapUpdate,
+		Delete: resourceContainerRegistryScopeMapDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerRegistryScopeMapID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -158,7 +162,6 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.ScopeMapName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Scope Map %q was not found in Container Registry %q in Resource Group %q", id.ScopeMapName, id.RegistryName, id.ResourceGroup)

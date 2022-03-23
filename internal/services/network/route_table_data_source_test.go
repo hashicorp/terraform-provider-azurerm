@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type RouteTableDataSource struct {
-}
+type RouteTableDataSource struct{}
 
 func TestAccDataSourceRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")

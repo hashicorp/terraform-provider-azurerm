@@ -33,6 +33,10 @@ resource "azurerm_web_pubsub" "example" {
     messaging_logs_enabled    = true
     connectivity_logs_enabled = false
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -59,6 +63,8 @@ The following arguments are supported:
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
@@ -77,6 +83,14 @@ A `live_trace` block supports the following:
 * `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
 
 * `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of identity used for the Web PubSub service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+
+* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Web PubSub service.
 
 ## Attributes Reference
 

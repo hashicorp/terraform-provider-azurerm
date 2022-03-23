@@ -53,27 +53,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			// TODO remove in 3.0
-			"data_factory_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
-				ExactlyOneOf: []string{"data_factory_id"},
-			},
-
 			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true, // TODO set to Required in 3.0
-				Computed:     true, // TODO remove in 3.0
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
-				ExactlyOneOf: []string{"data_factory_name"},
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
@@ -440,18 +425,9 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO remove/simplify this after deprecation in 3.0
-	var err error
-	var dataFactoryId *parse.DataFactoryId
-	if v := d.Get("data_factory_name").(string); v != "" {
-		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
-		dataFactoryId = &newDataFactoryId
-	}
-	if v := d.Get("data_factory_id").(string); v != "" {
-		dataFactoryId, err = parse.DataFactoryID(v)
-		if err != nil {
-			return err
-		}
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
 	}
 
 	id := parse.NewIntegrationRuntimeID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
@@ -518,9 +494,6 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO remove in 3.0
-	d.Set("data_factory_name", id.FactoryName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()

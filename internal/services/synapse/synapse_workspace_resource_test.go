@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -202,22 +200,6 @@ func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Cl
 
 func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
-
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-}
-`, template, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -238,20 +220,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_workspace" "import" {
-  name                                 = azurerm_synapse_workspace.test.name
-  resource_group_name                  = azurerm_synapse_workspace.test.resource_group_name
-  location                             = azurerm_synapse_workspace.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_synapse_workspace.test.storage_data_lake_gen2_filesystem_id
-  sql_administrator_login              = azurerm_synapse_workspace.test.sql_administrator_login
-  sql_administrator_login_password     = azurerm_synapse_workspace.test.sql_administrator_login_password
-}
-`, config)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -272,56 +240,6 @@ resource "azurerm_synapse_workspace" "import" {
 
 func (r SynapseWorkspaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {}
-
-
-resource "azurerm_purview_account" "test" {
-  name                = "acctestacc%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  sku_name            = "Standard_1"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "%s-vnet"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "%s-subnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-  data_exfiltration_protection_enabled = true
-  managed_virtual_network_enabled      = true
-  managed_resource_group_name          = "acctest-ManagedSynapse-%d"
-  sql_identity_control_enabled         = true
-  public_network_access_enabled        = false
-  linking_allowed_for_aad_tenant_ids   = [data.azurerm_client_config.current.tenant_id]
-  purview_id                           = azurerm_purview_account.test.id
-  compute_subnet_id                    = azurerm_subnet.test.id
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -332,7 +250,10 @@ resource "azurerm_purview_account" "test" {
   name                = "acctestacc%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  sku_name            = "Standard_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -378,33 +299,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR4!"
-  sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  tags = {
-    ENV = "Test2"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -438,34 +332,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR4!"
-  sql_identity_control_enabled         = true
-
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  tags = {
-    ENV = "Test2"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -500,39 +366,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR4!"
-  sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  tags = {
-    ENV = "Test2"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -572,29 +405,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) azureDevOps(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-
-  azure_devops_repo {
-    account_name    = "myorg"
-    project_name    = "myproj"
-    repository_name = "myrepo"
-    branch_name     = "dev"
-    root_folder     = "/"
-    last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -624,31 +434,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) azureDevOpsTenant(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-
-  azure_devops_repo {
-    account_name    = "myorg"
-    project_name    = "myproj"
-    repository_name = "myrepo"
-    branch_name     = "dev"
-    root_folder     = "/"
-    tenant_id       = data.azurerm_client_config.current.tenant_id
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -680,29 +465,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) github(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-
-  github_repo {
-    account_name    = "myuser"
-    git_url         = "https://github.mydomain.com"
-    repository_name = "myrepo"
-    branch_name     = "dev"
-    root_folder     = "/"
-    last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -732,57 +494,6 @@ resource "azurerm_synapse_workspace" "test" {
 
 func (r SynapseWorkspaceResource) customerManagedKey(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_key_vault" "test" {
-  name                     = "acckv%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-    key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "key"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts = [
-    "unwrapKey",
-    "wrapKey"
-  ]
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key {
-    key_versionless_id = azurerm_key_vault_key.test.versionless_id
-  }
-
-}
-`, template, data.RandomInteger, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -800,10 +511,10 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 }
@@ -843,7 +554,8 @@ func (r SynapseWorkspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

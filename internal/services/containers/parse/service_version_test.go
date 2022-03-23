@@ -24,7 +24,6 @@ func TestServiceVersionID(t *testing.T) {
 		Error    bool
 		Expected *ServiceVersionId
 	}{
-
 		{
 			// empty
 			Input: "",

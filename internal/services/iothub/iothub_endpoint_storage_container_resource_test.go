@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubEndpointStorageContainerResource struct {
-}
+type IotHubEndpointStorageContainerResource struct{}
 
 func TestAccIotHubEndpointStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
@@ -192,7 +191,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   container_name    = "acctestcont"
@@ -243,7 +242,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   container_name    = "acctestcont"
@@ -263,7 +262,7 @@ func (r IotHubEndpointStorageContainerResource) requiresImport(data acceptance.T
 
 resource "azurerm_iothub_endpoint_storage_container" "import" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   container_name    = "acctestcont"
@@ -363,7 +362,7 @@ func (r IotHubEndpointStorageContainerResource) authenticationTypeDefault(data a
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   container_name    = azurerm_storage_container.test.name
@@ -378,7 +377,7 @@ func (r IotHubEndpointStorageContainerResource) authenticationTypeSystemAssigned
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"
@@ -398,7 +397,7 @@ func (r IotHubEndpointStorageContainerResource) authenticationTypeUserAssignedId
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"

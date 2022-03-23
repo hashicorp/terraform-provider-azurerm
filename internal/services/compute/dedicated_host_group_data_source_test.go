@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DedicatedHostGroupDataSource struct {
-}
+type DedicatedHostGroupDataSource struct{}
 
 func TestAccDataSourceDedicatedHostGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dedicated_host_group", "test")

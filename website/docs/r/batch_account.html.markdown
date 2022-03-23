@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
+* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -83,6 +85,12 @@ A `key_vault_reference` block supports the following:
 * `id` - (Required) The Azure identifier of the Azure KeyVault to use.
 
 * `url` - (Required) The HTTPS URL of the Azure KeyVault to use.
+
+---
+
+A `encryption` block supports the following:
+
+* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
 
 ## Attributes Reference
 

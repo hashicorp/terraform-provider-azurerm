@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceAuthorizationRuleResource struct {
-}
+type EventHubNamespaceAuthorizationRuleResource struct{}
 
 func TestAccEventHubNamespaceAuthorizationRule_listen(t *testing.T) {
 	testAccEventHubNamespaceAuthorizationRule(t, true, false, false)

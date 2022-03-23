@@ -50,11 +50,17 @@ func (client BackupInstancesClient) AdhocBackup(ctx context.Context, vaultName s
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.BackupRuleOptions", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.BackupRuleOptions.RuleName", Name: validation.Null, Rule: true, Chain: nil},
+		{
+			TargetValue: parameters,
+			Constraints: []validation.Constraint{{
+				Target: "parameters.BackupRuleOptions", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{
+					{Target: "parameters.BackupRuleOptions.RuleName", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.BackupRuleOptions.TriggerOption", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				},
+			}},
+		},
+	}); err != nil {
 		return result, validation.NewError("dataprotection.BackupInstancesClient", "AdhocBackup", err.Error())
 	}
 
@@ -142,26 +148,51 @@ func (client BackupInstancesClient) CreateOrUpdate(ctx context.Context, vaultNam
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.Properties.DataSourceInfo", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.Properties.DataSourceInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.Properties.DataSourceSetInfo", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.Properties.DataSourceSetInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.Properties.PolicyInfo", Name: validation.Null, Rule: true,
-						Chain: []validation.Constraint{{Target: "parameters.Properties.PolicyInfo.PolicyID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.Properties.ProtectionStatus", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionStatus.ErrorDetails", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionStatus.ErrorDetails.InnerError", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionStatus.ErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}}},
-							}},
-						}},
-					{Target: "parameters.Properties.ProtectionErrorDetails", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionErrorDetails.InnerError", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}}},
-						}},
+		{
+			TargetValue: parameters,
+			Constraints: []validation.Constraint{{
+				Target: "parameters.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{
+					{
+						Target: "parameters.Properties.DataSourceInfo", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "parameters.Properties.DataSourceInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.Properties.DataSourceSetInfo", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.Properties.DataSourceSetInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.Properties.PolicyInfo", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "parameters.Properties.PolicyInfo.PolicyID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.Properties.ProtectionStatus", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{
+							{
+								Target: "parameters.Properties.ProtectionStatus.ErrorDetails", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{
+									{
+										Target: "parameters.Properties.ProtectionStatus.ErrorDetails.InnerError", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionStatus.ErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}},
+									},
+								},
+							},
+						},
+					},
+					{
+						Target: "parameters.Properties.ProtectionErrorDetails", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{
+							{
+								Target: "parameters.Properties.ProtectionErrorDetails.InnerError", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.Properties.ProtectionErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}},
+							},
+						},
+					},
 					{Target: "parameters.Properties.ObjectType", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				},
+			}},
+		},
+	}); err != nil {
 		return result, validation.NewError("dataprotection.BackupInstancesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -523,9 +554,14 @@ func (client BackupInstancesClient) TriggerRehydrate(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.RecoveryPointID", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.RehydrationRetentionDuration", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		{
+			TargetValue: parameters,
+			Constraints: []validation.Constraint{
+				{Target: "parameters.RecoveryPointID", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.RehydrationRetentionDuration", Name: validation.Null, Rule: true, Chain: nil},
+			},
+		},
+	}); err != nil {
 		return result, validation.NewError("dataprotection.BackupInstancesClient", "TriggerRehydrate", err.Error())
 	}
 
@@ -694,26 +730,51 @@ func (client BackupInstancesClient) ValidateForBackup(ctx context.Context, vault
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.BackupInstance", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.BackupInstance.DataSourceInfo", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.BackupInstance.DataSourceInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.BackupInstance.DataSourceSetInfo", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.DataSourceSetInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.BackupInstance.PolicyInfo", Name: validation.Null, Rule: true,
-						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.PolicyInfo.PolicyID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "parameters.BackupInstance.ProtectionStatus", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails.InnerError", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}}},
-							}},
-						}},
-					{Target: "parameters.BackupInstance.ProtectionErrorDetails", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionErrorDetails.InnerError", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}}},
-						}},
+		{
+			TargetValue: parameters,
+			Constraints: []validation.Constraint{{
+				Target: "parameters.BackupInstance", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{
+					{
+						Target: "parameters.BackupInstance.DataSourceInfo", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.DataSourceInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.BackupInstance.DataSourceSetInfo", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.DataSourceSetInfo.ResourceID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.BackupInstance.PolicyInfo", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "parameters.BackupInstance.PolicyInfo.PolicyID", Name: validation.Null, Rule: true, Chain: nil}},
+					},
+					{
+						Target: "parameters.BackupInstance.ProtectionStatus", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{
+							{
+								Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{
+									{
+										Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails.InnerError", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionStatus.ErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}},
+									},
+								},
+							},
+						},
+					},
+					{
+						Target: "parameters.BackupInstance.ProtectionErrorDetails", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{
+							{
+								Target: "parameters.BackupInstance.ProtectionErrorDetails.InnerError", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.BackupInstance.ProtectionErrorDetails.InnerError.EmbeddedInnerError", Name: validation.Null, Rule: false, Chain: nil}},
+							},
+						},
+					},
 					{Target: "parameters.BackupInstance.ObjectType", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				},
+			}},
+		},
+	}); err != nil {
 		return result, validation.NewError("dataprotection.BackupInstancesClient", "ValidateForBackup", err.Error())
 	}
 

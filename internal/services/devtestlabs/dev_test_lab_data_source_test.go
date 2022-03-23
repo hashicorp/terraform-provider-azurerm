@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AzureRMDevTestLabDataSource struct {
-}
+type AzureRMDevTestLabDataSource struct{}
 
 func TestAccAzureRMDevTestLabDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")

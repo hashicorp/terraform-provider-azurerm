@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type RedisCacheDataSource struct {
-}
+type RedisCacheDataSource struct{}
 
 func TestAccRedisCacheDataSource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_cache", "test")

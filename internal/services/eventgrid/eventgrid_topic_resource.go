@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,11 +52,11 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": IdentitySchema(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"input_schema": {
 				Type:     pluginsdk.TypeString,
@@ -303,7 +304,11 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("endpoint", props.Endpoint)
 	}
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenedIdentity, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 

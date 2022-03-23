@@ -10,8 +10,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = ApplicationV0ToV1{}
 
-type ApplicationV0ToV1 struct {
-}
+type ApplicationV0ToV1 struct{}
 
 func (ApplicationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

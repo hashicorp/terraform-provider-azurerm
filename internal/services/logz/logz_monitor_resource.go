@@ -8,10 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -93,8 +94,8 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"MONTHLY",
 								"WEEKLY",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"effective_date": {
@@ -111,8 +112,8 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"100gb14days",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"usage_type": {
@@ -122,8 +123,8 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"PAYG",
 								"COMMITTED",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
 				},
@@ -177,6 +178,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.MonitorClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
