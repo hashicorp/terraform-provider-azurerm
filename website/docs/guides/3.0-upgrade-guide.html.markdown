@@ -912,6 +912,10 @@ The deprecated field `backend_address` will be removed since it is no longer fun
 
 The fields `availability_zone` and `zones` will be consolidated into `zones`.
 
+### Resource: `azurerm_lb_outbound_rule`
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
+
 ### Resource: `azurerm_lb_rule`
 
 The deprecated field `backend_address_pool_id` will be removed in favour of `backend_address_pool_ids`.
