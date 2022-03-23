@@ -126,7 +126,7 @@ func (r VPNSiteResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_site" "test" {
-  name                = "acctest-VpnSite-%d"
+  name                = "acctest-VpnSite-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -149,6 +149,9 @@ resource "azurerm_vpn_site" "test" {
   link {
     name = "link2"
     fqdn = "foo.com"
+  }
+  tags = {
+    ENV = "Test"
   }
 }
 `, r.template(data), data.RandomInteger)
