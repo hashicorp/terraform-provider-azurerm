@@ -931,17 +931,25 @@ The field `sku_name` no longer accepts the value `Enterprise` ([more information
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource `azurerm_machine_learning_compute_instance`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
 
 ### Resource `azurerm_machine_learning_inference_cluster`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource `azurerm_machine_learning_synapse_spark`
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
 
 ### Resource `azurerm_machine_learning_workspace`
 
