@@ -21,17 +21,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourcePortalDashboard() *pluginsdk.Resource {
+func resourceLegacyDashboard() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePortalDashboardCreateUpdate,
-		Read:   resourcePortalDashboardRead,
-		Update: resourcePortalDashboardCreateUpdate,
-		Delete: resourcePortalDashboardDelete,
+		Create: resourceLegacyDashboardCreateUpdate,
+		Read:   resourceLegacyDashboardRead,
+		Update: resourceLegacyDashboardCreateUpdate,
+		Delete: resourceLegacyDashboardDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DashboardID(id)
 			return err
 		}),
+
+		DeprecationMessage: "The `azurerm_dashboard` resource is deprecated and will be removed in v4.0 of the AzureRM Provider - the replacement is available as `azurerm_portal_dashboard`.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -60,7 +62,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 	}
 }
 
-func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLegacyDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -76,7 +78,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+			return tf.ImportAsExistsError("azurerm_dashboard", id.ID())
 		}
 	}
 
@@ -98,10 +100,10 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
-	return resourcePortalDashboardRead(d, meta)
+	return resourceLegacyDashboardRead(d, meta)
 }
 
-func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLegacyDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +138,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLegacyDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
