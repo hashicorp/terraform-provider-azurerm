@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * provider: added a new feature flag within the `key_vault` block for `recover_soft_deleted_secrets`, for configuring whether a soft-deleted `azurerm_key_vault_secret` should be recovered during creation [GH-10273]
 * provider: added a new feature flag within the `key_vault` block for `purge_soft_deleted_secrets_on_destroy`, for configuring whether a deleted `azurerm_key_vault_secret` should be purged during deletion [GH-10273]
 * provider: added a new feature flag within the `resource_group` block for `prevent_deletion_if_contains_resources`, for configuring whether Terraform should prevent the deletion of a Resource Group which still contains items [GH-13777]
+* provider: the feature flag `permanently_delete_on_destroy` within the `log_analytics_workspace` block now defaults to `true` [GH-15948]
 * Resources supporting Availability Zones: Zones are now treated consistently across the Provider and the field within Terraform has been renamed to either `zone` (for a single Zone) or `zones` (where multiple can be defined) - the complete list of resources can be found in the 3.0 Upgrade Guide [GH-14588]
 * Resources supporting Managed Identity: Identity blocks are now treated consistently across the Provider - the complete list of resources can be found in the 3.0 Upgrade Guide [GH-15187]
 * provider: removing the `network` and `relaxed_locking` feature flags, since this is now enabled by default [GH-15719]
@@ -41,6 +42,8 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - add support for the `storage_key_vault_secret_id` property [GH-15793]
 * `azurerm_linux_function_app` - updating the read timeout to be `5m` [GH-15867]
 * `azurerm_linux_function_app` - support for node version `16` preview [GH-15884]
+* `azurerm_linux_function_app` - add support for `use_dotnet_isolated_runtime` [GH-15969]
+* `azurerm_linux_function_app_slot` - add support for `use_dotnet_isolated_runtime` [GH-15969]
 * `azurerm_linux_function_app_slot` - add support for `storage_key_vault_secret_id` [GH-15793]
 * `azurerm_linux_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_linux_virtual_machine` - support for the `termination_notification` property [GH-14933]
@@ -59,6 +62,7 @@ ENHANCEMENTS:
 * `azurerm_resource_group` - Terraform now checks during the deletion of a Resource Group if there's any items remaining and will raise an error if so by default (to avoid deleting items unintentionally). This behaviour can be controlled using the `prevent_deletion_if_contains_resources` feature-flag within the `resource_group` block within the `features` block. [GH-13777]
 * `azurerm_resource_group_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_resource_policy_assignment` - support for User Assigned Identities [GH-15376]
+* `azurerm_site_recovery_replicated_vm` - support for the `target_availability_zone` property [GH-15617]
 * `azurerm_shared_image` - support for the `support_accelerated_network` property [GH-15562]
 * `azurerm_static_site` - the `identity` property now supports `SystemAssigned` and `UserAssigned` [GH-15834]
 * `azurerm_storage_account` - support for the `edge_zone` property [GH-15890]
@@ -71,11 +75,14 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` - updating the read timeout to be `5m` [GH-15867]
 * `azurerm_windows_function_app` node version validation string can not be prefixed with `~` [GH-15884]
 * `azurerm_windows_function_app` support for node version `16` preview support [GH-15884]
+* `azurerm_windows_function_app` - add support for `use_dotnet_isolated_runtime` [GH-15969]
+* `azurerm_windows_function_app_slot` - add support for `use_dotnet_isolated_runtime` [GH-15969]
 * `azurerm_windows_function_app_slot` - add support for the `storage_key_vault_secret_id` property [GH-15793]
 * `azurerm_windows_function_app_slot` - updating the read timeout to be 5m [GH-15867]
 * `azurerm_windows_virtual_machine` - support for the `termination_notification` property [GH-14933]
 * `azurerm_windows_virtual_machine` - support for the `edge_zone` property [GH-15890]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `edge_zone` property [GH-15890]
+
 
 BUG FIXES:
 
@@ -95,9 +102,14 @@ BUG FIXES:
 * `azurerm_container_registry` - validate the `georepliactions` property does not include the location of the Container Registry [GH-15847]
 * `azurerm_cosmosdb_mongo_collection` - the `default_ttl_seconds` property can now be set to `-1` [GH-15736]
 * `azurerm_eventhub` - prevent panic when the `capture_description` block is removed [GH-15930]
+* `azurerm_linux_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
+* `azurerm_linux_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_local_network_gateway` - fix for `address_space` cannot be updated [GH-15159]
+* `azurerm_mssql_database_vulnerability_assessment_rule_baseline` - prevent the resource from being replaced every apply [GH-14759]
 * `azurerm_synapse_workspace` - fixing a bug where workspaces created from a Dedicated SQL Pool / SQL Data Warehouse couldn't be retrieved [GH-15829]
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]
+* `azurerm_windows_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
+* `azurerm_windows_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 
 ---
 

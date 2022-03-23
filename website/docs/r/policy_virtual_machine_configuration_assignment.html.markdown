@@ -132,9 +132,6 @@ The following arguments are supported:
 
 A `configuration` block supports the following:
 
-[comment]: # (TODO: Remove in 3.0)
-* `name` - (Deprecated) This field is no longer used and will be removed in the next major version of the Azure Provider.
-
 * `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
 
 * `content_hash` - (Optional) The content hash for the Guest Configuration package.

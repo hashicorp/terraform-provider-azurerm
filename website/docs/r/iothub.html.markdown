@@ -222,16 +222,6 @@ A `identity` block supports the following:
 
 ---
 
-An `ip_filter_rule` block supports the following:
-
-* `name` - (Required) The name of the filter.
-
-* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
-
-* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
-
----
-
 A `network_rule_set` block supports the following:
 
 * `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `DefaultActionDeny`, `DefaultActionAllow`. Defaults to `DefaultActionDeny`.

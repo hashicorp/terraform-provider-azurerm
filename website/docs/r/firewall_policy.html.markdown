@@ -94,7 +94,7 @@ A `intrusion_detection` block supports the following:
 
 ---
 
-A `log_analytisc_workspace` block supports the following:
+A `log_analytics_workspace` block supports the following:
 
 * `id` - (Required) The ID of the Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to when their locations match the `firewall_location`.
 

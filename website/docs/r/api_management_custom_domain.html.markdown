@@ -87,7 +87,7 @@ resource "azurerm_key_vault_certificate" "example" {
 resource "azurerm_api_management_custom_domain" "example" {
   api_management_id = azurerm_api_management.example.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -135,7 +135,7 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 A `gateway` block supports the following:
 
--> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
+-> **Tip:** The default gateway hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
 
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 

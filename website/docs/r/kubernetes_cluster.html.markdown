@@ -429,14 +429,6 @@ The `kubelet_identity` block supports the following:
 
 ---
 
-A `kube_dashboard` block supports the following:
-
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
-
-~> **Note:** This block is deprecated and will be removed in version 3.0 of the AzureRM Provider since Kube Dashboard is no longer supported on Kubernetes versions > 1.19.
-
----
-
 A `linux_os_config` block supports the following:
 
 * `swap_file_size_mb` - (Optional) Specifies the size of swap file on each node in MB. Changing this forces a new resource to be created.
