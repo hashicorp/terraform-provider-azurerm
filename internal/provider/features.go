@@ -53,13 +53,60 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"recover_soft_deleted_key_vaults": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
 					"purge_soft_delete_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"purge_soft_deleted_certificates_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"purge_soft_deleted_keys_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"purge_soft_deleted_secrets_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_certificates": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_key_vaults": {
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_keys": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_secrets": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -168,57 +215,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
-	if features.ThreePointOhBeta() {
-		f := featuresMap["key_vault"].Elem.(*pluginsdk.Resource)
-		// TODO: Add this to 3.0 Upgrade guide
-		// `recover_soft_deleted_keys` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.
-		f.Schema["recover_soft_deleted_keys"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-
-		// TODO: Add this to 3.0 Upgrade guide
-		// `purge_soft_deleted_keys_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed.
-		f.Schema["purge_soft_deleted_keys_on_destroy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-
-		// TODO: Add this to 3.0 Upgrade guide
-		// `recover_soft_deleted_certificates` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.
-		f.Schema["recover_soft_deleted_certificates"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-
-		// TODO: Add this to 3.0 Upgrade guide
-		// `purge_soft_deleted_certificates_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed.
-		f.Schema["purge_soft_deleted_certificates_on_destroy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-
-		// TODO: Add this to 3.0 Upgrade guide
-		// `recover_soft_deleted_secrets` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.
-		f.Schema["recover_soft_deleted_secrets"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-
-		// TODO: Add this to 3.0 Upgrade guide
-		// `purge_soft_deleted_secrets_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed.
-		f.Schema["purge_soft_deleted_secrets_on_destroy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-	}
-
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
@@ -282,38 +278,26 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_certificates_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_secrets_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
+			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
 			}
-
-			if !features.ThreePointOhBeta() {
-				// Inherit Key Vault recovery setting by default. If we're on 3.0 then the code below will overwrite
-				// these values as needed.
-				featuresMap.KeyVault.RecoverSoftDeletedCerts = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-				featuresMap.KeyVault.RecoverSoftDeletedSecrets = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-				featuresMap.KeyVault.RecoverSoftDeletedKeys = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
-				featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
-				featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
-				featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
-			} else {
-				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
-					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
-				}
-				if v, ok := keyVaultRaw["purge_soft_deleted_certificates_on_destroy"]; ok {
-					featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = v.(bool)
-				}
-				if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
-					featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
-				}
-				if v, ok := keyVaultRaw["purge_soft_deleted_secrets_on_destroy"]; ok {
-					featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = v.(bool)
-				}
-				if v, ok := keyVaultRaw["recover_soft_deleted_keys"]; ok {
-					featuresMap.KeyVault.RecoverSoftDeletedKeys = v.(bool)
-				}
-				if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
-					featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
-				}
+			if v, ok := keyVaultRaw["recover_soft_deleted_keys"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedKeys = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
 			}
 		}
 	}

@@ -36,7 +36,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedSecrets:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: false,
+					PermanentlyDeleteOnDestroy: true,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,

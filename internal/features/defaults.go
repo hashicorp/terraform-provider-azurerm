@@ -21,7 +21,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedSecrets:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: false,
+			PermanentlyDeleteOnDestroy: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: false,
