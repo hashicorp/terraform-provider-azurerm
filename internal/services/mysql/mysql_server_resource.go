@@ -717,14 +717,6 @@ func expandServerSkuName(skuName string) (*mysql.Sku, error) {
 
 func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *mysql.StorageProfile {
 	storage := mysql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.GeoRedundantBackup = mysql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-		storage.StorageAutogrow = mysql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-	}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
