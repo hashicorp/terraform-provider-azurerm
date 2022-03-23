@@ -126,7 +126,7 @@ func (r VPNSiteResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_site" "test" {
-  name                = "acctest-VpnSite-%[2]d"
+  name                = "acctest-VpnSite-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
