@@ -254,7 +254,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										},
 									},
 									"key_usage": {
-										Type:     pluginsdk.TypeList,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
 										ForceNew: true,
 										Elem: &pluginsdk.Schema{
@@ -849,7 +849,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		extendedKeyUsage := utils.ExpandStringSlice(ekus)
 
 		keyUsage := make([]keyvault.KeyUsageType, 0)
-		keys := cert["key_usage"].([]interface{})
+		keys := cert["key_usage"].(*pluginsdk.Set).List()
 		for _, key := range keys {
 			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}
