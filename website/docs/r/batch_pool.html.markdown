@@ -200,17 +200,9 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
-* `max_task_retry_count` - (Optional) The number of retry count. Defaults to `1`.
-
--> **Note:** This property has been deprecated in favour of the `task_retry_maximum` property and will be removed in version 3.0 of the provider.
-
 * `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
-
-* `environment` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
-
--> **Note:** This property has been deprecated in favour of the `common_environment_properties` property and will be removed in version 3.0 of the provider.
 
 * `common_environment_properties` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
 
