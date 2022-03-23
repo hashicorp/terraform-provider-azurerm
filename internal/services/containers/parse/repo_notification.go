@@ -19,7 +19,7 @@ var allowedRepositoryNotificationActions = []RepositoryNotificationAction{
 	RepositoryNotificationActionAny,
 }
 
-type repositoryNotification struct {
+type RepositoryNotification struct {
 	Artifact
 	Action RepositoryNotificationAction
 }
@@ -30,7 +30,7 @@ type Artifact struct {
 	Digest string
 }
 
-func RepositoryNotification(v string) (*repositoryNotification, error) {
+func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 	idx := strings.LastIndex(v, ":")
 	if idx == -1 {
 		return nil, fmt.Errorf(`no separator ":" found`)
@@ -53,7 +53,7 @@ func RepositoryNotification(v string) (*repositoryNotification, error) {
 	if !isAllowedAction {
 		return nil, fmt.Errorf("invalid action %q found", action)
 	}
-	return &repositoryNotification{
+	return &RepositoryNotification{
 		Artifact: *artifact,
 		Action:   action,
 	}, nil
@@ -80,4 +80,19 @@ func parseArtifact(v string) (*Artifact, error) {
 		}, nil
 	}
 	return &Artifact{Name: v}, nil
+}
+
+func (r RepositoryNotification) String() string {
+	return fmt.Sprintf("%s:%s", r.Artifact, r.Action)
+}
+
+func (a Artifact) String() string {
+	out := a.Name
+	if a.Tag != "" {
+		out += ":" + a.Tag
+	}
+	if a.Digest != "" {
+		out += "@" + a.Digest
+	}
+	return out
 }

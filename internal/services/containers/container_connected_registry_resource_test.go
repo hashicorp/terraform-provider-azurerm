@@ -195,10 +195,14 @@ resource "azurerm_container_connected_registry" "test" {
   name                  = "testacccrc%[2]d"
   container_registry_id = azurerm_container_registry.test.id
   sync_token_id         = azurerm_container_registry_token.test.id
-  notification_list     = ["hello-world:*"]
-  log_level             = "Debug"
-  audit_log_enabled     = true
-  client_token_ids      = [azurerm_container_registry_token.client.id]
+  notification {
+    name   = "hello-world"
+    tag    = "latest"
+    action = "*"
+  }
+  log_level         = "Debug"
+  audit_log_enabled = true
+  client_token_ids  = [azurerm_container_registry_token.client.id]
 
   # This is necessary to make the Terraform apply order works correctly.
   # Without CBD: azurerm_container_registry_token.client (destroy) -> azurerm_container_connected_registry.test (update)

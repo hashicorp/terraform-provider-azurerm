@@ -13,7 +13,7 @@ func RepositoryNotification(input interface{}, key string) (warnings []string, e
 		return
 	}
 
-	if _, err := parse.RepositoryNotification(v); err != nil {
+	if _, err := parse.ParseRepositoryNotification(v); err != nil {
 		errors = append(errors, err)
 	}
 

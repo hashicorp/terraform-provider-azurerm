@@ -21,18 +21,25 @@ type ContainerConnectedRegistryResource struct{}
 var _ sdk.ResourceWithUpdate = ContainerConnectedRegistryResource{}
 
 type ContainerConnectedRegistryModel struct {
-	Name                string   `tfschema:"name"`
-	ContainerRegistryId string   `tfschema:"container_registry_id"`
-	ParentRegistryId    string   `tfschema:"parent_registry_id"`
-	SyncTokenId         string   `tfschema:"sync_token_id"`
-	SyncSchedule        string   `tfschema:"sync_schedule"`
-	SyncMessageTTL      string   `tfschema:"sync_message_ttl"`
-	SyncWindow          string   `tfschema:"sync_window"`
-	Mode                string   `tfschema:"mode"`
-	NotificationList    []string `tfschema:"notification_list"`
-	ClientTokenIds      []string `tfschema:"client_token_ids"`
-	LogLevel            string   `tfschema:"log_level"`
-	AuditLogEnabled     bool     `tfschema:"audit_log_enabled"`
+	Name                string                   `tfschema:"name"`
+	ContainerRegistryId string                   `tfschema:"container_registry_id"`
+	ParentRegistryId    string                   `tfschema:"parent_registry_id"`
+	SyncTokenId         string                   `tfschema:"sync_token_id"`
+	SyncSchedule        string                   `tfschema:"sync_schedule"`
+	SyncMessageTTL      string                   `tfschema:"sync_message_ttl"`
+	SyncWindow          string                   `tfschema:"sync_window"`
+	Mode                string                   `tfschema:"mode"`
+	RepoNotifications   []RepositoryNotification `tfschema:"notification"`
+	ClientTokenIds      []string                 `tfschema:"client_token_ids"`
+	LogLevel            string                   `tfschema:"log_level"`
+	AuditLogEnabled     bool                     `tfschema:"audit_log_enabled"`
+}
+
+type RepositoryNotification struct {
+	Name   string `tfschema:"name"`
+	Tag    string `tfschema:"tag"`
+	Digest string `tfschema:"digest"`
+	Action string `tfschema:"action"`
 }
 
 func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -101,12 +108,36 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 
-		"notification_list": {
+		"notification": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.RepositoryNotification,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"tag": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"digest": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(parse.RepositoryNotificationActionPush),
+							string(parse.RepositoryNotificationActionDelete),
+							string(parse.RepositoryNotificationActionAny),
+						}, false),
+					},
+				},
 			},
 		},
 
@@ -190,6 +221,11 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 				auditLogStatus = containerregistry.AuditLogStatusEnabled
 			}
 
+			notifications, err := r.expandRepoNotifications(model.RepoNotifications)
+			if err != nil {
+				return fmt.Errorf("expanding `notification`: %+v", err)
+			}
+
 			params := containerregistry.ConnectedRegistry{
 				ConnectedRegistryProperties: &containerregistry.ConnectedRegistryProperties{
 					Mode: containerregistry.ConnectedRegistryMode(model.Mode),
@@ -206,7 +242,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 						LogLevel:       containerregistry.LogLevel(model.LogLevel),
 						AuditLogStatus: auditLogStatus,
 					},
-					NotificationsList: &model.NotificationList,
+					NotificationsList: notifications,
 				},
 			}
 
@@ -303,6 +339,10 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			notifications, err := r.flattenRepoNotifications(notificationList)
+			if err != nil {
+				return fmt.Errorf("flattening `notification`: %+v", err)
+			}
 			model := ContainerConnectedRegistryModel{
 				Name:                id.ConnectedRegistryName,
 				ContainerRegistryId: rid.ID(),
@@ -312,7 +352,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 				SyncMessageTTL:      syncMessageTTL,
 				SyncWindow:          syncWindow,
 				Mode:                mode,
-				NotificationList:    notificationList,
+				RepoNotifications:   notifications,
 				ClientTokenIds:      clientTokenIds,
 				LogLevel:            logLevel,
 				AuditLogEnabled:     auditLogEnabled,
@@ -375,8 +415,12 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("mode") {
 					props.Mode = containerregistry.ConnectedRegistryMode(state.Mode)
 				}
-				if metadata.ResourceData.HasChange("notification_list") {
-					props.NotificationsList = &state.NotificationList
+				if metadata.ResourceData.HasChange("notification") {
+					notifications, err := r.expandRepoNotifications(state.RepoNotifications)
+					if err != nil {
+						return fmt.Errorf("expanding `notification`: %+v", err)
+					}
+					props.NotificationsList = notifications
 				}
 				if metadata.ResourceData.HasChange("client_token_ids") {
 					props.ClientTokenIds = &state.ClientTokenIds
@@ -421,4 +465,52 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r ContainerConnectedRegistryResource) expandRepoNotifications(input []RepositoryNotification) (*[]string, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	result := make([]string, 0)
+
+	for _, e := range input {
+		if e.Digest != "" && e.Tag != "" {
+			return nil, fmt.Errorf("notification %q has both `digest` and `tag` specified, only one of them is allowed", e.Name)
+		}
+		notification := parse.RepositoryNotification{
+			Artifact: parse.Artifact{
+				Name:   e.Name,
+				Tag:    e.Tag,
+				Digest: e.Digest,
+			},
+			Action: parse.RepositoryNotificationAction(e.Action),
+		}
+		result = append(result, notification.String())
+	}
+
+	return &result, nil
+}
+
+func (r ContainerConnectedRegistryResource) flattenRepoNotifications(input []string) ([]RepositoryNotification, error) {
+	if input == nil {
+		return []RepositoryNotification{}, nil
+	}
+
+	output := make([]RepositoryNotification, 0)
+
+	for _, e := range input {
+		notification, err := parse.ParseRepositoryNotification(e)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", e, err)
+		}
+		output = append(output, RepositoryNotification{
+			Name:   notification.Artifact.Name,
+			Tag:    notification.Artifact.Tag,
+			Digest: notification.Artifact.Digest,
+			Action: string(notification.Action),
+		})
+	}
+
+	return output, nil
 }

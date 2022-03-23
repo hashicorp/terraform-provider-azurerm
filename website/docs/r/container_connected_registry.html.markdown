@@ -78,7 +78,9 @@ The following arguments are supported:
 
 * `mode` - (Optional) The mode of the Connected Registry. Possible values are `Mirror`, `ReadOnly`, `ReadWrite` and `Registry`. Changing this forces a new Container Connected Registry to be created.
 
-* `notification_list` - (Optional) Specifies a list of notification subscriptions of the Connected Registry. Each notification is in the following format: `<artifacte>[:<tag>|@<digest>]:<action>`, where action can be one of `push`, `delete` and `*` (i.e. any).
+* `notification` - (Optional) One or more `notification` blocks as defined below.
+i
+Specifies a list of notification subscriptions of the Connected Registry. Each notification is in the following format: `<artifacte>[:<tag>|@<digest>]:<action>`, where action can be one of `push`, `delete` and `*` (i.e. any).
 
 * `parent_registry_id` - (Optional) The ID of the parent registry. This can be either a Container Registry ID or a Connected Registry ID. Changing this forces a new Container Connected Registry to be created.
 
@@ -87,6 +89,20 @@ The following arguments are supported:
 * `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent.
 
 * `sync_window` - (Optional) The time window (in form of ISO8601) during which sync is enabled for each schedule occurrence. Allowed range is from `PT3H` to `P7D`.
+
+---
+
+A `notification` block supports the following:
+
+* `name` - (Required) The name of the artifact that wants to be subscribed for the Connected Registry.
+
+* `action` - (Required) The action of the artifact that wants to be subscribed for the Connected Registry. Possible values are `push`, `delete` and `*` (i.e. any).
+
+* `tag` - (Optional) The tag of the artifact that wants to be subscribed for the Connected Registry.
+
+* `digest` - (Optional) The digest of the artifact that wants to be subscribed for the Connected Registry.
+
+~> **NOTE:** One of either `tag` or `digest` can be specified.
 
 ## Attributes Reference
 
