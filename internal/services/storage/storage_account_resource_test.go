@@ -3126,6 +3126,7 @@ func (r StorageAccountResource) shareSoftDeleteWithShareFile(data acceptance.Tes
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 resource "azurerm_storage_share_file" "test" {

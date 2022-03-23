@@ -2949,6 +2949,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "acctestshare"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 resource "azurerm_app_service" "test" {
