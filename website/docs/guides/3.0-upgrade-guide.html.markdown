@@ -1237,6 +1237,10 @@ The default value for the field `min_tls_version` will change from `TLS1_0` to `
 
 The field `allow_blob_public_access` will be removed in favour of the `allow_nested_items_to_be_public` property.
 
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
 ### Resource: `azurerm_storage_account_network_rules`
 
 The deprecated field `storage_account_name` will be removed in favour of the `storage_account_id` property.
