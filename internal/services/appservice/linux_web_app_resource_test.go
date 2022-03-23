@@ -689,66 +689,6 @@ func TestAccLinuxWebApp_withRuby27(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebApp_withNode101(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebApp_withNode106(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebApp_withNode1014(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.14"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebApp_withNode10LTS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10-lts"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLinuxWebApp_withNode12LTS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
