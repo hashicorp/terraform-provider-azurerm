@@ -212,20 +212,10 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	// Handle typoed property name
-	propName := "reservation_capacity_in_gb_per_day"
-	capacityReservationLevel, ok := d.GetOk(propName)
-
-	if ok {
-		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
-			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
-		} else {
-			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
-		}
+	if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
+		parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(d.Get("reservation_capacity_in_gb_per_day").(int))))
 	} else {
-		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
-			return fmt.Errorf("`%s` must be set when using the `CapacityReservation` SKU", propName)
-		}
+		return fmt.Errorf("`reservation_capacity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)

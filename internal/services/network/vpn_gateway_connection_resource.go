@@ -713,6 +713,7 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 
 	return []interface{}{
 		map[string]interface{}{
+			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 			"associated_route_table": associateRouteTable,
 		},
 	}

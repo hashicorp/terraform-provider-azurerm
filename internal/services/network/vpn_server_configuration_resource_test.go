@@ -71,6 +71,21 @@ func TestAccVPNServerConfiguration_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccVPNServerConfiguration_radius(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
+	r := VPNServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleRadius(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVPNServerConfiguration_multipleRadius(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 	r := VPNServerConfigurationResource{}

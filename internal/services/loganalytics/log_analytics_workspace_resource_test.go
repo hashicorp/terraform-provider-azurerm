@@ -501,11 +501,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                              = "acctestLAW-%d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  internet_query_enabled            = false
-  sku                               = "CapacityReservation"
+  name                               = "acctestLAW-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  internet_query_enabled             = false
+  sku                                = "CapacityReservation"
   reservation_capacity_in_gb_per_day = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
