@@ -182,8 +182,8 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
-			api_key = ""
-			application_key = ""
+			api_key = "XXX"
+			application_key = "XXX"
 		}
 		user_info {
 			name          = "Vidhi Kothari"
@@ -201,15 +201,21 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
-	
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acctest-datadog-%d"
+		location = "%s"
+	  }
 	resource "azurerm_datadog_monitor" "test" {
-		name = azurerm_datadog_monitor.test.name
+		name = "test-terraform-%d"
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
-			api_key = ""
-			application_key = ""
+			api_key = "XXX"
+			application_key = "XXX"
 		}
 		user_info {
 			name          = "Vidhi Kothari"
@@ -221,12 +227,12 @@ func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 		identity {
 			type = "SystemAssigned"
 		}
-		monitoring_status = flase
+		monitoring_status = false
 		tags = {
 			ENV = "Test"
 		}
 	}
-`, r.template(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
 }
 
 func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string {
@@ -237,8 +243,22 @@ func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string 
 	name                = azurerm_datadog_monitor.test.name
 	resource_group_name =  azurerm_resource_group.test.name
 	location            = azurerm_datadog_monitor.test.location
+	datadog_organization_properties {
+		api_key = "XXX"
+		application_key = "XXX"
 	}
-`, r.template(data))
+	user_info {
+		name          = "Vidhi Kothari"
+		email_address = "vidhi.kothari@microsoft.com"
+	}
+	sku {
+		name = "Linked"
+	}
+	identity {
+		type = "SystemAssigned"
+	}
+	}
+`, r.basic(data))
 }
 
 func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
@@ -250,8 +270,8 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	resource_group_name = azurerm_resource_group.test.name
 	location            = azurerm_resource_group.test.location
 	datadog_organization_properties {
-		api_key = ""
-		application_key = ""
+		api_key = "XXX"
+		application_key = "XXX"
 		enterprise_app_id = ""
 		linking_auth_code = ""
 		linking_client_id = ""

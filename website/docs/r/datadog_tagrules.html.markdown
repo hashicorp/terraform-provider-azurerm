@@ -12,7 +12,7 @@ Manages TagRules on the datadog Monitor.
 
 ## Example Usage
 
-### Creating new monitor
+### Adding TagRules on monitor
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-datadog"

@@ -12,30 +12,6 @@ Manages a datadog Monitor.
 
 ## Example Usage
 
-### Creating new monitor
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-datadog"
-  location = "West US 2"
-}
-
-resource "azurerm_datadog_monitor" "example" {
-  name                = "example-monitor"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-   user_info {
-    name          = "Example"
-    email_address = "abc@xyz.com"
-  }
-  sku {
-    name = "payg_v2_Monthly"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-```
-
 ###  Monitor creation with linking to Datadog organization
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -82,7 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `datadog_organization_properties` - (Optional) A `datadog_organization_properties` block as defined below.
+* `datadog_organization_properties` - (Required) A `datadog_organization_properties` block as defined below.
 
 * `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
 
@@ -92,9 +68,9 @@ The following arguments are supported:
 
 A `datadog_organization_properties` block exports the following:
 
-* `api_key` - (Optional) Api key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
+* `api_key` - (Required) Api key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
 
-* `application_key` - (Optional) Application key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
+* `application_key` - (Required) Application key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
 
 * `enterprise_app_id` - (Optional) The ID of the enterprise_app.
 
@@ -136,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `liftr_resource_category` - .
+* `liftr_resource_category` - The catogory of resource logs flowing.
 
 * `liftr_resource_preference` - The priority of the resource.
 
