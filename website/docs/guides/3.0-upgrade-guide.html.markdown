@@ -196,7 +196,7 @@ When the resource can be provisioned across multiple Zones, the following behavi
 
 * `azurerm_database_migration_service` - The provider will now delete this resource even if it still contains running tasks.
 * `azurerm_iothub` - When creating a new `azurerm_iothub` resource, a Fallback Route will be enabled by default.
-* `azurerm_mssql_database` - The new field `transparent_data_encryption_enabled` will be set to `true` and can not be disabled on servers with SKUs other than ones starting with `DW`.
+* `azurerm_mssql_database` - TheTestAccMySQLServer_createReplica new field `transparent_data_encryption_enabled` will be set to `true` and can not be disabled on servers with SKUs other than ones starting with `DW`.
 * `azurerm_storage_share` - The `quota` property is now required instead of defaulting to `5120` GB. 
 
 ## Removal of Deprecated Fields, Data Sources and Resources
