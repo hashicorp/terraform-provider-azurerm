@@ -109,7 +109,7 @@ func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presense of existing %s: %+v", iotConnectorId, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", iotConnectorId, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
