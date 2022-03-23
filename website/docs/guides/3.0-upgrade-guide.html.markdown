@@ -1109,6 +1109,18 @@ The fields `availability_zone` and `zones` will be consolidated into `zones`.
 
 The deprecated field `sku_name` will be removed since this property can no longer be specified on create/update.
 
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_purview_account" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
 ### Resource: `azurerm_redis_cache`
 
 The default value for the field `minimum_tls_version` will change from `1.0` to `1.2`.
