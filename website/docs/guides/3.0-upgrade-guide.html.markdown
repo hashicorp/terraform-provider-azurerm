@@ -1160,6 +1160,10 @@ The resource `azurerm_template_deployment` will be deprecated in favour of the `
 
 The `azurerm_security_center_assessment_metadata` resource will be removed in favour of the renamed `azurerm_security_center_assessment_policy` resource.
 
+### Resource: `azurerm_security_center_server_vulnerability_assessment`
+
+This resource is now deprecated and will be removed in v4.0 of the AzureRM Provider - use the `azurerm_security_center_server_vulnerability_assessment_virtual_machine` resource instead.
+
 ### Resource: `azurerm_sentinel_alert_rule_ms_security_incident`
 
 The deprecated field `text_whitelist` will be removed in favour of the `display_name_filter` property.
