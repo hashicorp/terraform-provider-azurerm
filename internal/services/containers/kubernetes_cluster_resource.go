@@ -236,43 +236,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:         pluginsdk.TypeList,
-						Optional:     true,
-						ExactlyOneOf: []string{"identity", "service_principal"},
-						MaxItems:     1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(containerservice.ResourceIdentityTypeSystemAssigned),
-										string(containerservice.ResourceIdentityTypeUserAssigned),
-									}, false),
-								},
-								"user_assigned_identity_id": {
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: msivalidate.UserAssignedIdentityID,
-									Optional:     true,
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.SystemOrUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
@@ -2672,31 +2636,6 @@ func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []i
 }
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*containerservice.ManagedClusterIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 || input[0] == nil {
-			return &containerservice.ManagedClusterIdentity{
-				Type: containerservice.ResourceIdentityTypeNone,
-			}, nil
-		}
-
-		values := input[0].(map[string]interface{})
-
-		if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
-			userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
-				values["user_assigned_identity_id"].(string): {},
-			}
-
-			return &containerservice.ManagedClusterIdentity{
-				Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
-				UserAssignedIdentities: userAssignedIdentities,
-			}, nil
-		}
-
-		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.ResourceIdentityType(values["type"].(string)),
-		}, nil
-	}
-
 	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -2920,44 +2859,6 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 }
 
 func flattenClusterIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		// if it's none, omit the block
-		if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-			return &[]interface{}{}, nil
-		}
-
-		identity := make(map[string]interface{})
-
-		identity["principal_id"] = ""
-		if input.PrincipalID != nil {
-			identity["principal_id"] = *input.PrincipalID
-		}
-
-		identity["tenant_id"] = ""
-		if input.TenantID != nil {
-			identity["tenant_id"] = *input.TenantID
-		}
-
-		identity["user_assigned_identity_id"] = ""
-		if input.UserAssignedIdentities != nil {
-			keys := []string{}
-			for key := range input.UserAssignedIdentities {
-				keys = append(keys, key)
-			}
-			if len(keys) > 0 {
-				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
-				if err != nil {
-					return nil, err
-				}
-				identity["user_assigned_identity_id"] = parsedId.ID()
-			}
-		}
-
-		identity["type"] = string(input.Type)
-
-		return &[]interface{}{identity}, nil
-	}
-
 	var transform *identity.SystemOrUserAssignedMap
 
 	if input != nil {

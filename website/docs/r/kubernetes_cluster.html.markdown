@@ -381,9 +381,9 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Kubernetes Cluster. At this time only a single value is supported. This must be specified when `type` is set to `UserAssigned`.
 
 ---
 

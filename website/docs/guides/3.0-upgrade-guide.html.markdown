@@ -878,6 +878,8 @@ The deprecated field `private_link_enabled` will be removed in favour of the `pr
 
 The deprecated block `role_based_access_control` will be removed in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control`.
 
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 ### Resource: `azurerm_kubernetes_cluster_node_pool`
 
 The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
