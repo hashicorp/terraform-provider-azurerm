@@ -32,6 +32,10 @@ provider "azurerm" {
       recover_soft_deleted_api_managements = true
     }
 
+    application_insights {
+      disable_generated_rule = false
+    }
+
     cognitive_account {
       purge_soft_delete_on_destroy = true
     }
@@ -74,6 +78,8 @@ The `features` block supports the following:
 
 * `api_management` - (Optional) An `api_management` block as defined below.
 
+* `application_insights` - (Optional) An `application_insights` block as defined below.
+
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
@@ -95,6 +101,12 @@ The `api_management` block supports the following:
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 * `recover_soft_deleted_api_managements` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+
+---
+
+The `application_insights` block supports the following:
+
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule and Action Group during the create step? Defaults to `false`.
 
 ---
 

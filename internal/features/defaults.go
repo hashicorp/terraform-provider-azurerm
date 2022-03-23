@@ -7,6 +7,9 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		ApplicationInsights: ApplicationInsightFeatures{
+			DisableGeneratedRule: false,
+		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},

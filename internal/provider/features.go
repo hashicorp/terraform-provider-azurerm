@@ -32,6 +32,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"application_insights": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disable_generated_rule": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
+
 		"cognitive_account": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -257,6 +271,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := apimRaw["recover_soft_deleted"]; ok {
 				featuresMap.ApiManagement.RecoverSoftDeleted = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["application_insights"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			applicationInsightsRaw := items[0].(map[string]interface{})
+			if v, ok := applicationInsightsRaw["disable_generated_rule"]; ok {
+				featuresMap.ApplicationInsights.DisableGeneratedRule = v.(bool)
 			}
 		}
 	}

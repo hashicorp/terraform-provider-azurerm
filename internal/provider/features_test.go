@@ -22,6 +22,9 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
 				},
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -64,6 +67,11 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
+						},
+					},
+					"application_insights": []interface{}{
+						map[string]interface{}{
+							"disable_generated_rule": true,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -124,6 +132,9 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
 				},
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: true,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -166,6 +177,11 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
+						},
+					},
+					"application_insights": []interface{}{
+						map[string]interface{}{
+							"disable_generated_rule": false,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -225,6 +241,9 @@ func TestExpandFeatures(t *testing.T) {
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,
+				},
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: false,
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
@@ -337,6 +356,71 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ApiManagement, testCase.Expected.ApiManagement) {
 			t.Fatalf("Expected %+v but got %+v", result.ApiManagement, testCase.Expected.ApiManagement)
+		}
+	}
+}
+
+func TestExpandFeaturesApplicationInsights(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"application_insights": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: false,
+				},
+			},
+		},
+		{
+			Name: "Disable Generated Rule",
+			Input: []interface{}{
+				map[string]interface{}{
+					"application_insights": []interface{}{
+						map[string]interface{}{
+							"disable_generated_rule": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: true,
+				},
+			},
+		},
+		{
+			Name: "Enable Generated Rule",
+			Input: []interface{}{
+				map[string]interface{}{
+					"application_insights": []interface{}{
+						map[string]interface{}{
+							"disable_generated_rule": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApplicationInsights: features.ApplicationInsightFeatures{
+					DisableGeneratedRule: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.ApplicationInsights, testCase.Expected.ApplicationInsights) {
+			t.Fatalf("Expected %+v but got %+v", result.ApplicationInsights, testCase.Expected.ApplicationInsights)
 		}
 	}
 }
