@@ -49,6 +49,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support for the `termination_notification` property [GH-14933]
 * `azurerm_linux_virtual_machine ` - support for the `edge_zone` property [GH-15890]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `edge_zone` property [GH-15890]
+* `azurerm_linux_web_app` - support for PHP version 8.0 [GH-15933]
 * `azurerm_loadbalancer` - support for the `edge_zone` property [GH-15890]
 * `azurerm_managed_disk` - support for the `edge_zone` property [GH-15890]
 * `azurerm_management_group_policy_assignment` - support for User Assigned Identities [GH-15376]
@@ -67,6 +68,7 @@ ENHANCEMENTS:
 * `azurerm_static_site` - the `identity` property now supports `SystemAssigned` and `UserAssigned` [GH-15834]
 * `azurerm_storage_account` - support for the `edge_zone` property [GH-15890]
 * `azurerm_storage_account` - the `min_tls_version` property now defaults to `1.2` [GH-10276]
+* `azurerm_storage_share` - `quota` is now required [GH-15982]
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
 * `azurerm_virtual_network` - support for the `edge_zone` property [GH-15890]
 * `azurerm_virtual_network_gateway` - support for the `edge_zone` property [GH-15890]
@@ -82,7 +84,6 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine` - support for the `termination_notification` property [GH-14933]
 * `azurerm_windows_virtual_machine` - support for the `edge_zone` property [GH-15890]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `edge_zone` property [GH-15890]
-
 
 BUG FIXES:
 
