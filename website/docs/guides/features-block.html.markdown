@@ -118,7 +118,7 @@ The `key_vault` block supports the following:
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 
