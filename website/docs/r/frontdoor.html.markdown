@@ -81,8 +81,6 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created.
 
-* `location` -  (Deprecated) The `location` argument is deprecated and is now always set to `global`.
-
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
