@@ -18,7 +18,6 @@ import (
 func PossibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpoint),
 		string(EventHubEndpointID),
 		string(HybridConnectionEndpoint),
 		string(HybridConnectionEndpointID),
@@ -75,13 +74,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
 					string(EventHubEndpointID),
-				),
-			),
-
-			"eventhub_endpoint": eventSubscriptionSchemaEventHubEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpoint),
 				),
 			),
 
@@ -298,10 +290,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("setting `eventhub_endpoint_id` for %s: %+v", *id, err)
-			}
-
-			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventhubEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `eventhub_endpoint` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {

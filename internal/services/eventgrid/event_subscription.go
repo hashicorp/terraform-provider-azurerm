@@ -22,8 +22,6 @@ type EventSubscriptionEndpointType string
 const (
 	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpoint ...
-	EventHubEndpoint EventSubscriptionEndpointType = "eventhub_endpoint"
 	// EventHubEndpointID ...
 	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
 	// HybridConnectionEndpoint ...
@@ -172,28 +170,6 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 		Computed:      true,
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  azure.ValidateResourceID,
-	}
-}
-
-func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	//lintignore:XS003
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
-		Deprecated:    "Deprecated in favour of `" + "eventhub_endpoint_id" + "`",
-		Optional:      true,
-		Computed:      true,
-		ConflictsWith: conflictsWith,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"eventhub_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
-		},
 	}
 }
 
