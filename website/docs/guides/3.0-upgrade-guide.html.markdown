@@ -1277,7 +1277,7 @@ The block `features` will be removed in favour of the `connectivity_logs_enabled
 
 ### Resource: `azurerm_sql_database`
 
-The deprecated field `use_server_default` will be removed since it is no longer used.
+The deprecated field `use_server_default` within the `threat_detection_policy` block will be removed since it is no longer used.
 
 The deprecated block `extended_auditing_policy` will be removed and replace by the `azurerm_mssql_database_extended_auditing_policy` resource.
 
@@ -1310,6 +1310,10 @@ The `type` field within the `identity` block now requires that the value `System
 The deprecated field `storage_account_name` will be removed in favour of the `storage_account_id` property.
 
 The deprecated field `resource_group_name` will be removed since it can be inferred from the `storage_account_id` property.
+
+### Resource: `azurerm_storage_blob_inventory_policy`
+
+The deprecated field `storage_container_name` will be removed as it is no longer functional.
 
 ### Resource: `azurerm_storage_management_policy`
 
