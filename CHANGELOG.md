@@ -1,8 +1,8 @@
-## 3.0.1 (Unreleased)
+## 3.0.1 (March 24, 2022)
 
 BUG FIXES:
 
-* provider: the `prevent_deletion_if_contains_resources` feature flag within the `resource_group` block now defaults to `true` [GH-16021]
+* provider: the `prevent_deletion_if_contains_resources` feature flag within the `resource_group` block now defaults to `true` ([#16021](https://github.com/hashicorp/terraform-provider-azurerm/issues/16021))
 
 ## 3.0.0 (March 24, 2022)
 
