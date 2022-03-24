@@ -65,6 +65,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"B0",
 					"S0",
+					"E0",
 				}, false),
 			},
 
