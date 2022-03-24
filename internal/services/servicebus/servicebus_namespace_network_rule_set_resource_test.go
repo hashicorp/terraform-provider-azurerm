@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceNetworkRuleSetResource struct {
-}
+type ServiceBusNamespaceNetworkRuleSetResource struct{}
 
 func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
@@ -175,7 +174,7 @@ resource "azurerm_subnet" "test" {
   name                 = "${azurerm_virtual_network.test.name}-default"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.17.0.0/24"
+  address_prefixes     = ["172.17.0.0/24"]
 
   service_endpoints = ["Microsoft.ServiceBus"]
 }

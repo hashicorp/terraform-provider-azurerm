@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbVirtualNetworkRuleResource struct {
-}
+type MariaDbVirtualNetworkRuleResource struct{}
 
 func TestAccMariaDbVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
@@ -127,7 +126,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -192,7 +191,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -200,7 +199,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -252,7 +251,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -260,7 +259,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -319,7 +318,7 @@ resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -327,7 +326,7 @@ resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.128/29"
+  address_prefixes     = ["10.7.29.128/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -335,7 +334,7 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet2.name
-  address_prefix       = "10.1.29.0/29"
+  address_prefixes     = ["10.1.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 

@@ -109,7 +109,7 @@ func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.SignalR.Client.Get(ctx, *id)
+	resp, err := clients.SignalR.SignalRClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

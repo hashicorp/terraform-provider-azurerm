@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RedisLinkedServerResource struct {
-}
+type RedisLinkedServerResource struct{}
 
 func TestAccRedisLinkedServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")

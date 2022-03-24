@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,6 +32,9 @@ func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
 }
 
 func TestAccStorageAccountNetworkRules_id(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skipf("Test does not apply on 3.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
@@ -182,7 +187,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -199,8 +204,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
@@ -209,7 +213,6 @@ resource "azurerm_storage_account_network_rules" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-// TODO: Remove in 3.0
 func (r StorageAccountNetworkRulesResource) id(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -232,7 +235,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -280,7 +283,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -288,7 +291,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -305,8 +308,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.2", "127.0.0.3"]
@@ -340,8 +342,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   bypass                     = ["None"]
@@ -368,8 +369,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   bypass                     = ["None"]
@@ -396,8 +396,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
@@ -453,8 +452,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action = "Deny"
   ip_rules       = ["127.0.0.1"]

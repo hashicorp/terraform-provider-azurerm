@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFirewallRuleResource struct {
-}
+type MySQLFirewallRuleResource struct{}
 
 func TestAccMySQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_firewall_rule", "test")

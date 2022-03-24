@@ -62,6 +62,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_internet_security": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

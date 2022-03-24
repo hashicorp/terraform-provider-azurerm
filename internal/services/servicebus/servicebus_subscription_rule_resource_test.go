@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusSubscriptionRuleResource struct {
-}
+type ServiceBusSubscriptionRuleResource struct{}
 
 func TestAccServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")

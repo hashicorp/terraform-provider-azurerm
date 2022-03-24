@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type LogicAppWorkflowDataSource struct {
-}
+type LogicAppWorkflowDataSource struct{}
 
 func TestAccLogicAppWorkflowDataSource_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")

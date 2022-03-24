@@ -738,7 +738,8 @@ func flattenTokenRestriction(input *media.ContentKeyPolicyTokenRestriction) ([]i
 			"primary_x509_token_key_raw":         x509TokenBodyRaw,
 			"primary_rsa_token_key_exponent":     rsaTokenKeyExponent,
 			"primary_rsa_token_key_modulus":      rsaTokenKeyModulus,
-		}}, nil
+		},
+	}, nil
 }
 
 func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPolicyConfiguration, error) {

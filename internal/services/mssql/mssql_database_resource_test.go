@@ -62,7 +62,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Geo"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -161,6 +161,9 @@ func TestAccMsSqlDatabase_BC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
+	// Limited regional availability for BC
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bc(data),
@@ -244,7 +247,7 @@ func TestAccMsSqlDatabase_createPITRMode(t *testing.T) {
 
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			Config:    r.createPITRMode(data),
+			Config:    r.createPITRMode(data, time.Now().Add(time.Duration(9)*time.Minute).UTC().Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mssql_database.pitr").ExistsInAzure(r),
 			),
@@ -454,10 +457,10 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccountTypeLRS(data),
+			Config: r.storageAccountTypeLocal(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 			),
 		},
 		data.ImportStep("sample_name"),
@@ -698,7 +701,7 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skipf("This test runs only on 3.0")
 	}
 
@@ -726,7 +729,7 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skipf("This test runs only on 3.0")
 	}
 
@@ -1014,7 +1017,7 @@ resource "azurerm_mssql_database" "copy" {
 `, r.complete(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData, restorePointInTime string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1026,7 +1029,7 @@ resource "azurerm_mssql_database" "pitr" {
   creation_source_database_id = azurerm_mssql_database.test.id
 
 }
-`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
+`, r.basic(data), data.RandomInteger, restorePointInTime)
 }
 
 func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData, tag string) string {
@@ -1289,7 +1292,7 @@ resource "azurerm_mssql_database" "restore" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) storageAccountTypeLocal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1297,7 +1300,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_mssql_server.test.id
 
-  storage_account_type = "LRS"
+  storage_account_type = "Local"
 }
 `, r.template(data), data.RandomInteger)
 }

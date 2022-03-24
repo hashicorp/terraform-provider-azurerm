@@ -1,24 +1,26 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/geographichierarchies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/profiles"
 )
 
 type Client struct {
-	GeographialHierarchiesClient *trafficmanager.GeographicHierarchiesClient
-	EndpointsClient              *trafficmanager.EndpointsClient
-	ProfilesClient               *trafficmanager.ProfilesClient
+	GeographialHierarchiesClient *geographichierarchies.GeographicHierarchiesClient
+	EndpointsClient              *endpoints.EndpointsClient
+	ProfilesClient               *profiles.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	endpointsClient := endpoints.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&endpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	geographialHierarchiesClient := trafficmanager.NewGeographicHierarchiesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	geographialHierarchiesClient := geographichierarchies.NewGeographicHierarchiesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&geographialHierarchiesClient.Client, o.ResourceManagerAuthorizer)
 
-	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	profilesClient := profiles.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VPNGatewayNatRuleResource struct {
-}
+type VPNGatewayNatRuleResource struct{}
 
 func TestAccVpnGatewayNatRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_nat_rule", "test")

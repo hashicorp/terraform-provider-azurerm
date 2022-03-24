@@ -294,8 +294,8 @@ func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]
 	m := make([]batchDataplane.EnvironmentSetting, 0, len(input))
 	for k, v := range input {
 		m = append(m, batchDataplane.EnvironmentSetting{
-			Name:  &k,
-			Value: &v,
+			Name:  utils.String(k),
+			Value: utils.String(v),
 		})
 	}
 	return &m

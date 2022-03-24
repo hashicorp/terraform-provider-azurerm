@@ -39,7 +39,6 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_rule" "example" {
-  resource_group_name            = azurerm_resource_group.example.name
   loadbalancer_id                = azurerm_lb.example.id
   name                           = "LBRule"
   protocol                       = "Tcp"
@@ -54,7 +53,6 @@ resource "azurerm_lb_rule" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the LB Rule.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration to which the rule is associated.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Tcp`, `Udp` or `All`.

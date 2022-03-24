@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +30,7 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"deployment_id": {
 				Type:     pluginsdk.TypeString,
@@ -51,7 +52,7 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"notifications": {
 				Type:     pluginsdk.TypeList,
@@ -203,7 +204,7 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 			Computed: true,
 		},
 
-		"location": azure.SchemaLocationForDataSource(),
+		"location": commonschema.ResourceGroupNameForDataSource(),
 
 		"service_status": {
 			Type:     pluginsdk.TypeString,
@@ -241,10 +242,7 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
-	if resp.Location == nil {
-		return fmt.Errorf("reading Domain Service %q: location was returned nil", d.Id())
-	}
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DomainServiceProperties; props != nil {
 		d.Set("deployment_id", props.DeploymentID)

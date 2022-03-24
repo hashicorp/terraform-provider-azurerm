@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceVirtualNetworkSwiftConnectionResource struct {
-}
+type AppServiceVirtualNetworkSwiftConnectionResource struct{}
 
 func TestAccAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
@@ -160,7 +159,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctestSubnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "acctestdelegation"
@@ -176,7 +175,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestSubnet2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "acctestdelegation"
@@ -269,7 +268,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "acctestdelegation"

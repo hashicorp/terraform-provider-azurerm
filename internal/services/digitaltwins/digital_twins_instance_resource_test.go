@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DigitalTwinsInstanceResource struct {
-}
+type DigitalTwinsInstanceResource struct{}
 
 func TestAccDigitalTwinsInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")

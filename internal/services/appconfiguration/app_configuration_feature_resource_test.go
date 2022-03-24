@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppConfigurationFeatureResource struct {
-}
+type AppConfigurationFeatureResource struct{}
 
 func TestAccAppConfigurationFeature_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
@@ -138,6 +137,10 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 	}
 
 	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+	if client == nil {
+		// if the AppConfiguration is gone all the data is too
+		return utils.Bool(false), nil
+	}
 	if err != nil {
 		return nil, err
 	}

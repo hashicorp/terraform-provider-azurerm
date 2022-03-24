@@ -42,23 +42,12 @@ func resourceManagementGroup() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"name"},
-				Deprecated:    "Deprecated in favour of `name`",
-				ValidateFunc:  validate.ManagementGroupName,
-			},
-
 			"name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"group_id"},
-				ValidateFunc:  validate.ManagementGroupName,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"display_name": {
@@ -96,9 +85,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
 	var groupName string
-	if v := d.Get("group_id"); v != "" {
-		groupName = v.(string)
-	}
 	if v := d.Get("name"); v != "" {
 		groupName = v.(string)
 	}
@@ -123,8 +109,8 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
 		}
 	}
 
@@ -238,7 +224,6 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.Name)
-	d.Set("group_id", id.Name)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)

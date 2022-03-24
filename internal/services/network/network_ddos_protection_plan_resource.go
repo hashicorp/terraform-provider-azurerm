@@ -80,8 +80,8 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_ddos_protection_plan", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_ddos_protection_plan", id.ID())
 		}
 	}
 

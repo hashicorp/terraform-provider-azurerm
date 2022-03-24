@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestPolicyResource struct {
-}
+type DevTestPolicyResource struct{}
 
 func TestAccDevTestPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")

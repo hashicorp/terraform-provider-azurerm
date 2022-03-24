@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorScheduledQueryRulesLogResource struct {
-}
+type MonitorScheduledQueryRulesLogResource struct{}
 
 func TestAccMonitorScheduledQueryRules_LogToMetricActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")

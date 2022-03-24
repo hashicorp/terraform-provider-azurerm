@@ -18,8 +18,9 @@ data "azurerm_key_vault_secrets" "example" {
 }
 
 data "azurerm_key_vault_secret" "example" {
-  for_each = data.azurerm_key_vault_secrets.example.names
-  name     = each.key
+  for_each     = toset(data.azurerm_key_vault_secrets.example.names)
+  name         = each.key
+  key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 ```

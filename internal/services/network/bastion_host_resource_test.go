@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BastionHostResource struct {
-}
+type BastionHostResource struct{}
 
 func TestAccBastionHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
@@ -135,7 +134,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "192.168.1.224/27"
+  address_prefixes     = ["192.168.1.224/27"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -182,7 +181,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "192.168.1.224/27"
+  address_prefixes     = ["192.168.1.224/27"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -234,7 +233,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "192.168.1.224/27"
+  address_prefixes     = ["192.168.1.224/27"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -303,7 +302,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "192.168.1.224/27"
+  address_prefixes     = ["192.168.1.224/27"]
 }
 
 resource "azurerm_public_ip" "test" {

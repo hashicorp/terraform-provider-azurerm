@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -35,6 +37,8 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			_, err := parse.FunctionAppID(id)
 			return err
 		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -110,7 +114,6 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				},
 			},
 
-			// todo remove for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
@@ -150,7 +153,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"identity": schemaAppServiceIdentity(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"os_type": {
 				Type:     pluginsdk.TypeString,
@@ -175,26 +178,23 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
-				Type: pluginsdk.TypeString,
-				// Required: true, // Uncomment this in 3.0
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Computed:      true, // Remove this in 3.0
+				Computed:      true,
 				ForceNew:      true,
 				ValidateFunc:  storageValidate.StorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
 			"storage_account_access_key": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // Remove this in 3.0
-				// Required: true, // Uncomment this in 3.0
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.NoZeroValues,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
-			// TODO remove this in 3.0
 			"storage_connection_string": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -279,8 +279,8 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_function_app", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -356,8 +356,10 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -489,8 +491,10 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -736,7 +740,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)

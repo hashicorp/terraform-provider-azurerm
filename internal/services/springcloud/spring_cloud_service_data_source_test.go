@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SpringCloudServiceDataSource struct {
-}
+type SpringCloudServiceDataSource struct{}
 
 func TestAccDataSourceSpringCloudService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_spring_cloud_service", "test")

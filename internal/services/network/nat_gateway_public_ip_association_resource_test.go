@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NatGatewayPublicAssociationResource struct {
-}
+type NatGatewayPublicAssociationResource struct{}
 
 func TestAccNatGatewayPublicIpAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")

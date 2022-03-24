@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RelayNamespaceResource struct {
-}
+type RelayNamespaceResource struct{}
 
 func TestAccRelayNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")

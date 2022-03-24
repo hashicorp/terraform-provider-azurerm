@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubIPResource struct {
-}
+type VirtualHubIPResource struct{}
 
 func TestAccVirtualHubIP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
@@ -178,7 +177,7 @@ resource "azurerm_subnet" "test" {
   name                 = "RouteServerSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.1.0/24"
+  address_prefixes     = ["10.5.1.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

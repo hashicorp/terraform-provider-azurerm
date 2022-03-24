@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -39,482 +40,490 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: resourceNetworkConnectionMonitorSchema(),
+	}
+}
 
-			"network_watcher_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.NetworkWatcherID,
-			},
+func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"location": azure.SchemaLocation(),
+		"network_watcher_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: networkValidate.NetworkWatcherID,
+		},
 
-			"auto_start": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			},
+		"location": azure.SchemaLocation(),
 
-			"interval_in_seconds": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(30),
-				Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			},
+		"auto_start": {
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+		},
 
-			"source": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"virtual_machine_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-							AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
-						},
+		"interval_in_seconds": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(30),
+			Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+		},
 
-						"port": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.PortNumberOrZero,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-							AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
-						},
+		"source": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"virtual_machine_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
+					},
+
+					"port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.PortNumberOrZero,
+						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
 					},
 				},
 			},
+		},
 
-			"destination": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"virtual_machine_id": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ValidateFunc:  azure.ValidateResourceID,
-							ConflictsWith: []string{"destination.0.address"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-							AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-						},
+		"destination": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"virtual_machine_id": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						Computed:      true,
+						ValidateFunc:  azure.ValidateResourceID,
+						ConflictsWith: []string{"destination.0.address"},
+						Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
+					},
 
-						"address": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"destination.0.virtual_machine_id"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-							AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-						},
+					"address": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						Computed:      true,
+						ConflictsWith: []string{"destination.0.virtual_machine_id"},
+						Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
+					},
 
-						"port": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.PortNumber,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-							AtLeastOneOf: []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-						},
+					"port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.PortNumber,
+						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						AtLeastOneOf: []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
 					},
 				},
 			},
+		},
 
-			"endpoint": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"endpoint": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"address": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+					"address": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.Any(
+							validation.IsIPv4Address,
+							networkValidate.NetworkConnectionMonitorEndpointAddress,
+						),
+					},
+
+					"coverage_level": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.CoverageLevelAboveAverage),
+							string(network.CoverageLevelAverage),
+							string(network.CoverageLevelBelowAverage),
+							string(network.CoverageLevelDefault),
+							string(network.CoverageLevelFull),
+							string(network.CoverageLevelLow),
+						}, false),
+					},
+
+					"excluded_ip_addresses": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
 								validation.IsIPv4Address,
-								networkValidate.NetworkConnectionMonitorEndpointAddress,
+								validation.IsIPv6Address,
+								validation.IsCIDR,
 							),
 						},
+					},
 
-						"coverage_level": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.CoverageLevelAboveAverage),
-								string(network.CoverageLevelAverage),
-								string(network.CoverageLevelBelowAverage),
-								string(network.CoverageLevelDefault),
-								string(network.CoverageLevelFull),
-								string(network.CoverageLevelLow),
-							}, false),
-						},
+					"filter": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"item": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"address": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: azure.ValidateResourceID,
+											},
 
-						"excluded_ip_addresses": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.Any(
-									validation.IsIPv4Address,
-									validation.IsIPv6Address,
-									validation.IsCIDR,
-								),
-							},
-						},
-
-						"filter": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"item": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"address": {
-													Type:         pluginsdk.TypeString,
-													Optional:     true,
-													ValidateFunc: azure.ValidateResourceID,
-												},
-
-												"type": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
-													ValidateFunc: validation.StringInSlice([]string{
-														string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
-													}, false),
-												},
+											"type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
+												ValidateFunc: validation.StringInSlice([]string{
+													string(network.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
+												}, false),
 											},
 										},
 									},
+								},
 
-									"type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(network.ConnectionMonitorEndpointFilterTypeInclude),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.ConnectionMonitorEndpointFilterTypeInclude),
-										}, false),
-									},
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(network.ConnectionMonitorEndpointFilterTypeInclude),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.ConnectionMonitorEndpointFilterTypeInclude),
+									}, false),
 								},
 							},
 						},
+					},
 
-						"included_ip_addresses": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.Any(
-									validation.IsIPv4Address,
-									validation.IsIPv6Address,
-									validation.IsCIDR,
-								),
-							},
-						},
-
-						"target_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
+					"included_ip_addresses": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
-								computeValidate.VirtualMachineID,
-								logAnalyticsValidate.LogAnalyticsWorkspaceID,
-								networkValidate.SubnetID,
-								networkValidate.VirtualNetworkID,
+								validation.IsIPv4Address,
+								validation.IsIPv6Address,
+								validation.IsCIDR,
 							),
 						},
+					},
 
-						"target_resource_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.EndpointTypeAzureSubnet),
-								string(network.EndpointTypeAzureVM),
-								string(network.EndpointTypeAzureVNet),
-								string(network.EndpointTypeExternalAddress),
-								string(network.EndpointTypeMMAWorkspaceMachine),
-								string(network.EndpointTypeMMAWorkspaceNetwork),
-							}, false),
-						},
+					"target_resource_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.Any(
+							computeValidate.VirtualMachineID,
+							logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							networkValidate.SubnetID,
+							networkValidate.VirtualNetworkID,
+						),
+					},
 
-						// TODO 3.0 - remove this property
-						"virtual_machine_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: computeValidate.VirtualMachineID,
-							Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
-						},
+					"target_resource_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.EndpointTypeAzureSubnet),
+							string(network.EndpointTypeAzureVM),
+							string(network.EndpointTypeAzureVNet),
+							string(network.EndpointTypeExternalAddress),
+							string(network.EndpointTypeMMAWorkspaceMachine),
+							string(network.EndpointTypeMMAWorkspaceNetwork),
+						}, false),
 					},
 				},
 			},
+		},
 
-			"test_configuration": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"test_configuration": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ConnectionMonitorTestConfigurationProtocolTCP),
-								string(network.ConnectionMonitorTestConfigurationProtocolHTTP),
-								string(network.ConnectionMonitorTestConfigurationProtocolIcmp),
-							}, false),
-						},
+					"protocol": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.ConnectionMonitorTestConfigurationProtocolTCP),
+							string(network.ConnectionMonitorTestConfigurationProtocolHTTP),
+							string(network.ConnectionMonitorTestConfigurationProtocolIcmp),
+						}, false),
+					},
 
-						"http_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"method": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(network.HTTPConfigurationMethodGet),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.HTTPConfigurationMethodGet),
-											string(network.HTTPConfigurationMethodPost),
-										}, false),
-									},
+					"http_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"method": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(network.HTTPConfigurationMethodGet),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.HTTPConfigurationMethodGet),
+										string(network.HTTPConfigurationMethodPost),
+									}, false),
+								},
 
-									"path": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: networkValidate.NetworkConnectionMonitorHttpPath,
-									},
+								"path": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: networkValidate.NetworkConnectionMonitorHttpPath,
+								},
 
-									"port": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validate.PortNumber,
-									},
+								"port": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validate.PortNumber,
+								},
 
-									"prefer_https": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
+								"prefer_https": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
 
-									"request_header": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
+								"request_header": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
 
-												"value": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
+											"value": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 										},
 									},
+								},
 
-									"valid_status_code_ranges": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: networkValidate.NetworkConnectionMonitorValidStatusCodeRanges,
-										},
+								"valid_status_code_ranges": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: networkValidate.NetworkConnectionMonitorValidStatusCodeRanges,
 									},
 								},
 							},
 						},
+					},
 
-						"icmp_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"trace_route_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
+					"icmp_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"trace_route_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  true,
 								},
 							},
 						},
+					},
 
-						"preferred_ip_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.PreferredIPVersionIPv4),
-								string(network.PreferredIPVersionIPv6),
-							}, false),
-						},
+					"preferred_ip_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.PreferredIPVersionIPv4),
+							string(network.PreferredIPVersionIPv6),
+						}, false),
+					},
 
-						//lintignore:XS003
-						"success_threshold": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"checks_failed_percent": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(0, 100),
-									},
+					//lintignore:XS003
+					"success_threshold": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"checks_failed_percent": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(0, 100),
+								},
 
-									"round_trip_time_ms": {
-										Type:         pluginsdk.TypeFloat,
-										Optional:     true,
-										ValidateFunc: validation.FloatAtLeast(0),
-									},
+								"round_trip_time_ms": {
+									Type:         pluginsdk.TypeFloat,
+									Optional:     true,
+									ValidateFunc: validation.FloatAtLeast(0),
 								},
 							},
 						},
+					},
 
-						"tcp_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"port": {
-										Type:         pluginsdk.TypeInt,
-										Required:     true,
-										ValidateFunc: validate.PortNumber,
-									},
+					"tcp_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"port": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validate.PortNumber,
+								},
 
-									"trace_route_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
+								"trace_route_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  true,
+								},
 
-									"destination_port_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.DestinationPortBehaviorNone),
-											string(network.DestinationPortBehaviorListenIfAvailable),
-										}, false),
-									},
+								"destination_port_behavior": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.DestinationPortBehaviorNone),
+										string(network.DestinationPortBehaviorListenIfAvailable),
+									}, false),
 								},
 							},
 						},
+					},
 
-						"test_frequency_in_seconds": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      60,
-							ValidateFunc: validation.IntBetween(30, 1800),
-						},
+					"test_frequency_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      60,
+						ValidateFunc: validation.IntBetween(30, 1800),
 					},
 				},
 			},
+		},
 
-			"test_group": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
+		"test_group": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"destination_endpoints": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"destination_endpoints": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
+					"source_endpoints": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"source_endpoints": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
+					"test_configuration_names": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"test_configuration_names": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
 					},
 				},
 			},
-
-			// API accepts any value including empty string.
-			"notes": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"output_workspace_resource_ids": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-				},
-			},
-
-			"tags": tags.Schema(),
 		},
+
+		// API accepts any value including empty string.
+		"notes": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"output_workspace_resource_ids": {
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+			},
+		},
+
+		"tags": tags.Schema(),
 	}
+
+	if !features.ThreePointOhBeta() {
+		s := out["endpoint"].Elem.(*pluginsdk.Resource)
+		s.Schema["virtual_machine_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: computeValidate.VirtualMachineID,
+			Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
+		}
+	}
+
+	return out
 }
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -664,8 +673,10 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
-			return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
+		if !features.ThreePointOhBeta() {
+			if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
+				return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
+			}
 		}
 
 		result := network.ConnectionMonitorEndpoint{
@@ -715,9 +726,10 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			result.Type = network.EndpointType(endpointType.(string))
 		}
 
-		// TODO: remove in v3.0
-		if vmId := v["virtual_machine_id"]; vmId != "" {
-			result.ResourceID = utils.String(vmId.(string))
+		if !features.ThreePointOhBeta() {
+			if vmId := v["virtual_machine_id"]; vmId != "" {
+				result.ResourceID = utils.String(vmId.(string))
+			}
 		}
 
 		results = append(results, result)

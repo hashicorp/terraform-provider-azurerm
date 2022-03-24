@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MediaTransformResource struct {
-}
+type MediaTransformResource struct{}
 
 func TestAccMediaTransform_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")

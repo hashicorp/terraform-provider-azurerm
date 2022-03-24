@@ -1,10 +1,17 @@
 package kusto
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/kusto"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -32,7 +39,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_kusto_cluster_customer_managed_key":    resourceKustoClusterCustomerManagedKey(),
 		"azurerm_kusto_cluster_principal_assignment":    resourceKustoClusterPrincipalAssignment(),
 		"azurerm_kusto_database":                        resourceKustoDatabase(),
-		"azurerm_kusto_database_principal":              resourceKustoDatabasePrincipal(),
 		"azurerm_kusto_database_principal_assignment":   resourceKustoDatabasePrincipalAssignment(),
 		"azurerm_kusto_eventgrid_data_connection":       resourceKustoEventGridDataConnection(),
 		"azurerm_kusto_eventhub_data_connection":        resourceKustoEventHubDataConnection(),

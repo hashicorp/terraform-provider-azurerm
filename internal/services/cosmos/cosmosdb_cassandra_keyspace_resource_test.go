@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDbCassandraKeyspaceResource struct {
-}
+type CosmosDbCassandraKeyspaceResource struct{}
 
 func TestAccCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")

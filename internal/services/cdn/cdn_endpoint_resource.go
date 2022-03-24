@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -167,8 +168,8 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.ActionTypeAllow),
 								string(cdn.ActionTypeBlock),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"country_codes": {
 							Type:     pluginsdk.TypeList,
@@ -190,11 +191,11 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 					string(cdn.OptimizationTypeGeneralWebDelivery),
 					string(cdn.OptimizationTypeLargeFileDownload),
 					string(cdn.OptimizationTypeVideoOnDemandMediaStreaming),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
-			"host_name": {
+			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -431,7 +432,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.EndpointProperties; props != nil {
-		d.Set("host_name", props.HostName)
+		d.Set("fqdn", props.HostName)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)

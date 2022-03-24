@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTTimeSeriesInsightsReferenceDataSetResource struct {
-}
+type IoTTimeSeriesInsightsReferenceDataSetResource struct{}
 
 func TestAccIoTTimeSeriesInsightsReferenceDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")

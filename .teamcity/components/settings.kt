@@ -5,7 +5,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.0.3"
+var defaultTerraformCoreVersion = "1.1.5"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -14,7 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false)
+        "public" to LocationConfiguration("westeurope", "eastus2", "westus", false)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly
@@ -69,5 +69,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "springcloud" to testConfiguration(parallelism = 5),
 
         // Currently have a quota of 10 nodes, 3 nodes required per test
-        "vmware" to testConfiguration(parallelism = 3)
+        "vmware" to testConfiguration(parallelism = 3),
+
+        // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6")
 )

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkProfileResource struct {
-}
+type NetworkProfileResource struct{}
 
 func TestAccNetworkProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
@@ -137,7 +136,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "acctestdelegation-%d"
@@ -209,7 +208,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "acctestdelegation-%d"
@@ -265,7 +264,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "acctestdelegation-%d"

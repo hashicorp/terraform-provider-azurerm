@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -70,7 +71,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"identity": SystemAssignedUserAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -105,9 +106,9 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Expand(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	parameters := machinelearningservices.ComputeResource{
@@ -124,7 +125,6 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
-
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}
@@ -166,11 +166,13 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Flatten(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
-	d.Set("identity", identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	if props, ok := resp.Properties.AsSynapseSpark(); ok && props != nil {
 		if props.DisableLocalAuth != nil {

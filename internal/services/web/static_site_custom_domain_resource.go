@@ -80,7 +80,6 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 	log.Printf("[INFO] preparing arguments for AzureRM Static Site custom domain creation.")
 
 	staticSiteId, err := parse.StaticSiteID(d.Get("static_site_id").(string))
-
 	if err != nil {
 		return err
 	}
@@ -203,7 +202,6 @@ func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interf
 	log.Printf("[DEBUG] Deleting Static Site Custom Domain %q (resource group %q)", id.CustomDomainName, id.ResourceGroup)
 
 	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
-
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

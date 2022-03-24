@@ -58,6 +58,7 @@ func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccRedisEnterpriseCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}

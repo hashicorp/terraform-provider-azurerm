@@ -511,6 +511,7 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 		},
 	}
 }
+
 func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
 	if input == nil {
 		return nil

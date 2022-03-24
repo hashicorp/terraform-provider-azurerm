@@ -82,6 +82,21 @@ func TestAccAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceHybridConnection_useSendKeyDeclaredOnHybridConnection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
+	r := AppServiceHybridConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sendKeyDeclaredOnHybridConnection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r AppServiceHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.HybridConnectionID(state.ID)
 	if err != nil {
@@ -249,4 +264,75 @@ resource "azurerm_app_service_hybrid_connection" "test" {
   send_key_name       = "RootManageSharedAccessKey"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceHybridConnectionResource) sendKeyDeclaredOnHybridConnection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_resource_group" "relay" {
+  name     = "acctestRG-relay-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctest-ASP-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctest-AS-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-RN-%[2]d"
+  location            = azurerm_resource_group.relay.location
+  resource_group_name = azurerm_resource_group.relay.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                 = "acctest-RHC-%[2]d"
+  resource_group_name  = azurerm_resource_group.relay.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
+  user_metadata        = "metadatatest"
+}
+
+resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
+  name                   = "sendKey"
+  resource_group_name    = azurerm_resource_group.relay.name
+  hybrid_connection_name = azurerm_relay_hybrid_connection.test.name
+  namespace_name         = azurerm_relay_namespace.test.name
+
+  listen = true
+  send   = true
+  manage = false
+}
+
+resource "azurerm_app_service_hybrid_connection" "test" {
+  app_service_name    = azurerm_app_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  relay_id            = azurerm_relay_hybrid_connection.test.id
+  hostname            = "testhostname.azuretest"
+  port                = 443
+  send_key_name       = azurerm_relay_hybrid_connection_authorization_rule.test.name
+}
+`, data.Locations.Primary, data.RandomInteger)
 }

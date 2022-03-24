@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFlexibleServerConfigurationResource struct {
-}
+type MySQLFlexibleServerConfigurationResource struct{}
 
 func TestAccMySQLFlexibleServerConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
@@ -187,6 +186,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
+  zone                   = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

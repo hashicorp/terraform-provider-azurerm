@@ -30,29 +30,23 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_topic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_servicebus_subscription"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  max_delivery_count  = 1
+  name               = "tfex_servicebus_subscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
-  name                = "tfex_servicebus_rule"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  subscription_name   = azurerm_servicebus_subscription.example.name
-  filter_type         = "SqlFilter"
-  sql_filter          = "colour = 'red'"
+  name            = "tfex_servicebus_rule"
+  subscription_id = azurerm_servicebus_subscription.example.id
+  filter_type     = "SqlFilter"
+  sql_filter      = "colour = 'red'"
 }
 ```
 

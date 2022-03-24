@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ServiceBusQueueDataSource struct {
-}
+type ServiceBusQueueDataSource struct{}
 
 func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")
@@ -43,9 +42,8 @@ func (ServiceBusQueueDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_servicebus_queue" "test" {
-  name                = azurerm_servicebus_queue.test.name
-  namespace_name      = azurerm_servicebus_queue.test.namespace_name
-  resource_group_name = azurerm_servicebus_queue.test.resource_group_name
+  name         = azurerm_servicebus_queue.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, ServiceBusQueueResource{}.basic(data))
 }

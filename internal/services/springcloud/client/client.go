@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -14,6 +14,7 @@ type Client struct {
 	MonitoringSettingsClient *appplatform.MonitoringSettingsClient
 	DeploymentsClient        *appplatform.DeploymentsClient
 	ServicesClient           *appplatform.ServicesClient
+	StoragesClient           *appplatform.StoragesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,6 +42,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	servicesClient := appplatform.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
+	storageClient := appplatform.NewStoragesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AppsClient:               &appsClient,
 		BindingsClient:           &bindingsClient,
@@ -50,5 +54,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		DeploymentsClient:        &deploymentsClient,
 		MonitoringSettingsClient: &monitoringSettingsClient,
 		ServicesClient:           &servicesClient,
+		StoragesClient:           &storageClient,
 	}
 }

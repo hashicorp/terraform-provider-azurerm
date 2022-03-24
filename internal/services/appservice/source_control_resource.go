@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct{}
+type SourceControlResource struct{}
 
-type AppServiceSourceControlModel struct {
+type SourceControlModel struct {
 	AppID                     string                      `tfschema:"app_id"`
 	SCMType                   string                      `tfschema:"scm_type"`
 	RepoURL                   string                      `tfschema:"repo_url"`
@@ -30,15 +30,16 @@ type AppServiceSourceControlModel struct {
 	GithubActionConfiguration []GithubActionConfiguration `tfschema:"github_action_configuration"`
 }
 
-var _ sdk.Resource = AppServiceSourceControlResource{}
+var _ sdk.Resource = SourceControlResource{}
 
-func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schema {
+func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppID,
+			Description:  "The ID of the Windows or Linux Web App.",
 		},
 
 		"repo_url": {
@@ -50,6 +51,7 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{
 				"branch",
 			},
+			Description: "The URL for the repository.",
 		},
 
 		"branch": {
@@ -61,6 +63,7 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{
 				"repo_url",
 			},
+			Description: "The branch name to use for deployments.",
 		},
 
 		"use_local_git": {
@@ -77,60 +80,66 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 				"use_mercurial",
 				"rollback_enabled",
 			},
+			Description: "Should the App use local Git configuration.",
 		},
 
 		"use_manual_integration": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Defaults to `false`.",
 		},
 
 		"github_action_configuration": githubActionConfigSchema(),
 
 		"use_mercurial": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "The repository specified is Mercurial. Defaults to `false`.",
 		},
 
 		"rollback_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "Should the Deployment Rollback be enabled? Defaults to `false`.",
 		},
 	}
 }
 
-func (r AppServiceSourceControlResource) Attributes() map[string]*pluginsdk.Schema {
+func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scm_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The SCM Type in use. This value is decoded by the service from the repository information supplied.",
 		},
 
 		"uses_github_action": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
 		},
 	}
 }
 
-func (r AppServiceSourceControlResource) ModelObject() interface{} {
-	return &AppServiceSourceControlModel{}
+func (r SourceControlResource) ModelObject() interface{} {
+	return &SourceControlModel{}
 }
 
-func (r AppServiceSourceControlResource) ResourceType() string {
+func (r SourceControlResource) ResourceType() string {
 	return "azurerm_app_service_source_control" // TODO - Does this name fit the new convention?
 }
 
-func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
+func (r SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var appSourceControl AppServiceSourceControlModel
+			var appSourceControl SourceControlModel
 
 			if err := metadata.Decode(&appSourceControl); err != nil {
 				return err
@@ -208,7 +217,7 @@ func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
+func (r SourceControlResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -239,15 +248,15 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 
 			props := *appSourceControl.SiteSourceControlProperties
 
-			state := AppServiceSourceControlModel{
+			state := SourceControlModel{
 				AppID:                     id.ID(),
 				SCMType:                   string(siteConfig.ScmType),
 				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
 				Branch:                    utils.NormalizeNilableString(props.Branch),
-				ManualIntegration:         *props.IsManualIntegration,
-				UseMercurial:              *props.IsMercurial,
-				RollbackEnabled:           *props.DeploymentRollbackEnabled,
-				UsesGithubAction:          *props.IsGitHubAction,
+				ManualIntegration:         utils.NormaliseNilableBool(props.IsManualIntegration),
+				UseMercurial:              utils.NormaliseNilableBool(props.IsMercurial),
+				RollbackEnabled:           utils.NormaliseNilableBool(props.DeploymentRollbackEnabled),
+				UsesGithubAction:          utils.NormaliseNilableBool(props.IsGitHubAction),
 				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
 				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
 			}
@@ -257,7 +266,7 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) Delete() sdk.ResourceFunc {
+func (r SourceControlResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -287,7 +296,7 @@ func (r AppServiceSourceControlResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServiceSourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r SourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	// This is a meta resource with a 1:1 relationship with the service it's pointed at so we use the same ID
 	return validate.WebAppID
 }

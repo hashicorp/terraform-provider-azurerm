@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,9 +42,8 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, true),
-		// TODO: file a bug about this
-		DiffSuppressFunc: location.DiffSuppressFunc,
+		}, !features.ThreePointOhBeta()),
+		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 	}
 }
 
@@ -89,43 +88,47 @@ func hdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *pluginsdk.Re
 }
 
 func SchemaHDInsightsGateway() *pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		// NOTE: these are Required since if these aren't present you get a `500 bad request`
+		"username": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"password": {
+			Type:      pluginsdk.TypeString,
+			Required:  true,
+			Sensitive: true,
+			// Azure returns the key as *****. We'll suppress that here.
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return (new == d.Get(k).(string)) && (old == "*****")
+			},
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		s["enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "HDInsight doesn't support disabling gateway anymore",
+			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+				enabled := i.(bool)
+
+				if !enabled {
+					errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
+				}
+				return warnings, errors
+			},
+		}
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				// TODO 3.0: remove this attribute
-				"enabled": {
-					Type:       pluginsdk.TypeBool,
-					Optional:   true,
-					Default:    true,
-					Deprecated: "HDInsight doesn't support disabling gateway anymore",
-					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-						enabled := i.(bool)
-
-						if !enabled {
-							errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
-						}
-						return warnings, errors
-					},
-				},
-				// NOTE: these are Required since if these aren't present you get a `500 bad request`
-				"username": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-				},
-				"password": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					Sensitive: true,
-					// Azure returns the key as *****. We'll suppress that here.
-					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-						return (new == d.Get(k).(string)) && (old == "*****")
-					},
-				},
-			},
+			Schema: s,
 		},
 	}
 }
@@ -479,13 +482,15 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 		password = d.Get("gateway.0.password").(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":  enabled,
-			"username": username,
-			"password": password,
-		},
+	out := map[string]interface{}{
+		"username": username,
+		"password": password,
 	}
+	if !features.ThreePointOhBeta() {
+		out["enabled"] = enabled
+	}
+
+	return []interface{}{out}
 }
 
 func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
@@ -612,6 +617,12 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"storage_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
@@ -670,6 +681,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerID := v["storage_container_id"].(string)
+		storageResourceID := v["storage_resource_id"].(string)
 		isDefault := v["is_default"].(bool)
 
 		uri, err := url.Parse(storageContainerID)
@@ -678,10 +690,11 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		}
 
 		result := hdinsight.StorageAccount{
-			Name:      utils.String(uri.Host),
-			Container: utils.String(strings.TrimPrefix(uri.Path, "/")),
-			Key:       utils.String(storageAccountKey),
-			IsDefault: utils.Bool(isDefault),
+			Name:       utils.String(uri.Host),
+			ResourceID: utils.String(storageResourceID),
+			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
+			Key:        utils.String(storageAccountKey),
+			IsDefault:  utils.Bool(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -741,8 +754,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.NodeDefinitionVMSize(),
+			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
@@ -790,15 +803,17 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
 		}
 
-		// TODO 3.0: remove this property
-		result["min_instance_count"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
-			ValidateFunc: countValidation,
+		if !features.ThreePointOhBeta() {
+			result["min_instance_count"] = &pluginsdk.Schema{
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
+				ValidateFunc: countValidation,
+			}
 		}
+
 		result["target_instance_count"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -982,9 +997,11 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		minInstanceCount := v["min_instance_count"].(int)
-		if minInstanceCount > 0 {
-			role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
+		if !features.ThreePointOhBeta() {
+			minInstanceCount := v["min_instance_count"].(int)
+			if minInstanceCount > 0 {
+				role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
+			}
 		}
 
 		targetInstanceCount := v["target_instance_count"].(int)
@@ -1170,11 +1187,13 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		output["min_instance_count"] = 0
 		output["target_instance_count"] = 0
 
-		if input.MinInstanceCount != nil {
-			output["min_instance_count"] = int(*input.MinInstanceCount)
+		if !features.ThreePointOhBeta() {
+			output["min_instance_count"] = 0
+			if input.MinInstanceCount != nil {
+				output["min_instance_count"] = int(*input.MinInstanceCount)
+			}
 		}
 
 		if input.TargetInstanceCount != nil {

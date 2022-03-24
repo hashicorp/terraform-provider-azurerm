@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,7 +123,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -138,7 +139,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -292,6 +293,7 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
 func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) string {
 	return r.template(data, "Standard_D3_v2", 3)
 }
+
 func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
 	return r.template(data, "Standard_DS2_v2", 1)
 }
@@ -347,7 +349,8 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 
 func (r InferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -364,6 +367,31 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   cluster_purpose               = "DevTest"
   identity {
     type = "SystemAssigned,UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomIntOfLength(8))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_machine_learning_inference_cluster" "test" {
+  name                          = "AIC-%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "DevTest"
+  identity {
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -438,7 +466,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[7]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -531,7 +559,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   enforce_private_link_endpoint_network_policies = true
-  address_prefix                                 = "10.1.0.0/24"
+  address_prefixes                               = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

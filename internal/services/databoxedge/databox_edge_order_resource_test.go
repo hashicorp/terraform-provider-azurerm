@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataboxEdgeOrderResource struct {
-}
+type DataboxEdgeOrderResource struct{}
 
 func TestAccDataboxEdgeOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceCustomHostnameBindingResource struct {
-}
+type ServiceCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceCustomHostnameBinding(t *testing.T) {
 	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"
@@ -241,8 +240,8 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import"]
   }
 }
 

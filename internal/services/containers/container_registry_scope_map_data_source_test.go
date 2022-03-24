@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ContainerRegistryScopeMapDataSource struct {
-}
+type ContainerRegistryScopeMapDataSource struct{}
 
 func TestAccDataSourceContainerRegistryScopeMap_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_scope_map", "test")

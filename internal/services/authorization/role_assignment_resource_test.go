@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -131,6 +132,10 @@ func TestAccRoleAssignment_custom(t *testing.T) {
 // delegatedManagedIdentityResourceID is used in a cross tenant scenario.
 // users should set up lighthouse delegation first and then use managing tenant SP to run this test.
 func TestAccRoleAssignment_delegatedManagedIdentityResourceID(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
+
 	if os.Getenv("HAS_LIGHTHOUSE_DELEGATION_SETUP") == "" {
 		t.Skip("Skipping as HAS_LIGHTHOUSE_DELEGATION_SETUP is not specified")
 		return

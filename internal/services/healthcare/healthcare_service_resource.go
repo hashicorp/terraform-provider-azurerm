@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,11 +54,11 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(healthcareapis.Fhir),
+				Default:  string(healthcareapis.KindFhir),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(healthcareapis.Fhir),
-					string(healthcareapis.FhirR4),
-					string(healthcareapis.FhirStu3),
+					string(healthcareapis.KindFhir),
+					string(healthcareapis.KindFhirR4),
+					string(healthcareapis.KindFhirStu3),
 				}, false),
 			},
 
@@ -127,7 +127,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -140,7 +141,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -161,7 +163,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 									"PUT",
 								}, false),
 							},
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -170,7 +173,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -178,7 +182,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 						"allow_credentials": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							AtLeastOneOf: []string{
+								"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 								"cors_configuration.0.allow_credentials",
 							},
@@ -241,9 +246,9 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	if !publicNetworkAccess {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Disabled
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
 	} else {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessEnabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, healthcareServiceDescription)
@@ -306,7 +311,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
-		if props.PublicNetworkAccess == healthcareapis.Enabled {
+		if props.PublicNetworkAccess == healthcareapis.PublicNetworkAccessEnabled {
 			d.Set("public_network_access_enabled", true)
 		} else {
 			d.Set("public_network_access_enabled", false)

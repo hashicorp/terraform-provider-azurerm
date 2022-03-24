@@ -3,53 +3,8 @@ package helper
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func ExtendedAuditingSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
-		MaxItems:   1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"storage_account_access_key": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"storage_endpoint": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.IsURLWithHTTPS,
-				},
-
-				"storage_account_access_key_is_secondary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
-
-				"retention_in_days": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 3285),
-				},
-
-				"log_monitoring_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-			},
-		},
-	}
-}
 
 func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 {
@@ -73,43 +28,6 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	}
 
 	return &ExtendedServerBlobAuditingPolicyProperties
-}
-
-func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
-	if extendedServerBlobAuditingPolicy == nil || extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
-		return []interface{}{}
-	}
-	var storageEndpoint, storageAccessKey string
-	// storage_account_access_key will not be returned, so we transfer the schema value
-	if v, ok := d.GetOk("extended_auditing_policy.0.storage_account_access_key"); ok {
-		storageAccessKey = v.(string)
-	}
-	if extendedServerBlobAuditingPolicy.StorageEndpoint != nil {
-		storageEndpoint = *extendedServerBlobAuditingPolicy.StorageEndpoint
-	}
-
-	var secondKeyInUse bool
-	if extendedServerBlobAuditingPolicy.IsStorageSecondaryKeyInUse != nil {
-		secondKeyInUse = *extendedServerBlobAuditingPolicy.IsStorageSecondaryKeyInUse
-	}
-	var retentionDays int32
-	if extendedServerBlobAuditingPolicy.RetentionDays != nil {
-		retentionDays = *extendedServerBlobAuditingPolicy.RetentionDays
-	}
-	var monitor bool
-	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
-		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"storage_account_access_key":              storageAccessKey,
-			"storage_endpoint":                        storageEndpoint,
-			"storage_account_access_key_is_secondary": secondKeyInUse,
-			"retention_in_days":                       retentionDays,
-			"log_monitoring_enabled":                  monitor,
-		},
-	}
 }
 
 func ExpandAzureRmSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {

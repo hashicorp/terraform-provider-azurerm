@@ -22,7 +22,6 @@ func TestManagementGroupTemplateDeploymentID(t *testing.T) {
 		Error    bool
 		Expected *ManagementGroupTemplateDeploymentId
 	}{
-
 		{
 			// empty
 			Input: "",

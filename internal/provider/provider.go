@@ -134,7 +134,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public.",
 			},
 
 			"metadata_host": {
@@ -142,14 +142,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
-			},
-
-			"metadata_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: remove in 3.0
-				Deprecated:  "use `metadata_host` instead",
-				Description: "Deprecated - replaced by `metadata_host`.",
 			},
 
 			// Client Certificate specific fields
@@ -234,12 +226,26 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
+		p.Schema["metadata_url"] = &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Deprecated:  "use `metadata_host` instead",
+			Description: "Deprecated - replaced by `metadata_host`.",
+		}
+
 		p.Schema["skip_credentials_validation"] = &schema.Schema{
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
 			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
+		}
+
+		p.Schema["use_msal"] = &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
+			DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
 		}
 	}
 
@@ -258,17 +264,20 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.FromErr(fmt.Errorf("The provider only supports 3 auxiliary tenant IDs"))
+			return nil, diag.Errorf("The provider only supports 3 auxiliary tenant IDs")
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
-		// TODO: remove in 3.0
-		// note: this is inline to avoid calling out deprecations for users not setting this
-		if v := d.Get("metadata_url").(string); v != "" {
-			metadataHost = v
-		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
-			metadataHost = v
+		if !features.ThreePointOhBeta() {
+			// note: this is inline to avoid calling out deprecations for users not setting this
+			if v := d.Get("metadata_url").(string); v != "" {
+				metadataHost = v
+			} else if v := os.Getenv("ARM_METADATA_HOSTNAME"); v != "" {
+				metadataHost = v
+			}
 		}
+
+		useMsal := features.ThreePointOhBeta() || d.Get("use_msal").(bool)
 
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
@@ -291,11 +300,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			// Doc Links
 			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
+
+			// MSAL opt-in
+			UseMicrosoftGraph: useMsal,
 		}
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("building AzureRM Client: %s", err))
+			return nil, diag.Errorf("building AzureRM Client: %s", err)
 		}
 
 		terraformVersion := p.TerraformVersion
@@ -315,6 +327,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+			UseMSAL:                     useMsal,
 
 			// this field is intentionally not exposed in the provider block, since it's only used for
 			// platform level tracing
@@ -339,16 +352,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// requests. This also lets us check if the provider credentials are correct.
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
-				return nil, diag.FromErr(fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+				return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err))
+					"error: %s", err)
 			}
 
 			availableResourceProviders := providerList.Values()
 			requiredResourceProviders := resourceproviders.Required()
 
 			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
-				return nil, diag.FromErr(fmt.Errorf(resourceProviderRegistrationErrorFmt, err))
+				return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 			}
 		}
 

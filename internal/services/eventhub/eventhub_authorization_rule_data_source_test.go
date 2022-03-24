@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EventHubAuthorizationRuleDataSource struct {
-}
+type EventHubAuthorizationRuleDataSource struct{}
 
 func TestAccEventHubAuthorizationRuleDataSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")

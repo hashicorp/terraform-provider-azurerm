@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTCentralApplicationResource struct {
-}
+type IoTCentralApplicationResource struct{}
 
 func TestAccIoTCentralApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")

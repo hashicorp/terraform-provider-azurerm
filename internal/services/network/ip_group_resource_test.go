@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IPGroupResource struct {
-}
+type IPGroupResource struct{}
 
 func TestAccIpGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")

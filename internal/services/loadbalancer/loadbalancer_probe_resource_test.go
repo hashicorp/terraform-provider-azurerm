@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LoadBalancerProbe struct {
-}
+type LoadBalancerProbe struct{}
 
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
@@ -223,10 +222,9 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -261,7 +259,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "probe-%[1]d"
   port                = 22
@@ -277,10 +274,9 @@ func (r LoadBalancerProbe) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_probe" "import" {
-  name                = azurerm_lb_probe.test.name
-  loadbalancer_id     = azurerm_lb_probe.test.loadbalancer_id
-  resource_group_name = azurerm_lb_probe.test.resource_group_name
-  port                = 22
+  name            = azurerm_lb_probe.test.name
+  loadbalancer_id = azurerm_lb_probe.test.loadbalancer_id
+  port            = 22
 }
 `, template)
 }
@@ -315,17 +311,15 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
 }
 
 resource "azurerm_lb_probe" "test2" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 80
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
@@ -360,17 +354,15 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
 }
 
 resource "azurerm_lb_probe" "test2" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 8080
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 8080
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
@@ -405,12 +397,11 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  protocol            = "Http"
-  request_path        = "/"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  protocol        = "Http"
+  request_path    = "/"
+  port            = 80
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -445,11 +436,10 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  protocol            = "Tcp"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  protocol        = "Tcp"
+  port            = 80
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

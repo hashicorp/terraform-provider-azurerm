@@ -128,8 +128,8 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_batch_certificate", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_batch_certificate", id.ID())
 		}
 	}
 	certificateProperties := batch.CertificateCreateOrUpdateProperties{

@@ -5,8 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -19,6 +23,8 @@ func dataSourceFunctionApp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceFunctionAppRead,
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app` data source has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
@@ -30,9 +36,9 @@ func dataSourceFunctionApp() *pluginsdk.Resource {
 				ValidateFunc: webValidate.AppServiceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -126,28 +132,7 @@ func dataSourceFunctionApp() *pluginsdk.Resource {
 
 			"source_control": schemaAppServiceSiteSourceControlDataSource(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": tags.Schema(),
 		},
@@ -210,9 +195,7 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)
@@ -245,7 +228,11 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+	flattenedIdentity, err := flattenFunctionAppDataSourceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -265,4 +252,29 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenFunctionAppDataSourceIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedList
+
+	if input != nil {
+		config = &identity.SystemAndUserAssignedList{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			config.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			config.TenantId = *input.TenantID
+		}
+
+		userAssignedIdentityIds := make([]string, 0)
+		for k := range input.UserAssignedIdentities {
+			userAssignedIdentityIds = append(userAssignedIdentityIds, k)
+		}
+		config.IdentityIds = userAssignedIdentityIds
+	}
+
+	return identity.FlattenSystemAndUserAssignedList(config)
 }

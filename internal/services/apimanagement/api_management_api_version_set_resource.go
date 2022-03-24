@@ -24,8 +24,10 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 		Read:   resourceApiManagementApiVersionSetRead,
 		Update: resourceApiManagementApiVersionSetCreateUpdate,
 		Delete: resourceApiManagementApiVersionSetDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiVersionSetID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -101,8 +103,8 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_api_version_set", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_api_version_set", id.ID())
 		}
 	}
 

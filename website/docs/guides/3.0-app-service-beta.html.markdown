@@ -17,15 +17,27 @@ Whilst the existing App Service and Function App resources allow provisioning of
 This will be in the form of new, more targeted Data Sources and Resources covering both App Service and Function Apps, at the current time includes the following new Data Sources and Resources:
 
 * **New Data Source:** `azurerm_linux_web_app`
+* **New Data Source:** `azurerm_linux_function_app`
 * **New Data Source:** `azurerm_service_plan`
 * **New Data Source:** `azurerm_source_control_token`
 * **New Data Source:** `azurerm_windows_web_app`
+* **New Data Source:** `azurerm_windows_function_app`
 * **New Resource:** `azurerm_app_service_source_control`
+* **New Resource:** `azurerm_app_service_source_control_slot`
+* **New Resource:** `azurerm_function_app_active_slot`
+* **New Resource:** `azurerm_function_app_hybrid_connection`
 * **New Resource:** `azurerm_linux_function_app`
+* **New Resource:** `azurerm_linux_function_app_slot`
 * **New Resource:** `azurerm_linux_web_app`
+* **New Resource:** `azurerm_linux_web_app_slot`
 * **New Resource:** `azurerm_service_plan`
 * **New Resource:** `azurerm_source_control_token`
+* **New Resource:** `azurerm_web_app_active_slot`
+* **New Resource:** `azurerm_web_app_hybrid_connection`
+* **New Resource:** `azurerm_windows_function_app`
+* **New Resource:** `azurerm_windows_function_app_slot`
 * **New Resource:** `azurerm_windows_web_app`
+* **New Resource:** `azurerm_windows_web_app_slot`
 
 -> **Note:** These Data Sources/Resources behaviours may change as needed during the Beta, to represent these correctly in Terraform. In addition, more Data Sources and Resources will be added during the Beta.
 

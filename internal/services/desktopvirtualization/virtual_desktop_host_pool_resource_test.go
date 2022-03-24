@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolResource struct {
-}
+type VirtualDesktopHostPoolResource struct{}
 
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
@@ -86,10 +85,7 @@ func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -114,7 +110,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
@@ -136,7 +132,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
@@ -153,16 +149,6 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   maximum_sessions_allowed = 100
   preferred_app_group_type = "Desktop"
   custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
-
-  # Do not use timestamp() outside of testing due to https://github.com/hashicorp/terraform/issues/22461
-  registration_info {
-    expiration_date = timeadd(timestamp(), "48h")
-  }
-  lifecycle {
-    ignore_changes = [
-      registration_info,
-    ]
-  }
 
   tags = {
     Purpose = "Acceptance-Testing"

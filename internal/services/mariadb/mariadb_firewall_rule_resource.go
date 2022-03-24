@@ -87,8 +87,8 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mariadb_firewall_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mariadb_firewall_rule", id.ID())
 		}
 	}
 

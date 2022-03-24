@@ -83,6 +83,12 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"partition_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
@@ -120,10 +126,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
 		SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-	}
-
-	if v, ok := d.GetOk("eventhub_consumer_group_name"); ok {
-		eventHubDataSourceProps.ConsumerGroupName = utils.String(v.(string))
+		ConsumerGroupName:      utils.String(d.Get("eventhub_consumer_group_name").(string)),
 	}
 
 	props := streamanalytics.Input{
@@ -135,6 +138,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 				EventHubStreamInputDataSourceProperties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
+			PartitionKey:  utils.String(d.Get("partition_key").(string)),
 		},
 	}
 
@@ -197,6 +201,13 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		}
 
 		d.Set("eventhub_consumer_group_name", consumerGroupName)
+
+		partitionKey := ""
+		if v.PartitionKey != nil {
+			partitionKey = *v.PartitionKey
+		}
+
+		d.Set("partition_key", partitionKey)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTTimeSeriesInsightsEventSourceEventhubResource struct {
-}
+type IoTTimeSeriesInsightsEventSourceEventhubResource struct{}
 
 func TestAccIoTTimeSeriesInsightsEventSourceEventhub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_event_source_eventhub", "test")

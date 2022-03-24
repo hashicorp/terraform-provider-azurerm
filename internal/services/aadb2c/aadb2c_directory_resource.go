@@ -30,8 +30,10 @@ type AadB2cDirectoryModel struct {
 
 type AadB2cDirectoryResource struct{}
 
-var _ sdk.Resource = AadB2cDirectoryResource{}
-var _ sdk.ResourceWithUpdate = AadB2cDirectoryResource{}
+var (
+	_ sdk.Resource           = AadB2cDirectoryResource{}
+	_ sdk.ResourceWithUpdate = AadB2cDirectoryResource{}
+)
 
 func (r AadB2cDirectoryResource) ResourceType() string {
 	return "azurerm_aadb2c_directory"

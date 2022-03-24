@@ -100,6 +100,7 @@ func resourceSynapseSQLPoolWorkloadClassifier() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadClassifierClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

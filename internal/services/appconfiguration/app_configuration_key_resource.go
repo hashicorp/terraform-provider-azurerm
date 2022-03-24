@@ -20,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyResource struct {
-}
+type KeyResource struct{}
 
 var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
 
@@ -123,6 +122,9 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -203,6 +205,10 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				// if the parent AppConfiguration is gone, all the data will be too
+				return metadata.MarkAsGone(resourceID)
+			}
 			if err != nil {
 				return err
 			}
@@ -268,6 +274,9 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -327,6 +336,9 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -378,6 +390,7 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 	}
 }
+
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
 }

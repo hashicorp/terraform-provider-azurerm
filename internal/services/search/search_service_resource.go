@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -123,32 +125,7 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(search.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
@@ -183,7 +160,10 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkAccess = search.Disabled
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	expandedIdentity, err := expandSearchServiceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	properties := search.Service{
 		Location: utils.String(location),
@@ -196,8 +176,8 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
-		Identity: expandSearchServiceIdentity(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(t),
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -353,38 +333,31 @@ func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
 	return result
 }
 
-func expandSearchServiceIdentity(input []interface{}) *search.Identity {
-	if len(input) == 0 || input[0] == nil {
-		return &search.Identity{
-			Type: search.None,
-		}
+func expandSearchServiceIdentity(input []interface{}) (*search.Identity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := input[0].(map[string]interface{})
+
 	return &search.Identity{
-		Type: search.IdentityType(identity["type"].(string)),
-	}
+		Type: search.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
-func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
-	if identity == nil || identity.Type == search.None {
-		return make([]interface{}, 0)
+func flattenSearchServiceIdentity(input *search.Identity) []interface{} {
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transition.TenantId = *input.TenantID
+		}
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }

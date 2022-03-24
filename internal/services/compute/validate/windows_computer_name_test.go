@@ -67,7 +67,7 @@ func TestWindowsComputerName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := windowsComputerName(v.input, "computer_name", 100)
+		_, errors := windowsComputerName(v.input, "computer_name", 100, false)
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -127,6 +127,11 @@ func TestWindowsComputerNamePrefix(t *testing.T) {
 			// 10 chars
 			input:    "abcdefghij",
 			expected: false,
+		},
+		{
+			// dash suffix
+			input:    "abc-",
+			expected: true,
 		},
 	}
 

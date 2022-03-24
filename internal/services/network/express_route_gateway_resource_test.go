@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteGatewayResource struct {
-}
+type ExpressRouteGatewayResource struct{}
 
 func TestAccExpressRouteGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
@@ -161,7 +160,7 @@ resource "azurerm_virtual_hub" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_prefix      = "10.0.1.0/24"
+  address_prefixes    = ["10.0.1.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

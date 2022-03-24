@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ pluginsdk.StateUpgrade = DataFactoryV0ToV1{}
-var _ pluginsdk.StateUpgrade = DataFactoryV1ToV2{}
+var (
+	_ pluginsdk.StateUpgrade = DataFactoryV0ToV1{}
+	_ pluginsdk.StateUpgrade = DataFactoryV1ToV2{}
+)
 
 type DataFactoryV0ToV1 struct{}
 

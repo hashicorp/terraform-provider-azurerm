@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RelayNamespaceAuthorizationRuleResource struct {
-}
+type RelayNamespaceAuthorizationRuleResource struct{}
 
 func TestAccRelayNamespaceAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace_authorization_rule", "test")

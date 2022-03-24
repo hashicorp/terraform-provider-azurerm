@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceAssignmentDedicatedHostResource struct {
-}
+type MaintenanceAssignmentDedicatedHostResource struct{}
 
 func TestAccMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dedicated_host", "test")
