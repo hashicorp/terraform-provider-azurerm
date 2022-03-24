@@ -105,7 +105,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
+* `allow_nested_items_to_be_public` - Allow or disallow public access to all nested items in the storage account. Defaults to `true`.
 
 -> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
