@@ -1,4 +1,8 @@
-## 3.1.0 (Unreleased)
+## 3.0.1 (Unreleased)
+
+BUG FIXES:
+
+* provider: the `prevent_deletion_if_contains_resources` feature flag within the `resource_group` block now defaults to `true` [GH-16021]
 
 ## 3.0.0 (March 24, 2022)
 
