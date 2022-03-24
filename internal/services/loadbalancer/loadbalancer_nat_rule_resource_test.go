@@ -61,7 +61,29 @@ func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatRule_multipleRuleMapToBackendAddressPool(t *testing.T) {
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
