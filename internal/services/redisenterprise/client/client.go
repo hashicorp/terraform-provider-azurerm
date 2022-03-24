@@ -2,15 +2,13 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/databases"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
-	geoDatabase "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 )
 
 type Client struct {
-	Client            *redisenterprise.RedisEnterpriseClient
-	DatabaseClient    *databases.DatabasesClient
-	GeoDatabaseClient *geoDatabase.DatabasesClient
+	Client         *redisenterprise.RedisEnterpriseClient
+	DatabaseClient *databases.DatabasesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -20,12 +18,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	databaseClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
 
-	geoDatabaseClient := geoDatabase.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&geoDatabaseClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		Client:            &client,
-		DatabaseClient:    &databaseClient,
-		GeoDatabaseClient: &geoDatabaseClient,
+		Client:         &client,
+		DatabaseClient: &databaseClient,
 	}
 }
