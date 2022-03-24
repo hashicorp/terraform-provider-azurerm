@@ -78,8 +78,6 @@ The following arguments are supported:
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
-* `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
-* `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
 * `frontend_port` - (Optional) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
 * `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
 * `frontend_port_start` - (Optional) The port range start for the external endpoint. This property is used together with BackendAddressPool and FrontendPortRangeEnd. Individual inbound NAT rule port mappings will be created for each backend address from BackendAddressPool. Acceptable values range from 1 to 65534, inclusive.
