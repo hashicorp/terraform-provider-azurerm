@@ -33,7 +33,6 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 		}, importDataConnection(kusto.KindBasicDataConnectionKindEventHub)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			// TODO: confirm these
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),

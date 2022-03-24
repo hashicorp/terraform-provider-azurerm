@@ -710,7 +710,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_eventhub_namespace" "test" {
@@ -754,7 +754,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub1-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
   service_endpoints    = ["Microsoft.EventHub"]
 }
 
@@ -769,7 +769,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctsub2-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
   service_endpoints    = ["Microsoft.EventHub"]
 }
 

@@ -170,6 +170,32 @@ func TestAccWindowsFunctionAppSlot_withCustomContentShareElasticPremiumPlan(t *t
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_withAppSettingsUserSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettingsUserSettings(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUserSettingsUpdate(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // backup by plan type
 
 func TestAccWindowsFunctionAppSlot_withBackupElasticPremiumPlan(t *testing.T) {
@@ -576,13 +602,29 @@ func TestAccWindowsFunctionAppSlot_appStackDotNet6(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_appStackDotNet6Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionAppSlot_appStackNode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuStandardPlan, "14"),
+			Config: r.appStackNode(data, SkuStandardPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -598,7 +640,7 @@ func TestAccWindowsFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuStandardPlan, "12"),
+			Config: r.appStackNode(data, SkuStandardPlan, "~12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -606,7 +648,7 @@ func TestAccWindowsFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackNode(data, SkuStandardPlan, "14"),
+			Config: r.appStackNode(data, SkuStandardPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -864,6 +906,51 @@ resource "azurerm_windows_function_app_slot" "test" {
 }
 
 func (r WindowsFunctionAppSlotResource) appSettings(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) appSettingsUserSettings(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {}
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) appSettingsUserSettingsUpdate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1612,6 +1699,30 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
+func (r WindowsFunctionAppSlotResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      dotnet_version              = "%s"
+      use_dotnet_isolated_runtime = true
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
 func (r WindowsFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2087,6 +2198,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 

@@ -352,6 +352,21 @@ func TestAccWindowsVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherEdgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherEdgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -1577,6 +1592,44 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineResource) otherEdgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineResource) otherUserData(data acceptance.TestData, userData string) string {
 	return fmt.Sprintf(`
 %s
@@ -2732,7 +2785,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

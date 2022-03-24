@@ -272,15 +272,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// note: this is inline to avoid calling out deprecations for users not setting this
 			if v := d.Get("metadata_url").(string); v != "" {
 				metadataHost = v
-			} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+			} else if v := os.Getenv("ARM_METADATA_HOSTNAME"); v != "" {
 				metadataHost = v
 			}
 		}
 
-		useMsal := !features.ThreePointOhBeta()
-		if !features.ThreePointOhBeta() {
-			useMsal = d.Get("use_msal").(bool)
-		}
+		useMsal := features.ThreePointOhBeta() || d.Get("use_msal").(bool)
 
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),

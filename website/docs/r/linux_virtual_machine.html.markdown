@@ -27,10 +27,6 @@ Manages a Linux Virtual Machine.
 This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machines/linux directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/linux).
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -143,6 +139,8 @@ The following arguments are supported:
 -> In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
 
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine should exist. Changing this forces a new Linux Virtual Machine to be created.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 

@@ -17,7 +17,7 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_id": {
-			// TODO: should this become `key_vault_key_id` since that's what this is?
+			// TODO: 4.0 - should this become `key_vault_key_id` since that's what this is?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,

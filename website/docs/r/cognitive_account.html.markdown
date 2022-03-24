@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, and `P2`.
 
-* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
+* `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 A `network_acls` block supports the following:
 
-* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 

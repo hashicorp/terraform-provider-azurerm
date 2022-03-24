@@ -59,10 +59,6 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
-
-~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
-
 * `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
 * `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
@@ -80,14 +76,6 @@ The following arguments are supported:
 A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
-
----
-
-A `features` block supports the following:
-
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, `EnableLiveTrace` and `ServiceMode`.
-
-* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 

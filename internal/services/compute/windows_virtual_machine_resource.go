@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -27,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-// TODO: confirm locking as appropriate
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -160,6 +160,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					"dedicated_host_id",
 				},
 			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
@@ -460,10 +462,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Identity:         identity,
+		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -706,9 +709,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {

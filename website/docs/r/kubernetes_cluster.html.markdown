@@ -381,9 +381,9 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Kubernetes Cluster. At this time only a single value is supported. This must be specified when `type` is set to `UserAssigned`.
 
 ---
 
@@ -426,14 +426,6 @@ The `kubelet_identity` block supports the following:
 * `object_id` - (Required) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
 
 * `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically. 
-
----
-
-A `kube_dashboard` block supports the following:
-
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
-
-~> **Note:** This block is deprecated and will be removed in version 3.0 of the AzureRM Provider since Kube Dashboard is no longer supported on Kubernetes versions > 1.19.
 
 ---
 

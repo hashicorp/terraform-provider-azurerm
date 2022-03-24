@@ -281,16 +281,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
-							),
-							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
-						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -560,34 +550,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"connection_strings": {
@@ -1099,8 +1061,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_key", keys.PrimaryMasterKey)
 	d.Set("secondary_key", keys.SecondaryMasterKey)
-	d.Set("primary_master_key", keys.PrimaryMasterKey)
-	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1114,8 +1074,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
 	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

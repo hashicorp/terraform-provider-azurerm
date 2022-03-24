@@ -357,6 +357,21 @@ func TestAccVirtualNetworkGateway_customRoute(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGateway_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	gatewayName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -391,7 +406,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -462,7 +477,7 @@ resource "azurerm_subnet" "test" {
   name                 = "gatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -512,7 +527,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -562,7 +577,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "first" {
@@ -640,7 +655,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "first" {
@@ -752,7 +767,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -811,7 +826,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -870,7 +885,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -926,7 +941,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -976,7 +991,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1027,7 +1042,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1086,7 +1101,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1136,7 +1151,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1183,7 +1198,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1239,7 +1254,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1295,7 +1310,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1351,7 +1366,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1412,7 +1427,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "first" {
@@ -1498,7 +1513,7 @@ resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1538,4 +1553,62 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
+}
+
+func (VirtualNetworkGatewayResource) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "Basic"
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

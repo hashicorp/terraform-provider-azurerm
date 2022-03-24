@@ -114,19 +114,16 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_blob_encryption": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_file_encryption": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_https_traffic_only": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -325,7 +322,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_https_traffic_only": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

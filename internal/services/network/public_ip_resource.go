@@ -66,6 +66,9 @@ func resourcePublicIp() *pluginsdk.Resource {
 					}, false),
 				},
 
+				// Optional
+				"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 				"ip_version": {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
@@ -228,8 +231,9 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:     utils.String(id.Name),
-		Location: &location,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(sku),
 			Tier: network.PublicIPAddressSkuTier(sku_tier),
@@ -365,8 +369,8 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if features.ThreePointOhBeta() {
 		d.Set("zones", zones.Flatten(resp.Zones))

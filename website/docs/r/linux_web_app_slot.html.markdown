@@ -122,35 +122,35 @@ A `application_logs` block supports the following:
 
 ---
 
-A `application_stack` block supports the following:
+An `application_stack` block supports the following:
 
-* `docker_image` - (Optional) The Docker image reference, including repository host as needed. 
+* `docker_image` - (Optional) The Docker image reference, including repository host as needed.
 
-* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`
+* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1`, `5.0`, and `6.0`.
 
 * `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
-~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option. 
+~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`. 
+~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `10.1`, `10.6`, `10.4`, `10-lts`, `12-lts`, and `14-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, and `16-lts`. This property conflicts with `java_version`.
 
-~> **NOTE:** 10.x versions have been / are being deprecated so may cease to work for new resources in future and may be removed from the provider. 
+~> **NOTE:** 10.x versions have been / are being deprecated so may cease to work for new resources in future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values include `5.6`, `7.2`, `7.3`, and `7.4`.
+* `php_version` - (Optional) The version of PHP to run. Possible values include `7.4`, and `8.0`.
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `2.7`, `3.6`, `3.7`, and `3.8`. 
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, and `3.9`.
 
-* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.5` and `2.6`.
+* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 
 ---
 

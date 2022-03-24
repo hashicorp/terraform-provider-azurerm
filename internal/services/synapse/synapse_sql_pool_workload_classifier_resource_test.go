@@ -184,6 +184,9 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_sql_pool" "test" {
