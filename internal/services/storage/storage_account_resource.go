@@ -1291,7 +1291,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	accountKind := d.Get("account_kind").(string)
 
-	if accountKind == string(storage.KindBlobStorage) {
+	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorage) {
 		if storageType == string(storage.SkuNameStandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
