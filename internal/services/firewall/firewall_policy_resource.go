@@ -809,7 +809,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, !features.ThreePointOh()),
+									}, !features.ThreePointOhBeta()),
 									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 								},
 								"source_addresses": {

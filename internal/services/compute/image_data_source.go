@@ -7,9 +7,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -48,7 +48,7 @@ func dataSourceImage() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"zone_resilient": {
 				Type:     pluginsdk.TypeBool,
@@ -191,9 +191,7 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.SetId(id.ID())
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := img.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(img.Location))
 
 	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {

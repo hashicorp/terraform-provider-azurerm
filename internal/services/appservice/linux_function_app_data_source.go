@@ -28,8 +28,9 @@ type LinuxFunctionAppDataSourceModel struct {
 	ServicePlanId      string `tfschema:"service_plan_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
 
-	StorageAccountKey string `tfschema:"storage_account_access_key"`
-	StorageUsesMSI    bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageAccountKey       string `tfschema:"storage_account_access_key"`
+	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
 	AppSettings               map[string]string                    `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
@@ -81,7 +82,7 @@ func (d LinuxFunctionAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -104,6 +105,12 @@ func (r LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"storage_uses_managed_identity": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.",
 		},
 
 		"app_settings": {
@@ -383,7 +390,12 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
 
 		case "AzureWebJobsStorage":
-			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(")
+				m.StorageKeyVaultSecretID = trimmed
+			} else {
+				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			}
 
 		case "AzureWebJobsDashboard":
 			m.BuiltinLogging = true

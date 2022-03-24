@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
-* `streaming_ingest_enabled` - (Optional) Specifies if the streaming ingest is enabled.
+* `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 

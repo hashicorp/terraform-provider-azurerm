@@ -32,6 +32,8 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -67,8 +69,8 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 					"Linux",
 					"Windows",
 					"xenon",
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"sku": {

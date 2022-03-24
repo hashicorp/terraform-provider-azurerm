@@ -229,7 +229,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -237,7 +237,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.allowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("true"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -245,7 +245,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Config: r.disallowBlobPublicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
 			),
 		},
 	})
@@ -435,26 +435,6 @@ func TestAccStorageAccount_storageV1ToV2Update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccStorageAccount_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	r := StorageAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
 	})
 }
 
@@ -1125,6 +1105,16 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
+				check.That(data.ResourceName).Key("account_kind").HasValue("BlockBlobStorage"),
+			),
+		},
 	})
 }
 
@@ -1187,6 +1177,21 @@ func TestAccStorageAccount_customerManagedKeyRemoteKeyVault(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customerManagedKeyRemoteKeyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1456,10 +1461,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "production"
@@ -1484,10 +1489,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = false
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
 
   tags = {
     environment = "production"
@@ -1855,31 +1860,6 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageAccountResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "standard"
-  account_replication_type = "lrs"
 
   tags = {
     environment = "production"
@@ -2481,11 +2461,11 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
-  allow_blob_public_access  = true
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  enable_https_traffic_only       = true
+  allow_nested_items_to_be_public = true
 
   blob_properties {
     cors_rule {
@@ -3292,6 +3272,30 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) infrastructureEncryptionForBlockBlobStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                          = azurerm_resource_group.test.location
+  account_kind                      = "BlockBlobStorage"
+  account_tier                      = "Premium"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) infrastructureEncryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3345,7 +3349,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3372,7 +3375,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3436,7 +3439,7 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3514,7 +3517,7 @@ resource "azurerm_key_vault_key" "update" {
   key_vault_id = azurerm_key_vault.update.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.clientupdate,
@@ -3579,8 +3582,6 @@ resource "azurerm_storage_account" "test" {
 `, r.cmkTemplate(data), data.RandomString)
 }
 
-// This test spans 2 subscriptions to check that it's possible to use a CMK stored in a vault in a non-local subscription. This is temporarily making use of an extra providerfactory which will need to be removed after the move to plugin-sdk-go
-// TODO - review this config when plugin-sdk-go is implemented in the provider / test framework.
 func (r StorageAccountResource) customerManagedKeyRemoteKeyVault(data acceptance.TestData) string {
 	clientData := data.Client()
 	if !features.ThreePointOhBeta() {
@@ -3594,7 +3595,8 @@ provider "azurerm-alt" {
   tenant_id       = "%s"
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -3621,7 +3623,6 @@ resource "azurerm_key_vault" "remotetest" {
   resource_group_name      = azurerm_resource_group.remotetest.name
   tenant_id                = "%s"
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -3649,7 +3650,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3750,7 +3751,7 @@ resource "azurerm_key_vault_key" "remote" {
   key_vault_id = azurerm_key_vault.remotetest.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["Decrypt", "Encrypt", "Sign", "UnwrapKey", "Verify", "WrapKey"]
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -3785,4 +3786,33 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, clientData.SubscriptionIDAlt, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  edge_zone                = data.azurerm_extended_locations.test.extended_locations[0]
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -653,9 +653,9 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "abababa"
-  protocol            = "Tcp"
-  frontend_port       = 3389
-  backend_port        = 3389
+  protocol            = "All"
+  frontend_port       = 0
+  backend_port        = 0
   backend_address_pool_ids = [
     azurerm_lb_backend_address_pool.test.id,
   ]
@@ -695,9 +695,9 @@ resource "azurerm_lb_rule" "test" {
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "abababa"
-  protocol            = "Tcp"
-  frontend_port       = 3389
-  backend_port        = 3389
+  protocol            = "All"
+  frontend_port       = 0
+  backend_port        = 0
   backend_address_pool_ids = [
     azurerm_lb_backend_address_pool.test1.id,
     azurerm_lb_backend_address_pool.test2.id,

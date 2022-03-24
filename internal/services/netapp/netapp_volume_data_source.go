@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,6 +16,33 @@ import (
 )
 
 func dataSourceNetAppVolume() *pluginsdk.Resource {
+	dataProtectionReplicationSchema := map[string]*pluginsdk.Schema{
+		"endpoint_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"remote_volume_location": commonschema.LocationComputed(),
+
+		"remote_volume_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"replication_frequency": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		dataProtectionReplicationSchema["replication_schedule"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
+		}
+	}
+
 	return &pluginsdk.Resource{
 		Read: dataSourceNetAppVolumeRead,
 
@@ -31,7 +59,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -88,31 +116,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"endpoint_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"remote_volume_location": azure.SchemaLocationForDataSource(),
-
-						"remote_volume_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						// todo remove this in version 3.0 of the provider
-						"replication_schedule": {
-							Type:       pluginsdk.TypeString,
-							Computed:   true,
-							Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
-						},
-
-						"replication_frequency": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
+					Schema: dataProtectionReplicationSchema,
 				},
 			},
 		},
@@ -141,9 +145,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)

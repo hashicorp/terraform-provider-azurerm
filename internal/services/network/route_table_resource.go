@@ -82,7 +82,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 								string(network.RouteNextHopTypeInternet),
 								string(network.RouteNextHopTypeVirtualAppliance),
 								string(network.RouteNextHopTypeNone),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 

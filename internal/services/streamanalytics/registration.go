@@ -52,6 +52,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_stream_analytics_job":                     resourceStreamAnalyticsJob(),
+		"azurerm_stream_analytics_function_javascript_uda": resourceStreamAnalyticsFunctionUDA(),
 		"azurerm_stream_analytics_function_javascript_udf": resourceStreamAnalyticsFunctionUDF(),
 		"azurerm_stream_analytics_output_blob":             resourceStreamAnalyticsOutputBlob(),
 		"azurerm_stream_analytics_output_mssql":            resourceStreamAnalyticsOutputSql(),

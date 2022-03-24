@@ -255,7 +255,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -298,7 +298,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogAnalytics"
+    type        = "loganalytics"
     resource_id = azurerm_log_analytics_workspace.test.id
   }
 
@@ -361,7 +361,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type              = "EventHub"
+    type              = "eventHub"
     resource_id       = azurerm_eventhub.test.id
     connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
@@ -387,7 +387,7 @@ resource "azurerm_security_center_automation" "import" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -429,7 +429,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -486,7 +486,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -536,7 +536,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -598,7 +598,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -674,13 +674,13 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test2.id
     trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
   }
@@ -722,7 +722,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }

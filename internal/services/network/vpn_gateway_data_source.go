@@ -19,8 +19,6 @@ import (
 func dataSourceVPNGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceVPNGatewayRead,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

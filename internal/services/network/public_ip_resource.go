@@ -66,6 +66,9 @@ func resourcePublicIp() *pluginsdk.Resource {
 					}, false),
 				},
 
+				// Optional
+				"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 				"ip_version": {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
@@ -75,7 +78,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku": {
@@ -87,7 +90,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.PublicIPAddressSkuNameBasic),
 						string(network.PublicIPAddressSkuNameStandard),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"sku_tier": {
@@ -228,8 +231,9 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:     utils.String(id.Name),
-		Location: &location,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(sku),
 			Tier: network.PublicIPAddressSkuTier(sku_tier),
@@ -250,7 +254,6 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		zones := &[]string{"1", "2"}
 		zonesSet := false
-		// TODO - Remove in 3.0
 		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 			zonesSet = true
 			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
@@ -366,8 +369,8 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if features.ThreePointOhBeta() {
 		d.Set("zones", zones.Flatten(resp.Zones))

@@ -49,7 +49,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{2,23}$`),
+					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
 					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
 			},
 

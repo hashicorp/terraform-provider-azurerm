@@ -32,8 +32,12 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		// TODO: 3.0 - state migration to remove `/CMK` from the ID?
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LogAnalyticsClusterID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"log_analytics_cluster_id": {

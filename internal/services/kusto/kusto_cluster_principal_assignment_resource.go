@@ -22,8 +22,10 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 		Read:   resourceKustoClusterPrincipalAssignmentRead,
 		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterPrincipalAssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

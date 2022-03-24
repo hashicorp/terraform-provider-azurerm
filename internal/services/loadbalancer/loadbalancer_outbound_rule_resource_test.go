@@ -231,11 +231,11 @@ func (r LoadBalancerOutboundRule) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_lb_outbound_rule" "import" {
-  name                     = azurerm_lb_outbound_rule.test.name
-  resource_group_name      = azurerm_lb_outbound_rule.test.resource_group_name
-  loadbalancer_id          = azurerm_lb_outbound_rule.test.loadbalancer_id
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  protocol                 = "All"
+  name                    = azurerm_lb_outbound_rule.test.name
+  resource_group_name     = azurerm_lb_outbound_rule.test.resource_group_name
+  loadbalancer_id         = azurerm_lb_outbound_rule.test.loadbalancer_id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  protocol                = "All"
 
   frontend_ip_configuration {
     name = azurerm_lb_outbound_rule.test.frontend_ip_configuration[0].name

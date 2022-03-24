@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_sql_managed_instance_active_directory_administrator
 
-Allows you to set a user or group as the AD administrator for an Azure SQL Managed Instance
+Allows you to set a user or group as the AD administrator for an Azure SQL Managed Instance.
+
+-> **Note:** The `azurerm_sql_managed_instance_active_directory_administrator` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance_active_directory_administrator`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_instance_active_directory_administrator) resource instead.
 
 ## Example Usage
 

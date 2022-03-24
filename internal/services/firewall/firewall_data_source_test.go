@@ -125,6 +125,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"

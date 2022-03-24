@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Function App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -66,8 +64,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -98,11 +94,19 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
+
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`. 
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -130,7 +134,7 @@ A `application_stack` block supports the following:
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, and `14`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, and `16`.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
@@ -478,7 +482,7 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App.
 

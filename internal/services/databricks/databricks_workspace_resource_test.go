@@ -930,8 +930,8 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  public_network_access_enabled          = true
-  load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  public_network_access_enabled         = true
+  load_balancer_backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   custom_parameters {
     no_public_ip        = true
@@ -981,7 +981,7 @@ resource "azurerm_lb_outbound_rule" "test" {
   allocated_outbound_ports = 1024
   idle_timeout_in_minutes  = 4
 
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
     name = azurerm_lb.test.frontend_ip_configuration.0.name

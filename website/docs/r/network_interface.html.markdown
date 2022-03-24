@@ -64,6 +64,8 @@ The following arguments are supported:
 
 -> **Note:** Configuring DNS Servers on the Network Interface will override the DNS Servers defined on the Virtual Network.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Network Interface should exist. Changing this forces a new Network Interface to be created.
+
 * `enable_ip_forwarding` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
 
 * `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.

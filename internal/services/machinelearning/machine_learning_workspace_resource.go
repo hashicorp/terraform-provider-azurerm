@@ -145,9 +145,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ValidateFunc:     msiValidate.UserAssignedIdentityID,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -173,7 +174,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						out = append(out, "Enterprise")
 					}
 					return out
-				}(), !features.ThreePointOh()),
+				}(), !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

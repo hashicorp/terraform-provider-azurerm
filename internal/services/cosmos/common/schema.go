@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -103,16 +104,25 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
 				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					Default:          documentdb.IndexingModeConsistent,
-					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
-					ValidateFunc: validation.StringInSlice([]string{
-						"Consistent",
-						"None",
-					}, false),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						keys := []string{
+							string(documentdb.IndexingModeConsistent),
+							string(documentdb.IndexingModeNone),
+						}
+						if !features.ThreePointOhBeta() {
+							keys = []string{
+								"Consistent",
+								"None",
+							}
+
+						}
+						return validation.StringInSlice(keys, features.ThreePointOhBeta())
+					}(),
 				},
 
 				"included_path": {
@@ -203,17 +213,24 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
-							// todo: change to SDK constants and remove translation code in 3.0
 							"order": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice(
-									[]string{
-										"Ascending",
-										"Descending",
-									}, false),
+								ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+									keys := []string{
+										string(documentdb.CompositePathSortOrderAscending),
+										string(documentdb.CompositePathSortOrderDescending),
+									}
+									if !features.ThreePointOhBeta() {
+										keys = []string{
+											"Ascending",
+											"Descending",
+										}
+									}
+									return validation.StringInSlice(keys, features.ThreePointOhBeta())
+								}(),
 							},
 						},
 					},

@@ -82,7 +82,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.NamespaceTypeMessaging),
 					string(notificationhubs.NamespaceTypeNotificationHub),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -189,7 +189,6 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.NamespaceProperties; props != nil {
 		d.Set("enabled", props.Enabled)
-		d.Set("namespace_type", props.NamespaceType)
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 

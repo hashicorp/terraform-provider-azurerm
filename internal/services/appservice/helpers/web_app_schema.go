@@ -1117,10 +1117,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7", // TODO - Remove? 2.7 is available, but deprecated in the service
-						"3.6",
+						"2.7",
 						"3.7",
 						"3.8",
+						"3.9",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -2413,7 +2413,7 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 						string(web.ConnectionStringTypeServiceBus),
 						string(web.ConnectionStringTypeSQLAzure),
 						string(web.ConnectionStringTypeSQLServer),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 					Description:      "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
 				},

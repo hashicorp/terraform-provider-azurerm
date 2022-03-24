@@ -14,19 +14,17 @@ import (
 )
 
 func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceRedisEnterpriseDatabaseRead,
-
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+	s := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
+		"cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
+		},
 			// TODO: deprecate me
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
@@ -49,18 +47,31 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+	}
+
+	return &pluginsdk.Resource{
+		Read: dataSourceRedisEnterpriseDatabaseRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: s,
 	}
 }
 
@@ -94,7 +105,6 @@ func dataSourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta inter
 	d.SetId(id.ID())
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_id", clusterId.ID())
 
 	if model := resp.Model; model != nil {
@@ -111,6 +121,10 @@ func dataSourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta inter
 	if model := keysResp.Model; model != nil {
 		d.Set("primary_access_key", model.PrimaryKey)
 		d.Set("secondary_access_key", model.SecondaryKey)
+	}
+
+	if !features.FourPointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroupName)
 	}
 
 	return nil

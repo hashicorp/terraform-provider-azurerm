@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,12 +31,25 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: azValidate.TopicName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"namespace_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NamespaceID,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
 
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azValidate.NamespaceName,
+				Optional:     true,
+				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
+
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
 			"auto_delete_on_idle": {
@@ -100,8 +115,20 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
+
+	var resourceGroup string
+	var namespaceName string
+	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+		namespaceId, err := parse.NamespaceID(v)
+		if err != nil {
+			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+		}
+		resourceGroup = namespaceId.ResourceGroup
+		namespaceName = namespaceId.Name
+	} else {
+		resourceGroup = d.Get("resource_group_name").(string)
+		namespaceName = d.Get("namespace_name").(string)
+	}
 	id := parse.NewTopicID(subscriptionId, resourceGroup, namespaceName, name)
 
 	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)

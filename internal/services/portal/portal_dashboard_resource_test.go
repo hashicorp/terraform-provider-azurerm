@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -16,7 +17,11 @@ import (
 type PortalDashboardResource struct{}
 
 func TestAccPortalDashboard_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	resourceName := "azurerm_portal_dashboard"
+	if !features.ThreePointOhBeta() {
+		resourceName = "azurerm_dashboard"
+	}
+	data := acceptance.BuildTestData(t, resourceName, "test")
 	r := PortalDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +35,11 @@ func TestAccPortalDashboard_basic(t *testing.T) {
 }
 
 func TestAccPortalDashboard_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	resourceName := "azurerm_portal_dashboard"
+	if !features.ThreePointOhBeta() {
+		resourceName = "azurerm_dashboard"
+	}
+	data := acceptance.BuildTestData(t, resourceName, "test")
 	r := PortalDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,6 +67,11 @@ func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Clie
 }
 
 func (PortalDashboardResource) basic(data acceptance.TestData) string {
+	resourceName := "azurerm_portal_dashboard"
+	if !features.ThreePointOhBeta() {
+		resourceName = "azurerm_dashboard"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -68,7 +82,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "%s" "test" {
   name                 = "my-test-dashboard"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
@@ -105,10 +119,15 @@ resource "azurerm_dashboard" "test" {
 }
 DASH
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, resourceName)
 }
 
 func (PortalDashboardResource) complete(data acceptance.TestData) string {
+	resourceName := "azurerm_portal_dashboard"
+	if !features.ThreePointOhBeta() {
+		resourceName = "azurerm_dashboard"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +138,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "%s" "test" {
   name                = "my-test-dashboard"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -159,5 +178,5 @@ resource "azurerm_dashboard" "test" {
 }
 DASH
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, resourceName)
 }

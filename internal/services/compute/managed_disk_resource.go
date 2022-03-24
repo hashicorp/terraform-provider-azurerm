@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -84,6 +84,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					}, false),
 				},
 
+				"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 				"logical_sector_size": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
@@ -136,7 +138,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.OperatingSystemTypesWindows),
 						string(compute.OperatingSystemTypesLinux),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
@@ -464,9 +466,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createDisk := compute.Disk{
-		Name:           &name,
-		Location:       &location,
-		DiskProperties: props,
+		Name:             &name,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
+		DiskProperties:   props,
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
@@ -823,8 +826,9 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+
 	if features.ThreePointOhBeta() {
 		zone := ""
 		if resp.Zones != nil && len(*resp.Zones) > 0 {

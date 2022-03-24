@@ -90,7 +90,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameBasic),
 					string(redis.SkuNameStandard),
 					string(redis.SkuNamePremium),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

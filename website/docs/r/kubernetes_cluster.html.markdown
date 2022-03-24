@@ -94,6 +94,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
+* `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
+
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
@@ -140,10 +142,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `open_service_mesh_enabled` - (Optional) Is Open Service Mesh enabled? For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
 
--> **Note:** At this time Open Service Mesh is not supported in Azure US government or Azure China.
-
--> **Note:** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature).
-
 * `private_cluster_enabled` - (Optional) Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning. Changing this forces a new resource to be created.
@@ -154,7 +152,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
-`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
+`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
@@ -198,7 +196,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+* `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified. 
 
@@ -275,7 +273,7 @@ An `auto_scaler_profile` block supports the following:
 
 ---
 
-A `azure_active_directory` block supports the following:
+An `azure_active_directory_role_based_access_control` block supports the following:
 
 * `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
@@ -394,8 +392,6 @@ A `key_vault_secrets_provider` block supports the following:
 * `secret_rotation_enabled` - (Required) Is secret rotation enabled?
 
 * `secret_rotation_interval` - (Required) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
-
-~> **Note:** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -573,14 +569,6 @@ An `ingress_application_gateway` block supports the following:
 
 ---
 
-A `role_based_access_control` block supports the following:
-
-* `azure_active_directory` - (Optional) An `azure_active_directory` block.
-
-* `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
-
----
-
 A `service_principal` block supports the following:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
@@ -705,23 +693,15 @@ The following attributes are exported:
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
 
-~> **Note:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
-
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
-
-~> **Note:** To mark the whole of `kube_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive. 
 
 * `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
-* `http_application_routing` - A `http_application_routing` block as defined below.
-
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. 
-
-* `addon_profile` - An `addon_profile` block as defined below.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
 

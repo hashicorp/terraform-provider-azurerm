@@ -158,7 +158,7 @@ A `long_term_retention_policy` block supports the following:
 * `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
-* `week_of_year` - (Optional) The week of year to take the yearly backup in an ISO 8601 format. Value has to be between `1` and `52`.
+* `week_of_year` - (Required) The week of year to take the yearly backup. Value has to be between `1` and `52`.
 
 ---
 
