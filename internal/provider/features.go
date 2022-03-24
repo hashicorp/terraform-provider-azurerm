@@ -151,7 +151,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"relaxed_locking": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						Default:  false,
 					},
 				},
 			},
@@ -166,7 +165,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"delete_nested_items_during_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						Default:  false,
 					},
 				},
 			},
@@ -212,7 +210,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						Default:  false,
 					},
 					"scale_to_zero_before_deletion": {
 						Type:     pluginsdk.TypeBool,
