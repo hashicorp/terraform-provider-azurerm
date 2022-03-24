@@ -194,12 +194,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
-					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
-				),
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.IsCIDR,
+				},
 			},
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -593,7 +593,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	t := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	ipRangeFilter := utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -638,7 +638,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
@@ -735,7 +735,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	ipRangeFilter := utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -791,7 +791,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*ipRangeFilter),
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
