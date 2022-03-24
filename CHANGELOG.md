@@ -76,6 +76,7 @@ ENHANCEMENTS:
 * `azurerm_shared_image` - support for the `support_accelerated_network` property [GH-15562]
 * `azurerm_static_site` - the `identity` property now supports `SystemAssigned` and `UserAssigned` [GH-15834]
 * `azurerm_storage_account` - support for the `edge_zone` property [GH-15890]
+* `azurerm_storage_account` - `ZRS` is no longer supported when using `StorageV1` [GH-16004]
 * `azurerm_storage_account` - the `min_tls_version` property now defaults to `1.2` [GH-10276]
 * `azurerm_storage_share` - `quota` is now required [GH-15982]
 * `azurerm_subscription_policy_assignment` - support for User Assigned Identities [GH-15376]
@@ -128,7 +129,6 @@ BUG FIXES:
 * `azurerm_synapse_workspace_key` - keys can now be correctly rotated [GH-15897]
 * `azurerm_windows_function_app` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
 * `azurerm_windows_function_app_slot` - fixed update handling of `app_settings` for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-15907]
-
 
 ---
 
