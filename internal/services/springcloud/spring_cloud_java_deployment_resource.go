@@ -460,6 +460,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(appplatform.SupportedRuntimeValueJava8),
 				string(appplatform.SupportedRuntimeValueJava11),
+				string(appplatform.SupportedRuntimeValueJava17),
 			}, false),
 			Default: appplatform.SupportedRuntimeValueJava8,
 		},
