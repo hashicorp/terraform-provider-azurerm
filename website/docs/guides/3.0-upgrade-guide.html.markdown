@@ -217,6 +217,14 @@ The `azurerm_app_service` data source has been superseded by the `azurerm_linux_
 
 The `azurerm_app_service_plan` data source has been superseded by the `azurerm_service_plan` data source. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
 
+### Data Source: `azurerm_backup_policy_file_share`
+
+The field `tags` will be removed since the API no longer supports these on this resource.
+
+### Data Source: `azurerm_backup_policy_vm`
+
+The field `tags` will be removed since the API no longer supports these on this resource.
+
 ### Data Source: `azurerm_batch_pool`
 
 The deprecated field `start_task.environment` will be removed in favour of the `start_task.common_environment_properties` properties.
@@ -374,6 +382,18 @@ The `azurerm_app_service_source_control_token` resource has been superseded by t
 ### Resource: `azurerm_automation_schedule`
 
 The default value for the field `timezone` will be changed from `UTC` to `Etc/UTC`.
+
+### Resource: `azurerm_backup_policy_file_share`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_backup_policy_vm`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_backup_protected_vm`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_batch_pool`
 
@@ -964,6 +984,12 @@ The deprecated field `workspace_name` will be removed in favour of `workspace_id
 The deprecated field `linked_service_name` will be removed.
 
 The deprecated field `resource_id` will be removed in favour of `read_access_id`.
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_log_analytics_storage_insights`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
 
 ### Resource: `azurerm_log_analytics_workspace`
 
