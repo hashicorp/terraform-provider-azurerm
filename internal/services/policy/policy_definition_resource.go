@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,16 +53,14 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	mode := d.Get("mode").(string)
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
+
 	managementGroupName := ""
-
-	if !features.ThreePointOhBeta() {
-		if v, ok := d.GetOk("management_group_name"); ok {
-			managementGroupName = v.(string)
-		}
-	}
-
 	if v, ok := d.GetOk("management_group_id"); ok {
-		managementGroupName = v.(string)
+		id, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		if err != nil {
+			return err
+		}
+		managementGroupName = id.Name
 	}
 
 	if d.IsNewResource() {
@@ -174,9 +173,11 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	managementGroupName := ""
+	var managementGroupId mgmtGrpParse.ManagementGroupId
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupName = scopeId.ManagementGroupName
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
@@ -191,10 +192,10 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("management_group_id", managementGroupName)
 
-	if !features.ThreePointOhBeta() {
-		d.Set("management_group_name", managementGroupName)
+	d.Set("management_group_id", managementGroupName)
+	if managementGroupName != "" {
+		d.Set("management_group_id", managementGroupId.ID())
 	}
 
 	if props := resp.DefinitionProperties; props != nil {
