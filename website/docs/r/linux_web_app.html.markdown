@@ -299,11 +299,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Web App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Web App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -543,11 +545,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
 

@@ -57,7 +57,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Log Analytics Cluster. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Log Analytics Cluster. Only possible value is `SystemAssigned`.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Log Analytics Cluster has been created. More details are available below.
 
@@ -77,9 +77,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Log Analytics Cluster.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Log Analytics Cluster.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_log_analytics_cluster.example.identity.0.principal_id` and the Tenant ID via `azurerm_log_analytics_cluster.example.identity.0.tenant_id`
 

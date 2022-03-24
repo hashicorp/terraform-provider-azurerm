@@ -41,8 +41,8 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Firewall Policy to be created.
-
+* `identity` - (Optional) An `identity` block as defined below.
+* 
 * `insights` - (Optional) An `insights` block as defined below.
 
 * `intrusion_detection` - (Optional) A `intrusion_detection` block as defined below.
@@ -71,9 +71,9 @@ A `dns` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be assigned to this Firewall Policy. At this time the only supported value is `UserAssigned`. Changing this forces a new Firewall Policy to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Firewall Policy. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of Managed Identity IDs which should be assigned to this Firewall Policy.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Firewall Policy.
 
 ---
 

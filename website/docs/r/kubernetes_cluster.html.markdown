@@ -301,8 +301,6 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
 
-* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread. Changing this forces a new resource to be created.
-
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
@@ -377,13 +375,17 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
+
 ---
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Kubernetes Cluster. At this time only a single value is supported. This must be specified when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -709,11 +711,11 @@ A `nat_gateway_profile` block exports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The principal id of the system assigned identity which is used by main components.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by main components.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

@@ -238,11 +238,13 @@ The following arguments are supported:
 
 ---
 
-`identity` supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Container Registry. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Registry. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Container Registry.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Registry.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -269,15 +271,15 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Container Registry.
+* `identity` - An `identity` block as defined below.
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
 

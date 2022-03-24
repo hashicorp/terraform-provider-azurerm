@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Purview Account should exist. Changing this forces a new Purview Account to be created.
 
-* `identity` - (Required) An `identity` block as defined below. Changing this forces a new Purview Account to be created.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `name` - (Required) The name which should be used for this Purview Account. Changing this forces a new Purview Account to be created.
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 The `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity to assign to this Purview Account. At this time the only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Purview Account. Only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -79,11 +79,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

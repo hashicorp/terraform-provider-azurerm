@@ -175,7 +175,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the synapse Workspace should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
@@ -253,7 +253,7 @@ A `customer_managed_key` block supports the following:
 
 The `identity` block supports the following:
 
-* `type` - (Required) the Type of Managed Identity to assign to this Synapse Workspace. At this time the only supported value is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Synapse Workspace. Only possible value is `SystemAssigned`.
 
 ---
 
