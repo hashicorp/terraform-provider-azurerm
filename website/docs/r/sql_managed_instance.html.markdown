@@ -254,7 +254,7 @@ A `sku` block supports the following:
 
  An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. Only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

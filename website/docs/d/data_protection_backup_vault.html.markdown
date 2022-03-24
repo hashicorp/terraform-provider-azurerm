@@ -49,8 +49,6 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 ---
 
-`identity` exports the following:
-
 An `identity` block exports the following:
 
 * `type` - The type of Managed Service Identity that is configured on this Backup Vault.

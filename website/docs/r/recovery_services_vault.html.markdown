@@ -58,7 +58,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. Only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. The only possible value is `SystemAssigned`.
 
 ---
 

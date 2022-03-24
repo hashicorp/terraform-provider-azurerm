@@ -253,7 +253,7 @@ A `customer_managed_key` block supports the following:
 
 The `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Synapse Workspace. Only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Synapse Workspace. The only possible value is `SystemAssigned`.
 
 ---
 

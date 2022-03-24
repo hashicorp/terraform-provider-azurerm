@@ -42,7 +42,7 @@ The following arguments are supported:
 * `dns` - (Optional) A `dns` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
-* 
+
 * `insights` - (Optional) An `insights` block as defined below.
 
 * `intrusion_detection` - (Optional) A `intrusion_detection` block as defined below.

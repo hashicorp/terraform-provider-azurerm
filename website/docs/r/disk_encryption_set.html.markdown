@@ -116,7 +116,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Disk Encryption Set. Only possible value is `SystemAssigned`.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
