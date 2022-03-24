@@ -1230,19 +1230,6 @@ func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["eventhub_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
 func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
 	if input == nil {
 		return nil
@@ -1292,23 +1279,6 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 	}
 
 	return deliveryProperties
-}
-
-func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	hybridConnectionId := ""
-	if input.ResourceID != nil {
-		hybridConnectionId = *input.ResourceID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"hybrid_connection_id": hybridConnectionId,
-		},
-	}
 }
 
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {
